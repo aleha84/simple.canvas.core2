@@ -19,6 +19,26 @@ class Scene {
     }
 
     afterMainWork()
+
+    cycleWork() {
+        this.preMainWork();
+
+        var i = this.go.length;
+        while (i--) {
+            this.go[i].update(now);
+            this.go[i].render();
+    
+            if(SCG.frameCounter && this.go[i].renderPosition!=undefined){
+                SCG.frameCounter.visibleCount++;
+            }
+    
+            if(!this.go[i].alive){
+                var deleted = this.go.splice(i,1);
+            }
+        }
+
+        this.afterMainWork();
+    }
 }
 
 Scg.scenes = {
@@ -27,6 +47,8 @@ Scg.scenes = {
     selectScene: function(scene, sceneProperties){
         if(!scene)
             throw 'Cant select undefined scene';
+        if(this.activeScene)
+            this.activeScene.dispose(); //disposing current scene if exists
 
         if(scene instanceof Scene)
             this.activeScene = scene;
@@ -34,12 +56,11 @@ Scg.scenes = {
             this.activeScene = this.cachedScenes[scene];
 
         if(!this.activeScene)
-            throw 'No scene selected';
+            throw 'No scene selected';      
 
         this.activeScene.start();
-
     },
-    registerScene: function(scene) { 
+    cacheScene: function(scene) { //to reuse later
         if(!scene)
             throw "Can't register undefined scene";
         if(scene.name === undefined)

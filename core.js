@@ -11,6 +11,9 @@ window.SCG = {
         background: undefined,
         ui: undefined,
         others: {}
+    },
+    globals: {
+        parentId: undefined
     }
 };
 
