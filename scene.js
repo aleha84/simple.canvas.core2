@@ -3,6 +3,8 @@ class Scene {
         if(!props.name)
             throw "Can't create scene without name";
         
+        //todo add merge ?
+
         this.name = props.name;
         this.go = [];
         this.workplace = {};
@@ -41,7 +43,7 @@ class Scene {
     }
 }
 
-Scg.scenes = {
+SCG.scenes = {
     activeScene: undefined,
     cachedScenes: {},
     selectScene: function(scene, sceneProperties){

@@ -1,4 +1,5 @@
 window.SCG = {
+    src: {},
     images: {},
     canvases: {
         main: undefined,

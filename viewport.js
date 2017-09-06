@@ -1,12 +1,9 @@
 SCG.viewport = {
-    logical: {
-        width: 0,
-        height: 0
-    },
-    real: {
-        width: 0,
-        height: 0
-    },
+    logical: new Box,
+    real: new Box,
     scale: 1,
-    zoom: 1
+    zoom: 1,
+    graphInit() {
+        
+    }
 }
