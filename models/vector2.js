@@ -200,4 +200,4 @@ class Vector2 {
     }
 }
 
-SCG.V2 = Vector2;
+var V2 = Vector2;
