@@ -1,5 +1,5 @@
 class Box {
-    constructor(topleft = new V2, size = new V2, renderProps = new RenderProperties){
+    constructor(topleft = new V2, size = new V2(1, 1), renderProps = new RenderProperties){
         if(!(size instanceof V2) || size.equal(new V2))
             throw 'Wrong box size';
 

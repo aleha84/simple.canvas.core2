@@ -1,13 +1,18 @@
 class Scene {
-    constructor(props){
+    constructor(props = {}){
         if(!props.name)
             throw "Can't create scene without name";
+        
+        props = Object.assign({
+            viewport: new V2(500, 300)
+        }, props);
         
         //todo add merge ?
 
         this.name = props.name;
         this.go = [];
         this.workplace = {};
+        this.viewport = props.viewport;
     }
 
     start()
@@ -59,6 +64,8 @@ SCG.scenes = {
 
         if(!this.activeScene)
             throw 'No scene selected';      
+
+        SCG.viewport.logical = new Box(new V2, this.viewport);
 
         this.activeScene.start();
     },
