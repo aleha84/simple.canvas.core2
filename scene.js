@@ -75,6 +75,6 @@ SCG.scenes = {
         if(scene.name === undefined)
             throw "Can't register scene without name";
 
-        this.scenes[scene.name] = scene;
+        this.cachedScenes[scene.name] = scene;
     }
 }

@@ -4,6 +4,11 @@ SCG.viewport = {
     scale: 1, // difference beetween logical and real
     zoom: 1, // zoom for logical
     shift: new V2, // in scene space from top left corner
+    camera: {
+        update(now) {
+
+        }
+    },
     graphInit() { 
         if(!window.matchMedia("(orientation: landscape)").matches)
             throw 'wrong device orientation - portrait';
@@ -54,5 +59,8 @@ SCG.viewport = {
             setCanvasProperties(SCG.canvases[canvasName], mTop, mLeft)
 
         SCG.scenes.activeScene.backgroundRender();
+
+        if(SCG.UI)
+            SCG.UI.invalidate();
     }
 }

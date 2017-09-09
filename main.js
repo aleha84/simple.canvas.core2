@@ -1,4 +1,7 @@
 SCG.start = function(){ 
+	function loaderProgress() {
+		//todo draw progress bar
+	}
 
 	function loadImages(){
 		return new Promise((resolve, reject) => {
@@ -13,7 +16,10 @@ SCG.start = function(){
 				for(let src in SCG.src) {
 					SCG.images[src] = new Image();
 					SCG.images[src].onload = function() {
-						if(++loadedImages >= numImages) {
+						loadedImages++;
+						this.loaderProgress(loadedImages, numImages);
+						
+						if(loadedImages >= numImages) {
 							resolve();
 						}
 					}
@@ -22,6 +28,7 @@ SCG.start = function(){
 			
 				if(numImages == 0)
 				{
+					this.loaderProgress(loadedImages, numImages);
 					resolve();
 				}
 			}
@@ -29,6 +36,51 @@ SCG.start = function(){
 				reject(err);
 			}
 		});
+	}
+
+	function cycle(){
+		this.draw();
+		requestAnimationFrame( this.cycle );   
+	}
+
+	function draw(){
+		if(SCG.scenes.activeScene === undefined || SCG.scenes.activeScene.go == undefined)
+			throw 'Active scene corrupted!';
+
+		var now = new Date;
+
+		SCG.logics.doPauseWork(now);
+
+		var as = SCG.scenes.activeScene;
+
+		as.preMainWork();
+
+		SCG.viewport.camera.update(now);
+
+		var i = as.go.length;
+		while (i--) {
+			as.go[i].update(now);
+			as.go[i].render();
+	
+			if(SCG.frameCounter && as.go[i].renderPosition!=undefined){
+				SCG.frameCounter.visibleCount++;
+			}
+	
+			if(!as.go[i].alive){
+				var deleted = as.go.splice(i,1);
+			}
+		}
+
+		as.afterMainWork();	
+
+		if(SCG.logics.isPausedStep)
+			SCG.logics.isPausedStep =false;
+
+		if(SCG.frameCounter)
+			SCG.frameCounter.doWork(now);
+	
+		if(SCG.audio)
+			SCG.audio.update(now);	
 	}
 
 	if(SCG.scenes.activeScene === undefined || SCG.scenes.activeScene.go == undefined)
@@ -56,9 +108,16 @@ SCG.start = function(){
 		SCG.contexts[canvas.name] = SCG.canvases[canvas.name].getContext('2d');
 	}
 
+	SCG.viewport.graphInit();
+
 	loadImages().then(
 		function(){
-			
+			SCG.events.register();
+
+			if(SCG.audio)
+				SCG.audio.init();	
+
+			this.cycle();
 		},
 		function(err){
 			throw err;
