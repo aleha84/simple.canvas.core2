@@ -10,9 +10,7 @@ class RenderProperties {
 
         var ctx = SCG.contexts[this.contextName];
         
-        if(!ctx)
-            throw 'Context not exists for RenderProperties with name ' + this.contextName;
-
-        this.context = SCG.contexts[this.contextName];
+        if(ctx)
+            this.context = ctx;
     }
 }

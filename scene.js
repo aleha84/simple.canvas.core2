@@ -3,29 +3,25 @@ class Scene {
         if(!props.name)
             throw "Can't create scene without name";
         
-        props = Object.assign({
-            viewport: new V2(500, 300)
-        }, props);
-        
-        //todo add merge ?
-
-        this.name = props.name;
-        this.go = [];
-        this.workplace = {};
-        this.viewport = props.viewport;
+        Object.assign(this,{
+            viewport: new V2(500, 300),
+            go: [],
+            workplace: {},
+            AI: undefined
+        }, props);        
     }
 
-    start()
+    start() {}
 
-    backgroundRender()
+    backgroundRender() {}
 
-    dispose()
+    dispose() {}
 
     preMainWork() {
-        SCG.context.clearRect(0, 0, SCG.viewport.width, SCG.viewport.height);
+        // SCG.context.clearRect(0, 0, SCG.viewport.width, SCG.viewport.height);
     }
 
-    afterMainWork()
+    afterMainWork() {}
 
     cycleWork() {
         this.preMainWork();
@@ -65,7 +61,10 @@ SCG.scenes = {
         if(!this.activeScene)
             throw 'No scene selected';      
 
-        SCG.viewport.logical = new Box(new V2, this.viewport);
+        SCG.viewport.logical = new Box(new V2, this.activeScene.viewport);
+
+        // AI creation
+		SCG.AI.initialize();        
 
         this.activeScene.start();
     },

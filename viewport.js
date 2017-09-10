@@ -1,6 +1,6 @@
 SCG.viewport = {
-    logical: new Box, // in scene space
-    real: new Box, //in browser pixels
+    logical: undefined, // in scene space
+    real: undefined, //in browser pixels
     scale: 1, // difference beetween logical and real
     zoom: 1, // zoom for logical
     shift: new V2, // in scene space from top left corner
@@ -10,8 +10,11 @@ SCG.viewport = {
         }
     },
     graphInit() { 
-        if(!window.matchMedia("(orientation: landscape)").matches)
+        if(!window.matchMedia("(orientation: landscape)").matches) {
+            // todo show message - wrongDeviceOrientation
             throw 'wrong device orientation - portrait';
+        }
+            
 
         var _width = SCG.globals.parentElement.clientWidth;
 		var _height = SCG.globals.parentElement.clientHeight; 
@@ -20,10 +23,10 @@ SCG.viewport = {
         
         this.scale = Math.min(ratioX, ratioY);
 
-        if(scale.times < 1)
-            throw `window is to small (width: {_width}, height: {_height})`;
+        if(this.scale < 1)
+            throw `window is to small (width: ${_width}, height: ${_height})`;
 
-        this.real = new Box(new V2, new V2(this.logical.width * scale.times, this.logical.height * scale.times));
+        this.real = new Box(new V2, new V2(this.logical.width * this.scale, this.logical.height * this.scale));
         
         var mTop = 0;
 		var mLeft = 0;
@@ -59,6 +62,10 @@ SCG.viewport = {
             setCanvasProperties(SCG.canvases[canvasName], mTop, mLeft)
 
         SCG.scenes.activeScene.backgroundRender();
+
+        for(let goi = 0; goi <  SCG.scenes.activeScene.go.length; gio++){ // force recalculate go render params
+            SCG.scenes.activeScene.go[gio].needRecalcRenderSize = true;
+        }
 
         if(SCG.UI)
             SCG.UI.invalidate();
