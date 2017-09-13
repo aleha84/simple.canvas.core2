@@ -18,12 +18,12 @@ class Scene {
     dispose() {}
 
     preMainWork() {
-        // SCG.context.clearRect(0, 0, SCG.viewport.width, SCG.viewport.height);
+         SCG.contexts.main.clearRect(0, 0, SCG.viewport.real.width, SCG.viewport.real.height);
     }
 
     afterMainWork() {}
 
-    cycleWork() {
+    cycleWork(now) {
         this.preMainWork();
 
         var i = this.go.length;

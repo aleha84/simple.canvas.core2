@@ -16,7 +16,7 @@ SCG.main = {
 	
 			SCG.viewport.camera.update(now);
 		
-			as.cycleWork();	
+			as.cycleWork(now);	
 	
 			if(SCG.logics.isPausedStep)
 				SCG.logics.isPausedStep =false;

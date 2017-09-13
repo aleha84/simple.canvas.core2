@@ -20,7 +20,7 @@ class GO {
             handlers: {},
             isAnimated: false,
             isCustomRender: false,
-            needRecalcRenderSize: true,
+            needRecalcRenderProperties: true,
             isStatic: false, // not affected by scale
             animation: { // todo test needed
                 totalFrameCount: 0,
@@ -65,7 +65,7 @@ class GO {
                     this.currentDestination = new V2(ccol - 1, crow - 1);
                 }
             }
-        } ,options);
+        }, options);
 
         if(this.isAnimated){
             this.size = this.animation.destinationFrameSize.clone();
@@ -82,13 +82,13 @@ class GO {
 
         this.type = this.constructor.name;
 
-        if(SCG.GO.counter[this.type] == undefined)
-            SCG.GO.counter[this.type] = 0;
+        if(GO.counter[this.type] == undefined)
+            GO.counter[this.type] = 0;
 
-        SCG.GO.counter[this.type]++;
+        GO.counter[this.type]++;
 
         if(this.id == undefined)
-            this.id = this.type + '_' + SCG.GO.counter[this.type];	
+            this.id = this.type + '_' + GO.counter[this.type];	
 
         this.creationTime = new Date;
 
@@ -216,10 +216,10 @@ class GO {
 		}
 
         var scale = SCG.viewport.scale;
-        if(this.needRecalcRenderSize){
+        if(this.needRecalcRenderProperties){
             this.renderSize = this.size.mul(scale);
             let tl = new V2(this.position.x - this.size.x/2,this.position.y - this.size.y/2);
-            if(this.box)
+            if(!this.box)
                 this.box = new Box(tl, this.size); //logical positioning box
             else
                 this.box.update(tl, this.size);
@@ -231,7 +231,7 @@ class GO {
                 this.renderBox = new Box(new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2), this.renderSize);
             }
 
-            this.needRecalcRenderSize = false;
+            this.needRecalcRenderProperties = false;
         }
 
 		// if(this.destination)

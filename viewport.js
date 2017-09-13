@@ -63,8 +63,8 @@ SCG.viewport = {
 
         SCG.scenes.activeScene.backgroundRender();
 
-        for(let goi = 0; goi <  SCG.scenes.activeScene.go.length; gio++){ // force recalculate go render params
-            SCG.scenes.activeScene.go[gio].needRecalcRenderSize = true;
+        for(let goi = 0; goi <  SCG.scenes.activeScene.go.length; goi++){ // force recalculate go render params
+            SCG.scenes.activeScene.go[goi].needRecalcRenderProperties = true;
         }
 
         if(SCG.UI)
