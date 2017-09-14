@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function() {
         { 
             viewport: new V2(100,100),
             name: 'demo_s1',
-            go: [new DemoGO({position: new V2(250,150)})]
+            go: [new DemoGO({position: new V2(50,50)})]
         }));
     
     SCG.main.start();
