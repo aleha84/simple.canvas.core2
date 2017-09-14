@@ -35,7 +35,8 @@ SCG.viewport = {
 		else if(this.real.height < _height)
             mTop = Math.round((_height - this.real.height)/2);
 
-        let setCanvasProperties = (canvas, mTop, mLeft) => {
+        let setCanvasProperties = (canvasName, mTop, mLeft) => {
+            let canvas = SCG.canvases[canvasName];
             setAttributes(
                 canvas, 
                 {
@@ -56,10 +57,12 @@ SCG.viewport = {
                 top : mTop,
                 left: mLeft
             }
+
+            SCG.contexts[canvasName].imageSmoothingEnabled = false;
         }
 
-        for(let canvasName of ['background', 'main', 'ui'])
-            setCanvasProperties(SCG.canvases[canvasName], mTop, mLeft)
+        for(let canvasName of ['background', 'main', 'ui']) 
+            setCanvasProperties(canvasName, mTop, mLeft);
 
         SCG.scenes.activeScene.backgroundRender();
 

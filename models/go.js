@@ -11,7 +11,7 @@ class GO {
 
         Object.assign(this, {
             alive: true,
-            id: '',
+            id: undefined,
             img: undefined,
             imgPropertyName: undefined,
             context: undefined,

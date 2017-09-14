@@ -67,6 +67,7 @@ SCG.main = {
 			});
 		},
 		loadImagesSuccess(){
+			SCG.viewport.graphInit();
 			SCG.events.register();
 			
 			if(SCG.audio)
@@ -99,9 +100,8 @@ SCG.main = {
 			);
 	
 			SCG.contexts[canvas.name] = SCG.canvases[canvas.name].getContext('2d');
+			SCG.contexts[canvas.name].imageSmoothingEnabled = false;
 		}
-	
-		SCG.viewport.graphInit();
 	
 		this.loader.loadImages(this.loader.loaderProgress).then(
 			this.loader.loadImagesSuccess,
