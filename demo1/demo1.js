@@ -1,4 +1,5 @@
 var grassTileSize = new V2(10,10);
+var grassSheetSize = new V2(30,10);
 
 class DemoScene extends Scene {
     constructor(options = {}) {
@@ -41,7 +42,8 @@ class GrassTile extends GO {
     constructor(options = {}) {
         options = Object.assign({}, {
         imgPropertyName: 'grass_sheet',
-        destSourcePosition: new V2,//new V2(getRandomInt(0,20), getRandomInt(0,10)),
+        destSourcePosition: new V2((getRandomInt(0,(grassSheetSize.x/grassTileSize.x)-1))*grassTileSize.x,0),//new V2(getRandomInt(0,20), getRandomInt(0,10)),
+        destSourceSize: grassTileSize.clone(),
         size: grassTileSize.clone(),
         contextName: 'background'
         }, options);
@@ -54,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.src = {
         tree_sprite_sheet: 'content/tree1.png',
-        grass_sheet: 'content/grasstile1.png'
+        grass_sheet: 'content/grass_sheet.png'
 	}
 
     debugger;

@@ -67,6 +67,9 @@ class GO {
             }
         }, options);
 
+        if(!this.destSourceSize)
+            this.destSourceSize = this.size;
+
         if(this.isAnimated){
             this.size = this.animation.destinationFrameSize.clone();
             this.animation.currentFrame = 0;
@@ -164,12 +167,11 @@ class GO {
 				}
 				else{
 					if(dsp != undefined){ //draw part of image (sprite sheet)
-						var destSourceSize = this.destSourceSize ? this.destSourceSize : this.size;
 						ctx.drawImage(this.img, 
 							dsp.x,
 							dsp.y,
-							destSourceSize.x,
-							destSourceSize.y,
+							this.destSourceSize.x,
+							this.destSourceSize.y,
 							(rp.x - rs.x/2), 
 							(rp.y - rs.y/2), 
 							rs.x, 
