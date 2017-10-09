@@ -1,6 +1,6 @@
 class RenderProperties {
     constructor(options = {}){
-        Object.assign(this, {
+        assignDeep(this, {
             fill : false, 
             fillStyle : 'rgba(0, 255, 0, 0.5)',
             lineWidth : 1,

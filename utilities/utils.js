@@ -317,14 +317,14 @@ function getDegreeToVectorUp(p1, p2){
 }
 
 function doWorkByTimer(timer, now){
-  if(SCG.gameLogics.isPaused){
+  if(SCG.logics.isPaused){
     timer.delta = 0;
     return;
   }
 
   timer.delta = now - timer.lastTimeWork;
-  if(SCG.gameLogics.pauseDelta != 0){
-    timer.delta -= SCG.gameLogics.pauseDelta;
+  if(SCG.logics.pauseDelta != 0){
+    timer.delta -= SCG.logics.pauseDelta;
   }
 
   timer.currentDelay -= timer.delta;
@@ -334,6 +334,29 @@ function doWorkByTimer(timer, now){
   }
   
   timer.lastTimeWork = now;
+}
+
+function isObject(item) {
+  return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
+function assignDeep(target, ...sources) {
+  if (!sources.length) return target;
+  const source = sources.shift();
+
+  if (isObject(target) && isObject(source)) {
+    Object.keys(source).forEach(key => {
+      if (isObject(source[key])) {
+        if (!(key in target))
+          Object.assign(target, { [key]: source[key] });
+        else
+          target[key] = assignDeep(target[key], source[key]);
+      } else {
+        Object.assign(target, { [key]: source[key] });
+      }
+    });
+  }
+  return assignDeep(target, ...sources);
 }
 
 function extend() {

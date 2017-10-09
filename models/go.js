@@ -9,7 +9,7 @@ class GO {
 
         var objectContext = this;
 
-        Object.assign(this, {
+        assignDeep(this, {
             alive: true,
             id: undefined,
             img: undefined,
@@ -79,7 +79,7 @@ class GO {
                 currentDelay: this.animation.frameChangeDelay,
                 originDelay: this.animation.frameChangeDelay,
                 doWorkInternal : this.animation.frameChange,
-                context: this
+                context: this.animation
             };
         }
 

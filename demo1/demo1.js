@@ -1,5 +1,6 @@
 var grassTileSize = new V2(10,10);
 var grassSheetSize = new V2(30,10);
+var viewport = new V2(100,100);
 
 class DemoScene extends Scene {
     constructor(options = {}) {
@@ -27,7 +28,7 @@ class DemoScene extends Scene {
 
 class DemoGO extends GO {
     constructor(options = {}) {
-        options = Object.assign({}, {
+        options = assignDeep({}, {
             imgPropertyName: 'tree_sprite_sheet',
             size: new V2(20,20),
             destSourceSize: new V2(45,45),
@@ -40,7 +41,7 @@ class DemoGO extends GO {
 
 class GrassTile extends GO {
     constructor(options = {}) {
-        options = Object.assign({}, {
+        options = assignDeep({}, {
         imgPropertyName: 'grass_sheet',
         destSourcePosition: new V2((getRandomInt(0,(grassSheetSize.x/grassTileSize.x)-1))*grassTileSize.x,0),//new V2(getRandomInt(0,20), getRandomInt(0,10)),
         destSourceSize: grassTileSize.clone(),
@@ -52,19 +53,44 @@ class GrassTile extends GO {
     }
 }
 
+class BunnyGO extends GO {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            imgPropertyName: 'bunny_sheet',
+            isAnimated: true,
+            animation: {
+                totalFrameCount: 13,
+                framesInRow: 13,
+                framesRowsCount: 1,
+                frameChangeDelay: 250,
+                destinationFrameSize: new Vector2(10,10),
+                sourceFrameSize: new Vector2(10,10),
+                loop: true,
+            },
+            size: new V2(10,10),
+        }, options);
+
+        super(options);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 
     SCG.src = {
         tree_sprite_sheet: 'content/tree1.png',
-        grass_sheet: 'content/grass_sheet.png'
+        grass_sheet: 'content/grass_sheet.png',
+        bunny_sheet: 'content/bunny_sheet.png'
 	}
 
     debugger;
     SCG.scenes.selectScene(new DemoScene( 
         { 
-            viewport: new V2(100,100),
+            viewport: viewport.clone(),
             name: 'demo_s1',
-            go: [new DemoGO({position: new V2(50,50)})]
+            go: [
+            //    new DemoGO({position: new V2(50,50)})
+                new BunnyGO({position: new V2(viewport.x/2,viewport.y/2)})
+            ]
         }));
     
     SCG.main.start();
