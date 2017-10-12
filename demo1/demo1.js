@@ -4,21 +4,34 @@ var viewport = new V2(100,100);
 
 class DemoScene extends Scene {
     constructor(options = {}) {
-        options.bgGo = [];
+        //options.bgGo = [];
+        if(options.go === undefined)
+            options.go = [];
+
+
         for(let x = 0; x < options.viewport.x/grassTileSize.x; x++) {
             for(let y = 0; y < options.viewport.y/grassTileSize.y; y++) {
-                options.bgGo.push(new GrassTile({position: new V2((x*grassTileSize.x)+grassTileSize.x/2, (y*grassTileSize.y)+grassTileSize.y/2)}));
+                options.go.push(
+                    new GrassTile(
+                        {
+                            position: new V2((x*grassTileSize.x)+grassTileSize.x/2, (y*grassTileSize.y)+grassTileSize.y/2),
+                            shaking: {
+                                enabled: x == 2 && y == 2
+                            }
+                        }
+                    )
+                );
             }
         }
         super(options);
     }
 
     backgroundRender(){
-        for(let i = 0; i < this.bgGo.length;i++) {
-            this.bgGo[i].needRecalcRenderProperties = true;
-            this.bgGo[i].update();
-            this.bgGo[i].render();
-        }
+        // for(let i = 0; i < this.bgGo.length;i++) {
+        //     this.bgGo[i].needRecalcRenderProperties = true;
+        //     this.bgGo[i].update();
+        //     this.bgGo[i].render();
+        // }
         // SCG.contexts.background.beginPath();
         // SCG.contexts.background.rect(0, 0, SCG.viewport.real.width, SCG.viewport.real.height);
         // SCG.contexts.background.fillStyle ='lightgreen';
@@ -42,14 +55,52 @@ class DemoGO extends GO {
 class GrassTile extends GO {
     constructor(options = {}) {
         options = assignDeep({}, {
-        imgPropertyName: 'grass_sheet',
-        destSourcePosition: new V2((getRandomInt(0,(grassSheetSize.x/grassTileSize.x)-1))*grassTileSize.x,0),//new V2(getRandomInt(0,20), getRandomInt(0,10)),
-        destSourceSize: grassTileSize.clone(),
-        size: grassTileSize.clone(),
-        contextName: 'background'
+            imgPropertyName: 'grass_sheet',
+            destSourcePosition: new V2((getRandomInt(0,(grassSheetSize.x/grassTileSize.x)-1))*grassTileSize.x,0),//new V2(getRandomInt(0,20), getRandomInt(0,10)),
+            destSourceSize: grassTileSize.clone(),
+            size: grassTileSize.clone(),
+            // contextName: 'background',
+            shaking: {
+                enabled: false,
+                step: 0,
+                maxStep: 3
+            },
+            internalPreUpdate: (now) => {
+                if(this.shaking.enabled)
+                    doWorkByTimer(this.shaking.timer, now);
+            }
         }, options);
 
         super(options);
+
+        this.shaking.timer = {
+            lastTimeWork: new Date,
+            delta : 0,
+            currentDelay: 500,
+            originDelay: 500,
+            doWorkInternal: () => {
+                let sh = this.shaking;
+                sh.step++;
+                if(sh.step > sh.maxStep)
+                    sh.enabled = false;
+
+                switch(sh.step){
+                    case 0:
+                    case 2:
+                    default:
+                        this.destSourcePosition.y = 0;
+                        break;
+                    case 1: 
+                        this.destSourcePosition.y = 10;
+                        break;
+                    case 3: 
+                        this.destSourcePosition.y = 20;
+                        break;
+                }
+
+            },
+            content: this
+        };
     }
 }
 

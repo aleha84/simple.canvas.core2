@@ -192,7 +192,7 @@ class GO {
 		this.internalRender();
     }
     
-    internalPreUpdate(){}
+    internalPreUpdate(now){}
         
     internalUpdate(now){}
 
