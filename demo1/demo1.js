@@ -4,10 +4,15 @@ var viewport = new V2(100,100);
 
 class DemoScene extends Scene {
     constructor(options = {}) {
-        //options.bgGo = [];
+        
+        options = assignDeep({}, { 
+            start: () => {
+                this.AI.initialize();
+            }
+        }, options);
+
         if(options.go === undefined)
             options.go = [];
-
 
         for(let x = 0; x < options.viewport.x/grassTileSize.x; x++) {
             for(let y = 0; y < options.viewport.y/grassTileSize.y; y++) {
@@ -23,7 +28,56 @@ class DemoScene extends Scene {
                 );
             }
         }
+
         super(options);
+
+        this.AI = {
+            initialize: () => { // just helper to init environment
+                SCG.AI.initializeEnvironment({
+                    space: {
+                        width: options.viewport.x,
+                        height: options.viewport.y
+                    },
+                    bunnies: {
+                        items: [],
+                        maxCount: 1
+                    }
+                });
+            },
+            messagesProcesser: function(wm){ // proccess messages from AI
+                if(wm == undefined){
+                    return;
+                }
+
+                if(wm.command){
+                    switch(wm.command){
+                        case 'log':
+                            console.log(wm);
+                            break;
+                        default:
+                            break;
+                    }	
+                }
+            },
+            queueProcesser: function queueProcesser(){ // queue processer (on AI side)
+                while(queue.length){
+                    var task = queue.pop();
+                    switch(task.type){
+                        case 'start':
+                            console.log('start called');
+                            break;
+                        case 'created':
+                            console.log('create called;' + task.message.id);
+                            break;
+                        case 'removed':
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                
+            }
+        }
     }
 
     backgroundRender(){
