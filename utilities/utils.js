@@ -216,6 +216,10 @@ function isFunction(f){
   return typeof f === 'function';
 }
 
+function isClass(v) {
+  return typeof v === 'function' && /^\s*class\s+/.test(v.toString());
+}
+
 var pointerEventToXY = function(e){
   var out = {x:0, y:0};
   if(e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend' || e.type == 'touchcancel'){

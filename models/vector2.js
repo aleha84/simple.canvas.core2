@@ -1,6 +1,6 @@
 class Vector2 {
     constructor(x, y) {
-        if(typeof x == 'object'){
+        if(typeof x == 'object' && x.x !== undefined && x.y !== undefined){
             y = x.y;
             x = x.x;
         }

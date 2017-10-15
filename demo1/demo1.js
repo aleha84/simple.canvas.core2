@@ -54,6 +54,19 @@ class DemoScene extends Scene {
                         case 'log':
                             console.log(wm);
                             break;
+                        case 'create':
+                            if(!wm.message || !wm.message.position || !wm.message.path)
+                                return;
+                               
+                            var instance = GO.createInstanceByName(wm.message.goType, 
+                                { 
+                                    position: new V2(wm.message.position),
+                                    innerPath: wm.message.path.map((item) => new V2(item))
+                                });
+
+                            if(instance)
+                                SCG.scenes.activeScene.go.unshift(instance);
+                            break;
                         default:
                             break;
                     }	
@@ -64,12 +77,40 @@ class DemoScene extends Scene {
                     var task = queue.pop();
                     switch(task.type){
                         case 'start':
-                            console.log('start called');
+                            self.createBunny = function(){
+                                self.postMessage({command: 'create', message: 
+                                    { 
+                                        goType: 'BunnyGO', 
+                                        position: { x: self.environment.space.width /2, y: self.environment.space.height/2 },
+                                        path: [
+                                            { x: 0, y: self.environment.space.height/2 }, 
+                                            { x: self.environment.space.width /2, y: self.environment.space.height - 5 },
+                                            { x: self.environment.space.width - 5, y: self.environment.space.height/2 }] 
+                                    } 
+                                });				
+                            };
+                            self.checkBunnies = function(){
+                                if(self.environment.bunnies.items.length < self.environment.bunnies.maxCount){
+                                    self.createBunny();
+                                }
+                            };
+
+                            self.checkBunnies();
                             break;
                         case 'created':
-                            console.log('create called;' + task.message.id);
+                            if(task.message.goType == 'BunnyGO'){
+                                self.environment.bunnies.items.push({id: task.message.id, position: task.message.position });
+                                self.checkBunnies();
+                            }
                             break;
                         case 'removed':
+                            if(task.message.goType == 'BunnyGO'){
+                                var index = self.environment.bunnies.items.map(function(item) { return item.id ;}).indexOf(task.message.id);
+                                if(index > -1){
+                                    self.environment.bunnies.items.splice(index, 1);
+                                    self.checkBunnies();
+                                }
+                            }
                             break;
                         default:
                             break;
@@ -158,14 +199,14 @@ class GrassTile extends GO {
     }
 }
 
-class BunnyGO extends GO {
+class BunnyGO extends MovingGO {
     constructor(options = {}) {
         options = assignDeep({}, {
             imgPropertyName: 'bunny_sheet',
             isAnimated: true,
             animation: {
-                totalFrameCount: 13,
-                framesInRow: 13,
+                totalFrameCount: 14,
+                framesInRow: 14,
                 framesRowsCount: 1,
                 frameChangeDelay: 250,
                 destinationFrameSize: new Vector2(10,10),
@@ -173,6 +214,7 @@ class BunnyGO extends GO {
                 loop: true,
             },
             size: new V2(10,10),
+            speed: 0.1,
         }, options);
 
         super(options);
@@ -193,8 +235,6 @@ document.addEventListener("DOMContentLoaded", function() {
             viewport: viewport.clone(),
             name: 'demo_s1',
             go: [
-            //    new DemoGO({position: new V2(50,50)})
-                new BunnyGO({position: new V2(viewport.x/2,viewport.y/2)})
             ]
         }));
     

@@ -10,7 +10,7 @@ SCG.AI = {
         var as = SCG.scenes.activeScene;
         if(as && as.AI){
             SCG.AI.blobURL = URL.createObjectURL( new Blob([ '(',
-                "function(){var queue = [];\nconsole.log('worker start');\n" +
+                "function(){var queue = [];\nconsole.log('worker start' + new Date);\n" +
                     "var queueProcesser =\n"+
                     (as.AI.queueProcesser != undefined && isFunction(as.AI.queueProcesser) 
                     ? as.AI.queueProcesser.toString() 

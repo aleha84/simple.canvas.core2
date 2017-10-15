@@ -109,6 +109,15 @@ class GO {
             this.context = ctx;
     }
 
+    static createInstanceByName(name, options){
+        var _class = eval(name);
+
+        if(!isClass(_class))
+            return undefined;
+
+        return new _class(options);
+    }
+
     beforeDead(){}
 
     setDead() {
@@ -235,28 +244,6 @@ class GO {
 
             this.needRecalcRenderProperties = false;
         }
-
-		// if(this.destination)
-		// {
-		// 	if(this.position.distance(this.destination) <= this.speed){
-		// 		this.setDestination();
-		// 	}
-		// 	else{
-		// 		this.position.add(this.direction.mul(this.speed), true);
-		// 	}	
-		// }
-
-		// if(this.destination == undefined)
-		// {
-		// 	if(this.path.length > 0)
-		// 	{
-		// 		this.setDestination(this.path.shift());
-		// 	}
-		// 	else if(this.setDeadOnDestinationComplete) {
-		// 		this.setDead();
-		// 		return false;
-		// 	}
-		// }
 
 		if(this.isAnimated)
             doWorkByTimer(this.animation.animationTimer, now);
