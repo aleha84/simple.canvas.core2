@@ -11,6 +11,8 @@ class MovingGO extends GO {
         super(options);
     }
 
+    positionChangedCallback() {}
+
     destinationCompleteCallBack() {}
 
     pathCompleteCallBAck() {}
@@ -26,6 +28,7 @@ class MovingGO extends GO {
 			}
 			else{
                 this.position.add(this.direction.mul(this.speed), true);
+                this.positionChangedCallback();
                 this.needRecalcRenderProperties = true;
 			}	
 		}

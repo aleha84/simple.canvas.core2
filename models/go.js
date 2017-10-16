@@ -123,12 +123,13 @@ class GO {
     setDead() {
 		this.beforeDead();
 		
-		//remove from event handlers
-		var eh = SCG.controls.mousestate.eventHandlers;
-		var index = eh.click.indexOf(this);
-        if(index > -1)
-            eh.click.splice(index, 1);	
-	
+        //remove from event handlers
+        if(this.handlers.click && isFunction(this.handlers.click)){
+            var eh = SCG.controls.mousestate.eventHandlers;
+            var index = eh.click.indexOf(this);
+            if(index > -1)
+                eh.click.splice(index, 1);	
+        }
 		//send to ai msg
         if(SCG.AI && SCG.AI.worker)
             SCG.AI.sendEvent({ type: 'removed', message: {goType: this.type, id: this.id }});	

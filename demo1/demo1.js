@@ -21,7 +21,7 @@ class DemoScene extends Scene {
                         {
                             position: new V2((x*grassTileSize.x)+grassTileSize.x/2, (y*grassTileSize.y)+grassTileSize.y/2),
                             shaking: {
-                                enabled: x == 2 && y == 2
+                                enabled: false
                             }
                         }
                     )
@@ -83,7 +83,7 @@ class DemoScene extends Scene {
                                         goType: 'BunnyGO', 
                                         position: { x: self.environment.space.width /2, y: self.environment.space.height/2 },
                                         path: [
-                                            { x: 0, y: self.environment.space.height/2 }, 
+                                            { x: 0, y: (self.environment.space.height/2)+1 }, 
                                             { x: self.environment.space.width /2, y: self.environment.space.height - 5 },
                                             { x: self.environment.space.width - 5, y: self.environment.space.height/2 }] 
                                     } 
@@ -171,13 +171,16 @@ class GrassTile extends GO {
         this.shaking.timer = {
             lastTimeWork: new Date,
             delta : 0,
-            currentDelay: 500,
-            originDelay: 500,
+            currentDelay: 300,
+            originDelay: 300,
             doWorkInternal: () => {
                 let sh = this.shaking;
                 sh.step++;
                 if(sh.step > sh.maxStep)
-                    sh.enabled = false;
+                    {
+                        sh.enabled = false;
+                        sh.step = 0;
+                    }
 
                 switch(sh.step){
                     case 0:
@@ -204,6 +207,8 @@ class BunnyGO extends MovingGO {
         options = assignDeep({}, {
             imgPropertyName: 'bunny_sheet',
             isAnimated: true,
+            destSourcePosition: new V2,
+            innerPath: [],
             animation: {
                 totalFrameCount: 14,
                 framesInRow: 14,
@@ -211,13 +216,46 @@ class BunnyGO extends MovingGO {
                 frameChangeDelay: 250,
                 destinationFrameSize: new Vector2(10,10),
                 sourceFrameSize: new Vector2(10,10),
-                loop: true,
+                loop: false,
+                animationEndCallback: () => {
+                    if(this.innerPath.length > 0)
+                    {
+                        this.isAnimated = false;
+                        this.setDestination(this.innerPath.shift());
+                    }
+                    else{
+                        this.setDead();
+                    }
+                }
             },
             size: new V2(10,10),
-            speed: 0.1,
+            speed: 0.5,
         }, options);
 
         super(options);
+
+        this.isAnimated = false;
+        if(this.innerPath.length > 0)
+        this.setDestination(this.innerPath.shift());
+    }
+
+    destinationCompleteCallBack() {
+        this.animation.currentFrame = 0;
+        this.isAnimated = true;
+    }
+
+    positionChangedCallback() {
+        for(let goi = 0; goi<SCG.scenes.activeScene.go.length;goi++){
+            let _go = SCG.scenes.activeScene.go[goi];
+            if(_go.type !== 'GrassTile')
+                continue;
+
+            if(!_go.shaking.enabled && _go.box.isPointInside(this.position))
+            {
+                _go.shaking.enabled = true;
+                break;
+            }    
+        }
     }
 }
 
