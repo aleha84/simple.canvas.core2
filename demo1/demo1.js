@@ -166,7 +166,7 @@ class GrassTile extends GO {
             shaking: {
                 enabled: false,
                 step: 0,
-                maxStep: 3
+                maxStep: 7
             },
             internalPreUpdate: (now) => {
                 if(this.shaking.enabled)
@@ -179,8 +179,8 @@ class GrassTile extends GO {
         this.shaking.timer = {
             lastTimeWork: new Date,
             delta : 0,
-            currentDelay: 300,
-            originDelay: 300,
+            currentDelay: 200,
+            originDelay: 200,
             doWorkInternal: () => {
                 let sh = this.shaking;
                 sh.step++;
@@ -188,19 +188,29 @@ class GrassTile extends GO {
                     {
                         sh.enabled = false;
                         sh.step = 0;
+                        sh.timer.originDelay = 200;
+                        sh.timer.currentDelay = 200;
                     }
 
                 switch(sh.step){
                     case 0:
                     case 2:
+                    case 6:
                     default:
                         this.destSourcePosition.y = 0;
                         break;
                     case 1: 
+                    case 5: 
                         this.destSourcePosition.y = 10;
                         break;
                     case 3: 
+                    case 7: 
                         this.destSourcePosition.y = 20;
+                        break;
+                    case 4: 
+                        this.destSourcePosition.y = 0;  
+                        sh.timer.originDelay = 400;
+                        sh.timer.currentDelay = 400;
                         break;
                 }
 
