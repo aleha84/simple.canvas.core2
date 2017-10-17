@@ -154,6 +154,14 @@ class GrassTile extends GO {
             destSourcePosition: new V2((getRandomInt(0,(grassSheetSize.x/grassTileSize.x)-1))*grassTileSize.x,0),//new V2(getRandomInt(0,20), getRandomInt(0,10)),
             destSourceSize: grassTileSize.clone(),
             size: grassTileSize.clone(),
+            handlers: {
+                click: () => {
+                    this.shaking.enabled = true;
+                    return {
+                        preventBubbling: true
+                    }
+                }
+            },
             // contextName: 'background',
             shaking: {
                 enabled: false,

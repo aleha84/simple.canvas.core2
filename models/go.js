@@ -125,7 +125,7 @@ class GO {
 		
         //remove from event handlers
         if(this.handlers.click && isFunction(this.handlers.click)){
-            var eh = SCG.controls.mousestate.eventHandlers;
+            var eh = SCG.controls.mouse.state.eventHandlers;
             var index = eh.click.indexOf(this);
             if(index > -1)
                 eh.click.splice(index, 1);	
@@ -258,7 +258,7 @@ class GO {
     regClick(){
 		//register click for new objects
 		if(this.handlers.click && isFunction(this.handlers.click)){
-			var eh = SCG.controls.mousestate.eventHandlers;
+			var eh = SCG.controls.mouse.state.eventHandlers;
 			if(eh.click.indexOf(this) == -1){
 				eh.click.push(this);
 			}

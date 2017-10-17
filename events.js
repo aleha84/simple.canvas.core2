@@ -4,6 +4,11 @@ SCG.events = {
 			SCG.viewport.graphInit();
         });
         
+        addListenerMulti(SCG.canvases.ui, 'mouseup touchend', function(e){
+			absorbTouchEvent(e);
+			SCG.controls.mouse.up(e);
+		});
+
         if(SCG.globals.isMobile)
             {
                 setTimeout( function(){ window.scrollTo(0, 1); }, 100 );
