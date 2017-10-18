@@ -1,26 +1,36 @@
 SCG.controls = {
+    clearEventsHandlers() { // resetting properties of handlers to empty arrays
+        this.mouse.state.eventHandlers = {
+            click: []
+        }
+    },  
     mouse: {
         state: {
             position: undefined,
             doClickCheck() {
-                for(let i = 0; i < this.eventHandlers.click.length;i++){
-                    let chGo = this.eventHandlers.click[i];
+                for(let layerIndex = this.eventHandlers.click.length-1; layerIndex >= 0;layerIndex--){
+                    let clickLayer = this.eventHandlers.click[layerIndex];
 
-                    if(chGo.renderBox!=undefined 
-                        && chGo.renderBox.isPointInside(this.position) 
-                        && chGo.handlers != undefined 
-                        && chGo.handlers.click != undefined 
-                        && isFunction(chGo.handlers.click))
-                    {
-                        var clickResult = chGo.handlers.click.call(chGo);
-                        if(clickResult && clickResult.preventBubbling){
+                    for(let i = 0; i < clickLayer.length;i++){
+                        let chGo = clickLayer[i];
+    
+                        if(chGo.renderBox!=undefined 
+                            && chGo.renderBox.isPointInside(this.position) 
+                            && chGo.handlers != undefined 
+                            && chGo.handlers.click != undefined 
+                            && isFunction(chGo.handlers.click))
+                        {
+                            var clickResult = chGo.handlers.click.call(chGo);
+                            if(clickResult && clickResult.preventBubbling){
+                                return;
+                            }
+
                             break;
                         }
                     }
                 }
             },
             eventHandlers: {
-                click: []
             }
         },
         up(event) {

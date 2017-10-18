@@ -11,16 +11,15 @@ class DemoScene extends Scene {
             }
         }, options);
 
-        if(options.go === undefined)
-            options.go = [];
+        super(options);
 
-        options.go.push(new Star({
+        this.addGo(new Star({
             position: new V2(options.viewport.x/2, options.viewport.y/4)
-        }));
+        }), 2, this);
 
         for(let x = 0; x < options.viewport.x/grassTileSize.x; x++) {
             for(let y = 0; y < options.viewport.y/grassTileSize.y; y++) {
-                options.go.push(
+                this.addGo(
                     new GrassTile(
                         {
                             position: new V2((x*grassTileSize.x)+grassTileSize.x/2, (y*grassTileSize.y)+grassTileSize.y/2),
@@ -28,12 +27,10 @@ class DemoScene extends Scene {
                                 enabled: false
                             }
                         }
-                    )
+                    ), 0
                 );
             }
         }
-
-        super(options);
 
         this.AI = {
             initialize: () => { // just helper to init environment
@@ -69,7 +66,7 @@ class DemoScene extends Scene {
                                 });
 
                             if(instance)
-                                SCG.scenes.activeScene.go.unshift(instance);
+                                SCG.scenes.activeScene.addGo(instance, 1, true);
                             break;
                         default:
                             break;
@@ -153,67 +150,18 @@ class Star extends MovingGO {
             destSourcePosition: new V2,
             size: new V2(10,10),
             isAnimated: true,
-            movingToTop: {
-                enabled: false,
-                rotationSpeed: 1,
-                currentDegree: 0,
-                currentRadians: 0
-            },
             animation: {
-                settings: {
-                    currentRotateCount: 0,
-                    rotationSpeeds: [50, 50, 150, 150, 300, 300],
-                    maxRotateCount: 5
-                },
                 totalFrameCount: 4,
                 framesInRow: 4,
                 framesRowsCount: 1,
-                frameChangeDelay: 50,
+                frameChangeDelay: 150,
                 destinationFrameSize: new Vector2(10,10),
                 sourceFrameSize: new Vector2(10,10),
-                loop: true,
-                animationRestartCallback() {
-                    this.animation.settings.currentRotateCount++;
-                    if(this.animation.settings.currentRotateCount > this.animation.settings.maxRotateCount){
-                        this.isAnimated = false;
-                        this.movingToTop.enabled = true;
-                        return;
-                    }
-                        
-                    this.animation.setFrameChangeDelay(this.animation.settings.rotationSpeeds[this.animation.settings.currentRotateCount]);
-                }
+                loop: true
             }
         }, options);
         
         super(options);
-    }
-
-    internalPreRender() {
-        if(this.movingToTop.enabled){
-            //this.context.save();
-            this.context.translate(this.renderPosition.x,this.renderPosition.y);
-            this.context.rotate(this.movingToTop.currentRadians);
-            this.context.translate(-this.renderPosition.x,-this.renderPosition.y);
-        }
-        
-    }
-
-    internalRender() {
-        if(this.movingToTop.enabled){
-            this.context.translate(this.renderPosition.x,this.renderPosition.y);
-            this.context.rotate(-this.movingToTop.currentRadians);
-            this.context.translate(-this.renderPosition.x,-this.renderPosition.y);
-            //this.context.restore();
-        }
-    }
-
-    internalUpdate(now) {
-        if(this.movingToTop.enabled){
-            this.movingToTop.currentDegree += this.movingToTop.rotationSpeed;
-            // if(this.movingToTop.currentDegree > 45)
-            //     this.setDead();
-            this.movingToTop.currentRadians = parseFloat(degreeToRadians(this.movingToTop.currentDegree).toFixed(5));
-        }
     }
 }
 
@@ -302,6 +250,14 @@ class BunnyGO extends MovingGO {
             isAnimated: true,
             destSourcePosition: new V2,
             innerPath: [],
+            handlers: {
+                click: () => {
+                    console.log(this.id + " clicked");
+                    return {
+                        preventBubbling: true
+                    }
+                }
+            },
             animation: {
                 totalFrameCount: 14,
                 framesInRow: 14,
@@ -329,7 +285,7 @@ class BunnyGO extends MovingGO {
 
         this.isAnimated = false;
         if(this.innerPath.length > 0)
-        this.setDestination(this.innerPath.shift());
+            this.setDestination(this.innerPath.shift());
     }
 
     destinationCompleteCallBack() {
@@ -338,8 +294,9 @@ class BunnyGO extends MovingGO {
     }
 
     positionChangedCallback() {
-        for(let goi = 0; goi<SCG.scenes.activeScene.go.length;goi++){
-            let _go = SCG.scenes.activeScene.go[goi];
+        let as = SCG.scenes.activeScene;
+        for(let goi = 0; goi< as.goLayers[0].length;goi++){
+            let _go = as.goLayers[0][goi];
             if(_go.type !== 'GrassTile')
                 continue;
 
@@ -365,9 +322,7 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.scenes.selectScene(new DemoScene( 
         { 
             viewport: viewport.clone(),
-            name: 'demo_s1',
-            go: [
-            ]
+            name: 'demo_s1'
         }));
     
     SCG.main.start();

@@ -101,7 +101,7 @@ class GO {
 
         this.creationTime = new Date;
 
-        this.regClick();
+        //this.regClick();
 
         if(this.img == undefined && this.imgPropertyName != undefined)
             this.img = SCG.images[this.imgPropertyName];
@@ -129,13 +129,8 @@ class GO {
     setDead() {
 		this.beforeDead();
 		
-        //remove from event handlers
-        if(this.handlers.click && isFunction(this.handlers.click)){
-            var eh = SCG.controls.mouse.state.eventHandlers;
-            var index = eh.click.indexOf(this);
-            if(index > -1)
-                eh.click.splice(index, 1);	
-        }
+        this.unRegEvents();
+
 		//send to ai msg
         if(SCG.AI && SCG.AI.worker)
             SCG.AI.sendEvent({ type: 'removed', message: {goType: this.type, id: this.id }});	
@@ -261,15 +256,30 @@ class GO {
             return false;
 	}
 
-    regClick(){
+    regEvents(layerIndex = 0){
+        this.layerIndex = layerIndex;
+
 		//register click for new objects
 		if(this.handlers.click && isFunction(this.handlers.click)){
-			var eh = SCG.controls.mouse.state.eventHandlers;
-			if(eh.click.indexOf(this) == -1){
-				eh.click.push(this);
+            var eh = SCG.controls.mouse.state.eventHandlers;
+            if(eh.click[layerIndex] === undefined)
+                eh.click[layerIndex] = [];
+
+			if(eh.click[layerIndex].indexOf(this) == -1){
+				eh.click[layerIndex].push(this);
 			}
 		}
-	}
+    }
+    
+    unRegEvents() {
+        //remove from event handlers
+        if(this.handlers.click && isFunction(this.handlers.click)){
+            var eh = SCG.controls.mouse.state.eventHandlers;
+            var index = eh.click[this.layerIndex].indexOf(this);
+            if(index > -1)
+                eh.click[this.layerIndex].splice(index, 1);	
+        }
+    }
 }
 
 GO.counter = {};

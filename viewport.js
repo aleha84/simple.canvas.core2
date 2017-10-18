@@ -16,10 +16,10 @@ SCG.viewport = {
         }
             
 
-        var _width = SCG.globals.parentElement.clientWidth;
-		var _height = SCG.globals.parentElement.clientHeight; 
-		var ratioX = _width /this.logical.width;
-        var ratioY = _height / this.logical.height; 
+        let _width = SCG.globals.parentElement.clientWidth;
+		let _height = SCG.globals.parentElement.clientHeight; 
+		let ratioX = _width /this.logical.width;
+        let ratioY = _height / this.logical.height; 
         
         this.scale = Math.min(ratioX, ratioY);
 
@@ -28,8 +28,8 @@ SCG.viewport = {
 
         this.real = new Box(new V2, new V2(this.logical.width * this.scale, this.logical.height * this.scale));
         
-        var mTop = 0;
-		var mLeft = 0;
+        let mTop = 0;
+		let mLeft = 0;
 		if(this.real.width < _width)
             mLeft = Math.round((_width - this.real.width)/2);
 		else if(this.real.height < _height)
@@ -66,10 +66,15 @@ SCG.viewport = {
 
         SCG.scenes.activeScene.backgroundRender();
 
-        for(let goi = 0; goi <  SCG.scenes.activeScene.go.length; goi++){ // force recalculate go render params
-            SCG.scenes.activeScene.go[goi].needRecalcRenderProperties = true;
+        for(let layerIndex = 0; layerIndex < SCG.scenes.activeScene.goLayers.length; layerIndex++){ 
+            if(SCG.scenes.activeScene.goLayers[layerIndex] === undefined)
+                continue;
+                
+            for(let goi = 0; goi <  SCG.scenes.activeScene.goLayers[layerIndex].length; goi++){ // force recalculate go render params
+                SCG.scenes.activeScene.goLayers[layerIndex][goi].needRecalcRenderProperties = true;
+            }
         }
-
+        
         if(SCG.UI)
             SCG.UI.invalidate();
     }

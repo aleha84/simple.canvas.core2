@@ -5,7 +5,7 @@ SCG.main = {
 			requestAnimationFrame(SCG.main.cycle.process);
 		},
 		draw(){ // drawing on canvas based on current selected scene
-			if(SCG.scenes.activeScene === undefined || SCG.scenes.activeScene.go == undefined)
+			if(SCG.scenes.activeScene === undefined || SCG.scenes.activeScene.goLayers == undefined)
 				throw 'Active scene corrupted!';
 	
 			var now = new Date;
@@ -77,7 +77,7 @@ SCG.main = {
 		}
 	},
 	start(){
-		if(SCG.scenes.activeScene === undefined || SCG.scenes.activeScene.go == undefined)
+		if(SCG.scenes.activeScene === undefined || SCG.scenes.activeScene.goLayers == undefined)
 			throw 'Active scene corrupted!';
 	
 		SCG.globals.parentElement = SCG.globals.parentId ? document.getElementById(SCG.globals.parentId) : document.body;

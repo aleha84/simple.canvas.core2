@@ -5,16 +5,57 @@ class Scene {
         
         assignDeep(this,{
             viewport: new V2(500, 300),
-            go: [],
+            goLayers: [],
             workplace: {},
             AI: undefined
         }, props);        
     }
 
+    addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly
+        if(go === undefined)
+            throw 'No GO provided';
+
+        if(this.goLayers[layerIndex] === undefined)
+            this.goLayers[layerIndex] = [];
+
+        this.goLayers[layerIndex].push(go);
+        if(regEvents)
+            go.regEvents(layerIndex);
+    }
+
+    innerStart() {
+        for(let layerIndex = 0; layerIndex < this.goLayers.length; layerIndex++){ 
+            if(this.goLayers[layerIndex] === undefined)
+                this.goLayers[layerIndex] = [];
+
+            let goLayer = this.goLayers[layerIndex];
+
+            for(let goi = 0; goi < goLayer.length; goi++){
+                goLayer[goi].regEvents();
+            }
+        }
+
+        this.start();
+    }
+
     start() {}
 
     backgroundRender() {}
+    
+    innerDispose(){
+        // for(let layerIndex = 0; layerIndex < this.goLayers.length; layerIndex++){
+        //     let goLayer = this.goLayers[layerIndex];
+        //     if(goLayer === undefined)
+        //         continue;
+            
+        //     for(let goi = 0; goi < goLayer.length; goi++){
+        //         goLayer[goi].unRegEvents();
+        //     }
+        // }
 
+        this.dispose();
+    }
+    
     dispose() {}
 
     preMainWork() {
@@ -26,20 +67,26 @@ class Scene {
     cycleWork(now) {
         this.preMainWork();
 
-        var i = this.go.length;
-        while (i--) {
-            this.go[i].update(now);
-            this.go[i].render();
-    
-            if(SCG.frameCounter && this.go[i].renderPosition!=undefined){
-                SCG.frameCounter.visibleCount++;
-            }
-    
-            if(!this.go[i].alive){
-                var deleted = this.go.splice(i,1);
+        for(let layerIndex = 0; layerIndex < this.goLayers.length; layerIndex++){
+            let goLayer = this.goLayers[layerIndex];
+            if(goLayer === undefined)
+                continue;
+
+            let i = goLayer.length;
+            while (i--) {
+                goLayer[i].update(now);
+                goLayer[i].render();
+        
+                if(SCG.frameCounter && goLayer[i].renderPosition!=undefined){
+                    SCG.frameCounter.visibleCount++;
+                }
+        
+                if(!goLayer[i].alive){
+                    var deleted = goLayer.splice(i,1);
+                }
             }
         }
-
+        
         this.afterMainWork();
     }
 }
@@ -47,11 +94,11 @@ class Scene {
 SCG.scenes = {
     activeScene: undefined,
     cachedScenes: {},
-    selectScene: function(scene, sceneProperties){
+    selectScene(scene, sceneProperties){
         if(!scene)
             throw 'Cant select undefined scene';
         if(this.activeScene)
-            this.activeScene.dispose(); //disposing current scene if exists
+            this.activeScene.innerDispose(); //disposing current scene if exists
 
         if(scene instanceof Scene)
             this.activeScene = scene;
@@ -62,13 +109,14 @@ SCG.scenes = {
             throw 'No scene selected';      
 
         SCG.viewport.logical = new Box(new V2, this.activeScene.viewport);
+        SCG.controls.clearEventsHandlers(); // new scene selected - reset event hadlers
 
         // AI creation
 		SCG.AI.initialize();        
 
-        this.activeScene.start();
+        this.activeScene.innerStart();
     },
-    cacheScene: function(scene) { //to reuse later
+    cacheScene(scene) { //to reuse later
         if(!scene)
             throw "Can't register undefined scene";
         if(scene.name === undefined)
