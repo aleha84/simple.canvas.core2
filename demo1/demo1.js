@@ -14,6 +14,10 @@ class DemoScene extends Scene {
         if(options.go === undefined)
             options.go = [];
 
+        options.go.push(new Star({
+            position: new V2(options.viewport.x/2, options.viewport.y/4)
+        }));
+
         for(let x = 0; x < options.viewport.x/grassTileSize.x; x++) {
             for(let y = 0; y < options.viewport.y/grassTileSize.y; y++) {
                 options.go.push(
@@ -122,17 +126,12 @@ class DemoScene extends Scene {
     }
 
     backgroundRender(){
-        // for(let i = 0; i < this.bgGo.length;i++) {
-        //     this.bgGo[i].needRecalcRenderProperties = true;
-        //     this.bgGo[i].update();
-        //     this.bgGo[i].render();
-        // }
-        // SCG.contexts.background.beginPath();
-        // SCG.contexts.background.rect(0, 0, SCG.viewport.real.width, SCG.viewport.real.height);
-        // SCG.contexts.background.fillStyle ='lightgreen';
-        // SCG.contexts.background.fill()
     }
 }
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ----------------- models ------------------------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class DemoGO extends GO {
     constructor(options = {}) {
@@ -144,6 +143,77 @@ class DemoGO extends GO {
         }, options);
 
         super(options);
+    }
+}
+
+class Star extends MovingGO {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            imgPropertyName: 'star_sheet',
+            destSourcePosition: new V2,
+            size: new V2(10,10),
+            isAnimated: true,
+            movingToTop: {
+                enabled: false,
+                rotationSpeed: 1,
+                currentDegree: 0,
+                currentRadians: 0
+            },
+            animation: {
+                settings: {
+                    currentRotateCount: 0,
+                    rotationSpeeds: [50, 50, 150, 150, 300, 300],
+                    maxRotateCount: 5
+                },
+                totalFrameCount: 4,
+                framesInRow: 4,
+                framesRowsCount: 1,
+                frameChangeDelay: 50,
+                destinationFrameSize: new Vector2(10,10),
+                sourceFrameSize: new Vector2(10,10),
+                loop: true,
+                animationRestartCallback() {
+                    this.animation.settings.currentRotateCount++;
+                    if(this.animation.settings.currentRotateCount > this.animation.settings.maxRotateCount){
+                        this.isAnimated = false;
+                        this.movingToTop.enabled = true;
+                        return;
+                    }
+                        
+                    this.animation.setFrameChangeDelay(this.animation.settings.rotationSpeeds[this.animation.settings.currentRotateCount]);
+                }
+            }
+        }, options);
+        
+        super(options);
+    }
+
+    internalPreRender() {
+        if(this.movingToTop.enabled){
+            //this.context.save();
+            this.context.translate(this.renderPosition.x,this.renderPosition.y);
+            this.context.rotate(this.movingToTop.currentRadians);
+            this.context.translate(-this.renderPosition.x,-this.renderPosition.y);
+        }
+        
+    }
+
+    internalRender() {
+        if(this.movingToTop.enabled){
+            this.context.translate(this.renderPosition.x,this.renderPosition.y);
+            this.context.rotate(-this.movingToTop.currentRadians);
+            this.context.translate(-this.renderPosition.x,-this.renderPosition.y);
+            //this.context.restore();
+        }
+    }
+
+    internalUpdate(now) {
+        if(this.movingToTop.enabled){
+            this.movingToTop.currentDegree += this.movingToTop.rotationSpeed;
+            // if(this.movingToTop.currentDegree > 45)
+            //     this.setDead();
+            this.movingToTop.currentRadians = parseFloat(degreeToRadians(this.movingToTop.currentDegree).toFixed(5));
+        }
     }
 }
 
@@ -167,10 +237,6 @@ class GrassTile extends GO {
                 enabled: false,
                 step: 0,
                 maxStep: 7
-            },
-            internalPreUpdate: (now) => {
-                if(this.shaking.enabled)
-                    doWorkByTimer(this.shaking.timer, now);
             }
         }, options);
 
@@ -217,6 +283,15 @@ class GrassTile extends GO {
             },
             content: this
         };
+    }
+
+    internalPreUpdate(now){
+        if(this.shaking.enabled)
+            doWorkByTimer(this.shaking.timer, now);
+    }
+
+    internalUpdate(now) {
+        //this.renderPosition = new V2(Math.round(this.renderPosition.x), Math.round(this.renderPosition.y));
     }
 }
 
@@ -282,7 +357,8 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.src = {
         tree_sprite_sheet: 'content/tree1.png',
         grass_sheet: 'content/grass_sheet.png',
-        bunny_sheet: 'content/bunny_sheet.png'
+        bunny_sheet: 'content/bunny_sheet.png',
+        star_sheet: 'content/star_sheet.png'
 	}
 
     debugger;

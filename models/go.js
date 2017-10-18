@@ -36,6 +36,11 @@ class GO {
                 loop : false,
                 animationTimer : undefined,
                 animationEndCallback: function(){},
+                animationRestartCallback: function(){},
+                setFrameChangeDelay(value) {
+                    this.animationTimer.currentDelay = value;
+                    this.animationTimer.originDelay = value;
+                },
                 frameChange : function(){
                     if(this.paused){
                         return;
@@ -54,6 +59,7 @@ class GO {
                         ){
                         if(this.loop){
                             this.currentFrame = this.reverse? this.totalFrameCount :  1;
+                            this.animationRestartCallback.call(objectContext);
                         }
                         else{
                             this.animationEndCallback.call(objectContext);
@@ -239,7 +245,7 @@ class GO {
             this.renderPosition = undefined;
             if(SCG.viewport.logical.isIntersectsWithBox(this.box) || this.isStatic)
             {
-                this.renderPosition = this.position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
+                this.renderPosition = this.position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);//.toFixed(2);
                 this.renderBox = new Box(new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2), this.renderSize);
             }
 

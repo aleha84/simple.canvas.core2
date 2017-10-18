@@ -168,6 +168,26 @@ class Vector2 {
 
 		return result * 180/Math.PI;
     }
+
+    toFixed(amount, isNew = false) {
+        if(!amount)
+            if(isNew)
+                return this.clone();
+            
+            return this;
+
+        let x = parseFloat(this.x.toFixed(amount));
+        let y = parseFloat(this.y.toFixed(amount));
+        
+        if(isNew)
+            return new V2(x, y);
+        else {
+            this.x = x;
+            this.y = y;
+
+            return this;
+        }
+    }
     
     static average(vectors){
         if(!isArray(vectors) || isEmpty(vectors)){
