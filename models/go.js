@@ -21,6 +21,7 @@ class GO {
             isAnimated: false,
             isCustomRender: false,
             needRecalcRenderProperties: true,
+            customScale: new V2(1,1),
             isStatic: false, // not affected by scale
             animation: { // todo test needed
                 totalFrameCount: 0,
@@ -157,23 +158,31 @@ class GO {
 		else{
 			if(this.img != undefined)
 			{
-				var rp = this.renderPosition;
-				var rs = this.renderSize;
-				var dsp = this.destSourcePosition;
-				var s = this.size;
-				var ctx = this.context;
+				let rp = this.renderPosition;
+                let rsx = this.renderSize.x;
+                let rsy = this.renderSize.y;
+
+                if(this.customScale.x !== 1)
+                    rsx *= this.customScale.x;
+
+                if(this.customScale.x !== 1)
+                    rsy *= this.customScale.y;
+                
+				let dsp = this.destSourcePosition;
+				let s = this.size;
+				let ctx = this.context;
 				if(this.isAnimated)
 				{
-					var ani = this.animation;
+					let ani = this.animation;
 					ctx.drawImage(this.img,  
 						ani.currentDestination.x * ani.sourceFrameSize.x,
 						ani.currentDestination.y * ani.sourceFrameSize.y,
 						ani.sourceFrameSize.x,
 						ani.sourceFrameSize.y,
-						rp.x - rs.x/2,
-						rp.y - rs.y/2,
-						rs.x,
-						rs.y
+						rp.x - rsx/2,
+						rp.y - rsy/2,
+						rsx,
+						rsy
 					);
 				}
 				else{
@@ -183,17 +192,17 @@ class GO {
 							dsp.y,
 							this.destSourceSize.x,
 							this.destSourceSize.y,
-							(rp.x - rs.x/2), 
-							(rp.y - rs.y/2), 
-							rs.x, 
-							rs.y);		
+							(rp.x - rsx/2), 
+							(rp.y - rsy/2), 
+							rsx, 
+							rsy);		
 					}
 					else { // draw simple img without any modifications
 						ctx.drawImage(this.img, 
-							(rp.x - rs.x/2), 
-							(rp.y - rs.y/2), 
-							rs.x, 
-							rs.y);			
+							(rp.x - rsx/2), 
+							(rp.y - rsy/2), 
+							rsx, 
+							rsy);			
 					}
 					
 				}

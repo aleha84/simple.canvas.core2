@@ -193,13 +193,14 @@ class Star extends MovingGO {
             imgPropertyName: 'star_sheet',
             destSourcePosition: new V2,
             size: new V2(10,10),
+            finalSize: new V2(3,3),
             isAnimated: true,
             speed: 1,
             animation: {
                 totalFrameCount: 4,
                 framesInRow: 4,
                 framesRowsCount: 1,
-                frameChangeDelay: 150,
+                frameChangeDelay: 75,
                 destinationFrameSize: new Vector2(10,10),
                 sourceFrameSize: new Vector2(10,10),
                 loop: true
@@ -207,6 +208,17 @@ class Star extends MovingGO {
         }, options);
         
         super(options);
+    }
+
+    beforePositionChange(now){
+        if(this.distanceToDestination === undefined)
+            this.distanceToDestination = this.position.distance(this.destination);
+
+        let currentDistance = this.position.distance(this.destination);
+        let share = currentDistance/this.distanceToDestination;
+
+        this.customScale.x = ((this.size.x - this.finalSize.x)*share + this.finalSize.x)/this.size.x;
+        this.customScale.y = ((this.size.y - this.finalSize.y)*share + this.finalSize.y)/this.size.y;
     }
 }
 
@@ -307,12 +319,6 @@ class BunnyGO extends MovingGO {
                     this.catchedTimer.lastTimeWork = new Date; 
                     this.setDestination();
 
-                    let star = new Star({
-                        position: this.position.clone()
-                    });
-                    star.setDestination(new V2(10,10));
-                    SCG.scenes.activeScene.addGo(star, 2, false);
-
                     return {
                         preventBubbling: true
                     }
@@ -348,7 +354,14 @@ class BunnyGO extends MovingGO {
             currentDelay: 1000,
             originDelay: 1000,
             doWorkInternal : () => { 
-                this.setDead(); },
+                this.setDead();
+                let star = new Star({
+                    position: this.position.clone()
+                });
+                star.setDestination(new V2(1,1));
+                SCG.scenes.activeScene.addGo(star, 2, false);
+
+            },
             context: this};
 
         this.isAnimated = false;
