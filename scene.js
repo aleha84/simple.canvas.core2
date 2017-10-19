@@ -58,14 +58,19 @@ class Scene {
     
     dispose() {}
 
-    preMainWork() {
-         SCG.contexts.main.clearRect(0, 0, SCG.viewport.real.width, SCG.viewport.real.height);
+    preMainWorkInner(now) {
+        SCG.contexts.main.clearRect(0, 0, SCG.viewport.real.width, SCG.viewport.real.height);
+        this.preMainWork(now);
     }
 
-    afterMainWork() {}
+    preMainWork(now) {
+         
+    }
+
+    afterMainWork(now) {}
 
     cycleWork(now) {
-        this.preMainWork();
+        this.preMainWorkInner(now);
 
         for(let layerIndex = 0; layerIndex < this.goLayers.length; layerIndex++){
             let goLayer = this.goLayers[layerIndex];
@@ -87,7 +92,7 @@ class Scene {
             }
         }
         
-        this.afterMainWork();
+        this.afterMainWork(now);
     }
 }
 

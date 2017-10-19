@@ -17,7 +17,11 @@ class MovingGO extends GO {
 
     pathCompleteCallBAck() {}
 
+    beforePositionChange() {}
+
     internalPreUpdate(now) {
+        this.beforePositionChange(now);
+
         if(!this.speed || this.speed === 0)
             return;
 
