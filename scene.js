@@ -8,7 +8,7 @@ class Scene {
             goLayers: [],
             workplace: {},
             AI: undefined
-        }, props);        
+        }, props);    
     }
 
     addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly

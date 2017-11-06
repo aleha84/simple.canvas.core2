@@ -405,15 +405,24 @@ document.addEventListener("DOMContentLoaded", function() {
         tree_sprite_sheet: 'content/tree1.png',
         grass_sheet: 'content/grass_sheet.png',
         bunny_sheet: 'content/bunny_sheet.png',
-        star_sheet: 'content/star_sheet.png'
+        star_sheet: 'content/star_sheet.png',
+        splash_screen: 'content/splash_screen.png',
+        splash_screen_title: 'content/splash_screen_title.png',
+        splash_screen_start_button: 'content/splash_screen_start_button.png'
 	}
 
     debugger;
-    SCG.scenes.selectScene(new DemoScene( 
-        { 
-            viewport: viewport.clone(),
-            name: 'demo_s1'
-        }));
+    // SCG.scenes.selectScene(new DemoScene( 
+    //     { 
+    //         viewport: viewport.clone(),
+    //         name: 'demo_s1'
+    //     }));
+
+    SCG.scenes.cacheScene(new IntroScene({
+        name:'intro',
+        viewport: new V2(500,300)
+    }));
+    SCG.scenes.selectScene('intro');
     
     SCG.main.start();
 });

@@ -110,14 +110,14 @@ class GO {
         if(SCG.AI && SCG.AI.worker)
             SCG.AI.sendEvent({ type: 'created', message: {goType: this.type, id: this.id, position: this.position.clone() }});
 
-        var ctx = SCG.contexts[this.contextName];
+        let ctx = SCG.contexts[this.contextName];
         
         if(ctx)
             this.context = ctx;
     }
 
     static createInstanceByName(name, options){
-        var _class = eval(name);
+        let _class = eval(name);
 
         if(!isClass(_class))
             return undefined;
@@ -237,7 +237,7 @@ class GO {
 			return false;
 		}
 
-        var scale = SCG.viewport.scale;
+        let scale = SCG.viewport.scale;
         if(this.needRecalcRenderProperties){
             this.renderSize = this.size.mul(scale);
             let tl = new V2(this.position.x - this.size.x/2,this.position.y - this.size.y/2);
@@ -270,7 +270,7 @@ class GO {
 
 		//register click for new objects
 		if(this.handlers.click && isFunction(this.handlers.click)){
-            var eh = SCG.controls.mouse.state.eventHandlers;
+            let eh = SCG.controls.mouse.state.eventHandlers;
             if(eh.click[layerIndex] === undefined)
                 eh.click[layerIndex] = [];
 
@@ -283,8 +283,8 @@ class GO {
     unRegEvents() {
         //remove from event handlers
         if(this.handlers.click && isFunction(this.handlers.click)){
-            var eh = SCG.controls.mouse.state.eventHandlers;
-            var index = eh.click[this.layerIndex].indexOf(this);
+            let eh = SCG.controls.mouse.state.eventHandlers;
+            let index = eh.click[this.layerIndex].indexOf(this);
             if(index > -1)
                 eh.click[this.layerIndex].splice(index, 1);	
         }
