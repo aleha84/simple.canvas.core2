@@ -7,8 +7,19 @@ class Scene {
             viewport: new V2(500, 300),
             goLayers: [],
             workplace: {},
-            AI: undefined
+            AI: undefined,
+            ui: []
         }, props);    
+    }
+
+    addUIGo(go) {
+        if(go === undefined)
+            throw 'No GO provided';
+        if(this.ui.indexOf(go) !== -1)
+            return;
+
+        this.ui.push(go);
+        go.regEvents();
     }
 
     addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly
@@ -43,15 +54,7 @@ class Scene {
     backgroundRender() {}
     
     innerDispose(){
-        // for(let layerIndex = 0; layerIndex < this.goLayers.length; layerIndex++){
-        //     let goLayer = this.goLayers[layerIndex];
-        //     if(goLayer === undefined)
-        //         continue;
-            
-        //     for(let goi = 0; goi < goLayer.length; goi++){
-        //         goLayer[goi].unRegEvents();
-        //     }
-        // }
+        SCG.controls.clearEventsHandlers(); //reset event hadlers
 
         this.dispose();
     }
@@ -114,7 +117,6 @@ SCG.scenes = {
             throw 'No scene selected';      
 
         SCG.viewport.logical = new Box(new V2, this.activeScene.viewport);
-        SCG.controls.clearEventsHandlers(); // new scene selected - reset event hadlers
 
         // AI creation
 		SCG.AI.initialize();        

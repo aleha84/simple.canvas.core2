@@ -22,7 +22,8 @@ class GO {
             isCustomRender: false,
             needRecalcRenderProperties: true,
             customScale: new V2(1,1),
-            isStatic: false, // not affected by scale
+            isStatic: false, // not affected by camera position shift - only for UI elements
+            sendEventsToAI: true,
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
@@ -74,6 +75,9 @@ class GO {
             }
         }, options);
 
+        if(this.isStatic) // if static then it is UI canvas
+            this.contextName = "ui";
+
         if(!this.destSourceSize)
             this.destSourceSize = this.size;
 
@@ -107,7 +111,7 @@ class GO {
         if(this.img == undefined && this.imgPropertyName != undefined)
             this.img = SCG.images[this.imgPropertyName];
 
-        if(SCG.AI && SCG.AI.worker)
+        if(this.sendEventsToAI && SCG.AI && SCG.AI.worker)
             SCG.AI.sendEvent({ type: 'created', message: {goType: this.type, id: this.id, position: this.position.clone() }});
 
         let ctx = SCG.contexts[this.contextName];
@@ -133,7 +137,7 @@ class GO {
         this.unRegEvents();
 
 		//send to ai msg
-        if(SCG.AI && SCG.AI.worker)
+        if(this.sendEventsToAI && SCG.AI && SCG.AI.worker)
             SCG.AI.sendEvent({ type: 'removed', message: {goType: this.type, id: this.id }});	
 
 		this.alive = false;
@@ -156,9 +160,12 @@ class GO {
 			this.customRender();
 		}
 		else{
+            let ctx = this.context;
+            let rp = this.renderPosition;
+
 			if(this.img != undefined)
 			{
-				let rp = this.renderPosition;
+				
                 let rsx = this.renderSize.x;
                 let rsy = this.renderSize.y;
 
@@ -170,7 +177,7 @@ class GO {
                 
 				let dsp = this.destSourcePosition;
 				let s = this.size;
-				let ctx = this.context;
+
 				if(this.isAnimated)
 				{
 					let ani = this.animation;
@@ -206,7 +213,21 @@ class GO {
 					}
 					
 				}
-			}	
+            }	
+            
+            if(this.text){
+                ctx.save();
+
+                var text = this.text;
+                ctx.font = `${text.renderSize}px ${text.font}`;
+                ctx.fillStyle = text.color;
+                ctx.textAlign = text.align;
+                ctx.textBaseline = text.textBaseline;
+
+                ctx.fillText(text.value, rp.x, rp.y);
+
+                ctx.restore();
+            }
 		}
 
 		this.internalRender();
@@ -253,6 +274,10 @@ class GO {
                 this.renderBox = new Box(new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2), this.renderSize);
             }
 
+            if(this.text){
+                this.text.renderSize = this.text.size*scale;
+            }
+
             this.needRecalcRenderProperties = false;
         }
 
@@ -270,13 +295,21 @@ class GO {
 
 		//register click for new objects
 		if(this.handlers.click && isFunction(this.handlers.click)){
-            let eh = SCG.controls.mouse.state.eventHandlers;
-            if(eh.click[layerIndex] === undefined)
-                eh.click[layerIndex] = [];
+            let ehLayer = undefined;
 
-			if(eh.click[layerIndex].indexOf(this) == -1){
-				eh.click[layerIndex].push(this);
-			}
+            if(this.isStatic)
+                ehLayer = SCG.controls.mouse.state.UIEventsHandlers;
+            else {
+                let eh = SCG.controls.mouse.state.eventHandlers;
+                if(eh.click[layerIndex] === undefined)
+                    eh.click[layerIndex] = [];
+
+                ehLayer = eh.click[layerIndex];
+            }
+            
+            if(ehLayer.indexOf(this) == -1){
+                ehLayer.push(this);
+            }
 		}
     }
     

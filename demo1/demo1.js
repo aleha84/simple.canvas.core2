@@ -233,7 +233,7 @@ class GrassTile extends GO {
                 click: () => {
                     this.shaking.enabled = true;
                     return {
-                        preventBubbling: true
+                        preventDiving: true
                     }
                 }
             },
@@ -320,7 +320,7 @@ class BunnyGO extends MovingGO {
                     this.setDestination();
 
                     return {
-                        preventBubbling: true
+                        preventDiving: true
                     }
                 }
             },

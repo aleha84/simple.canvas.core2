@@ -69,7 +69,8 @@ SCG.main = {
 		loadImagesSuccess(){
 			SCG.viewport.graphInit();
 			SCG.events.register();
-			
+			SCG.controls.initialize();
+
 			if(SCG.audio)
 				SCG.audio.init();	
 	
