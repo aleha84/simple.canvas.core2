@@ -10,14 +10,11 @@ class IntroScene extends Scene {
 
         this.addUIGo(new UILabel(
             { 
-                size: new V2(200,40),
-                position: new V2(50,20), 
+                position: new V2(this.viewport.x - 40,this.viewport.y - 15), 
                 debug: false,
                 text: {
-                    size: 40,
-                    color: 'gold',
-                    border: true,
-                    value: 'Money'
+                    size: 10,
+                    value: 'Version: ' + SCG.globals.version
                 }
             }));
         if(SCG.UI)
@@ -32,22 +29,28 @@ class IntroScene extends Scene {
             doWorkInternal:() => {
                 this.titleAdded = true;
                 
-                this.addGo(new Shield({ 
+                this.shieldTitle = new Shield({ 
                     position: new V2(this.viewport.x/2,this.viewport.y/2),
                     size: this.viewport.clone()
-                 }));
+                 });
 
-                 this.addGo(new FadeInOutButton(
-                     {
-                        position: new V2(this.viewport.x/2,(this.viewport.y/2)+10),
-                        size: new V2(70,60),
-                        handlers: {
-                            click: () => {
-                                alert('Button clicked:' + this.id);
-                            }
-                        }
-                     }
-                 ), 1, true);
+                this.addGo(this.shieldTitle);
+
+                 this.startGameButton = new FadeInOutButton(
+                    {
+                       position: new V2(this.viewport.x/2,(this.viewport.y/2)+10),
+                       size: new V2(70,60),
+                       handlers: {
+                           click() {
+                               this.setDead();
+                               this.parentScene.shieldTitle.dissapearing = true;
+                              // alert('Button clicked:' + this.id);
+                           }
+                       }
+                    }
+                );
+
+                this.addGo(this.startGameButton, 1, true);
             }
         }
     }
@@ -70,12 +73,18 @@ class Shield extends GO {
         options = assignDeep({}, {
             alpha: 0,
             appearanceTime: 1000,
+            dissapearanceTime: 300,
             alphaChangeTimeout: 50,
+            sizeChangeDelta: 1,
+            dissapearing: false,
+            appearing: true,
+            sendEventsToAI: false,
         }, options);
 
         super(options);
         this.imgPropertyName = 'splash_screen_title';
-        this.alphaChangeValue = 1/(this.appearanceTime/this.alphaChangeTimeout);
+        this.appearanceAlphaChangeValue = 1/(this.appearanceTime/this.alphaChangeTimeout);
+        this.disappearanceAlphaChangeValue = 1/(this.dissapearanceTime/this.alphaChangeTimeout);
 
         this.fadeInTimer = {
             lastTimeWork: new Date,
@@ -84,9 +93,30 @@ class Shield extends GO {
             originDelay: this.alphaChangeTimeout,
             content: this,
             doWorkInternal:() => {
-                this.alpha += this.alphaChangeValue;
-                if(this.alpha > 1)
+                this.alpha += this.appearanceAlphaChangeValue;
+                if(this.alpha > 1){
                     this.alpha = 1;
+                    this.appearing = false;
+                }   
+            }
+        }
+
+        this.dissapearTimer = {
+            lastTimeWork: new Date,
+            delta : 0,
+            currentDelay: this.alphaChangeTimeout,
+            originDelay: this.alphaChangeTimeout,
+            content: this,
+            doWorkInternal:() => {
+                this.alpha -= this.disappearanceAlphaChangeValue;
+                this.size.mul(0.975, true);
+                this.needRecalcRenderProperties = true;
+
+                if(this.alpha <= 0){
+                    this.alpha
+                    this.setDead();
+                    alert('Выбор уровня сложности')
+                }
             }
         }
     }
@@ -101,10 +131,11 @@ class Shield extends GO {
     }
 
     internalPreUpdate(now){
-        if(this.alpha >= 1)
-            return;
+        if(this.appearing)
+            doWorkByTimer(this.fadeInTimer, now);
 
-        doWorkByTimer(this.fadeInTimer, now);
+        if(this.dissapearing)
+            doWorkByTimer(this.dissapearTimer, now);
     }
 }
 

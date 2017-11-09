@@ -20,6 +20,8 @@ class Scene {
 
         this.ui.push(go);
         go.regEvents();
+
+        go.parentScene = this;
     }
 
     addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly
@@ -32,6 +34,8 @@ class Scene {
         this.goLayers[layerIndex].push(go);
         if(regEvents)
             go.regEvents(layerIndex);
+
+        go.parentScene = this;
     }
 
     innerStart() {

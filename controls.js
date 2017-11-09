@@ -29,7 +29,7 @@ SCG.controls = {
             },
             doClickCheckByLayer(clickLayer) {
                 if(clickLayer === undefined)
-                    continue;
+                    return true;
 
                 for(let i = 0; i < clickLayer.length;i++){
                     let chGo = clickLayer[i];

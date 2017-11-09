@@ -24,6 +24,7 @@ class GO {
             customScale: new V2(1,1),
             isStatic: false, // not affected by camera position shift - only for UI elements
             sendEventsToAI: true,
+            parentScene: undefined,
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
