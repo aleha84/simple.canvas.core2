@@ -219,8 +219,8 @@ class GO {
             if(this.text){
                 ctx.save();
 
-                var text = this.text;
-                ctx.font = `${text.renderSize}px ${text.font}`;
+                let text = this.text;
+                ctx.font = text.renderFont;
                 ctx.fillStyle = text.color;
                 ctx.textAlign = text.align;
                 ctx.textBaseline = text.textBaseline;
@@ -277,6 +277,7 @@ class GO {
 
             if(this.text){
                 this.text.renderSize = this.text.size*scale;
+                this.text.renderFont = `${this.text.renderSize}px ${this.text.font}`;
             }
 
             this.needRecalcRenderProperties = false;
@@ -292,6 +293,9 @@ class GO {
 	}
 
     regEvents(layerIndex = 0){
+        if(!SCG.controls.initialized)
+            SCG.controls.initialize();
+
         this.layerIndex = layerIndex;
 
 		//register click for new objects
@@ -299,7 +303,7 @@ class GO {
             let ehLayer = undefined;
 
             if(this.isStatic)
-                ehLayer = SCG.controls.mouse.state.UIEventsHandlers;
+                ehLayer = SCG.controls.mouse.state.UIEventsHandlers.click;
             else {
                 let eh = SCG.controls.mouse.state.eventHandlers;
                 if(eh.click[layerIndex] === undefined)

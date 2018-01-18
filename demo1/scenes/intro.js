@@ -17,6 +17,15 @@ class IntroScene extends Scene {
                     value: 'Version: ' + SCG.globals.version
                 }
             }));
+        this.addUIGo(new UIButton({
+            position: new V2(30, 60),
+            size: new V2(50,100),
+            text: {
+                size: 10,
+                value: 'Btn'
+            }
+        }));
+
         if(SCG.UI)
             SCG.UI.invalidate();
 
@@ -115,7 +124,8 @@ class Shield extends GO {
                 if(this.alpha <= 0){
                     this.alpha
                     this.setDead();
-                    alert('Выбор уровня сложности')
+                    //alert('Выбор уровня сложности')
+
                 }
             }
         }

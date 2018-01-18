@@ -351,7 +351,7 @@ function assignDeep(target, ...sources) {
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach(key => {
       if (isObject(source[key])) {
-        if (!(key in target))
+        if (!(key in target) || target[key] === undefined)
           Object.assign(target, { [key]: source[key] });
         else
           target[key] = assignDeep(target[key], source[key]);

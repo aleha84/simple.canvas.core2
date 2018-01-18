@@ -1,6 +1,11 @@
 SCG.controls = {
+    initialized: false,
     initialize() {
+        if(this.initialized)
+            return;
+
         this.clearEventsHandlers();
+        this.initialized = true;
     },
     clearEventsHandlers() { // resetting properties of handlers to empty arrays
         this.mouse.state.eventHandlers = {

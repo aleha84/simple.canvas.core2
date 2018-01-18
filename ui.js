@@ -50,3 +50,43 @@ class UILabel extends GO {
         super(options);
     }
 }
+
+class UIButton extends GO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            contextName: 'ui',
+            handlers: {
+                click: () => { console.log('Button empty click handler'); }
+            }
+        }, options);
+
+        if(!options.imgPropertyName && !options.img){
+            let innerCanvas = document.createElement('canvas');
+            innerCanvas.width = options.size.x;
+            innerCanvas.height = options.size.y;
+            let innerCtx = innerCanvas.getContext('2d');
+            innerCtx.fillStyle="#CCCCCC";
+            innerCtx.fillRect(0,0,innerCanvas.width,innerCanvas.height);
+            innerCtx.lineWidth = innerCanvas.width*0.05;
+            innerCtx.strokeStyle = '#DEDEDE';
+            innerCtx.beginPath();
+            innerCtx.moveTo(0, innerCanvas.height);
+            innerCtx.lineTo(0, 0);
+            innerCtx.lineTo(innerCanvas.width, 0);
+            innerCtx.stroke();
+
+            innerCtx.strokeStyle = '#AAAAAA';
+            innerCtx.beginPath();
+            innerCtx.moveTo(0, innerCanvas.height);
+            innerCtx.lineTo(innerCanvas.width, innerCanvas.height);
+            innerCtx.lineTo(innerCanvas.width, 0);
+            innerCtx.stroke();
+
+            options.img = innerCanvas;
+        }
+
+
+        options.isStatic = true; 
+        super(options);
+    }
+}
