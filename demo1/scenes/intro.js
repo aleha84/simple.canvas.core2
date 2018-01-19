@@ -17,14 +17,58 @@ class IntroScene extends Scene {
                     value: 'Version: ' + SCG.globals.version
                 }
             }));
-        this.addUIGo(new UIButton({
-            position: new V2(30, 60),
-            size: new V2(50,100),
-            text: {
-                size: 10,
-                value: 'Btn'
-            }
-        }));
+
+        let btnsGap = this.viewport.x*0.05;
+        let btnWidth = (this.viewport.x - btnsGap*4)/3;
+        let btnHeight = this.viewport.y - btnsGap*2;
+        this.selectDifficultyButtons = {
+            "easy": new UIButton({
+                position: new V2(btnsGap+btnWidth/2, btnsGap+btnHeight/2),
+                size: new V2(btnWidth,btnHeight),
+                isVisible: false,
+                handlers: {
+                    click: function() { console.log('Easy clicked', this); }
+                },
+                text: {
+                    size: 10,
+                    value: 'Easy',
+                    position: new V2,
+                    autoCenter: true
+                }
+            }),
+            "medium": new UIButton({
+                position: new V2(btnsGap*2+btnWidth*1.5, btnsGap+btnHeight/2),
+                size: new V2(btnWidth,btnHeight),
+                isVisible: false,
+                handlers: {
+                    click: function() { console.log('Medium clicked', this); }
+                },
+                text: {
+                    size: 10,
+                    value: 'Medium',
+                    position: new V2,
+                    autoCenter: true
+                }
+            }),
+            "hard": new UIButton({
+                position: new V2(btnsGap*3+btnWidth*2.5, btnsGap+btnHeight/2),
+                size: new V2(btnWidth,btnHeight),
+                isVisible: false,
+                handlers: {
+                    click: function() { console.log('Hard clicked', this); }
+                },
+                text: {
+                    size: 10,
+                    value: 'Hard',
+                    position: new V2,
+                    autoCenter: true
+                }
+            })
+        };
+
+        this.addUIGo(this.selectDifficultyButtons.easy);
+        this.addUIGo(this.selectDifficultyButtons.medium);
+        this.addUIGo(this.selectDifficultyButtons.hard);
 
         if(SCG.UI)
             SCG.UI.invalidate();
@@ -124,6 +168,11 @@ class Shield extends GO {
                 if(this.alpha <= 0){
                     this.alpha
                     this.setDead();
+
+                    this.parentScene.selectDifficultyButtons.easy.isVisible = true;
+                    this.parentScene.selectDifficultyButtons.medium.isVisible = true;
+                    this.parentScene.selectDifficultyButtons.hard.isVisible = true;
+                    SCG.UI.invalidate();
                     //alert('Выбор уровня сложности')
 
                 }

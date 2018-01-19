@@ -25,6 +25,7 @@ class GO {
             isStatic: false, // not affected by camera position shift - only for UI elements
             sendEventsToAI: true,
             parentScene: undefined,
+            isVisible: true,
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
@@ -130,6 +131,22 @@ class GO {
         return new _class(options);
     }
 
+    static getTextPropertyDefaults(value){
+        if(!value)
+            value = 'value';
+
+        return {
+            value: value,
+            size: 20,
+            color: 'black',
+            border: false,
+            align: 'center',
+            font: 'Arial',
+            autoCenter: false,
+            textBaseline: 'middle'
+        };
+    }
+
     beforeDead(){}
 
     setDead() {
@@ -151,7 +168,7 @@ class GO {
     internalRender(){}
 
     render(){ 
-        if(!this.alive || !this.renderPosition)
+        if(!this.alive || !this.renderPosition || !this.isVisible)
             return;
 
 		this.internalPreRender();
@@ -225,7 +242,7 @@ class GO {
                 ctx.textAlign = text.align;
                 ctx.textBaseline = text.textBaseline;
 
-                ctx.fillText(text.value, rp.x, rp.y);
+                ctx.fillText(text.value, text.renderPosition.x, text.renderPosition.y);
 
                 ctx.restore();
             }
@@ -276,8 +293,29 @@ class GO {
             }
 
             if(this.text){
-                this.text.renderSize = this.text.size*scale;
-                this.text.renderFont = `${this.text.renderSize}px ${this.text.font}`;
+                let text = this.text;
+                text.renderSize = text.size*scale;
+                text.renderFont = `${text.renderSize}px ${text.font}`;
+                if(text.autoCenter)
+                    {
+                        text.align = 'left';
+                        this.context.save();
+
+                        this.context.font = text.renderFont;
+                        this.context.textAlign = text.align;
+                        text.renderPosition = 
+                            this.renderBox.topLeft.add(
+                                new V2(
+                                    (this.renderSize.x/2) - (this.context.measureText(text.value).width/2), 
+                                    (this.renderSize.y/2)
+                                )
+                            );
+
+                            this.context.restore();
+                    }
+                    
+                else 
+                    text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position) : this.renderPosition;
             }
 
             this.needRecalcRenderProperties = false;

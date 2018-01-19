@@ -34,15 +34,7 @@ class UILabel extends GO {
             contextName: 'ui',
             size: new V2(50,10),
             debug: false,
-            text: {
-                value: 'sample',
-                size: 20,
-                color: 'black',
-                border: false,
-                align: 'center',
-                font: 'Arial',
-                textBaseline: 'middle'
-            }
+            text: GO.getTextPropertyDefaults('sample')
         }, options);
 
         options.isStatic = true;
@@ -55,6 +47,7 @@ class UIButton extends GO {
     constructor(options = {}){
         options = assignDeep({}, {
             contextName: 'ui',
+            text: GO.getTextPropertyDefaults('btn'),
             handlers: {
                 click: () => { console.log('Button empty click handler'); }
             }

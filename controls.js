@@ -40,6 +40,7 @@ SCG.controls = {
                     let chGo = clickLayer[i];
 
                     if(chGo.renderBox!=undefined 
+                        && chGo.isVisible
                         && chGo.renderBox.isPointInside(this.position) 
                         && chGo.handlers != undefined 
                         && chGo.handlers.click != undefined 
