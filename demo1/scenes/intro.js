@@ -27,7 +27,14 @@ class IntroScene extends Scene {
                 size: new V2(btnWidth,btnHeight),
                 isVisible: false,
                 handlers: {
-                    click: function() { console.log('Easy clicked', this); }
+                    click: function() { 
+                        console.log('Easy clicked', this); 
+                        SCG.scenes.selectScene(new DemoScene( 
+                        { 
+                            viewport: new V2(100,100),
+                            name: 'demo_s1'
+                        }), {prop1: 'value1'});
+                    }
                 },
                 text: {
                     size: 10,

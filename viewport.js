@@ -15,6 +15,8 @@ SCG.viewport = {
             throw 'wrong device orientation - portrait';
         }
             
+        if(!SCG.globals.parentElement)
+            return;
 
         let _width = SCG.globals.parentElement.clientWidth;
 		let _height = SCG.globals.parentElement.clientHeight; 

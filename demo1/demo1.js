@@ -6,7 +6,8 @@ class DemoScene extends Scene {
     constructor(options = {}) {
         
         options = assignDeep({}, { 
-            start: () => {
+            start: (sceneProperties) => {
+                console.log(sceneProperties);
                 this.AI.initialize();
             }
         }, options);

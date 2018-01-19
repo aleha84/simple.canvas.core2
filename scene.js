@@ -38,7 +38,9 @@ class Scene {
         go.parentScene = this;
     }
 
-    innerStart() {
+    innerStart(sceneProperties) {
+        SCG.viewport.graphInit();
+        SCG.UI.invalidate();
         for(let layerIndex = 0; layerIndex < this.goLayers.length; layerIndex++){ 
             if(this.goLayers[layerIndex] === undefined)
                 this.goLayers[layerIndex] = [];
@@ -50,10 +52,10 @@ class Scene {
             }
         }
 
-        this.start();
+        this.start(sceneProperties);
     }
 
-    start() {}
+    start(sceneProperties) {}
 
     backgroundRender() {}
     
@@ -125,7 +127,7 @@ SCG.scenes = {
         // AI creation
 		SCG.AI.initialize();        
 
-        this.activeScene.innerStart();
+        this.activeScene.innerStart(sceneProperties);
     },
     cacheScene(scene) { //to reuse later
         if(!scene)
