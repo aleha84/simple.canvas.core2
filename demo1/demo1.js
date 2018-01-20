@@ -2,13 +2,14 @@ var grassTileSize = new V2(10,10);
 var grassSheetSize = new V2(30,10);
 var viewport = new V2(100,100);
 
-class DemoScene extends Scene {
+class GameScene extends Scene {
     constructor(options = {}) {
         
         options = assignDeep({}, { 
             start: (sceneProperties) => {
-                console.log(sceneProperties);
-                this.AI.initialize();
+                this.game.level = sceneProperties.level;
+                //console.log(sceneProperties);
+                this.AI.initialize(sceneProperties.level);
             }
         }, options);
 
@@ -34,7 +35,13 @@ class DemoScene extends Scene {
         }
 
         this.AI = {
-            initialize: () => { // just helper to init environment
+            initialize: (level) => { // just helper to init environment
+                let bunniesMaxCount = 1;
+                if(level == 'medium')
+                    bunniesMaxCount = 3;
+                else if(level == 'hard')
+                    bunniesMaxCount = 6;
+
                 SCG.AI.initializeEnvironment({
                     space: {
                         width: options.viewport.x,
@@ -42,8 +49,9 @@ class DemoScene extends Scene {
                     },
                     bunnies: {
                         items: [],
-                        maxCount: 1
-                    }
+                        maxCount: bunniesMaxCount
+                    },
+                    level: level
                 });
             },
             messagesProcesser: function(wm){ // proccess messages from AI
@@ -79,24 +87,29 @@ class DemoScene extends Scene {
                     var task = queue.pop();
                     switch(task.type){
                         case 'start':
+                            self.getRandom = function getRandom(min, max){
+                                return Math.random() * (max - min) + min;
+                            };
                             self.createBunny = function(){
                                 self.postMessage({command: 'create', message: 
                                     { 
                                         goType: 'BunnyGO', 
-                                        position: { x: self.environment.space.width /2, y: self.environment.space.height/2 },
+                                        position: { 
+                                            x: self.getRandom(5, self.environment.space.width), 
+                                            y: self.getRandom(self.environment.space.height/2, self.environment.space.height - 5) },
                                         path: [
-                                            { x: 0, y: (self.environment.space.height/2)+1 }, 
+                                            { x: 10, y: (self.environment.space.height/2)+1 }, 
                                             { x: self.environment.space.width /2, y: self.environment.space.height - 5 },
                                             { x: self.environment.space.width - 5, y: self.environment.space.height/2 }] 
                                     } 
-                                });				
+                                });	
+                                
                             };
                             self.checkBunnies = function(){
                                 if(self.environment.bunnies.items.length < self.environment.bunnies.maxCount){
                                     self.createBunny();
                                 }
                             };
-
                             self.checkBunnies();
                             break;
                         case 'created':

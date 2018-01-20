@@ -67,6 +67,7 @@ SCG.AI = {
 
         SCG.AI.worker.postMessage({ command: "initialize", environment: environment, url:url });
     },
+    
     sendEvent(event) {
         SCG.AI.worker.postMessage({ command: "event", event: event });
     }

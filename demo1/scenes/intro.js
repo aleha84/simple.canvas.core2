@@ -21,25 +21,32 @@ class IntroScene extends Scene {
         let btnsGap = this.viewport.x*0.05;
         let btnWidth = (this.viewport.x - btnsGap*4)/3;
         let btnHeight = this.viewport.y - btnsGap*2;
+
+        let difficultyButtonClicked = function(level){
+            let viewportSize = new V2(160,100);
+            if(level == 'medium')
+                viewportSize = new V2(330,200);
+            else if(level == 'hard')
+                viewportSize = new V2(500,300);
+
+            SCG.scenes.selectScene(new GameScene( 
+                { 
+                    viewport: viewportSize,
+                    name: 'gameScene'
+                }), {level: level});
+        }
+
         this.selectDifficultyButtons = {
             "easy": new UIButton({
                 position: new V2(btnsGap+btnWidth/2, btnsGap+btnHeight/2),
                 size: new V2(btnWidth,btnHeight),
                 isVisible: false,
-                handlers: {
-                    click: function() { 
-                        console.log('Easy clicked', this); 
-                        SCG.scenes.selectScene(new DemoScene( 
-                        { 
-                            viewport: new V2(100,100),
-                            name: 'demo_s1'
-                        }), {prop1: 'value1'});
-                    }
+                click: function() { 
+                    difficultyButtonClicked('easy');
                 },
                 text: {
                     size: 10,
                     value: 'Easy',
-                    position: new V2,
                     autoCenter: true
                 }
             }),
@@ -47,13 +54,12 @@ class IntroScene extends Scene {
                 position: new V2(btnsGap*2+btnWidth*1.5, btnsGap+btnHeight/2),
                 size: new V2(btnWidth,btnHeight),
                 isVisible: false,
-                handlers: {
-                    click: function() { console.log('Medium clicked', this); }
+                click: function() { 
+                    difficultyButtonClicked('medium'); 
                 },
                 text: {
                     size: 10,
                     value: 'Medium',
-                    position: new V2,
                     autoCenter: true
                 }
             }),
@@ -61,13 +67,12 @@ class IntroScene extends Scene {
                 position: new V2(btnsGap*3+btnWidth*2.5, btnsGap+btnHeight/2),
                 size: new V2(btnWidth,btnHeight),
                 isVisible: false,
-                handlers: {
-                    click: function() { console.log('Hard clicked', this); }
-                },
+                click: function() { 
+                    difficultyButtonClicked('hard'); 
+                 },
                 text: {
                     size: 10,
                     value: 'Hard',
-                    position: new V2,
                     autoCenter: true
                 }
             })

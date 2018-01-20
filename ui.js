@@ -45,6 +45,15 @@ class UILabel extends GO {
 
 class UIButton extends GO {
     constructor(options = {}){
+
+        if(options.click && isFunction(options.click)){
+            if(!options.handlers)
+                options.handlers = {}
+
+            options.handlers.click = options.click;
+            delete options.click;
+        }
+
         options = assignDeep({}, {
             contextName: 'ui',
             text: GO.getTextPropertyDefaults('btn'),
