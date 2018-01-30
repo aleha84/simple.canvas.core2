@@ -25,9 +25,9 @@ class IntroScene extends Scene {
         let difficultyButtonClicked = function(level){
             let viewportSize = new V2(160,100);
             if(level == 'medium')
-                viewportSize = new V2(330,200);
+                viewportSize = new V2(240,150);
             else if(level == 'hard')
-                viewportSize = new V2(500,300);
+                viewportSize = new V2(320,200);
 
             SCG.scenes.selectScene(new GameScene( 
                 { 

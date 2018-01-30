@@ -6,18 +6,10 @@ class GameScene extends Scene {
     constructor(options = {}) {
         
         options = assignDeep({}, { 
-            start: (sceneProperties) => {
-                this.game.level = sceneProperties.level;
-                //console.log(sceneProperties);
-                this.AI.initialize(sceneProperties.level);
-            }
+            
         }, options);
 
         super(options);
-
-        // this.addGo(new Star({
-        //     position: new V2(options.viewport.x/2, options.viewport.y/4)
-        // }), 2, this);
 
         for(let x = 0; x < options.viewport.x/grassTileSize.x; x++) {
             for(let y = 0; y < options.viewport.y/grassTileSize.y; y++) {
@@ -148,6 +140,14 @@ class GameScene extends Scene {
                             if(go.type !== 'GrassTile')
                                 continue;
 
+                            if(go.box === undefined)
+                            {
+                                //debugger;
+                                //continue;
+                                count++;
+                                break;
+                            }
+
                             if(go.box.isPointInside(shakingPoint))
                             {
                                 if(go.shaking.enabled){
@@ -175,6 +175,29 @@ class GameScene extends Scene {
         }
     }
 
+    start (sceneProperties) {
+        this.game.level = sceneProperties.level;
+        //console.log(sceneProperties);
+        this.AI.initialize(sceneProperties.level);
+        this.game.lives = 9;
+        switch(this.game.level){
+            case 'easy':
+                this.game.lives = 9;
+                break;
+            case 'medium':
+                this.game.lives = 6;
+                break;
+            case 'hard':
+                this.game.lives = 3;
+                break;
+        }
+
+        let startX = this.viewport.x/2 - (this.game.lives*10 + (this.game.lives - 1)*10)/2;
+        for(let i = 0; i < this.game.lives;i++){
+            this.addGo(new Carrot({position: new V2(startX + i*10,10)}),1)
+        }
+    }
+
     backgroundRender(){
     }
 
@@ -196,6 +219,17 @@ class DemoGO extends GO {
             destSourcePosition: new V2
         }, options);
 
+        super(options);
+    }
+}
+
+class Carrot extends GO {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            imgPropertyName: 'carrot',
+            size: new V2(10,10),
+        }, options);
+        
         super(options);
     }
 }
@@ -424,7 +458,8 @@ document.addEventListener("DOMContentLoaded", function() {
         star_sheet: 'content/star_sheet.png',
         splash_screen: 'content/splash_screen.png',
         splash_screen_title: 'content/splash_screen_title.png',
-        splash_screen_start_button: 'content/splash_screen_start_button.png'
+        splash_screen_start_button: 'content/splash_screen_start_button.png',
+        carrot: 'content/carrot.png'
 	}
 
     debugger;
