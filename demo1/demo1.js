@@ -28,9 +28,9 @@ class GameScene extends Scene {
 
         this.AI = {
             initialize: (level) => { // just helper to init environment
-                let bunniesMaxCount = 1;
+                let bunniesMaxCount = 2;
                 if(level == 'medium')
-                    bunniesMaxCount = 3;
+                    bunniesMaxCount = 4;
                 else if(level == 'hard')
                     bunniesMaxCount = 6;
 
@@ -82,26 +82,97 @@ class GameScene extends Scene {
                             self.getRandom = function getRandom(min, max){
                                 return Math.random() * (max - min) + min;
                             };
+                            self.checkIsClose = function(p1, p2, delta){
+                                return Math.sqrt(Math.pow(p1.x - p2.x,2) + Math.pow(p1.y - p2.y,2)) < delta;
+                            };
                             self.createBunny = function(){
+                                let pathPointsCount = 9;
+                                let pathParts = [3,6,9];
+                                let closeDelta = 15;
+                                switch(self.environment.level){
+                                    case 'medium':
+                                        pathPointsCount = 6;
+                                        pathParts = [2,4,6];
+                                        closeDelta = 25;
+                                        break;
+                                    case 'hard':
+                                        pathPointsCount = 3;
+                                        pathParts = [1,2,3];
+                                        closeDelta = 35;
+                                        break;
+                                }
+                                let path = [];
+                                let topMargin = 20;
+                                let topY = self.environment.space.height-topMargin;
+                                for(let i = 0; i < pathPointsCount; i++){
+                                    let yClamps = [];
+                                    if(i < pathParts[0]) {
+                                        yClamps = [(2*topY/3)+topMargin, self.environment.space.height - 5 ];
+                                    }
+                                    else if(i >= pathParts[0] && i < pathParts[1]) {
+                                        yClamps = [(topY/3)+topMargin, (2*topY/3)+topMargin];
+                                    }
+                                    else if(i >= pathParts[1] && i < pathParts[2]) {
+                                        yClamps = [topMargin+5, (topY/3)+topMargin];
+                                    }
+
+                                    let nextPathPoint = {
+                                        x: self.getRandom(5, self.environment.space.width-5), 
+                                        y: self.getRandom(yClamps[0]+5, yClamps[1]-5) 
+                                    };
+                                    let retryCount = 10;
+                                    while(--retryCount > 0){
+                                        if(!path.length)
+                                            break;
+                                        
+                                        let isNotClose = true;
+
+                                        for(let pi = 0; pi < path.length; pi++){
+                                            if(self.checkIsClose(nextPathPoint, path[pi], closeDelta)){
+                                                isNotClose = false;
+                                                break;
+                                            }
+                                        }
+
+                                        if(isNotClose)
+                                            break;
+                                        
+                                        nextPathPoint = {
+                                            x: self.getRandom(5, self.environment.space.width), 
+                                            y: self.getRandom(yClamps[0], yClamps[1]) 
+                                        };
+
+                                        if(retryCount == 1){
+                                            console.log(`Failed to find available position in 10 retryies; between: ${yClamps[0]} - ${yClamps[1]}; with delta: ${closeDelta.x},${closeDelta.y}`);
+                                        }
+                                    }
+
+                                    path.push(nextPathPoint);
+                                }
+
+                                console.log(path);
                                 self.postMessage({command: 'create', message: 
                                     { 
                                         goType: 'BunnyGO', 
                                         position: { 
                                             x: self.getRandom(5, self.environment.space.width), 
                                             y: self.getRandom(self.environment.space.height/2, self.environment.space.height - 5) },
-                                        path: [
-                                            { x: 10, y: (self.environment.space.height/2)+1 }, 
-                                            { x: self.environment.space.width /2, y: self.environment.space.height - 5 },
-                                            { x: self.environment.space.width - 5, y: self.environment.space.height/2 }] 
+                                        path: path
+                                        // [
+                                        //     { x: 10, y: (self.environment.space.height/2)+1 }, 
+                                        //     { x: self.environment.space.width /2, y: self.environment.space.height - 5 },
+                                        //     { x: self.environment.space.width - 5, y: self.environment.space.height/2 }] 
                                     } 
                                 });	
                                 
                             };
                             self.checkBunnies = function(){
+                                //debugger;
                                 if(self.environment.bunnies.items.length < self.environment.bunnies.maxCount){
                                     self.createBunny();
                                 }
                             };
+
                             self.checkBunnies();
                             break;
                         case 'created':
@@ -180,6 +251,11 @@ class GameScene extends Scene {
         //console.log(sceneProperties);
         this.AI.initialize(sceneProperties.level);
         this.game.lives = 9;
+
+        // чем сложнее - тем больше зайцев, тем меньше жизней.
+        // зайцы быстрее, реже появляются на верху
+        // больше ветра на большей сложности (ложной тряски кустов)
+
         switch(this.game.level){
             case 'easy':
                 this.game.lives = 9;
@@ -192,7 +268,7 @@ class GameScene extends Scene {
                 break;
         }
 
-        let startX = this.viewport.x/2 - (this.game.lives*10 + (this.game.lives - 1)*10)/2;
+        let startX = this.viewport.x/2 - this.game.lives*10/2; 
         for(let i = 0; i < this.game.lives;i++){
             this.addGo(new Carrot({position: new V2(startX + i*10,10)}),1)
         }
