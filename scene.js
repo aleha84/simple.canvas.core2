@@ -15,6 +15,7 @@ class Scene {
     addUIGo(go) {
         if(go === undefined)
             throw 'No GO provided';
+        
         if(this.ui.indexOf(go) !== -1)
             return;
 
@@ -22,6 +23,8 @@ class Scene {
         go.regEvents();
 
         go.parentScene = this;
+
+        return go;
     }
 
     addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly

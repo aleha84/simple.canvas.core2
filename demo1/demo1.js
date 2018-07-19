@@ -233,6 +233,14 @@ class GameScene extends Scene {
                         }
                     }
                 }
+            },
+            __score: 0,
+            set score (value){
+                this.__score = value;
+                SCG.UI.invalidate();
+            },
+            get score () {
+                return this.__score;
             }
         }
 
@@ -251,6 +259,20 @@ class GameScene extends Scene {
         //console.log(sceneProperties);
         this.AI.initialize(sceneProperties.level);
         this.game.lives = 9;
+        this.game.ui = {
+            scoreLabel: this.addUIGo(new UILabel(
+                { 
+                    position: new V2(15,10), 
+                    text: {
+                        size: 6,
+                        color: 'gold'
+                    },
+                    format: {
+                        format: "Score: {0}",
+                        argsRetriever: () => { return [this.game.score]; }
+                    }
+                }))
+        };
 
         // чем сложнее - тем больше зайцев, тем меньше жизней.
         // зайцы быстрее, реже появляются на верху
@@ -272,6 +294,8 @@ class GameScene extends Scene {
         for(let i = 0; i < this.game.lives;i++){
             this.addGo(new Carrot({position: new V2(startX + i*10,10)}),1)
         }
+
+        SCG.UI.invalidate();
     }
 
     backgroundRender(){
@@ -343,6 +367,10 @@ class Star extends MovingGO {
 
         this.customScale.x = ((this.size.x - this.finalSize.x)*share + this.finalSize.x)/this.size.x;
         this.customScale.y = ((this.size.y - this.finalSize.y)*share + this.finalSize.y)/this.size.y;
+    }
+
+    beforeDead() {
+        SCG.scenes.activeScene.game.score++;
     }
 }
 
@@ -482,7 +510,7 @@ class BunnyGO extends MovingGO {
                 let star = new Star({
                     position: this.position.clone()
                 });
-                star.setDestination(new V2(1,1));
+                star.setDestination(new V2(25,10));
                 SCG.scenes.activeScene.addGo(star, 2, false);
 
             },

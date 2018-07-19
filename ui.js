@@ -34,12 +34,20 @@ class UILabel extends GO {
             contextName: 'ui',
             size: new V2(50,10),
             debug: false,
-            text: GO.getTextPropertyDefaults('sample')
+            text: GO.getTextPropertyDefaults('sample'),
+            format: undefined
         }, options);
 
         options.isStatic = true;
 
         super(options);
+    }
+
+    internalPreUpdate(now){
+        if(this.format){
+            var args = this.format.argsRetriever ? this.format.argsRetriever() : this.format.arguments;
+            this.text.value = String.format(this.format.format, args);
+        }
     }
 }
 
