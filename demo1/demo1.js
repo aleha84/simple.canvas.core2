@@ -67,7 +67,7 @@ class GameScene extends Scene {
                                 });
 
                             if(instance)
-                                SCG.scenes.activeScene.addGo(instance, 1, true);
+                                SCG.scenes.activeScene.addGo(instance, 2, true);
                             break;
                         default:
                             break;
@@ -328,9 +328,41 @@ class Carrot extends GO {
         options = assignDeep({}, {
             imgPropertyName: 'carrot',
             size: new V2(10,10),
+            destSourcePosition: new V2,
+            eaten: {
+                eaten: false,
+                minYShift: -10,
+                currentYShift: 0
+            }
         }, options);
         
         super(options);
+
+        this.eaten.timer = {
+            lastTimeWork: new Date,
+            delta : 0,
+            currentDelay: 100,
+            originDelay: 100,
+            context: this,
+            doWorkInternal : () => { 
+                if(this.eaten.currentYShift <= this.eaten.minYShift){
+                    this.eaten.eaten = false;
+                    this.setDead();
+                } 
+
+                this.eaten.currentYShift-=0.5;
+                this.destSourcePosition.y = this.eaten.currentYShift;
+            }
+        }
+    }
+
+    beforeDead(){
+        // lives--
+    }
+
+    internalPreUpdate(now){
+        if(this.eaten.eaten)
+            doWorkByTimer(this.eaten.timer, now);
     }
 }
 
@@ -460,9 +492,24 @@ class BunnyGO extends MovingGO {
             destSourcePosition: new V2,
             innerPath: [],
             catched: false,
+            uncatchable: false,
+            targetedToCarrot: false,
+            getCarrot: function(){
+                let carrotIndexes = [];
+                for(let i = 0;i<SCG.scenes.activeScene.goLayers[1].length;i++){
+                    if(SCG.scenes.activeScene.goLayers[1][i] instanceof Carrot && !SCG.scenes.activeScene.goLayers[1][i].eaten.eaten){
+                        carrotIndexes.push(i);
+                    }
+                }
+
+                if(!carrotIndexes.length)
+                    return undefined;
+
+                return SCG.scenes.activeScene.goLayers[1][getRandomInt(0, carrotIndexes.length-1)];
+            },
             handlers: {
                 click: () => {
-                    if(this.catched)
+                    if(this.catched || this.uncatchable)
                         return;
 
                     this.isAnimated = false;
@@ -480,7 +527,7 @@ class BunnyGO extends MovingGO {
                 totalFrameCount: 14,
                 framesInRow: 14,
                 framesRowsCount: 1,
-                frameChangeDelay: 250,
+                frameChangeDelay: 100,
                 destinationFrameSize: new Vector2(10,10),
                 sourceFrameSize: new Vector2(10,10),
                 loop: false,
@@ -491,7 +538,23 @@ class BunnyGO extends MovingGO {
                         this.setDestination(this.innerPath.shift());
                     }
                     else{
-                        this.setDead();
+                        if(this.targetedToCarrot){
+                            this.setDead();
+                            if(this.targetedToCarrot.eaten.eaten){
+                                this.targetedToCarrot = this.getCarrot();
+                            }
+
+                            this.targetedToCarrot.eaten.eaten = true;
+                        }
+                        else {
+                            this.isAnimated = false;
+                            this.targetedToCarrot = this.getCarrot();
+
+                            if(this.targetedToCarrot===undefined)
+                                this.setDead();
+                            else 
+                                this.setDestination(this.targetedToCarrot.position.clone());
+                        }
                     }
                 }
             },
@@ -501,7 +564,8 @@ class BunnyGO extends MovingGO {
 
         super(options);
 
-        this.catchedTimer = {lastTimeWork: new Date,
+        this.catchedTimer = {
+            lastTimeWork: new Date,
             delta : 0,
             currentDelay: 1000,
             originDelay: 1000,
@@ -525,8 +589,10 @@ class BunnyGO extends MovingGO {
         if(!this.catched) {
             this.animation.currentFrame = 0;
             this.isAnimated = true;
+
+            if(this.targetedToCarrot)
+                this.uncatchable = true;
         }
-        
     }
 
     positionChangedCallback() {

@@ -10,6 +10,7 @@ class GO {
         var objectContext = this;
 
         assignDeep(this, {
+            debug: false,
             alive: true,
             id: undefined,
             img: undefined,
@@ -120,6 +121,9 @@ class GO {
         
         if(ctx)
             this.context = ctx;
+
+        this.console('ctor completed.')
+
     }
 
     static createInstanceByName(name, options){
@@ -147,6 +151,11 @@ class GO {
         };
     }
 
+    console(message) {
+        if(this.debug)
+            console.log(this.id + ' ' + message);
+    }
+
     beforeDead(){}
 
     setDead() {
@@ -158,7 +167,9 @@ class GO {
         if(this.sendEventsToAI && SCG.AI && SCG.AI.worker)
             SCG.AI.sendEvent({ type: 'removed', message: {goType: this.type, id: this.id }});	
 
-		this.alive = false;
+        this.alive = false;
+
+        this.console('setDead completed.');
     }
     
     customRender(){ }
@@ -248,7 +259,9 @@ class GO {
             }
 		}
 
-		this.internalRender();
+        this.internalRender();
+        
+        this.console('render completed.');
     }
     
     internalPreUpdate(now){}
@@ -273,6 +286,7 @@ class GO {
         this.internalPreUpdate(now);
 
         if(!this.isStatic && (!this.alive || SCG.logics.isPaused || SCG.logics.gameOver || SCG.logics.wrongDeviceOrientation)){
+            this.console('update not completed.');
 			return false;
 		}
 
@@ -326,8 +340,12 @@ class GO {
         
 		this.internalUpdate(now);
 
-		if(!this.alive)
+		if(!this.alive){
+            this.console('update completed. this.alive = false');
             return false;
+        }
+            
+        this.console('update completed.');
 	}
 
     regEvents(layerIndex = 0){
