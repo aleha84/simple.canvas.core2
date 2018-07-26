@@ -619,7 +619,7 @@ class BunnyGO extends MovingGO {
 
 document.addEventListener("DOMContentLoaded", function() {
 
-    SCG.globals.version = 0.1;
+    SCG.globals.version = 0.2;
 
     SCG.src = {
         tree_sprite_sheet: 'content/tree1.png',

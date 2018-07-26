@@ -39,6 +39,8 @@ class Scene {
             go.regEvents(layerIndex);
 
         go.parentScene = this;
+
+        return go;
     }
 
     innerStart(sceneProperties) {
