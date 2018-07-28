@@ -2,26 +2,32 @@ class ParallaxScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             layers: [
-                { 
-                    count: 500,
-                    opacity: 0.5,
-                    speed: 0.1
-                },
-                { 
-                    count: 250,
-                    opacity: 0.75,
-                    speed: 0.25
-                },
-                { 
-                    count: 100,
-                    opacity: 1,
-                    speed: 0.5
-                }
+                // { 
+                //     count: 500,
+                //     opacity: 0.5,
+                //     speed: 0.1
+                // },
+                // { 
+                //     count: 250,
+                //     opacity: 0.75,
+                //     speed: 0.25
+                // },
+                // { 
+                //     count: 100,
+                //     opacity: 1,
+                //     speed: 0.5
+                // }
             ]
         }, options);
 
         super(options);
-
+        for(let i = 10; i>0; i--){
+            this.layers.push({
+                count: i*100,
+                opacity: 1/i,
+                speed: 1/i
+            });
+        }
         this.starsLayers = [];
 
         for(let i = 0; i < this.layers.length; i++){
