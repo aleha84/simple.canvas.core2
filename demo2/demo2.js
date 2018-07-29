@@ -7,12 +7,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
     debugger;
     
-
+    let defaultViewpot = new V2(500,300);
     SCG.scenes.cacheScene(new ParallaxScene({
         name:'parallax',
-        viewport: new V2(500,300)
+        viewport: defaultViewpot
     }));
-    SCG.scenes.selectScene('parallax');
+
+    SCG.scenes.cacheScene(new NightSkyScene({
+        name:'nightsky',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.selectScene('nightsky');
     
     SCG.main.start();
 });
