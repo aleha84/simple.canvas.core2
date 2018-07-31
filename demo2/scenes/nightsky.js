@@ -100,14 +100,7 @@ class MovingStar extends MovingGO {
         let colorSwitchingTimerDelay = getRandomInt(1000,3000);
         if(this.colorSwitching){
             this.colorSwitchingProcesser();
-            this.colorSwitchingTimer = {
-                lastTimeWork: new Date,
-                delta : 0,
-                currentDelay: colorSwitchingTimerDelay,
-                originDelay: colorSwitchingTimerDelay,
-                doWorkInternal : this.colorSwitchingProcesser,
-                context: this
-            }
+            this.colorSwitchingTimer = createTimer(colorSwitchingTimerDelay, this.colorSwitchingProcesser, this);
         }
     }
     
@@ -116,7 +109,7 @@ class MovingStar extends MovingGO {
     }
 
     colorSwitchingProcesser(){
-        this.fillStyle = `rgb(${getRandomInt(0,255)}, ${getRandomInt(0,255)}, ${getRandomInt(0,255)})`;
+        this.colorSwitchingDelta = [getRandom(0.1, 2)*(getRandomBool() ? 1 : -1), getRandom(0.1, 2)*(getRandomBool() ? 1 : -1), getRandom(0.1, 2)*(getRandomBool() ? 1 : -1)]
     }
 
     customRender(){
@@ -128,7 +121,17 @@ class MovingStar extends MovingGO {
     }
 
     beforePositionChange(now){
-        if(this.colorSwitching)
+        if(this.colorSwitching){
+            for(let i = 0; i< 3; i++){
+                this.color[i]+=this.colorSwitchingDelta[i];
+                if(this.color[i] < 0)
+                    this.color[i] = 0
+            }
+
+            this.fillStyle = `rgb(${this.color[0]}, ${this.color[1]}, ${this.color[2]})`;
+            
             doWorkByTimer(this.colorSwitchingTimer, now);
+        }
+            
     }
 }

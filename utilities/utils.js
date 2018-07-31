@@ -16,6 +16,17 @@ function boxIntersectsBox(a,b)
          (Math.abs(a.center.y - b.center.y) * 2 < (a.size.y + b.size.y));
 }
 
+function createTimer(delay, method, context, startNow = true) {
+  return {
+      lastTimeWork: new Date,
+      delta : startNow ? 0 : delay,
+      currentDelay: delay,
+      originDelay: delay,
+      doWorkInternal : method,
+      context: context
+  }
+}
+
 function boxCircleIntersects(circle, rect)
 { 
 	var circleDistance = new Vector2(Math.abs(circle.center.x - rect.center.x),Math.abs(circle.center.y - rect.center.y));
