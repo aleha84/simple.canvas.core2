@@ -23,7 +23,7 @@ class StarsLayer {
             };
 
             this.stars.push(this.scene.addGo(
-                (this.addShiningStars && getRandomInt(0, 300) < 10)? new ShiningStar(starProps) : new Star(starProps)
+                (this.addShiningStars && getRandomInt(0, 300) < 10)? new ShiningStar(starProps) : new ParallaxStar(starProps)
                 , this.level
             ));
         }
@@ -40,7 +40,6 @@ class StarsLayer {
     }
 }
 
-
 class Star extends MovingGO {
     constructor(options = {}) {
         options = assignDeep({}, {
@@ -55,8 +54,6 @@ class Star extends MovingGO {
         super(options);
         
         this.fillStyle = 'rgba(255,255,255,'+this.opacity+')';
-
-        this.setDestination(new V2(0, this.position.y));
     }
 
     customRender(){
@@ -66,6 +63,14 @@ class Star extends MovingGO {
         let rsy = this.renderSize.y;
         this.context.fillRect(rp.x - rsx/2, rp.y - rsy/2, rsx,rsy);
     }
+}
+
+class ParallaxStar extends Star {
+    constructor(options = {}) {
+        super(options);
+
+        this.setDestination(new V2(0, this.position.y));
+    }
 
     destinationCompleteCallBack() {
         this.position = new V2(SCG.scenes.activeScene.viewport.x+1, getRandomInt(0, SCG.scenes.activeScene.viewport.y));
@@ -73,7 +78,7 @@ class Star extends MovingGO {
     }
 }
 
-class ShiningStar extends Star {
+class ShiningStar extends ParallaxStar {
     constructor(options = {}){
         options = assignDeep({}, {
             shine: {

@@ -141,16 +141,37 @@ function segmentIntersectCircle2(segment,circle)
   return d1 <= circle.radius || d2 <= circle.radius;
 }
 
-function segmentsIntersectionVector2(line1, line2)
+function segmentsIntersectionVector2_1(line1, line2){ //slow
+  let result = undefined;
+  let b = line1.end.substract(line1.begin);
+  let d = line2.end.substract(line2.begin);
+  let bDotPerp = b.x*d.y - b.y*d.x;
+  if(bDotPerp === 0)
+    return undefined;
+  
+  let c = line2.begin.substract(line1.begin);
+  let t = (c.x*d.y - c.y*d.x)/bDotPerp;
+  if(t <0 || t > 1)
+    return undefined;
+  
+  let u = (c.x*b.y - c.y*b.x)/bDotPerp;
+  if(u < 0 || u > 1)
+    return undefined;
+  
+  return line1.begin.add(b.mul(t));
+}
+
+
+function segmentsIntersectionVector2(line1, line2) // faster
 {
-  var x1 = +line1.begin.x.toFixed(2);
-  var x2 = +line1.end.x.toFixed(2);
-  var y1 = +line1.begin.y.toFixed(2);
-  var y2 = +line1.end.y.toFixed(2);
-  var x3 = +line2.begin.x.toFixed(2);
-  var x4 = +line2.end.x.toFixed(2);
-  var y3 = +line2.begin.y.toFixed(2);
-  var y4 = +line2.end.y.toFixed(2);
+  var x1 = line1.begin.x;//.toFixed(2);
+  var x2 = line1.end.x;//.toFixed(2);
+  var y1 = line1.begin.y;//.toFixed(2);
+  var y2 = line1.end.y;//.toFixed(2);
+  var x3 = line2.begin.x;//.toFixed(2);
+  var x4 = line2.end.x;//.toFixed(2);
+  var y3 = line2.begin.y;//.toFixed(2);
+  var y4 = line2.end.y;//.toFixed(2);
 
   var d = (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4);
   if(d == 0)
@@ -158,8 +179,8 @@ function segmentsIntersectionVector2(line1, line2)
     return undefined;
   }
 
-  var xi = +(((x3-x4)*(x1*y2-y1*x2)-(x1-x2)*(x3*y4-y3*x4))/d).toFixed(2);
-  var yi = +(((y3-y4)*(x1*y2-y1*x2)-(y1-y2)*(x3*y4-y3*x4))/d).toFixed(2);
+  var xi = (((x3-x4)*(x1*y2-y1*x2)-(x1-x2)*(x3*y4-y3*x4))/d);//.toFixed(2);
+  var yi = (((y3-y4)*(x1*y2-y1*x2)-(y1-y2)*(x3*y4-y3*x4))/d);//.toFixed(2);
 
   var p = new Vector2(xi,yi);
   if (xi < Math.min(x1,x2) || xi > Math.max(x1,x2)) return undefined;
@@ -544,3 +565,17 @@ String.format = function() {
   }
   return s;
 }
+
+Number.prototype.toFixedFast = function(size){
+  if(!size)
+    return ~~this;
+
+  let decimalSize = 1;
+  for(let i = 0;i < size; i++){
+    decimalSize*=10;
+  }
+
+  return ~~(this*decimalSize)/decimalSize;
+}
+
+

@@ -93,18 +93,21 @@ class NightSkyScene extends Scene {
                 }), 2);
                 break;
             case 2: 
-                let rainCount = getRandomInt(5,10);
-                for(let i = 0;i < rainCount;i++){
-                    let rDest = destination.add(new V2(getRandomInt(-100, 100),getRandomInt(-100, 100)));
-                    this.meteorRainQueue.push(new Meteor({
-                        start: position.add(new V2(getRandomInt(-30, 30),getRandomInt(-30, 30))),
-                        end: rDest,
-                        path: [rDest],
-                        speed: getRandom(18,22),
-                        length: getRandomInt(100,200),
-                        width: getRandom(0.3,0.6)
-                    }));
+                if(getRandomInt(1,3) == 1){ // in 30% cases
+                    let rainCount = getRandomInt(2,6);
+                    for(let i = 0;i < rainCount;i++){
+                        let rDest = destination.add(new V2(getRandomInt(-100, 100),getRandomInt(-100, 100)));
+                        this.meteorRainQueue.push(new Meteor({
+                            start: position.add(new V2(getRandomInt(-30, 30),getRandomInt(-30, 30))),
+                            end: rDest,
+                            path: [rDest],
+                            speed: getRandom(18,22),
+                            length: getRandomInt(100,200),
+                            width: getRandom(0.3,0.6)
+                        }));
+                    }
                 }
+                
                 break;
         }
         

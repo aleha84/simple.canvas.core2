@@ -302,7 +302,7 @@ class GO {
             this.renderPosition = undefined;
             if(SCG.viewport.logical.isIntersectsWithBox(this.box) || this.isStatic)
             {
-                this.renderPosition = this.position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);//.toFixed(2);
+                this.renderPosition = this.position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
                 this.renderBox = new Box(new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2), this.renderSize);
             }
 

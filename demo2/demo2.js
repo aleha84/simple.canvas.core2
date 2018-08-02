@@ -1,6 +1,16 @@
 document.addEventListener("DOMContentLoaded", function() {
+    let scenesNames = ['parallax', 'nightsky'];
 
-    SCG.globals.version = 0.1;
+    function sceneSelectByHashValue(){
+        let sceneIndex = location.hash !== '' ? scenesNames.indexOf(location.hash.replace('#','')) : 0;
+        if(sceneIndex === -1)
+            sceneIndex = 0;
+
+        SCG.scenes.selectScene(scenesNames[sceneIndex]);
+    }
+
+
+    SCG.globals.version = 0.2;
 
     SCG.src = {
 	}
@@ -18,7 +28,9 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
-    SCG.scenes.selectScene('nightsky');
+    sceneSelectByHashValue();
     
     SCG.main.start();
+
+    window.addEventListener("hashchange", sceneSelectByHashValue, false);
 });

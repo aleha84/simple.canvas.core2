@@ -171,13 +171,15 @@ class Vector2 {
 
     toFixed(amount, isNew = false) {
         if(!amount)
+        {
             if(isNew)
                 return this.clone();
-            
+        
             return this;
+        }
 
-        let x = parseFloat(this.x.toFixed(amount));
-        let y = parseFloat(this.y.toFixed(amount));
+        let x = this.x.toFixedFast(amount);
+        let y = this.y.toFixedFast(amount);
         
         if(isNew)
             return new V2(x, y);
