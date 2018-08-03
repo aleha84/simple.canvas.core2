@@ -76,10 +76,14 @@ class FlythroughStar extends Star {
     }
 
     flythroughProcesser(){
-        this.speed += this.speedDelta;
-        this.opacity += this.opacityDelta;
-        this.size.x += this.sizeDelta;
-        this.size.y += this.sizeDelta;
+        this.speed += this.deltas.speedDelta;
+        this.opacity += this.deltas.opacityDelta;
+        
+        if(this.opacity > 1)
+            this.opacity = 1;
+
+        this.size.x += this.deltas.sizeDelta;
+        this.size.y += this.deltas.sizeDelta;
         this.fillStyle = 'rgba(255,255,255,'+this.opacity+')';
     }
 
