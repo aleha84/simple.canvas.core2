@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    let scenesNames = ['parallax', 'nightsky'];
+    let scenesNames = ['parallax', 'nightsky', 'flythrough'];
 
     function sceneSelectByHashValue(){
         let sceneIndex = location.hash !== '' ? scenesNames.indexOf(location.hash.replace('#','')) : 0;
@@ -25,6 +25,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new NightSkyScene({
         name:'nightsky',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new FlytroughScene({
+        name:'flythrough',
         viewport: defaultViewpot
     }));
 

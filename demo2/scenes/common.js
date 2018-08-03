@@ -65,6 +65,44 @@ class Star extends MovingGO {
     }
 }
 
+class FlythroughStar extends Star {
+    constructor(options = {}) {
+        super(options);
+
+        // this.defaultSpeed = this.speed;
+        // this.defaultOpacity = this.opacity;
+        this.timer = createTimer(100, this.flythroughProcesser, this, false);
+        this.generateDestination();
+    }
+
+    flythroughProcesser(){
+        this.speed += this.speedDelta;
+        this.opacity += this.opacityDelta;
+        this.size.x += this.sizeDelta;
+        this.size.y += this.sizeDelta;
+        this.fillStyle = 'rgba(255,255,255,'+this.opacity+')';
+    }
+
+    destinationCompleteCallBack() {
+        //if(getRandomInt(0,100) === 1) console.log(`${this.speed} > ${this.defaultSpeed}`);
+        this.position = new V2(getRandomInt(10, SCG.scenes.activeScene.viewport.x-10), getRandomInt(10, SCG.scenes.activeScene.viewport.y-10));
+        this.speed = this.defaultSpeed;
+        this.opacity = this.defaultOpacity;
+        this.size = this.defaultSize.clone();
+        this.fillStyle = 'rgba(255,255,255,'+this.opacity+')';
+        this.generateDestination();
+    }
+
+    generateDestination(){
+        this.dirFromCenter = this.position.direction(new V2(SCG.scenes.activeScene.viewport.x/2, SCG.scenes.activeScene.viewport.y/2)).mul(-1);
+        this.setDestination(rayBoxIntersection(this.position, this.dirFromCenter, SCG.viewport.logical)[0]);
+    }
+
+    internalUpdate(now){
+        doWorkByTimer(this.timer, now);
+    }
+}
+
 class ParallaxStar extends Star {
     constructor(options = {}) {
         super(options);
