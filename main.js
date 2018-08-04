@@ -14,7 +14,7 @@ SCG.main = {
 	
 			var as = SCG.scenes.activeScene;
 	
-			SCG.viewport.camera.update(now);
+			//SCG.viewport.camera.update(now);
 		
 			as.cycleWork(now);	
 	

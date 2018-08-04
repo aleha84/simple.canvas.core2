@@ -6,10 +6,13 @@ class Scene {
         assignDeep(this,{
             viewport: new V2(500, 300),
             goLayers: [],
-            workplace: {},
+            space: new V2(500, 300),
             AI: undefined,
             ui: []
-        }, props);    
+        }, props);   
+        
+        if(!props.space)
+            this.space = this.viewport;
     }
 
     addUIGo(go) {
@@ -128,6 +131,7 @@ SCG.scenes = {
             throw 'No scene selected';      
 
         SCG.viewport.logical = new Box(new V2, this.activeScene.viewport);
+        SCG.viewport.space = this.space;
 
         // AI creation
 		SCG.AI.initialize();        
@@ -141,5 +145,15 @@ SCG.scenes = {
             throw "Can't register scene without name";
 
         this.cachedScenes[scene.name] = scene;
+    },
+    setNeedRecalcRenderProperties(){
+        for(let layerIndex = 0; layerIndex < SCG.scenes.activeScene.goLayers.length; layerIndex++){ 
+            if(SCG.scenes.activeScene.goLayers[layerIndex] === undefined)
+                continue;
+                
+            for(let goi = 0; goi <  SCG.scenes.activeScene.goLayers[layerIndex].length; goi++){ // force recalculate go render params
+                SCG.scenes.activeScene.goLayers[layerIndex][goi].needRecalcRenderProperties = true;
+            }
+        }
     }
 }

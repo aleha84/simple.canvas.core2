@@ -245,17 +245,7 @@ class GO {
             }	
             
             if(this.text){
-                ctx.save();
-
-                let text = this.text;
-                ctx.font = text.renderFont;
-                ctx.fillStyle = text.color;
-                ctx.textAlign = text.align;
-                ctx.textBaseline = text.textBaseline;
-
-                ctx.fillText(text.value, text.renderPosition.x, text.renderPosition.y);
-
-                ctx.restore();
+                this.renderText();
             }
 		}
 
@@ -264,6 +254,22 @@ class GO {
         this.console('render completed.');
     }
     
+    renderText(){
+        let ctx = this.context;
+
+        ctx.save();
+
+        let text = this.text;
+        ctx.font = text.renderFont;
+        ctx.fillStyle = text.color;
+        ctx.textAlign = text.align;
+        ctx.textBaseline = text.textBaseline;
+
+        ctx.fillText(text.value, text.renderPosition.x, text.renderPosition.y);
+
+        ctx.restore();
+    }
+
     internalPreUpdate(now){}
         
     internalUpdate(now){}
@@ -304,32 +310,32 @@ class GO {
             {
                 this.renderPosition = this.position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
                 this.renderBox = new Box(new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2), this.renderSize);
-            }
 
-            if(this.text){
-                let text = this.text;
-                text.renderSize = text.size*scale;
-                text.renderFont = `${text.renderSize}px ${text.font}`;
-                if(text.autoCenter)
-                    {
-                        text.align = 'left';
-                        this.context.save();
-
-                        this.context.font = text.renderFont;
-                        this.context.textAlign = text.align;
-                        text.renderPosition = 
-                            this.renderBox.topLeft.add(
-                                new V2(
-                                    (this.renderSize.x/2) - (this.context.measureText(text.value).width/2), 
-                                    (this.renderSize.y/2)
-                                )
-                            );
-
-                            this.context.restore();
-                    }
-                    
-                else 
-                    text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position) : this.renderPosition;
+                if(this.text){
+                    let text = this.text;
+                    text.renderSize = text.size*scale;
+                    text.renderFont = `${text.renderSize}px ${text.font}`;
+                    if(text.autoCenter)
+                        {
+                            text.align = 'left';
+                            this.context.save();
+    
+                            this.context.font = text.renderFont;
+                            this.context.textAlign = text.align;
+                            text.renderPosition = 
+                                this.renderBox.topLeft.add(
+                                    new V2(
+                                        (this.renderSize.x/2) - (this.context.measureText(text.value).width/2), 
+                                        (this.renderSize.y/2)
+                                    )
+                                );
+    
+                                this.context.restore();
+                        }
+                        
+                    else 
+                        text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position) : this.renderPosition;
+                }
             }
 
             this.needRecalcRenderProperties = false;

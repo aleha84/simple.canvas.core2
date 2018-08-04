@@ -5,8 +5,15 @@ SCG.viewport = {
     zoom: 1, // zoom for logical
     shift: new V2, // in scene space from top left corner
     camera: {
-        update(now) {
+        updatePosition(shift) {
+            let vp = SCG.viewport;
 
+            if(shift === undefined)
+                shift = new V2();
+                
+            vp.shift = shift;
+            vp.logical.update(vp.shift, vp.logical.size);
+            SCG.scenes.setNeedRecalcRenderProperties();
         }
     },
     graphInit() { 
@@ -68,14 +75,7 @@ SCG.viewport = {
 
         SCG.scenes.activeScene.backgroundRender();
 
-        for(let layerIndex = 0; layerIndex < SCG.scenes.activeScene.goLayers.length; layerIndex++){ 
-            if(SCG.scenes.activeScene.goLayers[layerIndex] === undefined)
-                continue;
-                
-            for(let goi = 0; goi <  SCG.scenes.activeScene.goLayers[layerIndex].length; goi++){ // force recalculate go render params
-                SCG.scenes.activeScene.goLayers[layerIndex][goi].needRecalcRenderProperties = true;
-            }
-        }
+        SCG.scenes.setNeedRecalcRenderProperties();
         
         if(SCG.UI)
             SCG.UI.invalidate();
