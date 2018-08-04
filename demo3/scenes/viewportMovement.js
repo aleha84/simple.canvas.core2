@@ -1,7 +1,10 @@
 class ViewportMovementScene extends Scene {
     constructor(options = {}){
         options = assignDeep({}, {
-            space: new V2(1000, 1000)
+            space: new V2(1000, 1000),
+            // events: {
+            //     move: () => console.log('!!!')
+            // }
         }, options);
 
         super(options);
