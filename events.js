@@ -7,6 +7,16 @@ SCG.events = {
         addListenerMulti(SCG.canvases.ui, 'mouseup touchend', function(e){
 			absorbTouchEvent(e);
 			SCG.controls.mouse.up(e);
+        });
+        
+        addListenerMulti(SCG.canvases.ui, 'mousedown touchstart', function(e){
+			absorbTouchEvent(e);
+			SCG.controls.mouse.down(e);
+        });
+        
+        addListenerMulti(SCG.canvases.ui, 'mousemove touchmove', function(e){
+			absorbTouchEvent(e);
+			SCG.controls.mouse.move(e);
 		});
 
         if(SCG.globals.isMobile)

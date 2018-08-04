@@ -8,7 +8,12 @@ class Scene {
             goLayers: [],
             space: new V2(500, 300),
             AI: undefined,
-            ui: []
+            ui: [],
+            events: {
+                up: undefined,
+                down: undefined,
+                move: undefined
+            }
         }, props);   
         
         if(!props.space)

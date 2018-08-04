@@ -19,6 +19,7 @@ SCG.controls = {
     mouse: {
         state: {
             position: undefined,
+            moving: false,
             doClickCheck() {
                 if(this.UIEventsHandlers.click.length > 0 && !this.doClickCheckByLayer(this.UIEventsHandlers.click)){
                     return;
@@ -64,10 +65,32 @@ SCG.controls = {
         },
         up(event) {
             this.getEventAbsolutePosition(event);
-            this.state.doClickCheck();
+
+            if(!this.state.moving)
+                this.state.doClickCheck();
+
+            if(SCG.scenes.activeScene.events.up)
+                SCG.scenes.activeScene.events.up();
 
             event.preventDefault();
         },
+        down(event) {
+            this.getEventAbsolutePosition(event);
+
+            if(SCG.scenes.activeScene.events.down)
+                SCG.scenes.activeScene.events.down();
+
+            event.preventDefault();
+        },
+        move(event) {
+            this.getEventAbsolutePosition(event);
+
+            if(SCG.scenes.activeScene.events.move)
+                SCG.scenes.activeScene.events.move();
+
+            event.preventDefault();
+        },
+
         getEventAbsolutePosition(event) {
             var eventPos = pointerEventToXY(event);
             this.state.position = new V2(eventPos.x - SCG.canvases.ui.margins.left,eventPos.y - SCG.canvases.ui.margins.top);
