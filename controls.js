@@ -20,6 +20,9 @@ SCG.controls = {
         state: {
             position: undefined,
             moving: false,
+            movingDirection: new V2(),
+            movingDelta: new V2(),
+            downTriggered: false,
             doClickCheck() {
                 if(this.UIEventsHandlers.click.length > 0 && !this.doClickCheckByLayer(this.UIEventsHandlers.click)){
                     return;
@@ -67,7 +70,14 @@ SCG.controls = {
             this.getEventAbsolutePosition(event);
 
             if(!this.state.moving)
+            {
+                console.log('click')
                 this.state.doClickCheck();
+            }
+
+            this.state.moving = false;
+            this.state.downTriggered = false;
+            
 
             if(SCG.scenes.activeScene.events.up)
                 SCG.scenes.activeScene.events.up();
@@ -80,17 +90,42 @@ SCG.controls = {
             if(SCG.scenes.activeScene.events.down)
                 SCG.scenes.activeScene.events.down();
 
+            this.state.downTriggered = true;
+
             event.preventDefault();
         },
         move(event) {
+            let prevPosition = undefined;
+            if(this.state.position != undefined)
+                prevPosition = this.state.position.clone();
+
             this.getEventAbsolutePosition(event);
 
             if(SCG.scenes.activeScene.events.move)
                 SCG.scenes.activeScene.events.move();
 
+            let vp = SCG.viewport;
+            if(
+                vp.scrollOptions.enabled 
+                && vp.scrollOptions.type === vp.scrollTypes.drag 
+                && prevPosition != undefined
+                && this.state.downTriggered
+            ){
+                let delta =prevPosition.substract(this.state.position);
+                this.state.moving = true;
+                vp.camera.updatePosition(SCG.viewport.shift.add(delta.division(vp.scale)));
+            }
+
             event.preventDefault();
         },
+        out(event) {
+            this.getEventAbsolutePosition(event);
 
+            this.state.moving = false;
+            this.state.downTriggered = false;
+
+            event.preventDefault();
+        },
         getEventAbsolutePosition(event) {
             var eventPos = pointerEventToXY(event);
             this.state.position = new V2(eventPos.x - SCG.canvases.ui.margins.left,eventPos.y - SCG.canvases.ui.margins.top);

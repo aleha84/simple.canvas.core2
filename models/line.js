@@ -23,5 +23,6 @@ class Line {
         }
 
         this.length = this.begin.distance(this.end);
+        //this.renderProps = renderProps;
     }
 }

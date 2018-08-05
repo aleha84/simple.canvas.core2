@@ -9,10 +9,15 @@ class Scene {
             space: new V2(500, 300),
             AI: undefined,
             ui: [],
-            events: {
+            events: { // custom event handling
                 up: undefined,
                 down: undefined,
                 move: undefined
+            },
+            scrollOptions: { // default scroll options
+                enabled: false,
+                type: SCG.viewport.scrollTypes.drag,
+                restrictBySpace: true
             }
         }, props);   
         
@@ -61,7 +66,7 @@ class Scene {
             let goLayer = this.goLayers[layerIndex];
 
             for(let goi = 0; goi < goLayer.length; goi++){
-                goLayer[goi].regEvents();
+                goLayer[goi].regEvents(layerIndex);
             }
         }
 
@@ -136,7 +141,7 @@ SCG.scenes = {
             throw 'No scene selected';      
 
         SCG.viewport.logical = new Box(new V2, this.activeScene.viewport);
-        SCG.viewport.space = this.space;
+        SCG.viewport.scrollOptions = this.activeScene.scrollOptions;
 
         // AI creation
 		SCG.AI.initialize();        

@@ -4,6 +4,14 @@ SCG.viewport = {
     scale: 1, // difference beetween logical and real
     zoom: 1, // zoom for logical
     shift: new V2, // in scene space from top left corner
+    scrollOptions: {
+        enabled: false,
+        restrictBySpace: true
+    },
+    scrollTypes: {
+        drag: 1,
+        borders: 2
+    },
     camera: {
         updatePosition(shift) {
             let vp = SCG.viewport;
@@ -11,8 +19,23 @@ SCG.viewport = {
             if(shift === undefined)
                 shift = new V2();
                 
+            if(vp.scrollOptions.restrictBySpace){
+                if(shift.x < 0) 
+                    shift.x = 0;
+                if(shift.y < 0)
+                    shift.y = 0;
+                if((shift.x+vp.logical.width) > SCG.scenes.activeScene.space.x)
+                    shift.x = SCG.scenes.activeScene.space.x-vp.logical.width;
+                if((shift.y+vp.logical.height) > SCG.scenes.activeScene.space.y)
+                    shift.y = SCG.scenes.activeScene.space.y-vp.logical.height;
+            }
+
             vp.shift = shift;
             vp.logical.update(vp.shift, vp.logical.size);
+            
+            if(vp.scrollOptions.updatePositionsCallBack && isFunction(vp.scrollOptions.updatePositionsCallBack))
+                vp.scrollOptions.updatePositionsCallBack();
+
             SCG.scenes.setNeedRecalcRenderProperties();
         }
     },
