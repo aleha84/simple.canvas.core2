@@ -14,6 +14,9 @@ class ViewportMovementScene extends Scene {
         super(options);
         this.gos = [];
 
+        // this.gos.push(this.addGo(new ViewportMovementSampleCircle({
+        //         position: new V2(100, 50)
+        //     }),1, true));
         for(let y = 0; y < this.space.y/100; y++){
             for(let x = 1; x < this.space.x/100; x++){
                 this.gos.push(this.addGo(new ViewportMovementSampleCircle({
@@ -35,7 +38,7 @@ class ViewportMovementScene extends Scene {
         }
 
         // this.gos.push(this.addGo(new ViewportMovementSampleLine({
-        //     line: new Line(new V2(50, 0), new V2(50, 500))
+        //     line: new Line(new V2(450, 0), new V2(450, 500))
         // }),1));
         
 
@@ -161,6 +164,6 @@ class ViewportMovementSampleCircle extends MovingGO {
         this.context.stroke();
 
         this.renderText();
-        //this.renderBox.render();
+        this.renderBox.render();
     }
 }

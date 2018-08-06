@@ -141,6 +141,7 @@ SCG.scenes = {
             throw 'No scene selected';      
 
         SCG.viewport.logical = new Box(new V2, this.activeScene.viewport);
+        SCG.viewport.originalLogical = new Box(new V2, this.activeScene.viewport);
         SCG.viewport.scrollOptions = this.activeScene.scrollOptions;
 
         // AI creation

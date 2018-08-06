@@ -71,7 +71,6 @@ SCG.controls = {
 
             if(!this.state.moving)
             {
-                console.log('click')
                 this.state.doClickCheck();
             }
 
@@ -105,15 +104,17 @@ SCG.controls = {
                 SCG.scenes.activeScene.events.move();
 
             let vp = SCG.viewport;
-            if(
+            if( // drag logics
                 vp.scrollOptions.enabled 
                 && vp.scrollOptions.type === vp.scrollTypes.drag 
                 && prevPosition != undefined
                 && this.state.downTriggered
             ){
                 let delta =prevPosition.substract(this.state.position);
-                this.state.moving = true;
-                vp.camera.updatePosition(SCG.viewport.shift.add(delta.division(vp.scale)));
+                if(!delta.equal(new V2())){
+                    this.state.moving = true;
+                    vp.camera.updatePosition(SCG.viewport.shift.add(delta.division(vp.scale)));
+                }
             }
 
             event.preventDefault();
@@ -125,6 +126,14 @@ SCG.controls = {
             this.state.downTriggered = false;
 
             event.preventDefault();
+        },
+        scroll(event) {
+            SCG.viewport.camera.updateZoom(event.wheelDelta);
+            // if(event.wheelDelta >= 0){
+            //     SCG2.gameControls.scale.change(1);
+            // }else{
+            //     SCG2.gameControls.scale.change(-1);
+            // }
         },
         getEventAbsolutePosition(event) {
             var eventPos = pointerEventToXY(event);
