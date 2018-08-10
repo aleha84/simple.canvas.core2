@@ -97,6 +97,9 @@ class GO {
             };
         }
 
+        if(!this.boxRenderProperties)
+            this.boxRenderProperties = RenderProperties.default;
+
         this.type = this.constructor.name;
 
         if(GO.counter[this.type] == undefined)
@@ -301,7 +304,7 @@ class GO {
             this.renderSize = this.size.mul(scale);
             let tl = new V2(this.position.x - this.size.x/2,this.position.y - this.size.y/2);
             if(!this.box)
-                this.box = new Box(tl, this.size); //logical positioning box
+                this.box = new Box(tl, this.size, this.boxRenderProperties); //logical positioning box
             else
                 this.box.update(tl, this.size);
 
@@ -309,7 +312,12 @@ class GO {
             if(SCG.viewport.logical.isIntersectsWithBox(this.box) || this.isStatic)
             {
                 this.renderPosition = this.position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
-                this.renderBox = new Box(new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2), this.renderSize);
+
+                let rtl = new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2);
+                if(!this.renderBox)
+                    this.renderBox = new Box(rtl, this.renderSize, this.boxRenderProperties);
+                else 
+                    this.renderBox.update(rtl, this.renderSize);
 
                 if(this.text){
                     let text = this.text;
