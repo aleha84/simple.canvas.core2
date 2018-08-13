@@ -99,7 +99,7 @@ class GO {
         }
 
         if(!this.boxRenderProperties)
-            this.boxRenderProperties = RenderProperties.default;
+            this.boxRenderProperties = new RenderProperties();
 
         if(this.parent){
             this.getAbsolutePosition();

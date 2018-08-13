@@ -14,5 +14,3 @@ class RenderProperties {
             this.context = ctx;
     }
 }
-
-RenderProperties.default = new RenderProperties();
