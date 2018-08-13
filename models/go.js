@@ -27,6 +27,7 @@ class GO {
             sendEventsToAI: true,
             parentScene: undefined,
             isVisible: true,
+            childrenGO: [],
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
@@ -100,6 +101,10 @@ class GO {
         if(!this.boxRenderProperties)
             this.boxRenderProperties = RenderProperties.default;
 
+        if(this.parent){
+            this.getAbsolutePosition();
+        }
+
         this.type = this.constructor.name;
 
         if(GO.counter[this.type] == undefined)
@@ -162,6 +167,8 @@ class GO {
     beforeDead(){}
 
     setDead() {
+        this.childProcesser((child) => child.setDead());
+
 		this.beforeDead();
 		
         this.unRegEvents();
@@ -173,6 +180,40 @@ class GO {
         this.alive = false;
 
         this.console('setDead completed.');
+    }
+
+    addChild(childGo) {
+        if(!(childGo instanceof GO)){
+            console.warn('Can\' add to children object isn\'t inherited from GO');
+            return;
+        }
+    
+        this.childrenGO.push(childGo);
+        childGo.parent = this;
+    }
+
+    childProcesser(action){
+        if(!action)
+            return;
+
+        if(!this.childrenGO.length)
+            return;
+
+        for(let i = 0; i < this.childrenGO.length; i++){
+            action(this.childrenGO[i]);
+        }
+    }
+
+    getAbsolutePosition(){
+        let parent = this.parent;
+        let aPosition = this.position.clone();
+        while(parent !== undefined){
+            aPosition.add(parent.position, true);
+            parent = parent.parent;
+        }
+
+        this.absolutePosition = aPosition;
+        return aPosition;
     }
     
     customRender(){ }
@@ -254,6 +295,8 @@ class GO {
 
         this.internalRender();
         
+        this.childProcesser((child) => child.render());
+
         this.console('render completed.');
     }
     
@@ -272,7 +315,7 @@ class GO {
 
         ctx.restore();
     }
-
+    
     internalPreUpdate(now){}
         
     internalUpdate(now){}
@@ -301,8 +344,17 @@ class GO {
 
         let scale = SCG.viewport.scale;
         if(this.needRecalcRenderProperties){
+            this.childProcesser((child) => child.needRecalcRenderProperties = true);
+
             this.renderSize = this.size.mul(scale);
-            let tl = new V2(this.position.x - this.size.x/2,this.position.y - this.size.y/2);
+            let position = this.position;
+
+            if(this.parent) // if child element
+            {
+                position = this.getAbsolutePosition();
+            }
+
+            let tl = new V2(position.x - this.size.x/2,position.y - this.size.y/2);
             if(!this.box)
                 this.box = new Box(tl, this.size, this.boxRenderProperties); //logical positioning box
             else
@@ -311,7 +363,7 @@ class GO {
             this.renderPosition = undefined;
             if(SCG.viewport.logical.isIntersectsWithBox(this.box) || this.isStatic)
             {
-                this.renderPosition = this.position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
+                this.renderPosition = position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
 
                 let rtl = new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2);
                 if(!this.renderBox)
@@ -358,6 +410,8 @@ class GO {
             this.console('update completed. this.alive = false');
             return false;
         }
+
+        this.childProcesser((child) => child.update(now));
             
         this.console('update completed.');
 	}
