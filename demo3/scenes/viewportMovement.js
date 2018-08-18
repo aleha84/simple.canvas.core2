@@ -4,6 +4,8 @@ class ViewportMovementScene extends Scene {
             space: new V2(1000, 500),
             scrollOptions: {
                 enabled: true,
+                zoomEnabled: true,
+                restrictBySpace: false,
                 updatePositionsCallBack: () => SCG.UI.invalidate()
             }
             // events: {

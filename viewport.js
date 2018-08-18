@@ -7,21 +7,24 @@ SCG.viewport = {
     },
     get scale () {
         if(this.__scale.withZoom === undefined)
-            this.__scale.withZoom = this.__scale.original*this.zoom.current;
+            this.__scale.withZoom = this.__scale.original;
+        //    this.__scale.withZoom = this.__scale.original*this.zoom.current;
 
         return this.__scale.withZoom;
     },
     set scale (value) {
         this.__scale.original = value;
-        this.__scale.withZoom = value*this.zoom.current;
+        this.__scale.withZoom = this.__scale.original;//value*this.zoom.current;
         SCG.scenes.setNeedRecalcRenderProperties();
     },
     //scale: 1, // difference beetween logical and real
     zoom: {
+        default: 1,
         current: 1,
 		step: 0.75,
-		max: 3.1604938271604937,
-        min: 0.5625,
+		max: 2,
+        min: -2,
+        currentStep: 0
     }, // zoom for logical
     shift: new V2, // in scene space from top left corner
     scrollOptions: {
@@ -39,82 +42,32 @@ SCG.viewport = {
             if(!vp.scrollOptions.zoomEnabled)
                 return;
 
-            if(direction > 0){ //+
-				if(vp.zoom.current == vp.zoom.max)
+            let zoomedLogicalSize = undefined;                
+            if(direction > 0){ //+ zoom-in
+				if(vp.zoom.currentStep+1 > vp.zoom.max)
 				{
 					return;
-				}
-				vp.zoom.current /= vp.zoom.step;
-				SCG.contexts['main'].scale(4/3,4/3);
+                }
+                vp.zoom.currentStep++;
+                vp.zoom.current /= vp.zoom.step;
+                zoomedLogicalSize = new V2(vp.logical.width*vp.zoom.step, vp.logical.height*vp.zoom.step);
 			}
-			else if(direction < 0) // -
+			else if(direction < 0) // - zoom-out
 			{
-				if(vp.zoom.current == vp.zoom.min)
+				if(vp.zoom.currentStep-1 < vp.zoom.min)
 				{
 					return;
-				}
-				vp.zoom.current *= vp.zoom.step;
-				SCG.contexts['main'].scale(0.75,0.75);					
+                }
+                vp.zoom.currentStep--;
+                zoomedLogicalSize = new V2(vp.logical.width/vp.zoom.step, vp.logical.height/vp.zoom.step);
+				vp.zoom.current *= vp.zoom.step;					
             }
-            
+
+            let center = vp.logical.center.clone();
+            let shift = new V2(center.x - (zoomedLogicalSize.x/2), center.y - (zoomedLogicalSize.y/2));
+            vp.logical.update(shift, zoomedLogicalSize);
             vp.graphInit();
-            return;
-            // let vp = SCG.viewport;
-            // let updateLogical = false;
-            // let zoomedSize = undefined;
-            // let currentZoom = undefined;
-            // if(direction === 0){
-            //     if(vp.zoom.current !== vp.zoom.original)
-            //     {
-            //         vp.zoom.current = vp.zoom.original;
-            //         zoomedSize = vp.logical.originalLogical.clone();
-            //         updateLogical = true;
-            //     }
-            // }
-            // else {
-            //     if(direction > 0){
-            //         currentZoom = vp.zoom.current+vp.zoom.step;
-            //         currentZoom = currentZoom.toFixedFast(1);
-            //         if(currentZoom > vp.zoom.max)
-            //         {
-            //             currentZoom = vp.zoom.max
-            //         }
-            //         else {
-            //             zoomedSize = vp.originalLogical.size.mul((vp.zoom.original-Math.abs(currentZoom - vp.zoom.original)).toFixedFast(1));
-            //             updateLogical = true;
-            //         }
-            //     }
-            //     else {
-            //         currentZoom = vp.zoom.current-vp.zoom.step;
-            //         currentZoom = currentZoom.toFixedFast(1);
-            //         if(currentZoom < vp.zoom.min)
-            //         {
-            //             currentZoom = vp.zoom.min
-            //         }
-            //         else {
-            //             zoomedSize = vp.originalLogical.size.mul((vp.zoom.original+Math.abs(currentZoom - vp.zoom.original)).toFixedFast(1));
-            //             updateLogical = true;
-            //         }
-            //     }
-            // }
-
-            // if(!updateLogical || zoomedSize.x > SCG.scenes.activeScene.space.x || zoomedSize.y > SCG.scenes.activeScene.space.y){
-            //     return;
-            // }   
-
-            // if(updateLogical){
-            //     vp.zoom.current = currentZoom;
-            //     vp.__scale.withZoom = undefined;
-
-            //     let prevSize = vp.logical.size.clone();
-            //     let topLeft =  vp.shift.add(new V2(Math.abs(prevSize.x - zoomedSize.x)/2, Math.abs(prevSize.y - zoomedSize.y)/2).mul(direction < 0 ? -1 : 1));
-    
-            //     vp.logical.size = zoomedSize;
-            //     vp.camera.updatePosition(topLeft);
-    
-            //     //SCG.scenes.setNeedRecalcRenderProperties();
-            // }
-            
+            vp.camera.updatePosition(shift);
         },
         updatePosition(shift) {
             let vp = SCG.viewport;
@@ -158,7 +111,7 @@ SCG.viewport = {
         
         let _scale = Math.min(ratioX, ratioY);
 
-        if(_scale < 1)
+        if(_scale < 0.5)
             throw `window is to small (width: ${_width}, height: ${_height})`;
 
         this.real = new Box(new V2, new V2(this.logical.width * _scale, this.logical.height * _scale));
