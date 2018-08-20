@@ -1,18 +1,36 @@
 document.addEventListener("DOMContentLoaded", function() {
-    SCG.globals.version = 0.1;
+    let scenesNames = ['tilemap', 'movement'];
+
+    function sceneSelectByHashValue(){
+        let sceneIndex = location.hash !== '' ? scenesNames.indexOf(location.hash.replace('#','')) : 0;
+        if(sceneIndex === -1)
+            sceneIndex = 0;
+
+        SCG.scenes.selectScene(scenesNames[sceneIndex]);
+    }
+    
+    SCG.globals.version = 0.2;
 
     SCG.src = {
+        tilemap: 'content/tilemap.png'
 	}
 
     debugger;
     
     let defaultViewpot = new V2(500,300);
     SCG.scenes.cacheScene(new ViewportMovementScene({
-        name:'viewportMovement',
+        name:'movement',
         viewport: defaultViewpot
     }));
 
-    SCG.scenes.selectScene('viewportMovement');
+    SCG.scenes.cacheScene(new TileMapScene({
+        name:'tilemap',
+        viewport: defaultViewpot
+    }));
+
+    sceneSelectByHashValue();
 
     SCG.main.start();
+
+    window.addEventListener("hashchange", sceneSelectByHashValue, false);
 });
