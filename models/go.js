@@ -28,6 +28,7 @@ class GO {
             parentScene: undefined,
             isVisible: true,
             childrenGO: [],
+            tileOptimization: false,
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
@@ -364,6 +365,11 @@ class GO {
             if(SCG.viewport.logical.isIntersectsWithBox(this.box) || this.isStatic)
             {
                 this.renderPosition = position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
+
+                if(this.tileOptimization){
+                    this.renderSize.x +=0.5;
+                    this.renderSize.y +=0.5;
+                }
 
                 let rtl = new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2);
                 if(!this.renderBox)

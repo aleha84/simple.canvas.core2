@@ -76,7 +76,7 @@ class TileSet {
 class Tile extends GO {
     constructor(options = {}) {
         options = assignDeep({}, {
-
+            tileOptimization: true
         }, options);
 
         super(options);
