@@ -12,7 +12,8 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.globals.version = 0.2;
 
     SCG.src = {
-        tilemap: 'content/tilemap.png'
+        tilemap: 'content/tilemap.png',
+        terrain_atlas: 'content/terrain_atlas.png'
 	}
 
     debugger;
