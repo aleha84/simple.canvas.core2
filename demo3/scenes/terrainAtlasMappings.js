@@ -7,6 +7,10 @@ function terrainAtlasMappings(defaultSourceTileSize) {
         'greenBackCentral': {
             destSourcePosition: new V2(704,96),
             destSourceSize: defaultSourceTileSize.clone()
+        },
+        'waterOutBackCentral': {
+            destSourcePosition: new V2(320,384),
+            destSourceSize: defaultSourceTileSize.clone()
         }
     }
 
