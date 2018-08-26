@@ -33,5 +33,24 @@ function terrainAtlasMappings(defaultSourceTileSize) {
         result[propNameWithoutCentral + 'Left'] = { destSourcePosition: centralMapSP.add(new V2(-ds.y, 0)), destSourceSize: ds.clone() }
     });
 
+    let initialSquarePositions = {
+        'waterInBackTopLeft': {
+            destSourcePosition: new V2(320,288),
+            destSourceSize: defaultSourceTileSize.clone()
+        }
+    }
+
+    Object.keys(initialSquarePositions).forEach(propName => {
+        let topLeftMap = initialSquarePositions[propName];
+        result[propName] = topLeftMap;
+
+        let ds = defaultSourceTileSize;
+        let topLeftMapSP = topLeftMap.destSourcePosition;
+        let propNameWithoutTopLeft = propName.replace('TopLeft', '');
+        result[propNameWithoutTopLeft + 'TopRight'] = { destSourcePosition: topLeftMapSP.add(new V2(ds.x, 0)), destSourceSize: ds.clone() }
+        result[propNameWithoutTopLeft + 'BottomRight'] = { destSourcePosition: topLeftMapSP.add(new V2(ds.x, ds.y)), destSourceSize: ds.clone() }
+        result[propNameWithoutTopLeft + 'BottomLeft'] = { destSourcePosition: topLeftMapSP.add(new V2(0, ds.y)), destSourceSize: ds.clone() }
+    });
+
     return result;
 }
