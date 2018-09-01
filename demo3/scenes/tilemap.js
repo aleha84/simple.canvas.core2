@@ -38,8 +38,12 @@ class TileMapScene extends Scene {
         let vertices = [new V2(3,3), new V2(7,4), new V2(4,7)]
         this.generatePoligon('water', vertices, result);
 
-        vertices = [new V2(13,3), new V2(17,4), new V2(14,7)]
-        this.generatePoligon('water', vertices, result, false); //greenHighGrass
+        //[new V2(13,3), new V2(17,4), new V2(14,7)]
+        vertices = [new V2(15,2), new V2(13,5), new V2(16,8)]
+        this.generatePoligon('water', vertices, result, false); 
+        
+        // vertices = [new V2(13,5), new V2(17,5)]
+        // this.generatePoligon('water', vertices, result, false); 
 
         return result;
     }
@@ -112,6 +116,10 @@ class TileMapScene extends Scene {
             else if(         !n.t && !n.tr && !n.r && !n.br && !n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackRight`, children: [] }) }
             else if(          n.t &&          !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackBottom`, children: [] }) }
             else if(!n.tl && !n.t && !n.tr && !n.r &&           n.b &&          !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackTop`, children: [] }) }
+            else if(          n.t &&           n.r &&           n.b                 ) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackCentral`, children: [] }) }
+            else if(         !n.t &&  n.tr && !n.r &&  n.br && !n.b                 ) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackLeft`, children: [] }) }
+            else if(          n.t &&                            n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackCentral`, children: [] }) }
+            else if( n.tl && !n.t &&                           !n.b &&  n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackRight`, children: [] }) }
         }
     }
 
