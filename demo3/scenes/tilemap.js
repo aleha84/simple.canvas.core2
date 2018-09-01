@@ -1,62 +1,59 @@
 class TileMapScene extends Scene {
     constructor(options = {}){
+
+        options = assignDeep({}, {
+            scrollOptions: {
+                enabled: true,
+                zoomEnabled: true,
+                restrictBySpace: false,
+            }
+        }, options);
+
         super(options);
 
-        this.size = new V2(10,10);
+        this.size = new V2(20,10);
         let defaultSourceTileSize = new V2(32,32);
 
         this.ts = new TileSet({
             imgPropertyName: 'terrain_atlas',
             tileSize: new V2(25,25),
             tilesMappings: terrainAtlasMappings(defaultSourceTileSize),
-            // {
-                
-            //     'cs': {
-            //         destSourcePosition: new V2(),
-            //         destSourceSize: new V2(20,20)
-            //     },
-            //     'gs': {
-            //         destSourcePosition: new V2(20,0),
-            //         destSourceSize: new V2(20,20)
-            //     },
-            //     'lamp': {
-            //         destSourcePosition: new V2(0,21),
-            //         destSourceSize: new V2(21,68),
-            //         noTileAdjustment: true,
-            //         size: new V2(21,68)
-            //     }
-            // },
-            tilesMatrix: this.matrixGenerator(),
-            // [
-            //     ['cs', 'cs', 'cs', 'cs', 'cs', 'cs'],
-            //     ['cs', 'cs', 'cs', 'cs', 'cs', 'cs'],
-            //     ['cs', 'cs', {type: 'gs', children: [{type: 'lamp', position: new V2(12.5,12.5)}]}, 'gs', 'cs', 'cs'],
-            //     ['cs', 'cs', 'gs', 'gs', 'cs', 'cs'],
-            //     ['cs', 'cs', 'cs', 'cs', 'cs', 'cs'],
-            //     ['cs', 'cs', 'cs', 'cs', 'cs', 'cs']
-            // ],
+            
+            tilesMatrix: this.matrixGenerator('greenBackCentral'),
+            
             scene: this
         });
     }
 
-    matrixGenerator(){
+    matrixGenerator(initialType){
         //initial layer 0
         var result = new Array(this.size.y);
         for(let rowIndex = 0; rowIndex < this.size.y; rowIndex++){
             result[rowIndex] = new Array(this.size.x);
             for(let columnIndex = 0; columnIndex < this.size.x; columnIndex++){
-                result[rowIndex][columnIndex] = { type: 'greenBackCentral', children: [] }
+                result[rowIndex][columnIndex] = { type: initialType, children: [] }
             }
         }
 
-        //highgrasslayer 0
         let vertices = [new V2(3,3), new V2(7,4), new V2(4,7)]
+        this.generatePoligon('water', vertices, result);
+
+        vertices = [new V2(13,3), new V2(17,4), new V2(14,7)]
+        this.generatePoligon('water', vertices, result, false); //greenHighGrass
+
+        return result;
+    }
+
+    generatePoligon(typePrefix, vertices, resultMatrix, fill = true) {
         let leftPoints = [];
         let allBordeerPoints = [];
         let maxX = Math.max.apply(null, vertices.map(v => v.x));
         //draw lines
         for(let vi = 0; vi < vertices.length; vi++){
             let from = vertices[vi];
+            if(!fill && vi == vertices.length - 1)
+                break;
+
             let to = (vi == vertices.length - 1 ? vertices[0] : vertices[vi+1]);
 
             let deltas = new V2(to.x - from.x, to.y - from.y);
@@ -78,45 +75,44 @@ class TileMapScene extends Scene {
                 }
 
                 allBordeerPoints.push(point);
-                result[point.y][point.x] = { type: 'waterOutBackCentral', children: [] };
+                resultMatrix[point.y][point.x] = { type: `${typePrefix}OutBackCentral`, children: [] };
             }
         }
 
         // fill central
-        this.fillPoligon({ type: 'waterOutBackCentral', children: [] }, leftPoints.filter(p => p !== undefined), maxX, result);
+        if(fill)
+            this.fillPoligon({ type: `${typePrefix}OutBackCentral`, children: [] }, leftPoints.filter(p => p !== undefined), maxX, resultMatrix);
 
         //set border images
         let allNearbyPoints = [];
         for(let bi = 0; bi < allBordeerPoints.length; bi++){
             let borderPoint = allBordeerPoints[bi];
-            this.getNearByPoint(borderPoint.y-1, borderPoint.x-1, 'waterOutBackCentral', allNearbyPoints, result); //tl
-            this.getNearByPoint(borderPoint.y-1, borderPoint.x, 'waterOutBackCentral', allNearbyPoints, result); //t
-            this.getNearByPoint(borderPoint.y-1, borderPoint.x+1, 'waterOutBackCentral', allNearbyPoints, result); //tr
-            this.getNearByPoint(borderPoint.y, borderPoint.x+1, 'waterOutBackCentral', allNearbyPoints, result); //r
-            this.getNearByPoint(borderPoint.y+1, borderPoint.x+1, 'waterOutBackCentral', allNearbyPoints, result); //br
-            this.getNearByPoint(borderPoint.y+1, borderPoint.x, 'waterOutBackCentral', allNearbyPoints, result); //b
-            this.getNearByPoint(borderPoint.y+1, borderPoint.x-1, 'waterOutBackCentral', allNearbyPoints, result); //bl
-            this.getNearByPoint(borderPoint.y, borderPoint.x-1, 'waterOutBackCentral', allNearbyPoints, result); //l
+            this.getNearByPoint(borderPoint.y-1, borderPoint.x-1, `${typePrefix}OutBackCentral`, allNearbyPoints, resultMatrix); //tl
+            this.getNearByPoint(borderPoint.y-1, borderPoint.x, `${typePrefix}OutBackCentral`, allNearbyPoints, resultMatrix); //t
+            this.getNearByPoint(borderPoint.y-1, borderPoint.x+1, `${typePrefix}OutBackCentral`, allNearbyPoints, resultMatrix); //tr
+            this.getNearByPoint(borderPoint.y, borderPoint.x+1, `${typePrefix}OutBackCentral`, allNearbyPoints, resultMatrix); //r
+            this.getNearByPoint(borderPoint.y+1, borderPoint.x+1, `${typePrefix}OutBackCentral`, allNearbyPoints, resultMatrix); //br
+            this.getNearByPoint(borderPoint.y+1, borderPoint.x, `${typePrefix}OutBackCentral`, allNearbyPoints, resultMatrix); //b
+            this.getNearByPoint(borderPoint.y+1, borderPoint.x-1, `${typePrefix}OutBackCentral`, allNearbyPoints, resultMatrix); //bl
+            this.getNearByPoint(borderPoint.y, borderPoint.x-1, `${typePrefix}OutBackCentral`, allNearbyPoints, resultMatrix); //l
         }
 
         for(let pi= 0;pi < allNearbyPoints.length;pi++){
             let nearbyPoint = allNearbyPoints[pi];
-            let n = this.getNeighbors(nearbyPoint, 'waterOutBackCentral', result);
-            if(               n.t &&          !n.r && !n.br && !n.b &&           n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterInBackTopLeft', children: [] }) }
-            else if(          n.t &&           n.r &&          !n.b && !n.bl && !n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterInBackTopRight', children: [] }) }
-            else if(!n.tl && !n.t &&           n.r &&           n.b &&          !n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterInBackBottomRight', children: [] }) }
-            else if(         !n.t && !n.tr && !n.r &&           n.b &&           n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterInBackBottomLeft', children: [] }) }
-            else if( n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterOutBackBottomRight', children: [] }) }
-            else if(!n.tl && !n.t &&  n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterOutBackBottomLeft', children: [] }) }
-            else if(!n.tl && !n.t && !n.tr && !n.r &&  n.br && !n.b && !n.bl && !n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterOutBackTopLeft', children: [] }) }
-            else if(!n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b &&  n.bl && !n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterOutBackTopRight', children: [] }) }
-            else if(!n.tl && !n.t &&           n.r &&          !n.b && !n.bl && !n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterOutBackLeft', children: [] }) }
-            else if(         !n.t && !n.tr && !n.r && !n.br && !n.b &&           n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterOutBackRight', children: [] }) }
-            else if(          n.t &&          !n.r && !n.br && !n.b && !n.bl && !n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterOutBackBottom', children: [] }) }
-            else if(!n.tl && !n.t && !n.tr && !n.r &&           n.b &&          !n.l) { result[nearbyPoint.y][nearbyPoint.x].children.push({ type: 'waterOutBackTop', children: [] }) }
+            let n = this.getNeighbors(nearbyPoint, `${typePrefix}OutBackCentral`, resultMatrix);
+            if(               n.t &&          !n.r && !n.br && !n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}InBackTopLeft`, children: [] }) }
+            else if(          n.t &&           n.r &&          !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}InBackTopRight`, children: [] }) }
+            else if(!n.tl && !n.t &&           n.r &&           n.b &&          !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}InBackBottomRight`, children: [] }) }
+            else if(         !n.t && !n.tr && !n.r &&           n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}InBackBottomLeft`, children: [] }) }
+            else if( n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackBottomRight`, children: [] }) }
+            else if(!n.tl && !n.t &&  n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackBottomLeft`, children: [] }) }
+            else if(!n.tl && !n.t && !n.tr && !n.r &&  n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackTopLeft`, children: [] }) }
+            else if(!n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b &&  n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackTopRight`, children: [] }) }
+            else if(!n.tl && !n.t &&           n.r &&          !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackLeft`, children: [] }) }
+            else if(         !n.t && !n.tr && !n.r && !n.br && !n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackRight`, children: [] }) }
+            else if(          n.t &&          !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackBottom`, children: [] }) }
+            else if(!n.tl && !n.t && !n.tr && !n.r &&           n.b &&          !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackTop`, children: [] }) }
         }
-
-        return result;
     }
 
     getNeighbors(point, type, matrix){
@@ -145,7 +141,7 @@ class TileMapScene extends Scene {
         if(matrix[row][column].type === type)
             return;
         
-        var _np = new V2(row,column);
+        var _np = new V2(column, row);
         if(allPoints.filter(p => p.equal(_np)).length === 0){
             allPoints.push(_np);
         }

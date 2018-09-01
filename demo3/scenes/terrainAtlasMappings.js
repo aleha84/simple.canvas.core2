@@ -1,6 +1,6 @@
 function terrainAtlasMappings(defaultSourceTileSize) {
     let initialCentralPositions = {
-        'highGrassCentral': {
+        'greenHighGrassOutBackCentral': {
             destSourcePosition: new V2(32,736),
             destSourceSize: defaultSourceTileSize.clone()
         },
@@ -36,6 +36,10 @@ function terrainAtlasMappings(defaultSourceTileSize) {
     let initialSquarePositions = {
         'waterInBackTopLeft': {
             destSourcePosition: new V2(320,288),
+            destSourceSize: defaultSourceTileSize.clone()
+        },
+        'greenHighGrassInBackTopLeft': {
+            destSourcePosition: new V2(32,640),
             destSourceSize: defaultSourceTileSize.clone()
         }
     }
