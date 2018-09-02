@@ -11,7 +11,7 @@ class TileMapScene extends Scene {
 
         super(options);
 
-        this.size = new V2(20,10);
+        this.size = new V2(80,80);
         let defaultSourceTileSize = new V2(32,32);
 
         this.ts = new TileSet({
@@ -35,12 +35,15 @@ class TileMapScene extends Scene {
             }
         }
 
-        let vertices = [new V2(3,3), new V2(7,4), new V2(4,7)]
-        this.generatePoligon('water', vertices, result);
+        // let vertices = [new V2(3,3), new V2(7,4), new V2(4,7)]
+        // this.generatePoligon('water', vertices, result);
 
-        //[new V2(13,3), new V2(17,4), new V2(14,7)]
-        vertices = [new V2(15,2), new V2(13,5), new V2(16,8)]
-        this.generatePoligon('water', vertices, result, false); 
+        
+        this.generatePoligon('water', [new V2(5,0), new V2(5,5)], result, false); 
+
+        this.generatePoligon('water', [new V2(2,5), new V2(8,5), new V2(8,10), new V2(2,10)], result, true); 
+
+        this.generatePoligon('water', [new V2(8,7), new V2(13,7)], result, false); 
         
         // vertices = [new V2(13,5), new V2(17,5)]
         // this.generatePoligon('water', vertices, result, false); 
@@ -55,9 +58,17 @@ class TileMapScene extends Scene {
         //draw lines
         for(let vi = 0; vi < vertices.length; vi++){
             let from = vertices[vi];
-            if(!fill && vi == vertices.length - 1)
-                break;
-
+            if(!fill)
+            {
+                if(vi == vertices.length - 1)   
+                    break;
+                else if (vi === 0){
+                    allBordeerPoints.push(from);
+                    leftPoints[from.y] = from;
+                    resultMatrix[from.y][from.x] = { type: `${typePrefix}OutBackCentral`, children: [] };
+                }
+            }
+            
             let to = (vi == vertices.length - 1 ? vertices[0] : vertices[vi+1]);
 
             let deltas = new V2(to.x - from.x, to.y - from.y);
@@ -104,22 +115,22 @@ class TileMapScene extends Scene {
         for(let pi= 0;pi < allNearbyPoints.length;pi++){
             let nearbyPoint = allNearbyPoints[pi];
             let n = this.getNeighbors(nearbyPoint, `${typePrefix}OutBackCentral`, resultMatrix);
-            if(               n.t &&          !n.r && !n.br && !n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}InBackTopLeft`, children: [] }) }
-            else if(          n.t &&           n.r &&          !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}InBackTopRight`, children: [] }) }
-            else if(!n.tl && !n.t &&           n.r &&           n.b &&          !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}InBackBottomRight`, children: [] }) }
-            else if(         !n.t && !n.tr && !n.r &&           n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}InBackBottomLeft`, children: [] }) }
-            else if( n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackBottomRight`, children: [] }) }
-            else if(!n.tl && !n.t &&  n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackBottomLeft`, children: [] }) }
-            else if(!n.tl && !n.t && !n.tr && !n.r &&  n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackTopLeft`, children: [] }) }
-            else if(!n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b &&  n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackTopRight`, children: [] }) }
-            else if(!n.tl && !n.t &&           n.r &&          !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackLeft`, children: [] }) }
-            else if(         !n.t && !n.tr && !n.r && !n.br && !n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackRight`, children: [] }) }
-            else if(          n.t &&          !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackBottom`, children: [] }) }
-            else if(!n.tl && !n.t && !n.tr && !n.r &&           n.b &&          !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackTop`, children: [] }) }
-            else if(          n.t &&           n.r &&           n.b                 ) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackCentral`, children: [] }) }
-            else if(         !n.t &&  n.tr && !n.r &&  n.br && !n.b                 ) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackLeft`, children: [] }) }
-            else if(          n.t &&                            n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackCentral`, children: [] }) }
-            else if( n.tl && !n.t &&                           !n.b &&  n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children.push({ type: `${typePrefix}OutBackRight`, children: [] }) }
+            if(               n.t &&          !n.r && !n.br && !n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}InBackTopLeft`, children: [] }] }
+            else if(          n.t &&           n.r &&          !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}InBackTopRight`, children: [] }] }
+            else if(!n.tl && !n.t &&           n.r &&           n.b &&          !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}InBackBottomRight`, children: [] }] }
+            else if(         !n.t && !n.tr && !n.r &&           n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}InBackBottomLeft`, children: [] }] }
+            else if( n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackBottomRight`, children: [] }] }
+            else if(!n.tl && !n.t &&  n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackBottomLeft`, children: [] }] }
+            else if(!n.tl && !n.t && !n.tr && !n.r &&  n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackTopLeft`, children: [] }] }
+            else if(!n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b &&  n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackTopRight`, children: [] }] }
+            else if(!n.tl && !n.t &&           n.r &&          !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackLeft`, children: [] }] }
+            else if(         !n.t && !n.tr && !n.r && !n.br && !n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackRight`, children: [] }] }
+            else if(          n.t &&          !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackBottom`, children: [] }] }
+            else if(!n.tl && !n.t && !n.tr && !n.r &&           n.b &&          !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackTop`, children: [] }] }
+            else if(          n.t &&           n.r &&           n.b                 ) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackCentral`, children: [] }] }
+            else if(         !n.t &&  n.tr && !n.r &&  n.br && !n.b                 ) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackLeft`, children: [] }] }
+            else if(          n.t &&                            n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackCentral`, children: [] }] }
+            else if( n.tl && !n.t &&                           !n.b &&  n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackRight`, children: [] }] }
         }
     }
 
@@ -163,7 +174,7 @@ class TileMapScene extends Scene {
             
             let gaps = [];
             let from = leftPoint.x, to = undefined;
-            for(let x = leftPoint.x+1; x < maxRightX; x++){
+            for(let x = leftPoint.x+1; x <= maxRightX; x++){
                 if(from === undefined){
                     from = x;
                     continue;

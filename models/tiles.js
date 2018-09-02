@@ -40,63 +40,74 @@ class TileSet {
                     if(!tileDataFromMatrix)
                         continue;
 
-                    let mapping = this.tilesMappings[isObject(tileDataFromMatrix)? tileDataFromMatrix.type : tileDataFromMatrix];
-                    if(!mapping)
-                        throw `TileSet -> incorrect tile data in matrix at: ${rowIndex}, ${itemIndex}`;
-
-                    if(!mapping.imgPropertyName && !this.imgPropertyName)
-                        throw `TileSet -> No image specified for tile in matrix at: ${rowIndex}, ${itemIndex}`;
-
-                    let props = {
-                        imgPropertyName: !mapping.imgPropertyName ? this.imgPropertyName : mapping.imgPropertyName
-                    };
-
-                    if(mapping.destSourcePosition){
-                        props.destSourcePosition = mapping.destSourcePosition;
-                        if(mapping.destSourceSize)
-                            props.destSourceSize = mapping.destSourceSize;
-                    }
-
-                    if(isObject(tileDataFromMatrix) && tileDataFromMatrix.size){
-                        props.size = tileDataFromMatrix.size;
-                    }
-                    else {
-                        props.size = (mapping.size || this.tileSize).clone();
-                        if(!mapping.noTileAdjustment){
-                            if(!props.size.equal(this.tileSize)){
-                                if(props.size.y < this.tileSize.y){
-                                    props.size.y = this.tileSize.y;
-                                }
-        
-                                if(props.size.y === this.tileSize.y && props.size.x !== this.tileSize.x){
-                                props.size.x = this.tileSize.x; 
-                                }
-                                else if(props.size.y > this.tileSize.y && props.size.x > this.tileSize.x){
-                                    let _scale = props.size.x/this.tileSize.x;
-                                    props.size = new V2(props.size.x/_scale, props.size.y/_scale);
-                                }
-                            }
+                    if(isArray(tileDataFromMatrix)) {
+                        for(let i = 0; i < tileDataFromMatrix.length;i++){
+                            this.preocessTileDataFromMatrix(tileDataFromMatrix[i], matrixLayerIndex, rowIndex, itemIndex);
                         }
                     }
-                    
-                        
-                    props.position = this.topLeftLogical.add(
-                        new V2((itemIndex+1)*this.tileSize.x,(rowIndex+1)*this.tileSize.y)
-                    ).substract(
-                        new V2(props.size.x/2, props.size.y/2)
-                    );
-
-                    if(isObject(tileDataFromMatrix) && tileDataFromMatrix.position){
-                        props.position.add(tileDataFromMatrix.position, true);
+                    else {
+                        this.preocessTileDataFromMatrix(tileDataFromMatrix, matrixLayerIndex, rowIndex, itemIndex);
                     }
-
-                    this.scene.addGo(
-                        new Tile(props),
-                        matrixLayerIndex
-                    );
                 }
             }
         }
+    }
+
+    preocessTileDataFromMatrix(tileDataFromMatrix, matrixLayerIndex, rowIndex, itemIndex){
+        let mapping = this.tilesMappings[isObject(tileDataFromMatrix)? tileDataFromMatrix.type : tileDataFromMatrix];
+        if(!mapping)
+            throw `TileSet -> incorrect tile data in matrix at: ${rowIndex}, ${itemIndex}`;
+
+        if(!mapping.imgPropertyName && !this.imgPropertyName)
+            throw `TileSet -> No image specified for tile in matrix at: ${rowIndex}, ${itemIndex}`;
+
+        let props = {
+            imgPropertyName: !mapping.imgPropertyName ? this.imgPropertyName : mapping.imgPropertyName
+        };
+
+        if(mapping.destSourcePosition){
+            props.destSourcePosition = mapping.destSourcePosition;
+            if(mapping.destSourceSize)
+                props.destSourceSize = mapping.destSourceSize;
+        }
+
+        if(isObject(tileDataFromMatrix) && tileDataFromMatrix.size){
+            props.size = tileDataFromMatrix.size;
+        }
+        else {
+            props.size = (mapping.size || this.tileSize).clone();
+            if(!mapping.noTileAdjustment){
+                if(!props.size.equal(this.tileSize)){
+                    if(props.size.y < this.tileSize.y){
+                        props.size.y = this.tileSize.y;
+                    }
+
+                    if(props.size.y === this.tileSize.y && props.size.x !== this.tileSize.x){
+                    props.size.x = this.tileSize.x; 
+                    }
+                    else if(props.size.y > this.tileSize.y && props.size.x > this.tileSize.x){
+                        let _scale = props.size.x/this.tileSize.x;
+                        props.size = new V2(props.size.x/_scale, props.size.y/_scale);
+                    }
+                }
+            }
+        }
+        
+            
+        props.position = this.topLeftLogical.add(
+            new V2((itemIndex+1)*this.tileSize.x,(rowIndex+1)*this.tileSize.y)
+        ).substract(
+            new V2(props.size.x/2, props.size.y/2)
+        );
+
+        if(isObject(tileDataFromMatrix) && tileDataFromMatrix.position){
+            props.position.add(tileDataFromMatrix.position, true);
+        }
+
+        this.scene.addGo(
+            new Tile(props),
+            matrixLayerIndex
+        );
     }
 
     putChildrenAtMatrixLayers(item, rowIndex, columnIndex, layerLevel) {
