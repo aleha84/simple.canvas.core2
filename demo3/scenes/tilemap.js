@@ -38,15 +38,18 @@ class TileMapScene extends Scene {
         // let vertices = [new V2(3,3), new V2(7,4), new V2(4,7)]
         // this.generatePoligon('water', vertices, result);
 
+         this.generatePoligon('ground', [new V2(0,70), new V2(10,65), new V2(20,63), new V2(25,47), new V2(40,40), new V2(55,33), new V2(57,29), new V2(65,27), new V2(79,23), new V2(79,79), new V2(0,79)], result, true); 
+         this.generatePoligon('desert', [new V2(35,79), new V2(33,72), new V2(35,64), new V2(37,63), new V2(43,60), new V2(46,54), new V2(65,48), new V2(79,55), new V2(79,79)], result, true);
         
-        this.generatePoligon('water', [new V2(5,0), new V2(5,5)], result, false); 
+        this.generatePoligon('water', [new V2(0,0), new V2(15,0), new V2(18,10), new V2(7,8), new V2(5,13), new V2(0,12)], result, true); 
 
-        this.generatePoligon('water', [new V2(2,5), new V2(8,5), new V2(8,10), new V2(2,10)], result, true); 
+        this.generatePoligon('water', [new V2(40,30), new V2(45,26), new V2(50, 25), new V2(55,26), new V2(65,35), new V2(67,40),
+                                       new V2(68,47), new V2(75,50), new V2(76, 54), new V2(70,58), new V2(65,56), new V2(62,50), 
+                                       new V2(45,54), new V2(40,51), new V2(38,40)], result, true); 
 
-        this.generatePoligon('water', [new V2(8,7), new V2(13,7)], result, false); 
-        
-        // vertices = [new V2(13,5), new V2(17,5)]
-        // this.generatePoligon('water', vertices, result, false); 
+        this.generatePoligon('water', [new V2(50,0), new V2(45,10), new V2(52, 15), new V2(50,25)], result, false); 
+        this.generatePoligon('water', [new V2(45,54), new V2(41,60), new V2(35,63), new V2(33,64), new V2(31,72), new V2(33,79)], result, false); 
+
 
         return result;
     }
@@ -96,7 +99,7 @@ class TileMapScene extends Scene {
 
         // fill central
         if(fill)
-            this.fillPoligon({ type: `${typePrefix}OutBackCentral`, children: [] }, leftPoints.filter(p => p !== undefined), maxX, resultMatrix);
+            this.fillPoligon2({ type: `${typePrefix}OutBackCentral`, children: [] }, leftPoints.filter(p => p !== undefined), maxX, resultMatrix);
 
         //set border images
         let allNearbyPoints = [];
@@ -114,24 +117,67 @@ class TileMapScene extends Scene {
 
         for(let pi= 0;pi < allNearbyPoints.length;pi++){
             let nearbyPoint = allNearbyPoints[pi];
+            let childType = '';
             let n = this.getNeighbors(nearbyPoint, `${typePrefix}OutBackCentral`, resultMatrix);
-            if(               n.t &&          !n.r && !n.br && !n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}InBackTopLeft`, children: [] }] }
-            else if(          n.t &&           n.r &&          !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}InBackTopRight`, children: [] }] }
-            else if(!n.tl && !n.t &&           n.r &&           n.b &&          !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}InBackBottomRight`, children: [] }] }
-            else if(         !n.t && !n.tr && !n.r &&           n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}InBackBottomLeft`, children: [] }] }
-            else if( n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackBottomRight`, children: [] }] }
-            else if(!n.tl && !n.t &&  n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackBottomLeft`, children: [] }] }
-            else if(!n.tl && !n.t && !n.tr && !n.r &&  n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackTopLeft`, children: [] }] }
-            else if(!n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b &&  n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackTopRight`, children: [] }] }
-            else if(!n.tl && !n.t &&           n.r &&          !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackLeft`, children: [] }] }
-            else if(         !n.t && !n.tr && !n.r && !n.br && !n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackRight`, children: [] }] }
-            else if(          n.t &&          !n.r && !n.br && !n.b && !n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackBottom`, children: [] }] }
-            else if(!n.tl && !n.t && !n.tr && !n.r &&           n.b &&          !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackTop`, children: [] }] }
-            else if(          n.t &&           n.r &&           n.b                 ) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackCentral`, children: [] }] }
-            else if(         !n.t &&  n.tr && !n.r &&  n.br && !n.b                 ) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackLeft`, children: [] }] }
-            else if(          n.t &&                            n.b &&           n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackCentral`, children: [] }] }
-            else if( n.tl && !n.t &&                           !n.b &&  n.bl && !n.l) { resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: `${typePrefix}OutBackRight`, children: [] }] }
+            if(               n.t &&          !n.r && !n.br && !n.b &&           n.l) { childType = `${typePrefix}InBackTopLeft`; }
+            else if(          n.t &&           n.r &&          !n.b && !n.bl && !n.l) { childType = `${typePrefix}InBackTopRight`; }
+            else if(          n.t &&                   n.br && !n.b && !n.bl && !n.l) { childType = `${typePrefix}InBackTopRight`; }
+            else if(!n.tl && !n.t &&           n.r &&           n.b &&          !n.l) { childType = `${typePrefix}InBackBottomRight`; }
+            else if(         !n.t && !n.tr && !n.r &&           n.b &&           n.l) { childType = `${typePrefix}InBackBottomLeft`; }
+            else if( n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { childType = `${typePrefix}OutBackBottomRight`; }
+            else if(!n.tl && !n.t &&  n.tr && !n.r && !n.br && !n.b && !n.bl && !n.l) { childType = `${typePrefix}OutBackBottomLeft`; }
+            else if(!n.tl && !n.t && !n.tr && !n.r &&  n.br && !n.b && !n.bl && !n.l) { childType = `${typePrefix}OutBackTopLeft`; }
+            else if(!n.tl && !n.t && !n.tr && !n.r && !n.br && !n.b &&  n.bl && !n.l) { childType = `${typePrefix}OutBackTopRight`; }
+            else if(!n.tl && !n.t &&           n.r &&          !n.b && !n.bl && !n.l) { childType = `${typePrefix}OutBackLeft`; }
+            else if(         !n.t && !n.tr && !n.r && !n.br && !n.b &&           n.l) { childType = `${typePrefix}OutBackRight`; }
+            else if(          n.t &&          !n.r && !n.br && !n.b && !n.bl && !n.l) { childType = `${typePrefix}OutBackBottom`; }
+            else if(!n.tl && !n.t && !n.tr && !n.r &&           n.b &&          !n.l) { childType = `${typePrefix}OutBackTop`; }
+            else if(          n.t &&           n.r &&           n.b                 ) { childType = `${typePrefix}OutBackCentral`; }
+            else if(         !n.t &&  n.tr && !n.r &&  n.br && !n.b                 ) { childType = `${typePrefix}OutBackLeft`; }
+            else if(          n.t &&                            n.b &&           n.l) { childType = `${typePrefix}OutBackCentral`; }
+            else if( n.tl && !n.t &&                           !n.b &&  n.bl && !n.l) { childType = `${typePrefix}OutBackRight`; }
+            else if(                  n.tr &&  n.r &&                   n.bl        ) { childType = `${typePrefix}InBackBottomRight`; }
+            else if(                  n.tr && !n.r &&  n.br &&  n.b && !n.bl &&  n.l) { childType = `${typePrefix}OutBackCentral`; }
+            else if( n.tl &&  n.t &&  n.tr && !n.r &&  n.br &&  n.b &&  n.bl && !n.l) { childType = `${typePrefix}OutBackCentral`; }
+            else if( n.tl &&  n.t          && !n.r &&  n.br &&  n.b &&  n.bl && !n.l) { childType = `${typePrefix}OutBackCentral`; }
+            else if(          n.t &&                            n.b                 ) { childType = `${typePrefix}OutBackCentral`; }
+            else if(                           n.r &&                            n.l) { childType = `${typePrefix}OutBackCentral`; }
+            else if( n.tl &&                   n.r &&           n.b                 ) { childType = `${typePrefix}OutBackCentral`; }
+            else if(          n.t &&                   n.br &&                   n.l) { childType = `${typePrefix}OutBackCentral`; }
+            // else if( n.tl &&                           n.br                         ) { childType = `${typePrefix}OutBackCentral`; }
+            // else if(                  n.tr &&                           n.bl        ) { childType = `${typePrefix}OutBackCentral`; }
+            else if(!n.tl && !n.t &&  n.tr && !n.r &&  n.br &&  n.b &&  n.bl && !n.l) { childType = `${typePrefix}InBackBottomRight`; }
+            else if( n.tl && !n.t && !n.tr && !n.r          &&  n.b &&  n.bl        ) { childType = `${typePrefix}InBackBottomLeft`; }
+            else if( n.tl && !n.t &&  n.tr &&  n.r &&  n.br && !n.b && !n.bl && !n.l) { childType = `${typePrefix}InBackTopRight`; }
+            //else { console.log('no child found fot point', nearbyPoint, n); }
+            if(!childType)
+                console.log(`no child found for point: ${nearbyPoint.x}, ${nearbyPoint.y}`, nearbyPoint, n);
+
+            //resultMatrix[nearbyPoint.y][nearbyPoint.x].children = [{ type: childType, children: [] }]
+            this.addAsLastChild(resultMatrix[nearbyPoint.y][nearbyPoint.x], childType);
         }
+    }
+
+    addAsLastChild(item, type){
+        if(item.children === undefined || item.children.length === 0)
+            item.children= [{type: type, children: []}];
+        else {
+            this.addAsLastChild(item.children[0], type);
+        }    
+        
+    }
+
+    cloneType(originalType){
+        let cloned = {
+            type: originalType.type,
+            children: []
+        };
+
+        for(let cindex = 0; cindex < originalType.children.length;cindex++){
+            cloned.children.push(this.cloneType(originalType.children[cindex]));
+        }
+
+        return cloned;
     }
 
     getNeighbors(point, type, matrix){
@@ -166,14 +212,55 @@ class TileMapScene extends Scene {
         }
     }
 
+    fillPoligon2(type, leftPoints,maxRightX, matrix) {
+        let leftPoint = undefined;
+        for(let lpi = 0; lpi< leftPoints.length;lpi++){
+            leftPoint = leftPoints[lpi].clone();
+            leftPoint.x++;
+            if(matrix[leftPoint.y] === undefined || matrix[leftPoint.y][leftPoint.x] === undefined)
+                continue;
+
+            if(matrix[leftPoint.y][leftPoint.x].type !== type.type)
+                break;
+        }
+
+        this.fillNeigbors(leftPoint, type, matrix);
+    }
+
+    fillNeigbors(point, type, matrix) {
+        if(matrix[point.y] === undefined || matrix[point.y][point.x] === undefined)
+            return;
+
+        if(matrix[point.y][point.x].type !== type.type){
+            matrix[point.y][point.x] = this.cloneType(type);
+
+            this.fillNeigbors(new V2(point.x - 1, point.y), type, matrix)
+            this.fillNeigbors(new V2(point.x + 1, point.y), type, matrix)
+            this.fillNeigbors(new V2(point.x, point.y - 1), type, matrix)
+            this.fillNeigbors(new V2(point.x, point.y + 1), type, matrix)
+        }
+        else {
+            return;
+        }
+    }
+
     fillPoligon(type, leftPoints, maxRightX, matrix){
         for(let lpi = 0; lpi< leftPoints.length;lpi++){
-            let leftPoint = leftPoints[lpi];
+            let leftPoint = leftPoints[lpi].clone();
+
+            for(let x = leftPoint.x+1; x <= maxRightX; x++){
+                if(matrix[leftPoint.y][x].type !== type.type)
+                    break;
+                
+                leftPoint.x = x;
+            } 
+
             if(leftPoint.x === maxRightX || leftPoint.x === maxRightX - 1)
                 continue;
-            
+
             let gaps = [];
             let from = leftPoint.x, to = undefined;
+            let gapIndex = 0;
             for(let x = leftPoint.x+1; x <= maxRightX; x++){
                 if(from === undefined){
                     from = x;
@@ -188,8 +275,11 @@ class TileMapScene extends Scene {
                         continue;
                     }
                     else {
-                        gaps.push({ from: from, to: x });
+                        if(gapIndex%2 === 0)
+                            gaps.push({ from: from, to: x });
+
                         from = x;
+                        gapIndex++;
                     }
                 }
             }
@@ -200,7 +290,7 @@ class TileMapScene extends Scene {
                 for(let gi = 0; gi < gaps.length;gi++){
                     let gap = gaps[gi];
                     for(let column = gap.from+1;column < gap.to; column++){
-                        matrix[leftPoint.y][column] = type;
+                        matrix[leftPoint.y][column] = this.cloneType(type);
                     }
                 }
             }

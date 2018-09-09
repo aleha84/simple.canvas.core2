@@ -11,7 +11,15 @@ function terrainAtlasMappings(defaultSourceTileSize) {
         'waterOutBackCentral': {
             destSourcePosition: new V2(320,384),
             destSourceSize: defaultSourceTileSize.clone()
-        }
+        },
+        'groundOutBackCentral': {
+            destSourcePosition: new V2(512,96),
+            destSourceSize: defaultSourceTileSize.clone()
+        },
+        'desertOutBackCentral': {
+            destSourcePosition: new V2(32,384),
+            destSourceSize: defaultSourceTileSize.clone()
+        },
     }
 
     let result = {};
@@ -36,6 +44,14 @@ function terrainAtlasMappings(defaultSourceTileSize) {
     let initialSquarePositions = {
         'waterInBackTopLeft': {
             destSourcePosition: new V2(320,288),
+            destSourceSize: defaultSourceTileSize.clone()
+        },
+        'groundInBackTopLeft': {
+            destSourcePosition: new V2(512,0),
+            destSourceSize: defaultSourceTileSize.clone()
+        },
+        'desertInBackTopLeft': {
+            destSourcePosition: new V2(32,288),
             destSourceSize: defaultSourceTileSize.clone()
         },
         'greenHighGrassInBackTopLeft': {
