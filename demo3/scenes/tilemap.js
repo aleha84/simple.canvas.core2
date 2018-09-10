@@ -50,6 +50,8 @@ class TileMapScene extends Scene {
         this.generatePoligon('water', [new V2(50,0), new V2(45,10), new V2(52, 15), new V2(50,25)], result, false); 
         this.generatePoligon('water', [new V2(45,54), new V2(41,60), new V2(35,63), new V2(33,64), new V2(31,72), new V2(33,79)], result, false); 
 
+        // this.generatePoligon('greenLowGrass', [new V2(20,1), new V2(25,3), new V2(27,8), new V2(21,6)], result, true); 
+
 
         return result;
     }
@@ -137,13 +139,13 @@ class TileMapScene extends Scene {
             else if(          n.t &&                            n.b &&           n.l) { childType = `${typePrefix}OutBackCentral`; }
             else if( n.tl && !n.t &&                           !n.b &&  n.bl && !n.l) { childType = `${typePrefix}OutBackRight`; }
             else if(                  n.tr &&  n.r &&                   n.bl        ) { childType = `${typePrefix}InBackBottomRight`; }
-            else if(                  n.tr && !n.r &&  n.br &&  n.b && !n.bl &&  n.l) { childType = `${typePrefix}OutBackCentral`; }
+            else if(                  n.tr && !n.r &&  n.br &&  n.b && !n.bl &&  n.l) { childType = `${typePrefix}SingleBottom`; }
             else if( n.tl &&  n.t &&  n.tr && !n.r &&  n.br &&  n.b &&  n.bl && !n.l) { childType = `${typePrefix}OutBackCentral`; }
             else if( n.tl &&  n.t          && !n.r &&  n.br &&  n.b &&  n.bl && !n.l) { childType = `${typePrefix}OutBackCentral`; }
             else if(          n.t &&                            n.b                 ) { childType = `${typePrefix}OutBackCentral`; }
             else if(                           n.r &&                            n.l) { childType = `${typePrefix}OutBackCentral`; }
-            else if( n.tl &&                   n.r &&           n.b                 ) { childType = `${typePrefix}OutBackCentral`; }
-            else if(          n.t &&                   n.br &&                   n.l) { childType = `${typePrefix}OutBackCentral`; }
+            else if( n.tl &&                   n.r &&           n.b                 ) { childType = `${typePrefix}SingleBottom`; }
+            else if(          n.t &&                   n.br &&                   n.l) { childType = `${typePrefix}SingleTop`; }
             // else if( n.tl &&                           n.br                         ) { childType = `${typePrefix}OutBackCentral`; }
             // else if(                  n.tr &&                           n.bl        ) { childType = `${typePrefix}OutBackCentral`; }
             else if(!n.tl && !n.t &&  n.tr && !n.r &&  n.br &&  n.b &&  n.bl && !n.l) { childType = `${typePrefix}InBackBottomRight`; }

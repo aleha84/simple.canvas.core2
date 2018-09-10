@@ -20,6 +20,10 @@ function terrainAtlasMappings(defaultSourceTileSize) {
             destSourcePosition: new V2(32,384),
             destSourceSize: defaultSourceTileSize.clone()
         },
+        'greenLowGrassOutBackCentral': {
+            destSourcePosition: new V2(128,736),
+            destSourceSize: defaultSourceTileSize.clone()
+        },
     }
 
     let result = {};
@@ -57,6 +61,10 @@ function terrainAtlasMappings(defaultSourceTileSize) {
         'greenHighGrassInBackTopLeft': {
             destSourcePosition: new V2(32,640),
             destSourceSize: defaultSourceTileSize.clone()
+        },
+        'greenLowGrassInBack': {
+            destSourcePosition: new V2(128,640),
+            destSourceSize: defaultSourceTileSize.clone()
         }
     }
 
@@ -71,6 +79,66 @@ function terrainAtlasMappings(defaultSourceTileSize) {
         result[propNameWithoutTopLeft + 'BottomRight'] = { destSourcePosition: topLeftMapSP.add(new V2(ds.x, ds.y)), destSourceSize: ds.clone() }
         result[propNameWithoutTopLeft + 'BottomLeft'] = { destSourcePosition: topLeftMapSP.add(new V2(0, ds.y)), destSourceSize: ds.clone() }
     });
+
+    result['waterSingleTop'] = {
+        destSourcePosition: new V2(288,288),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['waterSingleBottom'] = {
+        destSourcePosition: new V2(288,320),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['greenSingleTop'] = {
+        destSourcePosition: new V2(672,0),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['greenSingleBottom'] = {
+        destSourcePosition: new V2(672,32),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['groundSingleTop'] = {
+        destSourcePosition: new V2(480,0),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['groundSingleBottom'] = {
+        destSourcePosition: new V2(480,32),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['desertSingleTop'] = {
+        destSourcePosition: new V2(0,288),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['desertSingleBottom'] = {
+        destSourcePosition: new V2(0,320),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['greenHighGrassSingleTop'] = {
+        destSourcePosition: new V2(0,640),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['greenHighGrassSingleBottom'] = {
+        destSourcePosition: new V2(0,672),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['greenLowGrassSingleTop'] = {
+        destSourcePosition: new V2(96,640),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
+
+    result['greenLowGrassSingleBottom'] = {
+        destSourcePosition: new V2(96,672),
+        destSourceSize: defaultSourceTileSize.clone()
+    };
 
     return result;
 }
