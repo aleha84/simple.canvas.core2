@@ -1,4 +1,7 @@
 function terrainAtlasMappings(defaultSourceTileSize) {
+    let tileSize64x64 = new V2(64,64);
+    let tileSize64x128 = new V2(64,128);
+
     let initialCentralPositions = {
         'greenHighGrassOutBackCentral': {
             destSourcePosition: new V2(32,736),
@@ -139,6 +142,56 @@ function terrainAtlasMappings(defaultSourceTileSize) {
         destSourcePosition: new V2(96,672),
         destSourceSize: defaultSourceTileSize.clone()
     };
+
+    // trees
+    result['treeSmallGreen1'] = {
+        destSourcePosition: new V2(0,0),
+        destSourceSize: tileSize64x64.clone(),
+        imgPropertyName: 'treesTileSet1'
+    };
+
+    result['treeSmallGreen2'] = {
+        destSourcePosition: new V2(128,0),
+        destSourceSize: tileSize64x64.clone(),
+        imgPropertyName: 'treesTileSet1'
+    };
+
+    result['treeSmallYellow1'] = {
+        destSourcePosition: new V2(64,0),
+        destSourceSize: tileSize64x64.clone(),
+        imgPropertyName: 'treesTileSet1'
+    };
+
+    result['treeSmallYellow2'] = {
+        destSourcePosition: new V2(192,0),
+        destSourceSize: tileSize64x64.clone(),
+        imgPropertyName: 'treesTileSet1'
+    };
+
+    result['treeTallGreen1'] = {
+        destSourcePosition: new V2(256,0),
+        destSourceSize: tileSize64x128.clone(),
+        imgPropertyName: 'treesTileSet1'
+    };
+
+    result['treeTallGreen2'] = {
+        destSourcePosition: new V2(320,0),
+        destSourceSize: tileSize64x128.clone(),
+        imgPropertyName: 'treesTileSet1'
+    };
+
+    result['treeTallYellow1'] = {
+        destSourcePosition: new V2(384,0),
+        destSourceSize: tileSize64x128.clone(),
+        imgPropertyName: 'treesTileSet1'
+    };
+
+    result['treeTallYellow2'] = {
+        destSourcePosition: new V2(448,0),
+        destSourceSize: tileSize64x128.clone(),
+        imgPropertyName: 'treesTileSet1'
+    };
+
 
     return result;
 }

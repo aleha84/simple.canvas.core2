@@ -51,12 +51,53 @@ class TileMapScene extends Scene {
         this.generatePoligon('water', [new V2(45,54), new V2(41,60), new V2(35,63), new V2(33,64), new V2(31,72), new V2(33,79)], result, false); 
 
         // this.generatePoligon('greenLowGrass', [new V2(20,1), new V2(25,3), new V2(27,8), new V2(21,6)], result, true); 
-
+        this.fillPoligonWithItems('tree', [new V2(20,1), new V2(25,1), new V2(25,5), new V2(20,5)], result); 
 
         return result;
     }
 
-    generatePoligon(typePrefix, vertices, resultMatrix, fill = true) {
+    fillPoligonWithItems(typePrefix, vertices, resultMatrix, typeNameGenerator){
+        let allBordeerPoints = [];
+        let filledPoints = [];
+        let fillPoint = function(point, type){
+            if(filledPoints.filter((p) => p.equal(point)).length !== 0)
+                return;
+            
+            resultMatrix[point.y][point.x].children.push({type: type, children:[]});
+
+            filledPoints.push(point);
+        }
+        for(let vi = 0; vi < vertices.length; vi++){
+            let from = vertices[vi];
+            
+            let to = (vi == vertices.length - 1 ? vertices[0] : vertices[vi+1]);
+
+            let deltas = new V2(to.x - from.x, to.y - from.y);
+            let maxDelta = Math.max(Math.abs(deltas.x), Math.abs(deltas.y));
+            let step = new V2(deltas.x/maxDelta, deltas.y/maxDelta);
+            let current = from.clone();
+
+            for(let i = 0; i < maxDelta;i++){
+                current = current.add(step);
+                
+                let point = new V2(Math.round(current.x), Math.round(current.y))
+
+                // if(leftPoints[point.y] === undefined){
+                //     leftPoints[point.y] = point;
+                // }else {
+                //     if(point.x < leftPoints[point.y].x){
+                //         leftPoints[point.y] = point;
+                //     }
+                // }
+                fillPoint(point, 'treeSmallGreen1');
+                allBordeerPoints.push(point);
+            }
+        }
+    }
+
+    
+
+    generatePoligon(typePrefix, vertices, resultMatrix, fill = true, ) {
         let leftPoints = [];
         let allBordeerPoints = [];
         let maxX = Math.max.apply(null, vertices.map(v => v.x));
