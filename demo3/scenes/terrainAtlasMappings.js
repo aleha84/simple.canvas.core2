@@ -1,7 +1,7 @@
 function terrainAtlasMappings(defaultSourceTileSize) {
     let tileSize64x64 = new V2(64,64);
     let tileSize64x128 = new V2(64,128);
-
+    let tileSize32x64 = new V2(32,64);
     let initialCentralPositions = {
         'greenHighGrassOutBackCentral': {
             destSourcePosition: new V2(32,736),
@@ -171,25 +171,33 @@ function terrainAtlasMappings(defaultSourceTileSize) {
     result['treeTallGreen1'] = {
         destSourcePosition: new V2(256,0),
         destSourceSize: tileSize64x128.clone(),
-        imgPropertyName: 'treesTileSet1'
+        imgPropertyName: 'treesTileSet1',
+        noTileAdjustment: true,
+        size: tileSize32x64.clone()
     };
 
     result['treeTallGreen2'] = {
         destSourcePosition: new V2(320,0),
         destSourceSize: tileSize64x128.clone(),
-        imgPropertyName: 'treesTileSet1'
+        imgPropertyName: 'treesTileSet1',
+        noTileAdjustment: true,
+        size: tileSize32x64.clone()
     };
 
     result['treeTallYellow1'] = {
         destSourcePosition: new V2(384,0),
         destSourceSize: tileSize64x128.clone(),
-        imgPropertyName: 'treesTileSet1'
+        imgPropertyName: 'treesTileSet1',
+        noTileAdjustment: true,
+        size: tileSize32x64.clone()
     };
 
     result['treeTallYellow2'] = {
         destSourcePosition: new V2(448,0),
         destSourceSize: tileSize64x128.clone(),
-        imgPropertyName: 'treesTileSet1'
+        imgPropertyName: 'treesTileSet1',
+        noTileAdjustment: true,
+        size: tileSize32x64.clone()
     };
 
 

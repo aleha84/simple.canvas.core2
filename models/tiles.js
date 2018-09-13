@@ -34,26 +34,26 @@ class TileSet {
         for(let matrixLayerIndex = 0; matrixLayerIndex < this.layeredTilesMatrix.length; matrixLayerIndex++){
             let tilesMatrix = this.layeredTilesMatrix[matrixLayerIndex];
 
-            for(let rowIndex = 0; rowIndex < tilesMatrix.length; rowIndex++){
-                for(let itemIndex = 0; itemIndex < tilesMatrix[rowIndex].length; itemIndex++){
+            for(let rowIndex = tilesMatrix.length-1; rowIndex >= 0; rowIndex--){
+                for(let itemIndex = tilesMatrix[rowIndex].length-1; itemIndex >=0; itemIndex--){
                     let tileDataFromMatrix = tilesMatrix[rowIndex][itemIndex];
                     if(!tileDataFromMatrix)
                         continue;
 
                     if(isArray(tileDataFromMatrix)) {
                         for(let i = 0; i < tileDataFromMatrix.length;i++){
-                            this.preocessTileDataFromMatrix(tileDataFromMatrix[i], matrixLayerIndex, rowIndex, itemIndex);
+                            this.processTileDataFromMatrix(tileDataFromMatrix[i], matrixLayerIndex, rowIndex, itemIndex);
                         }
                     }
                     else {
-                        this.preocessTileDataFromMatrix(tileDataFromMatrix, matrixLayerIndex, rowIndex, itemIndex);
+                        this.processTileDataFromMatrix(tileDataFromMatrix, matrixLayerIndex, rowIndex, itemIndex);
                     }
                 }
             }
         }
     }
 
-    preocessTileDataFromMatrix(tileDataFromMatrix, matrixLayerIndex, rowIndex, itemIndex){
+    processTileDataFromMatrix(tileDataFromMatrix, matrixLayerIndex, rowIndex, itemIndex){
         let mapping = this.tilesMappings[isObject(tileDataFromMatrix)? tileDataFromMatrix.type : tileDataFromMatrix];
         if(!mapping)
             throw `TileSet -> incorrect tile data in matrix at: ${rowIndex}, ${itemIndex}`;
@@ -62,7 +62,9 @@ class TileSet {
             throw `TileSet -> No image specified for tile in matrix at: ${rowIndex}, ${itemIndex}`;
 
         let props = {
-            imgPropertyName: !mapping.imgPropertyName ? this.imgPropertyName : mapping.imgPropertyName
+            imgPropertyName: !mapping.imgPropertyName ? this.imgPropertyName : mapping.imgPropertyName,
+            rowIndex: rowIndex,
+            itemIndex: itemIndex
         };
 
         if(mapping.destSourcePosition){
@@ -148,7 +150,12 @@ class TileSet {
 class Tile extends GO {
     constructor(options = {}) {
         options = assignDeep({}, {
-            tileOptimization: true
+            tileOptimization: true,
+            handlers: {
+                click: function(){
+                    console.log(`${this.itemIndex}, ${this.rowIndex}`);
+                }
+            }
         }, options);
 
         super(options);

@@ -12,17 +12,45 @@ class TileMapScene extends Scene {
         super(options);
 
         this.size = new V2(80,80);
-        let defaultSourceTileSize = new V2(32,32);
+        this.defaultSourceTileSize = new V2(32,32);
 
         this.ts = new TileSet({
             imgPropertyName: 'terrain_atlas',
             tileSize: new V2(25,25),
-            tilesMappings: terrainAtlasMappings(defaultSourceTileSize),
+            tilesMappings: terrainAtlasMappings(this.defaultSourceTileSize),
             
             tilesMatrix: this.matrixGenerator('greenBackCentral'),
             
             scene: this
         });
+    }
+
+    treeNameGenerator(height, color, type){
+        return `tree${height?height:(getRandomBool()?'Small':'Tall')}${color?color:(getRandomBool()?'Green':'Yellow')}${type?type:getRandomInt(1,2)}`;
+    }
+
+    childGenerator(countPerTile, tileSize, typeNameGenerator) {
+        if(isObject(countPerTile))
+            countPerTile = getRandomInt(countPerTile.from, countPerTile.to);
+        
+        let xFromTo = new V2(-tileSize.x/4, tileSize.x/4)
+        let yFromTo = new V2(-tileSize.y/4, tileSize.y/4)
+        let result = [];
+        for(let i = 0; i < countPerTile; i++){
+            result.push({ type: typeNameGenerator(), position: new V2().add(new V2(getRandomInt(xFromTo.x, xFromTo.y), getRandomInt(yFromTo.x, yFromTo.y))), children:[] });
+        }
+
+        result = result.sort((a, b) => {
+            if(a.position.y > b.position.y)
+                return -1;
+            
+            if(a.position.y < b.position.y)
+                return 1;
+
+            return 0;
+        })
+
+        return result;
     }
 
     matrixGenerator(initialType){
@@ -51,22 +79,60 @@ class TileMapScene extends Scene {
         this.generatePoligon('water', [new V2(45,54), new V2(41,60), new V2(35,63), new V2(33,64), new V2(31,72), new V2(33,79)], result, false); 
 
         // this.generatePoligon('greenLowGrass', [new V2(20,1), new V2(25,3), new V2(27,8), new V2(21,6)], result, true); 
-        this.fillPoligonWithItems('tree', [new V2(20,1), new V2(25,1), new V2(25,5), new V2(20,5)], result); 
+        this.fillPoligonWithItems(
+            [new V2(18,0), new V2(35,0), new V2(40,10), new V2(30,15), new V2(21,12)], result, 
+            () => this.treeNameGenerator('Small', 'Green'),  () => this.childGenerator(3, this.defaultSourceTileSize, () => this.treeNameGenerator('Small', 'Green')), true); 
+        
+        this.fillPoligonWithItems(
+            [new V2(0,20), new V2(10,22), new V2(15,26), new V2(20,33), new V2(15,34), new V2(10, 28), new V2(2, 26)], result, 
+            () => this.treeNameGenerator('Small', 'Green'),  () => this.childGenerator(2, this.defaultSourceTileSize, () => this.treeNameGenerator('Small')), true);
+            
+        this.fillPoligonWithItems(
+            [new V2(0,55), new V2(6, 51), new V2(13, 54), new V2(10, 61), new V2(1, 66)], result, 
+            () => this.treeNameGenerator('Small', 'Yellow'),  () => this.childGenerator(2, this.defaultSourceTileSize, () => this.treeNameGenerator('Small', 'Yellow')), true);
+
+        this.fillPoligonWithItems(
+            [new V2(32,22),new V2(37,20),new V2(36,19), new V2(42,18), new V2(47,21),new V2(44,24),new V2(37,27), new V2(32,25)], result, 
+            () => this.treeNameGenerator('Small', 'Green'),  () => this.childGenerator(1, this.defaultSourceTileSize, () => this.treeNameGenerator('Small', 'Green')), true);
 
         return result;
     }
 
-    fillPoligonWithItems(typePrefix, vertices, resultMatrix, typeNameGenerator){
+    fillPoligonWithItems(vertices, resultMatrix, typeNameGenerator, itemsGenerator, fill = true){
         let allBordeerPoints = [];
+        let leftPoints = [];
         let filledPoints = [];
+        let that = this;
         let fillPoint = function(point, type){
             if(filledPoints.filter((p) => p.equal(point)).length !== 0)
-                return;
+                return false;;
             
-            resultMatrix[point.y][point.x].children.push({type: type, children:[]});
+            if(!resultMatrix[point.y] || !resultMatrix[point.y][point.x])
+                return false;
+              
+            if(!itemsGenerator)
+                resultMatrix[point.y][point.x].children.push({type: type, children:[]});
+            else {
+                let items = itemsGenerator();
+                for(let ii = 0; ii < items.length;ii++){
+                    resultMatrix[point.y][point.x].children.push(that.cloneType(items[ii]));//{type: items[ii], children:[]});
+                }
+            }
 
             filledPoints.push(point);
+
+            return true;
         }
+        let fillNeigborsWithChildren = function(point) {
+            if(!fillPoint(point, typeNameGenerator()))
+                return;
+
+            fillNeigborsWithChildren(new V2(point.x+1, point.y));
+            fillNeigborsWithChildren(new V2(point.x, point.y+1));
+            fillNeigborsWithChildren(new V2(point.x-1, point.y));
+            fillNeigborsWithChildren(new V2(point.x, point.y-1));
+        }
+
         for(let vi = 0; vi < vertices.length; vi++){
             let from = vertices[vi];
             
@@ -82,17 +148,35 @@ class TileMapScene extends Scene {
                 
                 let point = new V2(Math.round(current.x), Math.round(current.y))
 
-                // if(leftPoints[point.y] === undefined){
-                //     leftPoints[point.y] = point;
-                // }else {
-                //     if(point.x < leftPoints[point.y].x){
-                //         leftPoints[point.y] = point;
-                //     }
-                // }
-                fillPoint(point, 'treeSmallGreen1');
+                if(leftPoints[point.y] === undefined){
+                    leftPoints[point.y] = point;
+                }else {
+                    if(point.x < leftPoints[point.y].x){
+                        leftPoints[point.y] = point;
+                    }
+                }
+                fillPoint(point, typeNameGenerator());
                 allBordeerPoints.push(point);
             }
         }
+
+        if(!fill)
+            return;
+
+        leftPoints = leftPoints.filter(p => p !== undefined);
+        let notFilledPoint = undefined;
+        for(let lpi = 0; lpi< leftPoints.length;lpi++){
+            notFilledPoint = leftPoints[lpi].clone();
+            notFilledPoint.x++;
+
+            if(filledPoints.filter((p)=> p.equal(notFilledPoint)).length===0)
+                break;
+        }
+
+        if(!notFilledPoint)
+            return;
+
+        fillNeigborsWithChildren(notFilledPoint);
     }
 
     
@@ -213,6 +297,8 @@ class TileMapScene extends Scene {
     cloneType(originalType){
         let cloned = {
             type: originalType.type,
+            size: originalType.size? originalType.size.clone(): undefined,
+            position: originalType.position? originalType.position.clone(): undefined,
             children: []
         };
 
