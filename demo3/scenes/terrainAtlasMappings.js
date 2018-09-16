@@ -2,6 +2,7 @@ function terrainAtlasMappings(defaultSourceTileSize) {
     let tileSize64x64 = new V2(64,64);
     let tileSize64x128 = new V2(64,128);
     let tileSize32x64 = new V2(32,64);
+    let tileSize16x16 = new V2(16,16);
     let initialCentralPositions = {
         'greenHighGrassOutBackCentral': {
             destSourcePosition: new V2(32,736),
@@ -200,6 +201,109 @@ function terrainAtlasMappings(defaultSourceTileSize) {
         size: tileSize32x64.clone()
     };
 
+    result['stump1'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(128,1024),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['stump2'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(96,1152),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['stump3'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(128,1056),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['stump4'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(64,1376),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['stump5'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(96,1376),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['grass1'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(0,1024),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['grass2'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(32,1024),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['grass3'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(64,1024),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['grass4'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(96,1024),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['grass5'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(0,1056),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['grass6'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(32,1056),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['grass7'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(64,1056),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
+
+    result['grass8'] = {
+        imgPropertyName: 'sprites_set',
+        destSourceSize: defaultSourceTileSize.clone(),
+        destSourcePosition: new V2(96,1056),
+        noTileAdjustment: true,
+        size: tileSize16x16.clone()
+    }
 
     return result;
 }

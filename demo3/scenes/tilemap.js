@@ -29,26 +29,33 @@ class TileMapScene extends Scene {
         return `tree${height?height:(getRandomBool()?'Small':'Tall')}${color?color:(getRandomBool()?'Green':'Yellow')}${type?type:getRandomInt(1,2)}`;
     }
 
-    childGenerator(countPerTile, tileSize, typeNameGenerator) {
+    childGenerator(countPerTile, tileSize, typeNameGenerator, shouldRender, spread = 4) {
+        if(!shouldRender)
+            shouldRender = () => true;
+
         if(isObject(countPerTile))
             countPerTile = getRandomInt(countPerTile.from, countPerTile.to);
         
-        let xFromTo = new V2(-tileSize.x/4, tileSize.x/4)
-        let yFromTo = new V2(-tileSize.y/4, tileSize.y/4)
+        let xFromTo = new V2(-tileSize.x/spread, tileSize.x/spread)
+        let yFromTo = new V2(-tileSize.y/spread, tileSize.y/spread)
         let result = [];
-        for(let i = 0; i < countPerTile; i++){
-            result.push({ type: typeNameGenerator(), position: new V2().add(new V2(getRandomInt(xFromTo.x, xFromTo.y), getRandomInt(yFromTo.x, yFromTo.y))), children:[] });
+
+        if(shouldRender())
+        {
+            for(let i = 0; i < countPerTile; i++){
+                result.push({ type: typeNameGenerator(), position: new V2().add(new V2(getRandomInt(xFromTo.x, xFromTo.y), getRandomInt(yFromTo.x, yFromTo.y))), children:[] });
+            }
+    
+            result = result.sort((a, b) => {
+                if(a.position.y > b.position.y)
+                    return -1;
+                
+                if(a.position.y < b.position.y)
+                    return 1;
+    
+                return 0;
+            })
         }
-
-        result = result.sort((a, b) => {
-            if(a.position.y > b.position.y)
-                return -1;
-            
-            if(a.position.y < b.position.y)
-                return 1;
-
-            return 0;
-        })
 
         return result;
     }
@@ -95,6 +102,40 @@ class TileMapScene extends Scene {
             [new V2(32,22),new V2(37,20),new V2(36,19), new V2(42,18), new V2(47,21),new V2(44,24),new V2(37,27), new V2(32,25)], result, 
             () => this.treeNameGenerator('Small', 'Green'),  () => this.childGenerator(1, this.defaultSourceTileSize, () => this.treeNameGenerator('Small', 'Green')), true);
 
+        this.fillPoligonWithItems(
+            //[new V2(15,23), new V2(21, 23), new V2(21,29)], 
+            [new V2(14,24), new V2(21,25), new V2(23,29), new V2(22,32), new V2(20,31), new V2(17, 28)],
+            result,
+            () => `stump${getRandomInt(1,5)}`,
+            () => this.childGenerator(1, this.defaultSourceTileSize, () => `stump${getRandomInt(1,5)}`),
+            true
+        )
+
+        this.fillPoligonWithItems(
+            [new V2(29,16), new V2(34,14), new V2(38,16), new V2(38,19), new V2(35,22), new V2(31,21), new V2(28,20)],
+            result,
+            () => `stump${getRandomInt(1,5)}`,
+            () => this.childGenerator(1, this.defaultSourceTileSize, () => `stump${getRandomInt(1,5)}`),
+            true
+        )
+
+        this.fillPoligonWithItems(
+            [new V2(6, 16),new V2(9, 12),new V2(16, 12),new V2(23, 17),new V2(23, 22),new V2(15, 22),new V2(9, 20)],
+            result,
+            () => `grass${getRandomInt(1,8)}`,
+            () => this.childGenerator({from: 1, to: 3}, this.defaultSourceTileSize, () => `grass${getRandomInt(1,8)}`, () => getRandomInt(1,3) === 1, 2),
+            true
+        )
+
+        this.fillPoligonWithItems(
+            [new V2(0, 30),new V2(9, 31),new V2(17, 39),new V2(26, 40),new V2(23, 47),new V2(18, 54),new V2(9, 50),new V2(1, 49)],
+            result,
+            () => `grass${getRandomInt(1,8)}`,
+            () => this.childGenerator({from: 1, to: 4}, this.defaultSourceTileSize, () => `grass${getRandomInt(1,8)}`, () => getRandomInt(1,6) === 1, 1),
+            true
+        )
+        
+
         return result;
     }
 
@@ -134,6 +175,10 @@ class TileMapScene extends Scene {
         }
 
         for(let vi = 0; vi < vertices.length; vi++){
+            if(!fill && vi == vertices.length - 1){
+                break;
+            }
+
             let from = vertices[vi];
             
             let to = (vi == vertices.length - 1 ? vertices[0] : vertices[vi+1]);

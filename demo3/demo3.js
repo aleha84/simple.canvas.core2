@@ -14,7 +14,8 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.src = {
         tilemap: 'content/tilemap.png',
         terrain_atlas: 'content/terrain_atlas.png',
-        treesTileSet1: 'content/treesTileSet1.png'
+        treesTileSet1: 'content/treesTileSet1.png',
+        sprites_set: 'content/sprites_set.png'
 	}
 
     debugger;
