@@ -133,7 +133,24 @@ class TileMapScene extends Scene {
             () => `grass${getRandomInt(1,8)}`,
             () => this.childGenerator({from: 1, to: 4}, this.defaultSourceTileSize, () => `grass${getRandomInt(1,8)}`, () => getRandomInt(1,6) === 1, 1),
             true
-        )
+        );
+
+        this.fillPoligonWithItems(
+            [new V2(0, 14),new V2(3, 15),new V2(8, 15),new V2(8, 20),new V2(4, 21),new V2(0, 20)],
+            result,
+            () => `bush${getRandomInt(1,8)}`,
+            () => this.childGenerator({from: 1, to: 3}, this.defaultSourceTileSize, () => `bush${getRandomInt(1,8)}`, undefined, 2),
+            true
+        );
+
+        this.fillPoligonWithItems(
+            [new V2(0, 26),new V2(4, 28),new V2(8, 29),new V2(11, 32),new V2(14, 35)],
+            result,
+            () => `bush${getRandomInt(1,8)}`,
+            () => this.childGenerator({from: 6, to: 10}, this.defaultSourceTileSize, () => `bush${getRandomInt(1,8)}`, undefined, 3),
+            false
+        );
+
         
 
         return result;

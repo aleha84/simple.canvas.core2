@@ -305,5 +305,21 @@ function terrainAtlasMappings(defaultSourceTileSize) {
         size: tileSize16x16.clone()
     }
 
+    result['bush1'] = { destSourcePosition: new V2(0,1344) }
+    result['bush2'] = { destSourcePosition: new V2(32,1344) }
+    result['bush3'] = { destSourcePosition: new V2(64,1344) }
+    result['bush4'] = { destSourcePosition: new V2(96,1344) }
+    result['bush5'] = { destSourcePosition: new V2(128,1344) }
+    result['bush6'] = { destSourcePosition: new V2(160,1344) }
+    result['bush7'] = { destSourcePosition: new V2(96,1344) }
+    result['bush8'] = { destSourcePosition: new V2(128,1344) }
+
+    Object.keys(result).filter((k) => k.startsWith('bush')).forEach((k)=> {
+        result[k].imgPropertyName = 'sprites_set';
+        result[k].destSourceSize = defaultSourceTileSize.clone();
+        result[k].noTileAdjustment = true;
+        result[k].size = tileSize16x16.clone();
+    })
+
     return result;
 }
