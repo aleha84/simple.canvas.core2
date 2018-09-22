@@ -19,6 +19,7 @@ SCG.controls = {
     mouse: {
         state: {
             position: undefined,
+            logicalPosition: undefined,
             moving: false,
             movingDirection: new V2(),
             movingDelta: new V2(),
@@ -138,6 +139,7 @@ SCG.controls = {
         getEventAbsolutePosition(event) {
             var eventPos = pointerEventToXY(event);
             this.state.position = new V2(eventPos.x - SCG.canvases.ui.margins.left,eventPos.y - SCG.canvases.ui.margins.top);
+            this.state.logicalPosition = this.state.position.division(SCG.viewport.scale);
         }
     },
 }
