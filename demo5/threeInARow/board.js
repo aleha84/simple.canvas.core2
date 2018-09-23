@@ -11,7 +11,7 @@ class Board extends GO {
 
         super(options);
 
-        this.transition = false;
+        this.transitions = [];
         this.colors = [
             'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'gray' 
         ]
@@ -33,35 +33,72 @@ class Board extends GO {
                     board: this
                 });
 
-                cell.addChild(new CellContent({
+                let content = new CellContent({
                     size: this.cellSize,
                     color: this.colors[getRandomInt(0,this.colors.length-1)],
                     position: new V2()
-                }))
+                });
 
-                this.addChild(cell);
+                cell.addContent(content);
+                // cell.content = content;
+                // cell.addChild(content)
+
+                this.addChild(cell, true);
                 this.cells[ri][ci] = cell;
             }
         }
     }
 
-    downHandler(){
-        console.log('downHandler');
-    }
+    swap(fromCell, toCell){
+        if(this.transitions.length)
+            return;
 
-    upHandler(){
-        console.log('upHandler');
-    }
-
-    moveHandler(){
-        for(let ri = 0; ri<this.rows; ri++){
-            for(let ci = 0;ci < this.columns;ci++){
-                let cell = this.cells[ri][ci];
-                if(cell.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
-                    
-                }
-            }
+        let destinationCell = undefined;
+        let fromContentDestination = undefined;
+        let toContentDestination = undefined;
+        if(fromCell.index.x < toCell.index.x){
+            // go right
+            destinationCell = this.cells[fromCell.index.y][fromCell.index.x+1];
+            fromContentDestination = new V2(this.cellSize.x, 0);
+            toContentDestination = new V2(-this.cellSize.x, 0)
         }
+        else if(fromCell.index.x > toCell.index.x){
+            // go left
+            destinationCell = this.cells[fromCell.index.y][fromCell.index.x-1];
+            fromContentDestination = new V2(-this.cellSize.x, 0);
+            toContentDestination = new V2(this.cellSize.x, 0)
+        }
+        else if (fromCell.index.y < toCell.index.y){   
+            //go bottom
+            destinationCell = this.cells[fromCell.index.y+1][fromCell.index.x];
+            fromContentDestination = new V2(0, this.cellSize.y);
+            toContentDestination = new V2(0, -this.cellSize.y)
+        }
+        else if (fromCell.index.y > toCell.index.y){
+            //go up
+            destinationCell = this.cells[fromCell.index.y-1][fromCell.index.x];
+            fromContentDestination = new V2(0, -this.cellSize.y);
+            toContentDestination = new V2(0, this.cellSize.y)
+        }
+
+        fromCell.content.newParent = destinationCell;
+        fromCell.content.setDestination(fromContentDestination);
+        this.transitions.push(fromCell.content);
+        destinationCell.content.newParent = fromCell;
+        destinationCell.content.setDestination(toContentDestination);
+        this.transitions.push(destinationCell.content);
+    }
+
+    transitionCompleted(content) {
+        let index  = this.transitions.indexOf(content);
+        if(index > -1)
+            this.transitions.splice(index, 1);
+
+        if(this.transitions.length){
+            return;
+        }
+
+        // todo here: check for lines
     }
 
     internalPreRender(){

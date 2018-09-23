@@ -5,11 +5,11 @@ class ThreeInARowScene extends Scene {
 
         super(options);
 
-        this.events = { 
-            up: this.upHandler.bind(this),
-            down: this.downHandler.bind(this),
-            move: this.moveHandler.bind(this)
-        }
+        // this.events = { 
+        //     up: this.upHandler.bind(this),
+        //     down: this.downHandler.bind(this),
+        //     move: this.moveHandler.bind(this)
+        // }
 
         this.board = new Board({
             size: new V2(300,300),
@@ -17,25 +17,27 @@ class ThreeInARowScene extends Scene {
         })
 
         this.addGo(this.board);
+
+        window.board = this.board;
     }
 
-    downHandler(){
-        if(this.board.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
-            this.board.downHandler();
-        }
-    }
+    // downHandler(){
+    //     if(this.board.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
+    //         this.board.downHandler();
+    //     }
+    // }
 
-    upHandler(){
-        if(this.board.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
-            this.board.upHandler();
-        }
-    }
+    // upHandler(){
+    //     if(this.board.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
+    //         this.board.upHandler();
+    //     }
+    // }
 
-    moveHandler(){
-        if(this.board.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
-            this.board.moveHandler();
-        }
-    }
+    // moveHandler(){
+    //     if(this.board.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
+    //         this.board.moveHandler();
+    //     }
+    // }
 
     backgroundRender(){
         SCG.contexts.background.fillStyle = 'black';

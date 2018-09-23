@@ -1,22 +1,65 @@
 class Cell extends GO {
     constructor(options = {}) {
-        options = assignDeep({}, {        
+        options = assignDeep({}, {  
+            handlers: {
+                // move: () => this.moveHandler()
+                down: () => this.downHandler(),
+                up: () => this.upHandler()
+            }      
         }, options);
 
         super(options);
     }
+
+    downHandler(){
+         this.board.selectedCell = this;
+    }
+
+    upHandler() {
+        if(this.board.selectedCell == this){
+            this.board.selectedCell = undefined;
+            return;
+        }
+        
+        console.log(`from ${this.board.selectedCell.index} to ${this.index}`);
+        //this.board.selectedCell.content.setDestination(new V2(this.size.x,0));
+        this.board.swap(this.board.selectedCell, this);
+        this.board.selectedCell = undefined;
+    }
+
+    addContent(go){
+        this.content = go;
+        this.addChild(go);
+    }
+
+    removeContent(go) {
+        this.content = undefined;
+        this.removeChild(go);
+    }
 }
 
-class CellContent extends GO {
+class CellContent extends MovingGO {
     constructor(options = {}) {
         options = assignDeep({}, {
-            
+            tileOptimization: true,
+            speed: 1
         }, options);
 
         if(!options.color)
             throw 'Cell color is undefined';
 
         super(options);
+    }
+
+    destinationCompleteCallBack(){
+        this.parent.removeChild(this);
+        this.newParent.addContent(this);
+        this.newParent = undefined;
+
+        this.position = new V2();
+        this.needRecalcRenderProperties = true;
+        
+        this.parent.board.transitionCompleted(this);
     }
 
     internalPreRender(){

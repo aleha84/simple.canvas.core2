@@ -9,11 +9,17 @@ SCG.controls = {
     },
     clearEventsHandlers() { // resetting properties of handlers to empty arrays
         this.mouse.state.eventHandlers = {
-            click: []
+            click: [],
+            move: [],
+            up: [],
+            down: []
         };
 
         this.mouse.state.UIEventsHandlers = {
-            click: []
+            click: [],
+            move: [],
+            up: [],
+            down: []
         };
     },  
     mouse: {
@@ -24,6 +30,43 @@ SCG.controls = {
             movingDirection: new V2(),
             movingDelta: new V2(),
             downTriggered: false,
+            doEventCheck(event){
+                if(!event)
+                    return;
+
+                for(let layerIndex = this.eventHandlers[event].length-1;layerIndex>=0;layerIndex--){
+                    let eventLayer = this.eventHandlers[event][layerIndex];
+
+                    if(!this.doEventCheckByLayer(eventLayer, event)){
+                        return;
+                    }  
+                }
+            },
+            doEventCheckByLayer(eventLayer, event) {
+                if(eventLayer === undefined || event === undefined)
+                    return true;
+
+                for(let i = 0; i < eventLayer.length;i++){
+                    let chGo = eventLayer[i];
+
+                    if(chGo.renderBox!=undefined 
+                        && chGo.isVisible
+                        && chGo.renderBox.isPointInside(this.position) 
+                        && chGo.handlers != undefined 
+                        && chGo.handlers[event] != undefined 
+                        && isFunction(chGo.handlers[event]))
+                    {
+                        var eventResult = chGo.handlers[event].call(chGo);
+                        if(eventResult && eventResult.preventDiving){
+                            return false;
+                        }
+
+                        break;
+                    }
+                }
+
+                return true;
+            },
             doClickCheck() {
                 if(this.UIEventsHandlers.click.length > 0 && !this.doClickCheckByLayer(this.UIEventsHandlers.click)){
                     return;
@@ -70,6 +113,7 @@ SCG.controls = {
         up(event) {
             this.getEventAbsolutePosition(event);
 
+            this.state.doEventCheck('up');
             if(!this.state.moving)
             {
                 this.state.doClickCheck();
@@ -87,6 +131,8 @@ SCG.controls = {
         down(event) {
             this.getEventAbsolutePosition(event);
 
+            this.state.doEventCheck('down');
+
             if(SCG.scenes.activeScene.events.down)
                 SCG.scenes.activeScene.events.down();
 
@@ -100,6 +146,8 @@ SCG.controls = {
                 prevPosition = this.state.position.clone();
 
             this.getEventAbsolutePosition(event);
+
+            this.state.doEventCheck('move');
 
             if(SCG.scenes.activeScene.events.move)
                 SCG.scenes.activeScene.events.move();

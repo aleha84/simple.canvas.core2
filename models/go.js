@@ -183,7 +183,7 @@ class GO {
         this.console('setDead completed.');
     }
 
-    addChild(childGo) {
+    addChild(childGo, regEvents = false) {
         if(!(childGo instanceof GO)){
             console.warn('Can\' add to children object isn\'t inherited from GO');
             return;
@@ -191,6 +191,19 @@ class GO {
     
         this.childrenGO.push(childGo);
         childGo.parent = this;
+
+        if(regEvents)
+            childGo.regEvents(this.layerIndex);
+    }
+
+    removeChild(childGo) {
+        if(childGo === undefined)
+            return;
+
+        let index = this.childrenGO.indexOf(childGo);
+        if(index !== -1){
+            this.childrenGO.splice(index,1);
+        }
     }
 
     childProcesser(action){
@@ -428,34 +441,49 @@ class GO {
 
         this.layerIndex = layerIndex;
 
-		//register click for new objects
-		if(this.handlers.click && isFunction(this.handlers.click)){
-            let ehLayer = undefined;
+        //register click for new objects
+        let that = this;
+        Object.keys(this.handlers).forEach(function(key) {
+            if(that.handlers[key] && isFunction(that.handlers[key])){
+                let ehLayer = undefined;
+    
+                if(that.isStatic)
+                    ehLayer = SCG.controls.mouse.state.UIEventsHandlers[key];
+                else {
+                    let eh = SCG.controls.mouse.state.eventHandlers;
+                    if(eh[key] === undefined)
+                        return;
 
-            if(this.isStatic)
-                ehLayer = SCG.controls.mouse.state.UIEventsHandlers.click;
-            else {
-                let eh = SCG.controls.mouse.state.eventHandlers;
-                if(eh.click[layerIndex] === undefined)
-                    eh.click[layerIndex] = [];
+                    if(eh[key][layerIndex] === undefined)
+                        eh[key][layerIndex] = [];
+    
+                    ehLayer = eh[key][layerIndex];
+                }
+                
+                if(ehLayer === undefined)
+                    return;
 
-                ehLayer = eh.click[layerIndex];
+                if(ehLayer.indexOf(that) === -1){
+                    ehLayer.push(that);
+                }
             }
-            
-            if(ehLayer.indexOf(this) == -1){
-                ehLayer.push(this);
-            }
-		}
+        })
     }
     
     unRegEvents() {
+        let that = this;
         //remove from event handlers
-        if(this.handlers.click && isFunction(this.handlers.click)){
-            let eh = SCG.controls.mouse.state.eventHandlers;
-            let index = eh.click[this.layerIndex].indexOf(this);
-            if(index > -1)
-                eh.click[this.layerIndex].splice(index, 1);	
-        }
+        Object.keys(this.handlers).forEach(function(key) {
+            if(that.handlers[key] && isFunction(that.handlers[key])){
+                let eh = SCG.controls.mouse.state.eventHandlers;
+                if(eh[key] === undefined)
+                    return;
+
+                let index = eh[key][that.layerIndex].indexOf(that);
+                if(index > -1)
+                    eh[key][that.layerIndex].splice(index, 1);	
+            }
+        });
     }
 }
 

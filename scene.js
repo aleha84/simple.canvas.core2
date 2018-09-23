@@ -67,6 +67,7 @@ class Scene {
 
             for(let goi = 0; goi < goLayer.length; goi++){
                 goLayer[goi].regEvents(layerIndex);
+                // todo reg events for childrens
             }
         }
 
