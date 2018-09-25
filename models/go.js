@@ -306,10 +306,10 @@ class GO {
                 this.renderText();
             }
 		}
-
-        this.internalRender();
         
         this.childProcesser((child) => child.render());
+
+        this.internalRender();
 
         this.console('render completed.');
     }

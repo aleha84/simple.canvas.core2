@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.globals.version = 0.1;
 
     SCG.src = {
+        crystals: 'threeInARow/images/crystals.png'
 	}
 
     debugger;
