@@ -95,7 +95,10 @@ class CellContent extends MovingGO {
             tileOptimization: true,
             speed: 2,
             imgPropertyName: 'crystals',
-            destSourceSize: new V2(275,275)
+            destSourceSize: new V2(275,275),
+            fadeAway: false,
+            alpha: 1,
+            alphaDelta: 0.05
         }, options);
 
         if(!options.cellType)
@@ -115,6 +118,27 @@ class CellContent extends MovingGO {
         this.needRecalcRenderProperties = true;
         
         this.parent.board.transitionCompleted(this);
+    }
+
+    internalPreRender() {
+        if(!this.fadeAway)
+            return;
+
+        this.context.save();
+        this.context.globalAlpha = this.alpha;
+    }
+
+    internalRender() {
+        if(!this.fadeAway)
+            return;
+
+        this.context.restore();
+    }
+
+    beforePositionChange(now){
+        if(!this.fadeAway)
+            return;
+        // doWorkByTimer(this.fadeInTimer, now);
     }
 
     // internalPreRender(){

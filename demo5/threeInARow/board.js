@@ -1,8 +1,8 @@
 class Board extends GO {
     constructor(options = {}) {
         options = assignDeep({}, {
-            rows: 8,
-            columns: 8,
+            rows: 10,
+            columns: 10,
             borderWidth: 2,
             useCustomFalling: false
         }, options);
@@ -14,7 +14,7 @@ class Board extends GO {
 
         this.transitions = [];
         this.colors = [
-            'type01', 'type02','type03','type04','type05','type06','type07','type08','type09','type10','type11','type12'
+            'type01', 'type02','type03','type04','type05','type06','type07','type09','type10','type11','type12'
         ]
 
         let innerWidth = this.size.x - this.borderWidth*2;
@@ -139,6 +139,15 @@ class Board extends GO {
     }
 
     swap(fromCell, toCell, fromOnly = false, ignoreTransition = false){
+        if(fromOnly && fromCell.content === undefined){
+            if(fromCell.children.length) {
+                fromCell.content = fromCell.children[0];
+            }
+            else {
+                return;
+            }
+        }
+        
         if(ignoreTransition){
             // do nothing
         }
