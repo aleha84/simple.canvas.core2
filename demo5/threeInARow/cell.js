@@ -21,9 +21,11 @@ class Cell extends GO {
             return;
 
          this.board.selectedCell = this;
+         this.content.setRotation(true);
     }
 
     upHandler() {
+        this.board.selectedCell.content.stopRotation();
         if(!this.checkIndexInBoard()){
             this.board.selectedCell = undefined;
             return;
@@ -46,10 +48,19 @@ class Cell extends GO {
     }
 
     removeContent(go, setDead = false) {
+        if(!go)
+            return;
+
         this.content = undefined;
         this.removeChild(go);
         if(setDead){
             go.setDead();
+        }
+        else {
+            go.fadeAway = true;
+            go.position = this.getAbsolutePosition();
+            go.size = go.size.clone();
+            SCG.scenes.activeScene.addGo(go,1)
         }
     }
 
@@ -93,12 +104,15 @@ class CellContent extends MovingGO {
     constructor(options = {}) {
         options = assignDeep({}, {
             tileOptimization: true,
-            speed: 2,
+            initialSpeed: 1,
+            speed: 1,
+            speedDelta: 0.1,
             imgPropertyName: 'crystals',
             destSourceSize: new V2(275,275),
             fadeAway: false,
             alpha: 1,
-            alphaDelta: 0.05
+            alphaDelta: 0.11,
+            sizeDelta: 0.6
         }, options);
 
         if(!options.cellType)
@@ -106,10 +120,29 @@ class CellContent extends MovingGO {
 
         super(options);
         this.destSourcePosition = typeTodspMap[this.cellType];
-        //this.type = options.color;
+
+        this.rotationTimer = createTimer(getRandomInt(100,10000), this.setRotation, this, false);
+    }
+
+    stopRotation(){
+        this.rotation.stop = true;
+    }
+
+    setRotation(fastAndLong){
+        this.rotating = true;
+        this.rotation = {
+            max: fastAndLong ? 15 : getRandomInt(2,5),
+            min: fastAndLong ? -15 : getRandomInt(-5,-2),
+            speed: fastAndLong ? 5 : fastRoundWithPrecision(getRandom(0.8,1.2),2),
+            repeat: fastAndLong ? 60 :  getRandomInt(1,5),
+            currentRepeat: 0,
+            currentAngle: 0,
+            direction: 1
+        }
     }
 
     destinationCompleteCallBack(){
+        this.speed = this.initialSpeed;
         this.parent.removeChild(this);
         this.newParent.addContent(this);
         this.newParent = undefined;
@@ -121,39 +154,82 @@ class CellContent extends MovingGO {
     }
 
     internalPreRender() {
-        if(!this.fadeAway)
-            return;
-
         this.context.save();
-        this.context.globalAlpha = this.alpha;
+        if(this.fadeAway)
+            this.context.globalAlpha = this.alpha;
+        
+        if(this.rotating){
+            this.context.translate(this.renderPosition.x, this.renderPosition.y);
+            this.context.rotate(degreeToRadians(this.rotation.currentAngle));
+            this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+        }
     }
 
     internalRender() {
-        if(!this.fadeAway)
-            return;
-
         this.context.restore();
     }
 
     beforePositionChange(now){
-        if(!this.fadeAway)
-            return;
-        // doWorkByTimer(this.fadeInTimer, now);
+        if(this.fadeAway) {
+            if(this.alpha === 0)
+                this.setDead();
+            else {
+                this.alpha-=this.alphaDelta;
+                if(this.alpha < 0)
+                    this.alpha = 0;
+
+                this.size.x -= this.sizeDelta;
+                this.size.y -= this.sizeDelta;
+                this.needRecalcRenderProperties = true;
+            }
+        }
+        
+            
+        if(this.destination) {
+            this.speed+=this.speedDelta;
+        }
+        else {
+            if(!this.rotating) {
+                doWorkByTimer(this.rotationTimer, now);
+            }
+            else {
+                if(this.rotating) {
+                    let r = this.rotation;
+
+                    if(r.stop){
+                        r.currentAngle = 0;
+                        this.rotating = false;
+                        this.rotationTimer = createTimer(getRandomInt(2000,10000), this.setRotation, this, false);
+                    }
+
+                    if(r.currentAngle >= r.max){
+                        r.direction = -1;
+                        r.currentAngle = r.max;
+                    }
+                    else if(r.currentAngle <= r.min) {
+                        r.direction = 1;
+                        r.currentAngle = r.min;
+                    }
+    
+                    let prev = r.currentAngle;
+                    r.currentAngle += r.speed*r.direction;
+    
+                    if(
+                        (prev === 0 || r.currentAngle === 0)
+                        || (prev < 0 && r.currentAngle > 0)
+                        || (prev > 0 && r.currentAngle < 0) 
+                    ){
+                        r.currentRepeat++;
+                        if(r.currentRepeat >= r.repeat){
+                            r.currentAngle = 0;
+                            this.rotating = false;
+                            this.rotationTimer = createTimer(getRandomInt(2000,10000), this.setRotation, this, false);
+                        }
+                    }
+                }
+            }
+        }
+        
+
     }
-
-    // internalPreRender(){
-    //     let ctx = this.context;
-    //     let prevFillStyle = ctx.fillStyle;
-    //     ctx.fillStyle = this.color;
-
-    //     ctx.beginPath();
-    //     ctx.moveTo(this.renderBox.topLeft.x,this.renderBox.topLeft.y);
-    //     ctx.lineTo(this.renderBox.topRight.x,this.renderBox.topRight.y);
-    //     ctx.lineTo(this.renderBox.bottomRight.x,this.renderBox.bottomRight.y);
-    //     ctx.lineTo(this.renderBox.bottomLeft.x,this.renderBox.bottomLeft.y);
-    //     ctx.closePath();
-    //     ctx.fill();
-
-    //     ctx.fillStyle = prevFillStyle;
-    // }
 }

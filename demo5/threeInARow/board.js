@@ -46,7 +46,7 @@ class Board extends GO {
 
                 let cell = new Cell({
                     //highlight: true,
-                    size: this.cellSize,
+                    size: this.cellSize.clone(),
                     position: startPosition.add(new V2(this.cellSize.x*ci, this.cellSize.y*ri)),
                     index: new V2(ci, ri),
                     board: this,
@@ -56,7 +56,7 @@ class Board extends GO {
                 if(ci >= 0 && ri >= 0 && ci < this.columns && ri < this.rows){
                     let type = this.colors[getRandomInt(0,this.colors.length-1)];
                     let content = new CellContent({
-                        size: this.cellSize,
+                        size: this.cellSize.clone(),
                         cellType: type,
                         //destSourcePosition: this.typeTodspMap[type],
                         position: new V2()
@@ -110,7 +110,7 @@ class Board extends GO {
                 //affectedCell.content.type = filtered[getRandomInt(0, filtered.length-1)];
                 affectedCell.removeContent(affectedCell.content, true);
                 affectedCell.addContent(new CellContent({
-                    size: this.cellSize,
+                    size: this.cellSize.clone(),
                     cellType: filtered[getRandomInt(0, filtered.length-1)],
                     position: new V2()
                 }));
@@ -120,6 +120,9 @@ class Board extends GO {
         if(this.getLines().length){
             console.log('Lines still exists');
         }
+
+
+        this.cells[0][0].content.setRotation();
     }
 
     removeRow(rowNum) { 
@@ -140,8 +143,8 @@ class Board extends GO {
 
     swap(fromCell, toCell, fromOnly = false, ignoreTransition = false){
         if(fromOnly && fromCell.content === undefined){
-            if(fromCell.children.length) {
-                fromCell.content = fromCell.children[0];
+            if(fromCell.childrenGO.length) {
+                fromCell.content = fromCell.childrenGO[0];
             }
             else {
                 return;
@@ -316,7 +319,7 @@ class Board extends GO {
                 for(let y = -1;y<=hole.index.y-1;y++){
                     if(y === -1){
                         this.cells[y][hole.index.x].addContent(new CellContent({
-                            size: this.cellSize,
+                            size: this.cellSize.clone(),
                             cellType: this.colors[getRandomInt(0,this.colors.length-1)],
                             position: new V2()
                         }));
@@ -332,7 +335,7 @@ class Board extends GO {
                     for(let y = -1;y<=hole.index.y-1;y++){
                         if(y === -1){
                             this.cells[y][hole.index.x].addContent(new CellContent({
-                                size: this.cellSize,
+                                size: this.cellSize.clone(),
                                 cellType: this.colors[getRandomInt(0,this.colors.length-1)],
                                 position: new V2()
                             }));
@@ -347,7 +350,7 @@ class Board extends GO {
                     for(let y = this.rows;y>=hole.index.y+1;y--){
                         if(y === this.rows){
                             this.cells[y][hole.index.x].addContent(new CellContent({
-                                size: this.cellSize,
+                                size: this.cellSize.clone(),
                                 cellType: this.colors[getRandomInt(0,this.colors.length-1)],
                                 position: new V2()
                             }));
@@ -362,7 +365,7 @@ class Board extends GO {
                     for(let x = -1;x<=hole.index.x-1;x++){
                         if(x === -1){
                             this.cells[hole.index.y][x].addContent(new CellContent({
-                                size: this.cellSize,
+                                size: this.cellSize.clone(),
                                 cellType: this.colors[getRandomInt(0,this.colors.length-1)],
                                 position: new V2()
                             }));
@@ -377,7 +380,7 @@ class Board extends GO {
                     for(let x = this.columns;x>=hole.index.x+1;x--){
                         if(x === this.columns){
                             this.cells[hole.index.y][x].addContent(new CellContent({
-                                size: this.cellSize,
+                                size: this.cellSize.clone(),
                                 cellType: this.colors[getRandomInt(0,this.colors.length-1)],
                                 position: new V2()
                             }));

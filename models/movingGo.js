@@ -27,9 +27,9 @@ class MovingGO extends GO {
 
         if(this.destination)
 		{
-			if(this.position.distance(this.destination) <= this.speed){
-				this.setDestination();
-			}
+            if(this.position.distance(this.destination) <= this.speed){
+                this.setDestination();
+            }
 			else{
                 this.position.add(this.direction.mul(this.speed), true);
                 this.positionChangedCallback();

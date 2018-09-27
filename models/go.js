@@ -203,6 +203,8 @@ class GO {
         let index = this.childrenGO.indexOf(childGo);
         if(index !== -1){
             this.childrenGO.splice(index,1);
+            childGo.parent = undefined;
+            childGo.unRegEvents();
         }
     }
 
