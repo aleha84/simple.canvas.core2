@@ -122,23 +122,26 @@ class Board extends GO {
         }
 
 
-        this.cells[0][0].content.setRotation();
+        //this.cells[0][0].content.setRotation();
+        //this.cells[0][0].content.hasLineRemover = true;
     }
 
-    removeRow(rowNum) { 
+    removeRow(rowNum, noCellFalling = false) { 
         for(let ci = -1;ci < this.columns+1;ci++){
             this.cells[rowNum][ci].removeContent(this.cells[rowNum][ci].content);
         }
 
-        this.cellsFalling();        
+        if(!noCellFalling)
+            this.cellsFalling();        
     }
 
-    removeColumn(columnNum) { 
+    removeColumn(columnNum, noCellFalling = false) { 
         for(let ri = -1;ri < this.columns+1;ri++){
             this.cells[ri][columnNum].removeContent(this.cells[ri][columnNum].content);
         }
 
-        this.cellsFalling();        
+        if(!noCellFalling)
+            this.cellsFalling();        
     }
 
     swap(fromCell, toCell, fromOnly = false, ignoreTransition = false){
@@ -271,11 +274,6 @@ class Board extends GO {
 
     checkLines(){      
         let lines = this.getLines();
-        // for(let ri = 0; ri< this.rows;ri++){
-        //     for(let ci = 0; ci< this.columns;ci++){
-        //         this.cells[ri][ci].highlight = false;
-        //     }
-        // }
 
         for(let li = 0; li < lines.length; li++){
             let line = lines[li];
@@ -287,7 +285,27 @@ class Board extends GO {
                 let c = line.from.add(d);
                 // this.cells[c.y][c.x].highlight = true;
                 let affectedCell = this.cells[c.y][c.x];
-                affectedCell.removeContent(affectedCell.content);
+                if(length === 3 && i == 0){
+                    affectedCell.content.hasLineRemover = true;
+                    affectedCell.content.powerUp.isHorizontal = line.type === 'x';
+                }
+                else {
+                    if(affectedCell.content !== undefined){
+                        if(affectedCell.content.hasLineRemover){
+                            if(affectedCell.content.powerUp.isHorizontal){
+                                this.removeRow(c.y, true)
+                            }
+                            else {
+                                this.removeColumn(c.x, true)
+                            }
+                        }
+                        else {
+                            affectedCell.removeContent(affectedCell.content);   
+                        }
+                    }
+                        
+                }
+                
             }
         }
 

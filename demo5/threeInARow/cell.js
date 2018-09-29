@@ -112,7 +112,13 @@ class CellContent extends MovingGO {
             fadeAway: false,
             alpha: 1,
             alphaDelta: 0.11,
-            sizeDelta: 0.6
+            sizeDelta: 0.6,
+            powerUp: {
+                canvas: undefined,
+                colorChangeDelta: 8,
+                colorChangeDirection: -1,
+                currentColor: [255,255,255]
+            }
         }, options);
 
         if(!options.cellType)
@@ -122,6 +128,52 @@ class CellContent extends MovingGO {
         this.destSourcePosition = typeTodspMap[this.cellType];
 
         this.rotationTimer = createTimer(getRandomInt(100,10000), this.setRotation, this, false);
+    }
+
+    powerUpPulsating(){
+        let p = this.powerUp;
+        if(!p.canvas){
+            p.size = new V2(this.size.x*4, this.size.y*4);    
+        }
+
+        p.canvas = document.createElement('canvas');
+        p.canvas.width = p.size.x;
+        p.canvas.height = p.size.y;
+        p.context = p.canvas.getContext('2d');
+
+        p.gradient = 
+                p.context.createRadialGradient(
+                    0, 0, p.size.x/10,
+                    0, 0, p.size.x/4
+                );
+        
+        p.gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        p.gradient.addColorStop(1, `rgba(${p.currentColor.join(',')}, 0)`);
+
+        p.context.translate(p.size.x/2,p.size.y/2);
+        if(p.isHorizontal){
+            p.context.rotate(degreeToRadians(90));
+        }
+
+        p.context.scale(1,2);
+        p.context.fillStyle=p.gradient;
+        p.context.fillRect(-p.size.x/2,-p.size.y/2, p.size.x, p.size.y)
+
+        if(p.currentColor[0] + p.colorChangeDelta*p.colorChangeDirection < 0){
+            p.colorChangeDirection = 1;
+            p.currentColor[0] = 0;
+            p.currentColor[1] = 0;
+        }
+        else if(p.currentColor[0] + p.colorChangeDelta*p.colorChangeDirection > 255){
+            p.colorChangeDirection = -1;
+            p.currentColor[0] = 255;
+            p.currentColor[1] = 255;
+        }
+        else {
+            p.currentColor[0]+=p.colorChangeDelta*p.colorChangeDirection;
+            p.currentColor[1]+=p.colorChangeDelta*p.colorChangeDirection;
+        }
+        
     }
 
     stopRotation(){
@@ -166,10 +218,22 @@ class CellContent extends MovingGO {
     }
 
     internalRender() {
+        if(this.hasLineRemover && this.powerUp.canvas) {
+            this.context.drawImage(this.powerUp.canvas, 
+                (this.renderPosition.x - this.renderSize.x/2), 
+                (this.renderPosition.y - this.renderSize.y/2), 
+                this.renderSize.x, 
+                this.renderSize.y);
+            
+        }
         this.context.restore();
     }
 
     beforePositionChange(now){
+        if(this.hasLineRemover){
+            this.powerUpPulsating();
+        }
+
         if(this.fadeAway) {
             if(this.alpha === 0)
                 this.setDead();
