@@ -2,7 +2,7 @@ class GO {
     constructor(options = {}){
         
         if(!options.position || !(options.position instanceof V2))
-            throw 'No position defined for grapthical object';
+            throw `No position defined for graphical object`;
         
         if(!options.size || !(options.size instanceof V2))
             throw 'No size defined for grapthical object';
@@ -38,6 +38,8 @@ class GO {
                 sourceFrameSize: new V2,
                 currentDestination : new V2,
                 currentFrame: 0,
+                startFrame: undefined,
+                endFrame: undefined,
                 reverse: false,
                 paused: false,
                 loop : false,
@@ -61,11 +63,14 @@ class GO {
                         this.currentFrame++;
                     }
         
-                    if((!this.reverse && this.currentFrame > this.totalFrameCount)
-                        || (this.reverse && this.currentFrame < 1)
+                    let startFrame = this.startFrame !== undefined ? this.startFrame : 1;
+                    let endFrame = this.endFrame !== undefined ? this.endFrame : this.totalFrameCount;
+
+                    if((!this.reverse && this.currentFrame > endFrame)
+                        || (this.reverse && this.currentFrame < startFrame)
                         ){
                         if(this.loop){
-                            this.currentFrame = this.reverse? this.totalFrameCount :  1;
+                            this.currentFrame = this.reverse? endFrame :  startFrame;
                             this.animationRestartCallback.call(objectContext);
                         }
                         else{

@@ -4,7 +4,8 @@ class Board extends GO {
             rows: 10,
             columns: 10,
             borderWidth: 2,
-            useCustomFalling: false
+            useCustomFalling: false,
+            preventNonResultingSwaps: false
         }, options);
 
         if(options.rows % 2 !== 0 || options.columns % 2 !== 0)
@@ -144,6 +145,15 @@ class Board extends GO {
             this.cellsFalling();        
     }
 
+    userAction(fromCell, toCell) {
+        this.userActionObj = {
+            fromCell, toCell
+        }
+
+        this.swap(fromCell, toCell);
+        this.selectedCell = undefined;
+    }
+
     swap(fromCell, toCell, fromOnly = false, ignoreTransition = false){
         if(fromOnly && fromCell.content === undefined){
             if(fromCell.childrenGO.length) {
@@ -274,7 +284,13 @@ class Board extends GO {
 
     checkLines(){      
         let lines = this.getLines();
-
+        if(this.preventNonResultingSwaps && !lines.length){
+            if(this.userActionObj){
+                this.swap(this.userActionObj.toCell, this.userActionObj.fromCell);
+                this.userActionObj = undefined;
+            }
+            return;
+        }
         for(let li = 0; li < lines.length; li++){
             let line = lines[li];
             let length = line.to[line.type] - line.from[line.type];
@@ -309,6 +325,7 @@ class Board extends GO {
             }
         }
 
+        this.userActionObj = undefined;
         if(lines.length){
             this.cellsFalling();
         }

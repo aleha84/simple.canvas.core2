@@ -36,10 +36,12 @@ class Cell extends GO {
             return;
         }
         
-        console.log(`from ${this.board.selectedCell.index} to ${this.index}`);
+        //console.log(`from ${this.board.selectedCell.index} to ${this.index}`);
         //this.board.selectedCell.content.setDestination(new V2(this.size.x,0));
-        this.board.swap(this.board.selectedCell, this);
-        this.board.selectedCell = undefined;
+        
+        // this.board.swap(this.board.selectedCell, this);
+        // this.board.selectedCell = undefined;
+        this.board.userAction(this.board.selectedCell, this);
     }
 
     addContent(go){

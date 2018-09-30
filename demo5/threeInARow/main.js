@@ -1,43 +1,30 @@
 class ThreeInARowScene extends Scene {
     constructor(options = {}){
         options = assignDeep({}, {
+            addZombieDefender: true
         }, options);
 
         super(options);
 
-        // this.events = { 
-        //     up: this.upHandler.bind(this),
-        //     down: this.downHandler.bind(this),
-        //     move: this.moveHandler.bind(this)
-        // }
-
         this.board = new Board({
             size: new V2(300,300),
-            position: new V2(this.space.x/2, this.space.y/2)
+            position: this.addZombieDefender ? new V2(this.space.x - 300/2, this.space.y/2) : new V2(this.space.x/2, this.space.y/2),
+            preventNonResultingSwaps: false
         })
 
         this.addGo(this.board);
 
+        if(this.addZombieDefender){
+            this.zombieDefender = new ZombieDefender({
+                position: new V2(200/2, this.space.y/2),
+                size: new V2(200, 300)
+            });
+
+            this.addGo(this.zombieDefender);
+        }
+
         window.board = this.board;
     }
-
-    // downHandler(){
-    //     if(this.board.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
-    //         this.board.downHandler();
-    //     }
-    // }
-
-    // upHandler(){
-    //     if(this.board.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
-    //         this.board.upHandler();
-    //     }
-    // }
-
-    // moveHandler(){
-    //     if(this.board.box.isPointInside(SCG.controls.mouse.state.logicalPosition)){
-    //         this.board.moveHandler();
-    //     }
-    // }
 
     backgroundRender(){
         SCG.contexts.background.fillStyle = 'black';

@@ -3,7 +3,8 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.globals.version = 0.1;
 
     SCG.src = {
-        crystals: 'threeInARow/images/crystals.png'
+        crystals: 'threeInARow/images/crystals.png',
+        zombies: 'threeInARow/images/zombies.jpg'
 	}
 
     debugger;
