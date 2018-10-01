@@ -4,7 +4,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.src = {
         crystals: 'threeInARow/images/crystals.png',
-        zombies: 'threeInARow/images/zombies.jpg'
+        zombies: 'threeInARow/images/zombies.jpg',
+        soldier_back: 'threeInARow/images/soldier_back.png'
 	}
 
     debugger;
