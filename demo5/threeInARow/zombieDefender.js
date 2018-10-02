@@ -5,9 +5,11 @@ class ZombieDefender extends GO {
 
         super(options);
 
-        this.addChild(new Zombie({
+        let zombie = new Zombie({
             position: new V2(0, -100)
-        }));
+        });
+        this.addChild(zombie);
+        this.enemies = [zombie];
 
         this.shotCanvas = this.createShot();
 
@@ -16,7 +18,10 @@ class ZombieDefender extends GO {
             this.addChild(new Soldier({
                 position: position,
                 field: this,
-                shotImg: this.shotCanvas
+                shotImg: this.shotCanvas,
+                unit: {
+                    weapon: new Weapon(i%2===0 ? Weapon.Pistol() : Weapon.Rifle())
+                }
             }));
         }
         
@@ -93,6 +98,7 @@ class Shot extends MovingGO {
 
         super(options);
 
+        this.size.y = this.speed*3;
         this.setDestination(this.target);
         this.angle = V2.up.angleTo(this.target.substract(this.position));
     }
@@ -118,6 +124,10 @@ class Soldier extends MovingGO {
             size: new V2(10,15),
             speed: 0.5,
             isAnimated: true,
+            unit: {
+                health: 100,
+                weapon: undefined
+            },
             animation: {
                 totalFrameCount: 6,
                 framesInRow: 7,
@@ -133,28 +143,122 @@ class Soldier extends MovingGO {
 
         super(options);
 
+        if(this.unit.weapon === undefined)
+            throw 'No weapon for unit specified';
+
         this.setDestination(new V2(this.position.x, 0));
         this.decisionTimer = createTimer(500, this.makeDecision, this, true);
+        this.fireTimer = createTimer(this.unit.weapon.fireDelay, this.makeShot, this, true);
+        //this.reloadWeaponTimer = createTimer(this.unit.weapon.reloadDelay, this.makeReloading, this, false);
     }
 
     makeDecision(){
-        this.fire(new V2(this.position.x-40, this.position.y-100))
+        let enemy = this.field.enemies[0];
+        this.startFire(enemy.position);
     }
 
-    fire(targetPosition){
+    startFire(targetPosition){
+        this.isFiring = true;
+        this.aim = targetPosition.clone();
+    }
+
+    makeReloading(){
+        this.isReloading = false;
+        this.unit.weapon.currentAmmo = this.unit.weapon.ammo;
+        this.unit.weapon.reloading = false;
+    }
+
+    makeShot(){
+        if(!this.aim){
+            return;
+        }
+
+        let weapon = this.unit.weapon;
+        if(weapon.reloading || this.isReloading)
+            return;
+
+        if(weapon.currentAmmo === 0){
+            weapon.reloading = true;
+            this.isReloading = true;
+            this.reloadWeaponTimer = createTimer(this.unit.weapon.reloadDelay, this.makeReloading, this, false);
+            this.isFiring = false;
+
+            return;
+        }
+
+        let position = this.position.add(this.position.direction(this.aim).mul(this.size.y/2));
+
+        let distance = this.position.distance(this.aim);
+        let target = undefined;
+        if(distance > weapon.range){
+            target = this.position.add(this.position.direction(this.aim).mul(weapon.range));
+        }
+        else {
+            target = this.aim.clone();
+        }
+
+        weapon.currentAmmo--;
+
         this.field.addChild(new Shot({
-            position: this.position.clone(),
-            target: targetPosition.clone(),
-            img: this.shotImg
-        }))
+            position: position,
+            target: target,
+            img: this.shotImg, 
+            damage: weapon.damage,
+            speed: weapon.speed
+        }));
     }
 
     beforePositionChange(now){
         doWorkByTimer(this.decisionTimer, now);
+        if(this.isFiring){
+            doWorkByTimer(this.fireTimer, now)
+        }
+        if(this.isReloading){
+            doWorkByTimer(this.reloadWeaponTimer, now);
+        }
     }
 
     destinationCompleteCallBack(){
         this.isAnimated = false;
         this.destSourcePosition = new V2(324,0);
+    }
+}
+
+class Weapon {
+    constructor(options = {}){
+        options = assignDeep(this, {
+            range: 100,
+            speed: 2,
+            damage: 1,
+            ammo: 10,
+            currentAmmo: 0,
+            reloadDelay: 1000,
+            fireDelay: 200,
+            reloading: false
+        }, options);
+
+        this.currentAmmo = this.ammo;
+    }
+
+    static Pistol() {
+        return {
+            range: 50,
+            speed: 2,
+            damage: 1,
+            ammo:10,
+            reloadDelay: 2500,
+            fireDelay: 400
+        }
+    }
+
+    static Rifle() {
+        return {
+            range: 100,
+            speed: 4,
+            damage: 3,
+            ammo:25,
+            reloadDelay: 5000,
+            fireDelay: 200
+        }
     }
 }
