@@ -6,9 +6,21 @@ class MovingGO extends GO {
             direction: new V2,
             setDeadOnDestinationComplete: false,
             path: [],
+            setDestinationOnInit: false
         }, options);
 
         super(options);
+
+        if(this.setDestinationOnInit) {
+            let destination = this.destination;
+            if(!this.destination && this.path.length) {
+                destination = this.path.shift();
+            }
+
+            if(this.destination){
+                this.setDestination(destination);
+            }
+        }
     }
 
     positionChangedCallback() {}

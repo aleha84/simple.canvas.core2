@@ -6,7 +6,8 @@ document.addEventListener("DOMContentLoaded", function() {
         crystals: 'threeInARow/images/crystals.png',
         zombies: 'threeInARow/images/zombies.jpg',
         soldier_back: 'threeInARow/images/soldier_back.png',
-        weapons: 'threeInARow/images/weapons.png'
+        weapons: 'threeInARow/images/weapons.png',
+        circleBackground: 'threeInARow/images/circleBackground.png'
 	}
 
     debugger;

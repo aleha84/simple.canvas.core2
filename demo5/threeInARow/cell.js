@@ -1,3 +1,5 @@
+const weaponTypes = ['pistol', 'submachinegun', 'rifle', 'sniper', 'machinegun', 'rpg'];
+
 class Cell extends GO {
     constructor(options = {}) {
         options = assignDeep({}, {  
@@ -62,7 +64,18 @@ class Cell extends GO {
             go.fadeAway = true;
             go.position = this.getAbsolutePosition();
             go.size = go.size.clone();
-            SCG.scenes.activeScene.addGo(go,1)
+            SCG.scenes.activeScene.addGo(go,1);
+            SCG.scenes.activeScene.addGo(new MovingGO({
+                size: go.size.division(2),
+                position: go.position.clone(),
+                imgPropertyName: "weapons",
+                destSourceSize: go.weaponSpriteSourceSize.clone(),//new V2(150,150),
+                destSourcePosition: go.weaponSpriteSourcePosition.clone(),
+                setDestinationOnInit: true,
+                setDeadOnDestinationComplete: true,
+                destination: new V2(250, 0),
+                speed: 4
+            }),1);
         }
     }
 
@@ -130,14 +143,48 @@ class CellContent extends MovingGO {
         this.destSourcePosition = typeTodspMap[this.cellType];
 
         this.rotationTimer = createTimer(getRandomInt(100,10000), this.setRotation, this, false);
+        this.weaponType = weaponTypes[getRandomInt(0,weaponTypes.length-1)];
 
-        this.addChild(new GO({
-            size: this.size.division(2.5),
-            position: new V2(),
-            imgPropertyName: "weapons",
-            destSourceSize: new V2(150,150),
-            destSourcePosition: new V2()
-        }));
+        if(this.weaponType) {
+            switch(this.weaponType){
+                case 'pistol': {
+                    this.weaponSpriteSourcePosition = new V2(0,0);
+                    break;
+                }
+                case 'submachinegun': {
+                    this.weaponSpriteSourcePosition = new V2(150,0);
+                    break;
+                }
+                case 'rifle': {
+                    this.weaponSpriteSourcePosition = new V2(300,0);
+                    break;
+                }
+                case 'sniper': {
+                    this.weaponSpriteSourcePosition = new V2(450,0);
+                    break;
+                }
+                case 'machinegun': {
+                    this.weaponSpriteSourcePosition = new V2(600,0);
+                    break;
+                }
+                case 'rpg': {
+                    this.weaponSpriteSourcePosition = new V2(750,0);
+                    break;
+                }
+                default: {
+                    throw 'Unknown weapon type';
+                }
+            }
+
+            this.weaponSpriteSourceSize = new V2(150,150);
+        }
+        // this.addChild(new GO({
+        //     size: this.size.division(2.5),
+        //     position: new V2(),
+        //     imgPropertyName: "weapons",
+        //     destSourceSize: new V2(150,150),
+        //     destSourcePosition: new V2()
+        // }));
     }
 
     powerUpPulsating(){
@@ -236,6 +283,21 @@ class CellContent extends MovingGO {
                 this.renderSize.y);
             
         }
+        
+        if(!this.fadeAway){
+            this.context.globalAlpha = 0.25;
+            this.context.drawImage(SCG.images.weapons, 
+                this.weaponSpriteSourcePosition.x,
+                this.weaponSpriteSourcePosition.y,
+                this.weaponSpriteSourceSize.x,
+                this.weaponSpriteSourceSize.y,
+                (this.renderPosition.x - this.renderSize.x/6), 
+                (this.renderPosition.y - this.renderSize.y/6), 
+                this.renderSize.x/3, 
+                this.renderSize.y/3);
+        }
+        
+
         this.context.restore();
     }
 

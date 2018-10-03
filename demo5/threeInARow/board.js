@@ -62,8 +62,6 @@ class Board extends GO {
                         //destSourcePosition: this.typeTodspMap[type],
                         position: new V2()
                     });
-
-                    
     
                     cell.addContent(content);
                 }
