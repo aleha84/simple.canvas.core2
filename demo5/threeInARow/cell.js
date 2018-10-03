@@ -130,6 +130,14 @@ class CellContent extends MovingGO {
         this.destSourcePosition = typeTodspMap[this.cellType];
 
         this.rotationTimer = createTimer(getRandomInt(100,10000), this.setRotation, this, false);
+
+        this.addChild(new GO({
+            size: this.size.division(2.5),
+            position: new V2(),
+            imgPropertyName: "weapons",
+            destSourceSize: new V2(150,150),
+            destSourcePosition: new V2()
+        }));
     }
 
     powerUpPulsating(){
