@@ -61,6 +61,7 @@ class Cell extends GO {
             go.setDead();
         }
         else {
+            let cell = this;
             go.fadeAway = true;
             go.position = this.getAbsolutePosition();
             go.size = go.size.clone();
@@ -74,6 +75,9 @@ class Cell extends GO {
                 setDestinationOnInit: true,
                 setDeadOnDestinationComplete: true,
                 destination: new V2(250, 0),
+                destinationCompleteCallBack: function(){
+                    cell.parent.parentScene.points.addPoint(go.weaponType);
+                },
                 speed: 4
             }),1);
         }
