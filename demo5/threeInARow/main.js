@@ -6,11 +6,15 @@ class ThreeInARowScene extends Scene {
 
         super(options);
 
+        this.statusBarSize = new V2(this.space.x, 10);
+        this.boardSize = new V2(300,this.space.y - this.statusBarSize.y);
+        this.zombieDefenderSize = new V2(this.space.x-this.boardSize.x,this.space.y - this.statusBarSize.y);
+        
         this.board = new Board({
-            size: new V2(300,300),
-            position: this.addZombieDefender ? new V2(this.space.x - 300/2, this.space.y/2) : new V2(this.space.x/2, this.space.y/2),
+            size: this.boardSize.clone(),
+            position: this.addZombieDefender ? new V2(this.space.x - this.boardSize.x/2, this.space.y/2+this.statusBarSize.y/2) : new V2(this.space.x/2, this.space.y/2),
             preventNonResultingSwaps: false,
-        })
+        });
 
         this.points = {
             
@@ -23,9 +27,11 @@ class ThreeInARowScene extends Scene {
             addPoint(type) {
                 console.log(`ThreeInARowScene.points.addPoint. Type: ${type}`);
                 this[type]++;
+                SCG.UI.invalidate();
                 //trigger render UI
                 //trigger soldier add if score completed
-            }
+            },
+            
         }
 
         this.addGo(this.board);
@@ -33,7 +39,7 @@ class ThreeInARowScene extends Scene {
         if(this.addZombieDefender){
             this.zombieDefender = new ZombieDefender({
                 position: new V2(200/2, this.space.y/2),
-                size: new V2(200, 300),
+                size: this.zombieDefenderSize.clone(),
             });
 
             this.addGo(this.zombieDefender);
