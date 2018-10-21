@@ -401,24 +401,22 @@ class GO {
                     let text = this.text;
                     text.renderSize = text.size*scale;
                     text.renderFont = `${text.renderSize}px ${text.font}`;
-                    if(text.autoCenter)
-                        {
-                            text.align = 'left';
-                            this.context.save();
-    
-                            this.context.font = text.renderFont;
-                            this.context.textAlign = text.align;
-                            text.renderPosition = 
-                                this.renderBox.topLeft.add(
-                                    new V2(
-                                        (this.renderSize.x/2) - (this.context.measureText(text.value).width/2), 
-                                        (this.renderSize.y/2)
-                                    )
-                                );
-    
-                                this.context.restore();
-                        }
-                        
+                    if(text.autoCenter){
+                        text.align = 'left';
+                        this.context.save();
+
+                        this.context.font = text.renderFont;
+                        this.context.textAlign = text.align;
+                        text.renderPosition = 
+                            this.renderBox.topLeft.add(
+                                new V2(
+                                    (this.renderSize.x/2) - (this.context.measureText(text.value).width/2), 
+                                    (this.renderSize.y/2)
+                                )
+                            );
+
+                            this.context.restore();
+                    }
                     else 
                         text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position) : this.renderPosition;
                 }

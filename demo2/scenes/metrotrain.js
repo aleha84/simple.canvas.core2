@@ -2,28 +2,52 @@ class MetroTrainScene extends Scene {
     constructor(options = {}){
         options = assignDeep({}, {
             vagons: [],
-            vagonsMaxCount: 5
+            vagonsMaxCount: 7
         }, options);
 
         super(options);
         // let colors = [0,0,255];
         let darkerBy = 5;
         let currentSize = new V2(this.space.y, this.space.y);
+        let currentPosition = new V2(this.space.x/2, this.space.y/2);
+        let shiftDelta = 0;
         for(let i = this.vagonsMaxCount; i >= 0; i--){
             let vagon = new MetroVagon({
                 img: this.createVagonCanvas(darkerBy),
-                position: new V2(this.space.x/2, this.space.y/2),
-                size: currentSize.clone()
+                position: currentPosition.clone(),
+                size: currentSize.clone(),
+                shaking: {enabled: i == 1},
+                effectLenght: 150
             });
+
+            // if(i === 5)
+            //     vagon.light = true;
+
             this.vagons[i] = vagon;
+            if(i != this.vagonsMaxCount){
+                this.vagons[i+1].followedBy = vagon;
+            }
+
             this.addGo(vagon, i, false);
-            // colors[0]+=colorsChangeDelta;
-            // colors[1]+=colorsChangeDelta;
-            // colors[2]-=colorsChangeDelta;
             darkerBy+=10;
             currentSize.mul(0.5, true);
+            currentPosition.x-=shiftDelta;
+            shiftDelta/=2;
         }
 
+        //this.vagons[this.vagonsMaxCount].triggerLight = true;
+
+        this.lightTimer = createTimer(1500, this.lightTimerMethod, this, false);
+    }
+
+    lightTimerMethod(){
+        let triggeredVagon = this.vagons[this.vagonsMaxCount];
+        triggeredVagon.triggerLight = true;
+        triggeredVagon.light.side = getRandomBool() ? 'left': 'right'
+    }
+
+    preMainWork(now){
+        doWorkByTimer(this.lightTimer, now);
     }
 
     createVagonCanvas(makeDarkerBy = 5) {
@@ -87,8 +111,76 @@ class MetroTrainScene extends Scene {
 class MetroVagon extends MovingGO {
     constructor(options = {}) {
         options = assignDeep({}, {
+            shaking: { 
+                enabled: false 
+            },
+            light: {
+                enabled: false,
+                side: 'right',
+                color: [255,255,255],
+                gradient: undefined
+            }
         }, options);
 
         super(options);
+
+        if(this.shaking){
+            this.shaking.isUp = getRandomBool();
+            this.shaking.max = this.size.y/10;
+            this.shaking.current = new V2();
+        }
+    }
+
+    lightOffMethod() {
+        this.light.enabled = false;
+        if(this.followedBy) {
+            this.followedBy.triggerLight = true;
+            this.followedBy.light.side = this.light.side;
+        }
+    }
+
+    internalUpdate(now) {
+        if(this.triggerLight){
+            this.triggerLight = false;
+            this.light.enabled = true;
+            this.lightOffTimer = createTimer(this.effectLenght, this.lightOffMethod, this, false);
+        }
+
+        if(this.light.enabled){
+            doWorkByTimer(this.lightOffTimer, now);
+        }
+    }
+
+    internalPreRender(){
+        
+    }
+
+    internalRender(){
+        if(this.light.enabled){
+            this.context.save();
+            if(this.light.side === 'both'){
+                this.context.fillStyle = this.light.color;
+                this.context.fillRect(this.renderPosition.x-this.renderSize.x/2, this.renderPosition.y-this.renderSize.y/2, this.renderSize.x, this.renderSize.y);
+            }
+            else {
+                let gradient = undefined; 
+                if(this.light.side === 'left'){
+                    gradient = this.context.createLinearGradient(this.renderPosition.x-this.renderSize.x/2, this.renderPosition.y, this.renderPosition.x, this.renderPosition.y);
+                    gradient.addColorStop(0, `rgba(${this.light.color.join(',')}, 1)` );
+                    gradient.addColorStop(1, `rgba(${this.light.color.join(',')}, 0)`);
+                    this.context.fillStyle = gradient;
+                    this.context.fillRect(this.renderPosition.x-this.renderSize.x/2, this.renderPosition.y-this.renderSize.y/2, this.renderSize.x/2, this.renderSize.y);
+                }
+                else if(this.light.side === 'right'){
+                    gradient = this.context.createLinearGradient(this.renderPosition.x, this.renderPosition.y, this.renderPosition.x+this.renderSize.x/2, this.renderPosition.y);
+                    gradient.addColorStop(0, `rgba(${this.light.color.join(',')}, 0)` );
+                    gradient.addColorStop(1, `rgba(${this.light.color.join(',')}, 1)`);
+                    this.context.fillStyle = gradient;
+                    this.context.fillRect(this.renderPosition.x, this.renderPosition.y-this.renderSize.y/2, this.renderSize.x/2, this.renderSize.y);
+                }
+            }
+
+            this.context.restore();
+        }
     }
 }
