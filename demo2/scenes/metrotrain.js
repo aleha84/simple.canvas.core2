@@ -13,11 +13,13 @@ class MetroTrainScene extends Scene {
         let shiftDelta = 0;
         for(let i = this.vagonsMaxCount; i >= 0; i--){
             let vagon = new MetroVagon({
-                img: this.createVagonCanvas(darkerBy),
+                //img: this.createVagonCanvas(darkerBy),
+                imgPropertyName: 'vagon',
                 position: currentPosition.clone(),
                 size: currentSize.clone(),
-                shaking: {enabled: i == 1},
-                effectLenght: 150
+                //shaking: false,//true,//{enabled: i == 6},
+                effectLenght: 150,
+                darkerBy: darkerBy
             });
 
             // if(i === 5)
@@ -38,6 +40,14 @@ class MetroTrainScene extends Scene {
         //this.vagons[this.vagonsMaxCount].triggerLight = true;
 
         this.lightTimer = createTimer(1500, this.lightTimerMethod, this, false);
+        this.shakingTimer = createTimer(1000, this.shakingTimerMethod, this, false);
+        this.darkVagonTimer = createTimer(5000, this.darkVagonTimerMethod, this, false);
+    }
+
+    darkVagonTimerMethod(){
+        let triggeredVagon = this.vagons[getRandomInt(0, this.vagonsMaxCount)];
+        triggeredVagon.triggerDarkVagon = true;
+        triggeredVagon.darkVagon.time = getRandomInt(1000,5000);
     }
 
     lightTimerMethod(){
@@ -46,8 +56,15 @@ class MetroTrainScene extends Scene {
         triggeredVagon.light.side = getRandomBool() ? 'left': 'right'
     }
 
+    shakingTimerMethod(){
+        let triggeredVagon = this.vagons[this.vagonsMaxCount];
+        triggeredVagon.triggerShaking = true;
+    }
+
     preMainWork(now){
         doWorkByTimer(this.lightTimer, now);
+        doWorkByTimer(this.shakingTimer, now);
+        doWorkByTimer(this.darkVagonTimer, now);
     }
 
     createVagonCanvas(makeDarkerBy = 5) {
@@ -114,6 +131,10 @@ class MetroVagon extends MovingGO {
             shaking: { 
                 enabled: false 
             },
+            darkVagon: {
+                enabled: false,
+                time: 1000
+            },
             light: {
                 enabled: false,
                 side: 'right',
@@ -124,10 +145,13 @@ class MetroVagon extends MovingGO {
 
         super(options);
 
-        if(this.shaking){
-            this.shaking.isUp = getRandomBool();
-            this.shaking.max = this.size.y/10;
-            this.shaking.current = new V2();
+        this.shaking.max = this.size.y/400;
+    }
+
+    shakingMethod(){
+        this.shaking.enabled = false;
+        if(this.followedBy) {
+            this.followedBy.triggerShaking = true;
         }
     }
 
@@ -139,6 +163,14 @@ class MetroVagon extends MovingGO {
         }
     }
 
+    darkVagonMethod(){
+        this.darkVagon.enabled = false;
+        this.img = SCG.images['vagon'];
+        // if(this.followedBy) {
+        //     this.followedBy.triggerDarkVagon = true;
+        // }
+    }
+
     internalUpdate(now) {
         if(this.triggerLight){
             this.triggerLight = false;
@@ -146,18 +178,51 @@ class MetroVagon extends MovingGO {
             this.lightOffTimer = createTimer(this.effectLenght, this.lightOffMethod, this, false);
         }
 
+        if(this.triggerShaking) {
+            this.triggerShaking = false;
+            this.shaking.enabled = true;
+            this.shakingTimer = createTimer(this.effectLenght, this.shakingMethod, this, true);
+        }
+
+        if(this.triggerDarkVagon){
+            this.triggerDarkVagon = false;
+            this.darkVagon.enabled = true;
+            this.img = SCG.images['vagonDark'];
+            this.darkVagonTimer = createTimer(this.darkVagon.time, this.darkVagonMethod, this, true);
+        }
+
         if(this.light.enabled){
             doWorkByTimer(this.lightOffTimer, now);
+        }
+
+        if(this.shaking.enabled){
+            doWorkByTimer(this.shakingTimer, now);
+        }
+
+        if(this.darkVagon.enabled){
+            doWorkByTimer(this.darkVagonTimer, now);
         }
     }
 
     internalPreRender(){
-        
+        this.context.fillStyle = `rgb(${0+this.darkerBy},${255-this.darkerBy},${0+this.darkerBy})`;
+        this.context.fillRect(this.renderPosition.x-this.renderSize.x/2, this.renderPosition.y+this.renderSize.y/2-(this.renderSize.y*0.1), this.renderSize.x, this.renderSize.y*0.2);
+
+        if(this.shaking.enabled){
+            if( this.shaking.enabled){
+                let shake = this.shaking.max*SCG.viewport.scale;
+                if(shake < 1)
+                    shake = 1;
+
+                this.renderPosition.y += shake
+                this.needRecalcRenderProperties = true;
+            }
+        }
     }
 
     internalRender(){
+        this.context.save();
         if(this.light.enabled){
-            this.context.save();
             if(this.light.side === 'both'){
                 this.context.fillStyle = this.light.color;
                 this.context.fillRect(this.renderPosition.x-this.renderSize.x/2, this.renderPosition.y-this.renderSize.y/2, this.renderSize.x, this.renderSize.y);
@@ -179,8 +244,8 @@ class MetroVagon extends MovingGO {
                     this.context.fillRect(this.renderPosition.x, this.renderPosition.y-this.renderSize.y/2, this.renderSize.x/2, this.renderSize.y);
                 }
             }
-
-            this.context.restore();
         }
+
+        this.context.restore();
     }
 }

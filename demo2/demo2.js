@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.globals.version = 0.2;
 
     SCG.src = {
+        vagon: 'images/vagon_lo.png',
+        vagonDark: 'images/vagon_lo_dark.png',
 	}
 
     debugger;
