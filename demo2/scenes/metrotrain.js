@@ -19,7 +19,8 @@ class MetroTrainScene extends Scene {
                 size: currentSize.clone(),
                 //shaking: false,//true,//{enabled: i == 6},
                 effectLenght: 150,
-                darkerBy: darkerBy
+                darkerBy: darkerBy,
+                vagonName: 'vagon_' + i
             });
 
             // if(i === 5)
@@ -28,6 +29,7 @@ class MetroTrainScene extends Scene {
             this.vagons[i] = vagon;
             if(i != this.vagonsMaxCount){
                 this.vagons[i+1].followedBy = vagon;
+                vagon.precededBy = this.vagons[i+1];
             }
 
             this.addGo(vagon, i, false);
@@ -140,11 +142,16 @@ class MetroVagon extends MovingGO {
                 side: 'right',
                 color: [255,255,255],
                 gradient: undefined
+            },
+            turn: {
+                enabled: false,
+                direction: 'left',
             }
         }, options);
 
         super(options);
 
+        this.turn.maxShift = this.size.x*0.1;
         this.shaking.max = this.size.y/400;
     }
 
