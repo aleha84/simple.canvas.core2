@@ -6,10 +6,23 @@ class Scene {
         assignDeep(this,{
             viewport: new V2(500, 300),
             goLayers: [],
-            workplace: {},
+            space: new V2(500, 300),
             AI: undefined,
-            ui: []
-        }, props);    
+            ui: [],
+            events: { // custom event handling
+                up: undefined,
+                down: undefined,
+                move: undefined
+            },
+            scrollOptions: { // default scroll options
+                enabled: false,
+                type: SCG.viewport.scrollTypes.drag,
+                restrictBySpace: true
+            }
+        }, props);   
+        
+        if(!props.space)
+            this.space = this.viewport;
     }
 
     addUIGo(go) {
@@ -53,7 +66,8 @@ class Scene {
             let goLayer = this.goLayers[layerIndex];
 
             for(let goi = 0; goi < goLayer.length; goi++){
-                goLayer[goi].regEvents();
+                goLayer[goi].regEvents(layerIndex);
+                // todo reg events for childrens
             }
         }
 
@@ -128,6 +142,8 @@ SCG.scenes = {
             throw 'No scene selected';      
 
         SCG.viewport.logical = new Box(new V2, this.activeScene.viewport);
+        SCG.viewport.originalLogical = new Box(new V2, this.activeScene.viewport);
+        SCG.viewport.scrollOptions = this.activeScene.scrollOptions;
 
         // AI creation
 		SCG.AI.initialize();        
@@ -141,5 +157,15 @@ SCG.scenes = {
             throw "Can't register scene without name";
 
         this.cachedScenes[scene.name] = scene;
+    },
+    setNeedRecalcRenderProperties(){
+        for(let layerIndex = 0; layerIndex < SCG.scenes.activeScene.goLayers.length; layerIndex++){ 
+            if(SCG.scenes.activeScene.goLayers[layerIndex] === undefined)
+                continue;
+                
+            for(let goi = 0; goi <  SCG.scenes.activeScene.goLayers[layerIndex].length; goi++){ // force recalculate go render params
+                SCG.scenes.activeScene.goLayers[layerIndex][goi].needRecalcRenderProperties = true;
+            }
+        }
     }
 }

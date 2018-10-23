@@ -371,6 +371,17 @@ Number.prototype.toFixedFast = function(size){
   return ~~(this*decimalSize)/decimalSize;
 }
 
+var precalculatedPrecisions = [1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10];
+function fastRoundWithPrecision(num, _prec){
+  _precision = precalculatedPrecisions[_prec]
+  return Math.round(num * _precision + 1e-14) / _precision ;
+}
+
+function fastCeilWithPrecision(num, _prec){
+  _precision = precalculatedPrecisions[_prec]
+  return Math.ceil(num * _precision + 1e-14) / _precision ;
+}
+
 function createTimer(delay, method, context, startNow = true) {
   return {
       lastTimeWork: new Date,

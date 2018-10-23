@@ -2,7 +2,7 @@ class GO {
     constructor(options = {}){
         
         if(!options.position || !(options.position instanceof V2))
-            throw 'No position defined for grapthical object';
+            throw `No position defined for graphical object`;
         
         if(!options.size || !(options.size instanceof V2))
             throw 'No size defined for grapthical object';
@@ -27,6 +27,8 @@ class GO {
             sendEventsToAI: true,
             parentScene: undefined,
             isVisible: true,
+            childrenGO: [],
+            tileOptimization: false,
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
@@ -36,6 +38,8 @@ class GO {
                 sourceFrameSize: new V2,
                 currentDestination : new V2,
                 currentFrame: 0,
+                startFrame: undefined,
+                endFrame: undefined,
                 reverse: false,
                 paused: false,
                 loop : false,
@@ -59,11 +63,14 @@ class GO {
                         this.currentFrame++;
                     }
         
-                    if((!this.reverse && this.currentFrame > this.totalFrameCount)
-                        || (this.reverse && this.currentFrame < 1)
+                    let startFrame = this.startFrame !== undefined ? this.startFrame : 1;
+                    let endFrame = this.endFrame !== undefined ? this.endFrame : this.totalFrameCount;
+
+                    if((!this.reverse && this.currentFrame > endFrame)
+                        || (this.reverse && this.currentFrame < startFrame)
                         ){
                         if(this.loop){
-                            this.currentFrame = this.reverse? this.totalFrameCount :  1;
+                            this.currentFrame = this.reverse? endFrame :  startFrame;
                             this.animationRestartCallback.call(objectContext);
                         }
                         else{
@@ -95,6 +102,13 @@ class GO {
                 doWorkInternal : this.animation.frameChange,
                 context: this.animation
             };
+        }
+
+        if(!this.boxRenderProperties)
+            this.boxRenderProperties = new RenderProperties();
+
+        if(this.parent){
+            this.getAbsolutePosition();
         }
 
         this.type = this.constructor.name;
@@ -159,6 +173,8 @@ class GO {
     beforeDead(){}
 
     setDead() {
+        this.childProcesser((child) => child.setDead());
+
 		this.beforeDead();
 		
         this.unRegEvents();
@@ -170,6 +186,55 @@ class GO {
         this.alive = false;
 
         this.console('setDead completed.');
+    }
+
+    addChild(childGo, regEvents = false) {
+        if(!(childGo instanceof GO)){
+            console.warn('Can\' add to children object isn\'t inherited from GO');
+            return;
+        }
+    
+        this.childrenGO.push(childGo);
+        childGo.parent = this;
+
+        if(regEvents)
+            childGo.regEvents(this.layerIndex);
+    }
+
+    removeChild(childGo) {
+        if(childGo === undefined)
+            return;
+
+        let index = this.childrenGO.indexOf(childGo);
+        if(index !== -1){
+            this.childrenGO.splice(index,1);
+            childGo.parent = undefined;
+            childGo.unRegEvents();
+        }
+    }
+
+    childProcesser(action){
+        if(!action)
+            return;
+
+        if(!this.childrenGO.length)
+            return;
+
+        for(let i = 0; i < this.childrenGO.length; i++){
+            action(this.childrenGO[i]);
+        }
+    }
+
+    getAbsolutePosition(){
+        let parent = this.parent;
+        let aPosition = this.position.clone();
+        while(parent !== undefined){
+            aPosition.add(parent.position, true);
+            parent = parent.parent;
+        }
+
+        this.absolutePosition = aPosition;
+        return aPosition;
     }
     
     customRender(){ }
@@ -245,23 +310,31 @@ class GO {
             }	
             
             if(this.text){
-                ctx.save();
-
-                let text = this.text;
-                ctx.font = text.renderFont;
-                ctx.fillStyle = text.color;
-                ctx.textAlign = text.align;
-                ctx.textBaseline = text.textBaseline;
-
-                ctx.fillText(text.value, text.renderPosition.x, text.renderPosition.y);
-
-                ctx.restore();
+                this.renderText();
             }
 		}
+        
+        this.childProcesser((child) => child.render());
 
         this.internalRender();
-        
+
         this.console('render completed.');
+    }
+    
+    renderText(){
+        let ctx = this.context;
+
+        ctx.save();
+
+        let text = this.text;
+        ctx.font = text.renderFont;
+        ctx.fillStyle = text.color;
+        ctx.textAlign = text.align;
+        ctx.textBaseline = text.textBaseline;
+
+        ctx.fillText(text.value, text.renderPosition.x, text.renderPosition.y);
+
+        ctx.restore();
     }
     
     internalPreUpdate(now){}
@@ -292,26 +365,43 @@ class GO {
 
         let scale = SCG.viewport.scale;
         if(this.needRecalcRenderProperties){
+            this.childProcesser((child) => child.needRecalcRenderProperties = true);
+
             this.renderSize = this.size.mul(scale);
-            let tl = new V2(this.position.x - this.size.x/2,this.position.y - this.size.y/2);
+            let position = this.position;
+
+            if(this.parent) // if child element
+            {
+                position = this.getAbsolutePosition();
+            }
+
+            let tl = new V2(position.x - this.size.x/2,position.y - this.size.y/2);
             if(!this.box)
-                this.box = new Box(tl, this.size); //logical positioning box
+                this.box = new Box(tl, this.size, this.boxRenderProperties); //logical positioning box
             else
                 this.box.update(tl, this.size);
 
             this.renderPosition = undefined;
             if(SCG.viewport.logical.isIntersectsWithBox(this.box) || this.isStatic)
             {
-                this.renderPosition = this.position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
-                this.renderBox = new Box(new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2), this.renderSize);
-            }
+                this.renderPosition = position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
 
-            if(this.text){
-                let text = this.text;
-                text.renderSize = text.size*scale;
-                text.renderFont = `${text.renderSize}px ${text.font}`;
-                if(text.autoCenter)
-                    {
+                if(this.tileOptimization){
+                    this.renderSize.x +=0.5;
+                    this.renderSize.y +=0.5;
+                }
+
+                let rtl = new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2);
+                if(!this.renderBox)
+                    this.renderBox = new Box(rtl, this.renderSize, this.boxRenderProperties);
+                else 
+                    this.renderBox.update(rtl, this.renderSize);
+
+                if(this.text){
+                    let text = this.text;
+                    text.renderSize = text.size*scale;
+                    text.renderFont = `${text.renderSize}px ${text.font}`;
+                    if(text.autoCenter){
                         text.align = 'left';
                         this.context.save();
 
@@ -327,9 +417,9 @@ class GO {
 
                             this.context.restore();
                     }
-                    
-                else 
-                    text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position) : this.renderPosition;
+                    else 
+                        text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position) : this.renderPosition;
+                }
             }
 
             this.needRecalcRenderProperties = false;
@@ -344,6 +434,8 @@ class GO {
             this.console('update completed. this.alive = false');
             return false;
         }
+
+        this.childProcesser((child) => child.update(now));
             
         this.console('update completed.');
 	}
@@ -354,34 +446,49 @@ class GO {
 
         this.layerIndex = layerIndex;
 
-		//register click for new objects
-		if(this.handlers.click && isFunction(this.handlers.click)){
-            let ehLayer = undefined;
+        //register click for new objects
+        let that = this;
+        Object.keys(this.handlers).forEach(function(key) {
+            if(that.handlers[key] && isFunction(that.handlers[key])){
+                let ehLayer = undefined;
+    
+                if(that.isStatic)
+                    ehLayer = SCG.controls.mouse.state.UIEventsHandlers[key];
+                else {
+                    let eh = SCG.controls.mouse.state.eventHandlers;
+                    if(eh[key] === undefined)
+                        return;
 
-            if(this.isStatic)
-                ehLayer = SCG.controls.mouse.state.UIEventsHandlers.click;
-            else {
-                let eh = SCG.controls.mouse.state.eventHandlers;
-                if(eh.click[layerIndex] === undefined)
-                    eh.click[layerIndex] = [];
+                    if(eh[key][layerIndex] === undefined)
+                        eh[key][layerIndex] = [];
+    
+                    ehLayer = eh[key][layerIndex];
+                }
+                
+                if(ehLayer === undefined)
+                    return;
 
-                ehLayer = eh.click[layerIndex];
+                if(ehLayer.indexOf(that) === -1){
+                    ehLayer.push(that);
+                }
             }
-            
-            if(ehLayer.indexOf(this) == -1){
-                ehLayer.push(this);
-            }
-		}
+        })
     }
     
     unRegEvents() {
+        let that = this;
         //remove from event handlers
-        if(this.handlers.click && isFunction(this.handlers.click)){
-            let eh = SCG.controls.mouse.state.eventHandlers;
-            let index = eh.click[this.layerIndex].indexOf(this);
-            if(index > -1)
-                eh.click[this.layerIndex].splice(index, 1);	
-        }
+        Object.keys(this.handlers).forEach(function(key) {
+            if(that.handlers[key] && isFunction(that.handlers[key])){
+                let eh = SCG.controls.mouse.state.eventHandlers;
+                if(eh[key] === undefined)
+                    return;
+
+                let index = eh[key][that.layerIndex].indexOf(that);
+                if(index > -1)
+                    eh[key][that.layerIndex].splice(index, 1);	
+            }
+        });
     }
 }
 

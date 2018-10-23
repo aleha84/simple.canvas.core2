@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    let scenesNames = ['parallax', 'nightsky', 'flythrough', 'metrotrain'];
+    let scenesNames = ['tilemap', 'movement'];
 
     function sceneSelectByHashValue(){
         let sceneIndex = location.hash !== '' ? scenesNames.indexOf(location.hash.replace('#','')) : 0;
@@ -8,40 +8,31 @@ document.addEventListener("DOMContentLoaded", function() {
 
         SCG.scenes.selectScene(scenesNames[sceneIndex]);
     }
-
-
+    
     SCG.globals.version = 0.2;
 
     SCG.src = {
-        vagon: 'images/vagon_lo.png',
-        vagonDark: 'images/vagon_lo_dark.png',
+        tilemap: 'content/tilemap.png',
+        terrain_atlas: 'content/terrain_atlas.png',
+        treesTileSet1: 'content/treesTileSet1.png',
+        sprites_set: 'content/sprites_set.png'
 	}
 
     debugger;
     
     let defaultViewpot = new V2(500,300);
-    SCG.scenes.cacheScene(new ParallaxScene({
-        name:'parallax',
+    SCG.scenes.cacheScene(new ViewportMovementScene({
+        name:'movement',
         viewport: defaultViewpot
     }));
 
-    SCG.scenes.cacheScene(new NightSkyScene({
-        name:'nightsky',
-        viewport: defaultViewpot
-    }));
-
-    SCG.scenes.cacheScene(new FlytroughScene({
-        name:'flythrough',
-        viewport: defaultViewpot
-    }));
-
-    SCG.scenes.cacheScene(new MetroTrainScene({
-        name:'metrotrain',
+    SCG.scenes.cacheScene(new TileMapScene({
+        name:'tilemap',
         viewport: defaultViewpot
     }));
 
     sceneSelectByHashValue();
-    
+
     SCG.main.start();
 
     window.addEventListener("hashchange", sceneSelectByHashValue, false);

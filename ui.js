@@ -51,6 +51,23 @@ class UILabel extends GO {
     }
 }
 
+class UIProgressBar extends GO {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            text: GO.getTextPropertyDefaults('progress'),
+            img: undefined,
+            current: 0,
+            max: 100,
+            fillColor: 'rgb(180,255,50)'
+        }, options)
+
+        options.isStatic = true;
+        options.contextName = 'ui'
+
+        super(options);
+    }
+}
+
 class UIButton extends GO {
     constructor(options = {}){
 
