@@ -13,18 +13,14 @@ class MetroTrainScene extends Scene {
         let shiftDelta = 0;
         for(let i = this.vagonsMaxCount; i >= 0; i--){
             let vagon = new MetroVagon({
-                //img: this.createVagonCanvas(darkerBy),
                 imgPropertyName: 'vagon',
                 position: currentPosition.clone(),
                 size: currentSize.clone(),
-                //shaking: false,//true,//{enabled: i == 6},
                 effectLenght: 150,
                 darkerBy: darkerBy,
-                vagonName: 'vagon_' + i
+                vagonName: 'vagon_' + i,
+                scene: this
             });
-
-            // if(i === 5)
-            //     vagon.light = true;
 
             this.vagons[i] = vagon;
             if(i != this.vagonsMaxCount){
@@ -39,11 +35,11 @@ class MetroTrainScene extends Scene {
             shiftDelta/=2;
         }
 
-        //this.vagons[this.vagonsMaxCount].triggerLight = true;
-
         this.lightTimer = createTimer(1500, this.lightTimerMethod, this, false);
         this.shakingTimer = createTimer(1000, this.shakingTimerMethod, this, false);
         this.darkVagonTimer = createTimer(5000, this.darkVagonTimerMethod, this, false);
+
+        this.startTurnTimer();
     }
 
     darkVagonTimerMethod(){
@@ -63,10 +59,39 @@ class MetroTrainScene extends Scene {
         triggeredVagon.triggerShaking = true;
     }
 
+    turnBackTimerMethod(){
+        this.turnBackTimer = undefined;
+        let triggeredVagon = this.vagons[this.vagonsMaxCount-1];
+        triggeredVagon.triggerTurnBack = true;
+    }
+
+    turnTimerMethod(){
+        this.turnTimer = undefined;
+        let triggeredVagon = this.vagons[0];
+        triggeredVagon.triggerTurn = true;
+        triggeredVagon.turn.direction = getRandomBool() ? 'right': 'left';
+    }
+
+    startTurnBackTimer(){
+        this.turnBackTimer = createTimer(getRandomInt(2000,6000), this.turnBackTimerMethod, this, false); // randomize time
+    }
+
+    startTurnTimer(){
+        this.turnTimer = createTimer(getRandomInt(4000, 8000), this.turnTimerMethod, this, false); // randomize time
+    }
+
     preMainWork(now){
         doWorkByTimer(this.lightTimer, now);
         doWorkByTimer(this.shakingTimer, now);
         doWorkByTimer(this.darkVagonTimer, now);
+        
+        if(this.turnBackTimer){
+            doWorkByTimer(this.turnBackTimer, now);
+        }
+
+        if(this.turnTimer){
+            doWorkByTimer(this.turnTimer, now);
+        }
     }
 
     createVagonCanvas(makeDarkerBy = 5) {
@@ -77,10 +102,7 @@ class MetroTrainScene extends Scene {
         vagonCanvas.width = width;
         vagonCanvas.height = height;
         let ctx = vagonCanvas.getContext('2d');
-        // vagonContext.fillStyle = `rgb(${colors.join(',')})`;
-        // vagonContext.fillRect(0,0,width, height);
 
-        // vagonContext.clearRect(width/2-clearWidth/2, height/2-clearHeight/2, clearWidth, clearHeight);
         ctx.fillStyle = `rgb(${0+makeDarkerBy},${255-makeDarkerBy},${0+makeDarkerBy})`;
         ctx.beginPath();
         ctx.moveTo(0,0);ctx.lineTo(width,0);ctx.lineTo(center.x,center.y);ctx.fill();
@@ -98,7 +120,6 @@ class MetroTrainScene extends Scene {
         ctx.fillRect(width/2-clearWidth/2, height/2-clearHeight/2, clearWidth, clearHeight);
 
         let holeSize = new V2(clearWidth/2, clearHeight);
-        //ctx.clearRect(width/2-holeSize.x/2, height/2-holeSize.y/2, holeSize.x, holeSize.y);
         ctx.fillStyle = `rgba(0,0,0,0)`;
         ctx.moveTo(width/2,height/2+clearHeight/2);ctx.lineTo(width/2-clearHeight/4,height/2+clearHeight/2);
         
@@ -146,12 +167,16 @@ class MetroVagon extends MovingGO {
             turn: {
                 enabled: false,
                 direction: 'left',
+            },
+            turnBack: {
+                enabled: false,
+                direction: 'right',
             }
         }, options);
 
         super(options);
 
-        this.turn.maxShift = this.size.x*0.1;
+        //this.turn.maxShift = this.size.x*0.1;
         this.shaking.max = this.size.y/400;
     }
 
@@ -178,7 +203,66 @@ class MetroVagon extends MovingGO {
         // }
     }
 
+    destinationCompleteCallBack() {
+        if(this.turn.enabled){
+            this.turn.enabled = false;
+            if(this.precededBy && this.precededBy.precededBy) {
+                this.precededBy.triggerTurn = true;
+                this.precededBy.turn.direction = this.turn.direction;
+            }
+            else {
+                this.scene.startTurnBackTimer();
+            }
+        }
+        
+
+        if(this.turnBack.enabled){
+            this.turnBack.enabled = false;
+            if(this.followedBy) {
+                this.followedBy.triggerTurnBack = true;
+                this.followedBy.turnBack.direction = this.turnBack.direction;
+            }
+            else {
+                this.scene.startTurnTimer();
+            }
+        }
+    }
+
+    positionChangedCallback(delta){
+        if(this.turn.enabled || this.turnBack.enabled){
+            if(this.followedBy) {
+                this.followedBy.shiftFollower(delta);
+            }
+        }
+    }
+
+    shiftFollower(delta) {
+        this.position.add(delta, true);
+        this.needRecalcRenderProperties = true;
+        if(this.followedBy) {
+            this.followedBy.shiftFollower(delta);
+        }
+    }
+
     internalUpdate(now) {
+        if(this.triggerTurn){
+            this.triggerTurn = false;
+            this.turn.enabled = true;
+
+            let shift = this.size.x/10;
+            this.speed =  shift/60;
+            this.setDestination(new V2((this.turn.direction === 'left' ? -1 : 1) *shift, 0), true);
+        }
+
+        if(this.triggerTurnBack){
+            this.triggerTurnBack = false;
+            this.turnBack.enabled = true;
+            this.turnBack.direction = (this.turn.direction === 'left' ? 'right': 'left');
+            let shift = this.size.x/10;
+            this.speed =  shift/60;
+            this.setDestination(new V2((this.turnBack.direction === 'left' ? -1 : 1) *shift, 0), true);
+        }
+
         if(this.triggerLight){
             this.triggerLight = false;
             this.light.enabled = true;
@@ -209,6 +293,8 @@ class MetroVagon extends MovingGO {
         if(this.darkVagon.enabled){
             doWorkByTimer(this.darkVagonTimer, now);
         }
+
+
     }
 
     internalPreRender(){
@@ -238,7 +324,7 @@ class MetroVagon extends MovingGO {
                 let gradient = undefined; 
                 if(this.light.side === 'left'){
                     gradient = this.context.createLinearGradient(this.renderPosition.x-this.renderSize.x/2, this.renderPosition.y, this.renderPosition.x, this.renderPosition.y);
-                    gradient.addColorStop(0, `rgba(${this.light.color.join(',')}, 1)` );
+                    gradient.addColorStop(0, `rgba(${this.light.color.join(',')}, 0.5)` );
                     gradient.addColorStop(1, `rgba(${this.light.color.join(',')}, 0)`);
                     this.context.fillStyle = gradient;
                     this.context.fillRect(this.renderPosition.x-this.renderSize.x/2, this.renderPosition.y-this.renderSize.y/2, this.renderSize.x/2, this.renderSize.y);
@@ -246,7 +332,7 @@ class MetroVagon extends MovingGO {
                 else if(this.light.side === 'right'){
                     gradient = this.context.createLinearGradient(this.renderPosition.x, this.renderPosition.y, this.renderPosition.x+this.renderSize.x/2, this.renderPosition.y);
                     gradient.addColorStop(0, `rgba(${this.light.color.join(',')}, 0)` );
-                    gradient.addColorStop(1, `rgba(${this.light.color.join(',')}, 1)`);
+                    gradient.addColorStop(1, `rgba(${this.light.color.join(',')}, 0.5)`);
                     this.context.fillStyle = gradient;
                     this.context.fillRect(this.renderPosition.x, this.renderPosition.y-this.renderSize.y/2, this.renderSize.x/2, this.renderSize.y);
                 }

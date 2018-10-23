@@ -43,8 +43,9 @@ class MovingGO extends GO {
                 this.setDestination();
             }
 			else{
-                this.position.add(this.direction.mul(this.speed), true);
-                this.positionChangedCallback();
+                let delta = this.direction.mul(this.speed);
+                this.position.add(delta, true);
+                this.positionChangedCallback(delta);
                 this.needRecalcRenderProperties = true;
 			}	
 		}
@@ -67,10 +68,12 @@ class MovingGO extends GO {
 
     }
     
-    setDestination(newDestination)
+    setDestination(newDestination, relative = false)
 	{
+
 		if(newDestination && newDestination instanceof V2){
-			this.destination = newDestination;
+
+			this.destination = !relative ? newDestination : this.position.add(newDestination);
 			this.direction = this.position.direction(this.destination);
 		}
 		else{
