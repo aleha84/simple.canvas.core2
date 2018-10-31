@@ -392,3 +392,15 @@ function createTimer(delay, method, context, startNow = true) {
       context: context
   }
 }
+
+function drawByPoints(ctx, startFrom, deltaPoints) {
+  ctx.beginPath();
+  ctx.moveTo(startFrom.x, startFrom.y);
+  let current = startFrom.clone();
+  for(let i =0;i<deltaPoints.length;i++){
+      current.add(deltaPoints[i], true);
+      ctx.lineTo(current.x, current.y);
+  }
+  
+  ctx.stroke();
+}

@@ -13,32 +13,78 @@ SCG.UI = {
 			as.ui[i].render();
 		}
     },
-    createInnerCanvas(go) {
-        if(!go)
-            throw 'SCG.UI.createInnerCanvas -> No GO provided ';
+    createCanvas(size, contextProcesser) {
+        if(!size)
+            throw 'SCG.UI.createCanvas -> No size provided ';
 
         let canvas = document.createElement('canvas');
-        canvas.width = go.size.x;
-        canvas.height = go.size.y;
+        canvas.width = size.x;
+        canvas.height = size.y;
 
-        go.innerCanvas = canvas;
-        go.innerCanvasContext = canvas.getContext('2d');
-        go.innerCanvasContext.imageSmoothingEnabled = false;
-        go.img = go.innerCanvas;
+        let ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        if(contextProcesser && isFunction(contextProcesser))
+            contextProcesser(ctx, size);
+
+        return canvas;
     }
 }
 
-class UILabel extends GO {
+class UIControl extends GO {
+    constructor(options = {}){
+        if(options.click && isFunction(options.click)){
+            if(!options.handlers)
+                options.handlers = {}
+
+            options.handlers.click = options.click;
+            delete options.click;
+        }
+
+        options = assignDeep({}, {
+            handlers: {
+                click: () => { console.log('Control empty click handler'); },
+                down: () => { /* do nothing */ },
+                up: () => { /* do nothing */ }
+            }
+        }, options);
+
+        Object.keys(options.handlers).forEach(key => {
+            if(options.handlers[key] && isFunction(options.handlers[key])){
+                let originalHandler = options.handlers[key];
+                options.handlers[key] = () => {
+                    originalHandler();
+
+                    return {
+                        preventDiving: true
+                    };
+                }
+            }
+        });
+
+        options.contextName = 'ui';
+        options.isStatic = true; 
+        super(options);
+    }
+
+    invalidate() {
+        let rp = this.renderPosition;
+        let rs = this.renderSize;
+        SCG.contexts.ui.clearRect(rp.x - rs.x/2, rp.y - rs.y/2, rs.x, rs.y);
+        this.needRecalcRenderProperties = true;
+        this.update();
+        this.render();
+    }
+}
+
+class UILabel extends UIControl {
     constructor(options = {}){
         options = assignDeep({}, {
-            contextName: 'ui',
             size: new V2(50,10),
             debug: false,
             text: GO.getTextPropertyDefaults('sample'),
             format: undefined
         }, options);
-
-        options.isStatic = true;
 
         super(options);
     }
@@ -68,52 +114,124 @@ class UIProgressBar extends GO {
     }
 }
 
-class UIButton extends GO {
-    constructor(options = {}){
-
-        if(options.click && isFunction(options.click)){
-            if(!options.handlers)
-                options.handlers = {}
-
-            options.handlers.click = options.click;
-            delete options.click;
+class UICheckbox extends UIControl {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            checked: true,
+            label: undefined,
+            borderImg: undefined,
+            checkImg: undefined,
+            handlers: {
+                up: () => {
+                    this.checkedGo.isVisible = !this.checkedGo.isVisible;
+                    this.invalidate();
+                }
+            }
+        }, options);
+        
+        if(!options.borderImg){
+            options.borderImg = SCG.UI.createCanvas(new V2(50,50), function(ctx, size){
+                ctx.strokeStyle ="#CCCCCC";
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.rect(0,0,size.x, size.y);
+                ctx.stroke();
+            });
         }
 
-        options = assignDeep({}, {
+        if(!options.checkImg){
+            options.checkImg = SCG.UI.createCanvas(new V2(50,50), function(ctx, size){
+                ctx.strokeStyle ="#AAAAAA";
+                ctx.lineCap = 'round';
+                ctx.lineWidth = 5;
+                drawByPoints(ctx, new V2(10,10), [new V2(size.x/2-5, size.y-20), new V2(size.x/2-12, -size.y/2+10)]);
+                ctx.stroke();
+            });
+        }
+        
+        options.img = options.borderImg;
+
+        super(options);
+
+        this.checkedGo = new GO({
+            position: new V2(),
+            size: this.size.clone(),
+            img: this.checkImg,
             contextName: 'ui',
-            text: GO.getTextPropertyDefaults('btn'),
+            isStatic: true,
+            isVisible: this.checked
+        });
+
+        this.addChild(this.checkedGo);
+
+        if(this.label){
+            this.addChild(new UILabel(this.label))
+        }
+    }
+}
+
+class UIButton extends UIControl {
+    constructor(options = {}){
+        options = assignDeep({}, {
             handlers: {
-                click: () => { console.log('Button empty click handler'); }
-            }
+                down: () => {
+                    if(!this.clickedImg)
+                        return;
+
+                    this.img = this.clickedImg; 
+                    this.invalidate()},
+                up: () => {
+                    if(!this.defaultImg)
+                        return;
+
+                    this.img = this.defaultImg; 
+                    this.invalidate()}
+            },
+            text: GO.getTextPropertyDefaults('btn'),
         }, options);
 
         if(!options.imgPropertyName && !options.img){
-            let innerCanvas = document.createElement('canvas');
-            innerCanvas.width = options.size.x;
-            innerCanvas.height = options.size.y;
-            let innerCtx = innerCanvas.getContext('2d');
-            innerCtx.fillStyle="#CCCCCC";
-            innerCtx.fillRect(0,0,innerCanvas.width,innerCanvas.height);
-            innerCtx.lineWidth = innerCanvas.width*0.05;
-            innerCtx.strokeStyle = '#DEDEDE';
-            innerCtx.beginPath();
-            innerCtx.moveTo(0, innerCanvas.height);
-            innerCtx.lineTo(0, 0);
-            innerCtx.lineTo(innerCanvas.width, 0);
-            innerCtx.stroke();
+            options.defaultImg = SCG.UI.createCanvas(options.size, function(innerCtx, size){
+                innerCtx.fillStyle="#CCCCCC";
+                innerCtx.fillRect(0,0,size.x,size.y);
+                innerCtx.lineWidth = size.x*0.05;
+                innerCtx.strokeStyle = '#DEDEDE';
+                innerCtx.beginPath();
+                innerCtx.moveTo(0, size.y);
+                innerCtx.lineTo(0, 0);
+                innerCtx.lineTo(size.x, 0);
+                innerCtx.stroke();
 
-            innerCtx.strokeStyle = '#AAAAAA';
-            innerCtx.beginPath();
-            innerCtx.moveTo(0, innerCanvas.height);
-            innerCtx.lineTo(innerCanvas.width, innerCanvas.height);
-            innerCtx.lineTo(innerCanvas.width, 0);
-            innerCtx.stroke();
+                innerCtx.strokeStyle = '#AAAAAA';
+                innerCtx.beginPath();
+                innerCtx.moveTo(0, size.y);
+                innerCtx.lineTo(size.x, size.y);
+                innerCtx.lineTo(size.x, 0);
+                innerCtx.stroke();
+            })
 
-            options.img = innerCanvas;
+            options.clickedImg = SCG.UI.createCanvas(options.size, function(innerCtx, size){
+                innerCtx.fillStyle="#CCCCCC";
+                innerCtx.fillRect(0,0,size.x,size.y);
+                innerCtx.lineWidth = size.x*0.05;
+                innerCtx.strokeStyle = '#AAAAAA';
+                innerCtx.beginPath();
+                innerCtx.moveTo(0, size.y);
+                innerCtx.lineTo(0, 0);
+                innerCtx.lineTo(size.x, 0);
+                innerCtx.stroke();
+    
+                innerCtx.strokeStyle = '#DEDEDE';
+                innerCtx.beginPath();
+                innerCtx.moveTo(0, size.y);
+                innerCtx.lineTo(size.x, size.y);
+                innerCtx.lineTo(size.x, 0);
+                innerCtx.stroke();
+            });
+
+            options.img = options.defaultImg;
         }
 
-
-        options.isStatic = true; 
         super(options);
     }
 }

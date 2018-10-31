@@ -34,6 +34,10 @@ SCG.controls = {
                 if(!event)
                     return;
 
+                if(this.UIEventsHandlers[event].length > 0 && !this.doEventCheckByLayer(this.UIEventsHandlers[event], event)){
+                    return;
+                }  
+
                 for(let layerIndex = this.eventHandlers[event].length-1;layerIndex>=0;layerIndex--){
                     let eventLayer = this.eventHandlers[event][layerIndex];
 
