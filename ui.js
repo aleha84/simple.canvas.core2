@@ -114,6 +114,87 @@ class UIProgressBar extends GO {
     }
 }
 
+class UIRadioButton extends UIControl {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            checked: false,
+            group: undefined,
+            borderImg: undefined,
+            checkImg: undefined,
+            handlers: {
+                up: () => {
+                    for(let control of this.parentScene.ui.filter((control) => control instanceof UIRadioButton && control.group === this.group)){
+                        if(control !== this){
+                            control.check(false);
+                        }
+                        else {
+                            this.check(true);
+                        }  
+                    }   
+                }
+            }
+        }, options);
+
+        if(!options.group)
+            throw 'Can create RadioButton without group';
+
+        if(!options.borderImg){
+            options.borderImg = SCG.UI.createCanvas(new V2(50,50), function(ctx, size){
+                ctx.strokeStyle ="#CCCCCC";
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.arc(size.x/2, size.y/2, size.x/2-ctx.lineWidth/2, 0, 2 * Math.PI, false);
+                ctx.stroke();
+            });
+        }
+
+        if(!options.checkImg){
+            options.checkImg = SCG.UI.createCanvas(new V2(50,50), function(ctx, size){
+                ctx.fillStyle ="#AAAAAA";
+                ctx.arc(size.x/2, size.y/2, size.x/2-ctx.lineWidth*8, 0, 2 * Math.PI, false);
+                ctx.fill();
+            });
+        }
+
+        options.img = options.borderImg;
+
+        super(options);
+
+        this.checkedGo = new GO({
+            position: new V2(),
+            size: this.size.clone(),
+            img: this.checkImg,
+            contextName: 'ui',
+            isStatic: true,
+            isVisible: this.checked
+        });
+
+        this.addChild(this.checkedGo);
+
+        if(this.label){
+            let labelProps = {
+                text: {
+                    ...this.label,
+                    align: 'left'
+                },
+                position:  new V2(this.size.x*0.75,0),
+                size: this.size.clone()
+            }
+
+            this.addChild(new UILabel(labelProps))
+        }
+    }
+
+    check(checked){
+        if(this.checked === checked)
+            return;
+
+        this.checked = checked;
+        this.checkedGo.isVisible = checked;
+        this.invalidate();
+    }
+}
+
 class UICheckbox extends UIControl {
     constructor(options = {}) {
         options = assignDeep({}, {
@@ -165,7 +246,16 @@ class UICheckbox extends UIControl {
         this.addChild(this.checkedGo);
 
         if(this.label){
-            this.addChild(new UILabel(this.label))
+            let labelProps = {
+                text: {
+                    ...this.label,
+                    align: 'left'
+                },
+                position:  new V2(this.size.x*0.75,0),
+                size: this.size.clone()
+            }
+
+            this.addChild(new UILabel(labelProps))
         }
     }
 }

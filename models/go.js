@@ -1,11 +1,15 @@
 class GO {
     constructor(options = {}){
         
-        if(!options.position || !(options.position instanceof V2))
+        if(!options.position || !(options.position instanceof V2)){
+            //console.trace();
             throw `No position defined for graphical object`;
-        
-        if(!options.size || !(options.size instanceof V2))
+        }
+            
+        if(!options.size || !(options.size instanceof V2)){
             throw 'No size defined for grapthical object';
+        }
+            
 
         var objectContext = this;
 

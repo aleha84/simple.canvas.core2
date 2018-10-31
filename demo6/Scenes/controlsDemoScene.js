@@ -40,6 +40,63 @@ class ControlsDemoScene extends Scene {
             position: new V2(65, 75),
             size: new V2(5,5)
         }));
+
+        this.addUIGo(new UICheckbox({
+            position: new V2(20, 100),
+            size: new V2(20,20),
+            label: {
+                value: 'checkbox',
+                color: 'white'
+            }
+        }));
+
+        this.addUIGo(new UIRadioButton({
+            position: new V2(20, 125),
+            size: new V2(20,20),
+            group: 'demo1'
+        }));
+
+        this.addUIGo(new UIRadioButton({
+            position: new V2(45, 125),
+            size: new V2(20,20),
+            group: 'demo1'
+        }));
+
+        this.addUIGo(new UIRadioButton({
+            position: new V2(70, 125),
+            size: new V2(20,20),
+            group: 'demo1'
+        }));
+
+        this.addUIGo(new UIRadioButton({
+            position: new V2(20, 150),
+            size: new V2(20,20),
+            group: 'demo2',
+            label: {
+                value: 'Red',
+                color: 'red'
+            }
+        }));
+
+        this.addUIGo(new UIRadioButton({
+            position: new V2(95, 150),
+            size: new V2(20,20),
+            group: 'demo2',
+            label: {
+                value: 'Green',
+                color: 'green'
+            }
+        }));
+
+        this.addUIGo(new UIRadioButton({
+            position: new V2(185, 150),
+            size: new V2(20,20),
+            group: 'demo2',
+            label: {
+                value: 'Blue',
+                color: 'blue'
+            }
+        }));
     }
 
     backgroundRender(){
