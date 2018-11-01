@@ -42,8 +42,9 @@ class UIControl extends GO {
         }
 
         options = assignDeep({}, {
+            preventDiving: true,
             handlers: {
-                click: () => { console.log('Control empty click handler'); },
+                click: () => { console.log(`Control ${this.id} empty click handler`); },
                 down: () => { /* do nothing */ },
                 up: () => { /* do nothing */ }
             }
@@ -56,7 +57,7 @@ class UIControl extends GO {
                     originalHandler();
 
                     return {
-                        preventDiving: true
+                        preventDiving: options.preventDiving
                     };
                 }
             }
@@ -74,6 +75,71 @@ class UIControl extends GO {
         this.needRecalcRenderProperties = true;
         this.update();
         this.render();
+    }
+}
+
+class UIPanel extends UIControl {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            preventDiving: false,
+            draggable: false,
+            scrollable: false,
+            backgroundImg: undefined
+        }, options);
+
+        if(!options.backgroundImg){
+            options.backgroundImg = SCG.UI.createCanvas(options.size, function(innerCtx, size){
+                innerCtx.fillStyle="#EFEFEF";
+                innerCtx.fillRect(0,0,size.x,size.y);
+            })
+        }
+
+        options.img = options.backgroundImg;
+
+        super(options);
+    }
+
+    addControl(control) {
+        if(!control instanceof UIControl)
+            throw 'Wrong control type';
+
+        if(!control.asImage)
+            throw 'Cant add not rasterized control';
+
+        this.truncateControl(control);
+
+        this.addChild(control);
+    }
+
+    truncateControl(control) {
+        if(!control.asImage)
+            return;
+
+        let needToTruncate = false;
+        let c = control;
+        c.originalSize = c.size.clone();
+        c.originalPosition = c.position.clone();
+        let relativeBox = new Box(new V2(-this.size.x/2, -this.size.y/2), this.size);
+        let c_tl = c.position.add(new V2(-c.size.x/2,-c.size.y/2));
+        let c_tr = c.position.add(new V2(c.size.x/2,-c.size.y/2));
+        let c_bl = c.position.add(new V2(-c.size.x/2,c.size.y/2));
+        let c_br = c.position.add(new V2(c.size.x/2,c.size.y/2));
+
+        if(
+            !relativeBox.isPointInside(c_tl) 
+            || !relativeBox.isPointInside(c_tr)
+            || !relativeBox.isPointInside(c_bl)
+            || !relativeBox.isPointInside(c_br)
+        ){
+            if(c_bl.y > relativeBox.bottomLeft.y){
+                c.size.y = c_bl.y - relativeBox.bottomLeft.y;
+                c.position.y = relativeBox.bottomLeft.y-c.size.y/2;
+                c.destSourcePosition = new V2();
+                c.destSourceSize = new V2(c.img.width, c.size.y*c.img.height/c.originalSize.y);
+            }
+
+
+        }
     }
 }
 
@@ -278,10 +344,11 @@ class UIButton extends UIControl {
                     this.invalidate()}
             },
             text: GO.getTextPropertyDefaults('btn'),
+            asImage: false
         }, options);
 
         if(!options.imgPropertyName && !options.img){
-            options.defaultImg = SCG.UI.createCanvas(options.size, function(innerCtx, size){
+            options.defaultImg = SCG.UI.createCanvas(options.size.mul(options.asImage?3:1), function(innerCtx, size){
                 innerCtx.fillStyle="#CCCCCC";
                 innerCtx.fillRect(0,0,size.x,size.y);
                 innerCtx.lineWidth = size.x*0.05;
@@ -298,9 +365,19 @@ class UIButton extends UIControl {
                 innerCtx.lineTo(size.x, size.y);
                 innerCtx.lineTo(size.x, 0);
                 innerCtx.stroke();
+
+                if(options.asImage){
+                    let text = options.text;
+                    innerCtx.font = `${text.size*3}px ${text.font}`;
+                    innerCtx.fillStyle = text.color;
+                    innerCtx.textAlign = text.align;
+                    innerCtx.textBaseline = text.textBaseline;
+                    innerCtx.fillText(text.value, size.x/2, size.y/2);   
+                }
+                
             })
 
-            options.clickedImg = SCG.UI.createCanvas(options.size, function(innerCtx, size){
+            options.clickedImg = SCG.UI.createCanvas(options.size.mul(options.asImage?3:1), function(innerCtx, size){
                 innerCtx.fillStyle="#CCCCCC";
                 innerCtx.fillRect(0,0,size.x,size.y);
                 innerCtx.lineWidth = size.x*0.05;
@@ -317,9 +394,23 @@ class UIButton extends UIControl {
                 innerCtx.lineTo(size.x, size.y);
                 innerCtx.lineTo(size.x, 0);
                 innerCtx.stroke();
+
+                if(options.asImage){
+                    let text = options.text;
+                    innerCtx.font = `${text.size*3}px ${text.font}`;
+                    innerCtx.fillStyle = text.color;
+                    innerCtx.textAlign = text.align;
+                    innerCtx.textBaseline = text.textBaseline;
+                    innerCtx.fillText(text.value, size.x/2, size.y/2);   
+                }
             });
 
             options.img = options.defaultImg;
+        }
+
+        if(options.asImage){
+            options.originalText = options.text;
+            delete options.text;
         }
 
         super(options);

@@ -8,7 +8,8 @@ class ControlsDemoScene extends Scene {
         this.addUIGo(new UIButton({
             size: new V2(100, 25),
             text: GO.getTextPropertyDefaults('Default'),
-            position: new V2(60,20)
+            position: new V2(60,20), 
+            asImage: true
         }));
 
         this.addUIGo(new UIButton({
@@ -97,6 +98,26 @@ class ControlsDemoScene extends Scene {
                 color: 'blue'
             }
         }));
+
+        let panel1 = new UIPanel({
+            position: new V2(200, 80),
+            size: new V2(100,100)
+        });
+
+        // panel1.addControl(new UIButton({
+        //     size: new V2(80, 25),
+        //     text: GO.getTextPropertyDefaults('Inner'),
+        //     position: new V2(0, -30)
+        // }));
+
+        panel1.addControl(new UIButton({
+            size: new V2(80, 25),
+            text: GO.getTextPropertyDefaults('Inner'),
+            position: new V2(0, 50),
+            asImage: true
+        }));
+
+        this.addUIGo(panel1)
     }
 
     backgroundRender(){
