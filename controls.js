@@ -70,7 +70,7 @@ SCG.controls = {
                     && go.handlers != undefined 
                     && go.handlers[eventType] != undefined 
                     && isFunction(go.handlers[eventType])
-                ){
+                ){//go.handleChildrenEvents && go.handleChildrenEvents[eventType] && 
                     if(go.childrenGO.length){
                         for(let i = 0;i<go.childrenGO.length;i++){
                             let _res = this.goEventCheck(go.childrenGO[i], eventType);
@@ -91,6 +91,16 @@ SCG.controls = {
                     }
 
                     return false;
+                }
+
+                if(
+                    eventType === 'move' 
+                    && go.moveEventTriggered
+                    && go.handlers != undefined
+                    && go.handlers['out'] != undefined
+                    && isFunction(go.handlers['out'])
+                ){
+                    go.handlers['out'].call(go);
                 }
 
                 return true;
@@ -171,27 +181,34 @@ SCG.controls = {
         },
         move(event) {
             let prevPosition = undefined;
-            if(this.state.position != undefined)
-                prevPosition = this.state.position.clone();
+            let state = this.state;
+            if(state.position != undefined)
+                prevPosition = state.position.clone();
 
             this.getEventAbsolutePosition(event);
 
-            this.state.doEventCheck('move');
+            state.doEventCheck('move');
 
             if(SCG.scenes.activeScene.events.move)
                 SCG.scenes.activeScene.events.move();
+
+            if(prevPosition != undefined){
+                state.movingDelta = prevPosition.substract(state.position);
+                if(!state.movingDelta.equal(new V2())){
+                    state.moving = true;
+                }
+            }
 
             let vp = SCG.viewport;
             if( // drag logics
                 vp.scrollOptions.enabled 
                 && vp.scrollOptions.type === vp.scrollTypes.drag 
                 && prevPosition != undefined
-                && this.state.downTriggered
+                && state.downTriggered
             ){
-                let delta =prevPosition.substract(this.state.position);
-                if(!delta.equal(new V2())){
-                    this.state.moving = true;
-                    vp.camera.updatePosition(SCG.viewport.shift.add(delta.division(vp.scale)));
+                
+                if(!state.movingDelta.equal(new V2())){
+                    vp.camera.updatePosition(SCG.viewport.shift.add(state.movingDelta.division(vp.scale)));
                 }
             }
 

@@ -46,7 +46,9 @@ class UIControl extends GO {
             handlers: {
                 click: () => { console.log(`Control ${this.id} empty click handler`); },
                 down: () => { /* do nothing */ },
-                up: () => { /* do nothing */ }
+                up: () => { /* do nothing */ },
+                move: () => { /* do nothing */ },
+                out: () => { /* do nothing */  }
             }
         }, options);
 
@@ -56,8 +58,16 @@ class UIControl extends GO {
                 options.handlers[key] = () => {
                     originalHandler();
 
+                    if(key === 'move'){
+                        this.moveEventTriggered = true;
+                    }
+
+                    if(key === 'out'){
+                        this.moveEventTriggered = false;
+                    }
+
                     return {
-                        preventDiving: options.preventDiving
+                        preventDiving: this.preventDiving
                     };
                 }
             }
@@ -81,10 +91,38 @@ class UIControl extends GO {
 class UIPanel extends UIControl {
     constructor(options = {}){
         options = assignDeep({}, {
-            preventDiving: false,
+            preventDiving: true,
             draggable: false,
             scrollable: false,
-            backgroundImg: undefined
+            backgroundImg: undefined,
+            controls: [],
+            scroll: {
+                started: false,
+            },
+            handlers: {
+                down: () => { 
+                    this.scroll.started = true;
+                 },
+                up: () => { 
+                    this.scroll.started = false;
+                },
+                move: () => { 
+                    if(this.scroll.started){
+                        //console.log('scrolling;' + SCG.controls.mouse.state.movingDelta);
+                        for(let ctl of this.controls){
+                            ctl.originalPosition.add(new V2(0, -SCG.controls.mouse.state.movingDelta.y/SCG.viewport.scale), true);
+                            //console.log(ctl.originalPosition);
+                            this.truncateControl(ctl);
+                            ctl.invalidate();
+                        }
+
+                        this.invalidate();
+                    }
+                 },
+                 out: () => {
+                    this.scroll.started = false;
+                 }
+            }
         }, options);
 
         if(!options.backgroundImg){
@@ -108,38 +146,57 @@ class UIPanel extends UIControl {
 
         this.truncateControl(control);
 
+        control.preventDiving = false;
         this.addChild(control);
+        this.controls.push(control);
     }
 
     truncateControl(control) {
         if(!control.asImage)
             return;
 
-        let needToTruncate = false;
+        
         let c = control;
-        c.originalSize = c.size.clone();
-        c.originalPosition = c.position.clone();
+        c.destSourcePosition = undefined;
+
+        if(c.originalSize === undefined)
+            c.originalSize = c.size.clone();
+        else 
+            c.size = c.originalSize.clone();
+        
+        if(c.originalPosition === undefined)
+            c.originalPosition = c.position.clone();
+        else 
+            c.position = c.originalPosition.clone();
+
         let relativeBox = new Box(new V2(-this.size.x/2, -this.size.y/2), this.size);
-        let c_tl = c.position.add(new V2(-c.size.x/2,-c.size.y/2));
-        let c_tr = c.position.add(new V2(c.size.x/2,-c.size.y/2));
-        let c_bl = c.position.add(new V2(-c.size.x/2,c.size.y/2));
-        let c_br = c.position.add(new V2(c.size.x/2,c.size.y/2));
+        let cBox = new Box(c.position.add(new V2(-c.size.x/2,-c.size.y/2)), c.size);
 
-        if(
-            !relativeBox.isPointInside(c_tl) 
-            || !relativeBox.isPointInside(c_tr)
-            || !relativeBox.isPointInside(c_bl)
-            || !relativeBox.isPointInside(c_br)
-        ){
-            if(c_bl.y > relativeBox.bottomLeft.y){
-                c.size.y = c_bl.y - relativeBox.bottomLeft.y;
-                c.position.y = relativeBox.bottomLeft.y-c.size.y/2;
-                c.destSourcePosition = new V2();
-                c.destSourceSize = new V2(c.img.width, c.size.y*c.img.height/c.originalSize.y);
+        c.isVisible = true;
+        if(!relativeBox.isIntersectsWithBox(cBox)){
+            c.isVisible = false;
+        }else {
+            if(
+                !relativeBox.isPointInside(cBox.topLeft) 
+                || !relativeBox.isPointInside(cBox.topRight)
+                || !relativeBox.isPointInside(cBox.bottomLeft)
+                || !relativeBox.isPointInside(cBox.bottomRight)
+            ){
+                if(cBox.bottomLeft.y > relativeBox.bottomLeft.y){
+                    c.size.y = relativeBox.bottomLeft.y - cBox.topLeft.y;
+                    c.position.y = relativeBox.bottomLeft.y-c.size.y/2;
+                    c.destSourcePosition = new V2();
+                    c.destSourceSize = new V2(c.img.width, c.size.y*c.img.height/c.originalSize.y);
+                }
+                else if(cBox.topLeft.y < relativeBox.topLeft.y) {
+                    c.size.y = cBox.bottomLeft.y - relativeBox.topLeft.y;
+                    c.position.y = relativeBox.topLeft.y+c.size.y/2;
+                    c.destSourcePosition = new V2(0, c.img.height * (relativeBox.topLeft.y-cBox.topLeft.y)/c.size.y);
+                    c.destSourceSize = new V2(c.img.width, c.size.y*c.img.height/c.originalSize.y);
+                }
             }
-
-
         }
+        
     }
 }
 
@@ -335,13 +392,22 @@ class UIButton extends UIControl {
                         return;
 
                     this.img = this.clickedImg; 
-                    this.invalidate()},
+                    this.invalidate()
+                },
                 up: () => {
                     if(!this.defaultImg)
                         return;
 
                     this.img = this.defaultImg; 
-                    this.invalidate()}
+                    this.invalidate()
+                },
+                out: () => {
+                    if(!this.defaultImg)
+                        return;
+
+                    this.img = this.defaultImg; 
+                    this.invalidate()
+                }
             },
             text: GO.getTextPropertyDefaults('btn'),
             asImage: false
