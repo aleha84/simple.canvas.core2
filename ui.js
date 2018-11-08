@@ -79,6 +79,9 @@ class UIControl extends GO {
     }
 
     invalidate() {
+        if(!this.isVisible)
+            return;
+
         let rp = this.renderPosition;
         let rs = this.renderSize;
         SCG.contexts.ui.clearRect(rp.x - rs.x/2, rp.y - rs.y/2, rs.x, rs.y);
@@ -97,30 +100,31 @@ class UIPanel extends UIControl {
             backgroundImg: undefined,
             controls: [],
             scroll: {
+                enabled: false,
                 started: false,
             },
             handlers: {
                 down: () => { 
-                    this.scroll.started = true;
+                    if(this.scroll.enabled)
+                        this.scroll.started = true;
                  },
                 up: () => { 
-                    this.scroll.started = false;
+                    if(this.scroll.enabled)
+                        this.scroll.started = false;
                 },
                 move: () => { 
-                    if(this.scroll.started){
-                        //console.log('scrolling;' + SCG.controls.mouse.state.movingDelta);
+                    if(this.scroll.enabled && this.scroll.started){
                         for(let ctl of this.controls){
                             ctl.originalPosition.add(new V2(0, -SCG.controls.mouse.state.movingDelta.y/SCG.viewport.scale), true);
-                            //console.log(ctl.originalPosition);
                             this.truncateControl(ctl);
-                            ctl.invalidate();
                         }
 
                         this.invalidate();
                     }
                  },
                  out: () => {
-                    this.scroll.started = false;
+                    if(this.scroll.enabled)
+                        this.scroll.started = false;
                  }
             }
         }, options);
@@ -191,7 +195,8 @@ class UIPanel extends UIControl {
                 else if(cBox.topLeft.y < relativeBox.topLeft.y) {
                     c.size.y = cBox.bottomLeft.y - relativeBox.topLeft.y;
                     c.position.y = relativeBox.topLeft.y+c.size.y/2;
-                    c.destSourcePosition = new V2(0, c.img.height * (relativeBox.topLeft.y-cBox.topLeft.y)/c.size.y);
+                    //console.log(`Original height: ${c.originalSize.y}; visible height: ${c.size.y}; original position.y: ${c.originalPosition.y}; visible position.y: ${c.position.y}`);
+                    c.destSourcePosition = new V2(0, c.img.height * (relativeBox.topLeft.y-cBox.topLeft.y)/c.originalSize.y);
                     c.destSourceSize = new V2(c.img.width, c.size.y*c.img.height/c.originalSize.y);
                 }
             }
@@ -199,6 +204,113 @@ class UIPanel extends UIControl {
         
     }
 }
+
+class UIDropdownItem extends UIControl {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            
+        }, options);
+
+        super(options);
+    }
+}
+
+class UIDropdown extends UIControl {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            expanded: false,
+            selectedValue: undefined,
+            selectedIndex: undefined,
+            size: new V2(80, 25),
+            items: [],
+            maxItemsVisible: 5,
+            placeHolderText: 'Select',
+            itemHeight: 20,
+            panelDirection: 'down',
+            toggleButtonWidth: 20,
+            selectedItemImg: undefined,
+            toggleButtonImg: undefined,
+            toggleButtonActiveImg: undefined,
+        }, options);
+
+        if(!options.selectedItemImg){
+            options.selectedItemImg = SCG.UI.createCanvas(new V2(options.size.x - options.toggleButtonWidth, options.size.y).mul(3), function(innerCtx, size){
+                innerCtx.fillStyle="#EFEFEF";
+                innerCtx.fillRect(0,0,size.x,size.y);
+            })
+        }
+
+        if(!options.toggleButtonImg){
+            options.selectedItemImg = SCG.UI.createCanvas(new V2(options.toggleButtonWidth, options.size.y).mul(3), function(innerCtx, size){
+                innerCtx.fillStyle="#EEEEEE";
+                innerCtx.fillRect(0,0,size.x,size.y);
+            })
+        }
+
+        super(options);
+    }
+
+    internalPreUpdate(){
+        if(!this.initialized){
+            this.initialized = true;
+
+            let panelHeight = (this.items.length > this.maxItemsVisible ? this.maxItemsVisible : this.items.length) * this.itemHeight;
+            let toTop = this.position - this.size.y/2
+            let toBottom = SCG.scenes.activeScene.viewport.y - this.position.y+this.size.y/2;
+            
+            let toBorder = toBottom;
+            if(toTop > toBottom){
+                this.panelDirection = "up";
+                toBorder = toTop;
+            }
+
+            if(toBorder < panelHeight){
+                panelHeight = toBorder;
+            }
+
+            this.collapsedSize = this.size.clone();
+            this.expandedSize = new V2(this.size.x, this.size.y+panelHeight);
+
+            this.selectedItemControl = new UIControl({
+                size: new V2(this.size.x - this.toggleButtonWidth, this.size.y),
+                img: this.selectedItemImg,
+                position: new V2(1,1)
+            });
+            this.toggleButtonControl = new UIControl({
+                size: new V2(this.toggleButtonWidth, this.size.y),
+                img: this.toggleButtonImg,
+                position: new V2(1,1)
+            });
+
+            this.setChildSizesAndPositions();
+            this.addChild(this.selectedItemControl);
+            this.addChild(this.toggleButtonControl);
+        }
+    }
+
+    setChildSizesAndPositions(){
+        if(this.expanded){
+            this.size = this.expandedSize;
+            // todo
+        }
+        else {
+            this.size = this.collapsedSize;
+            let sic = this.selectedItemControl;
+            sic.position = new V2((sic.size.x-this.size.x)/2, 0);
+
+            let tbc = this.toggleButtonControl;
+            tbc.position = new V2((this.size.x - tbc.size.x)/2,0)
+        }
+    }
+
+    toggle(){
+        this.expanded = !this.expanded;
+
+        this.setChildSizesAndPositions();
+        this.invalidate();
+    }
+}
+
 
 class UILabel extends UIControl {
     constructor(options = {}){

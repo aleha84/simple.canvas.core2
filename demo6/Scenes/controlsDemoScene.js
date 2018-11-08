@@ -101,7 +101,8 @@ class ControlsDemoScene extends Scene {
 
         let panel1 = new UIPanel({
             position: new V2(200, 80),
-            size: new V2(100,100)
+            size: new V2(100,100),
+            scroll: { enabled: true }
         });
 
         // panel1.addControl(new UIButton({
@@ -118,6 +119,12 @@ class ControlsDemoScene extends Scene {
         }));
 
         this.addUIGo(panel1)
+
+        let dd = new UIDropdown({
+            position: new V2(350, 20)
+        })
+
+        this.addUIGo(dd);
     }
 
     backgroundRender(){
