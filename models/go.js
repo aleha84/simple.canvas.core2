@@ -33,6 +33,7 @@ class GO {
             isVisible: true,
             childrenGO: [],
             tileOptimization: false,
+            initialized: false,
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
@@ -167,6 +168,10 @@ class GO {
             autoCenter: false,
             textBaseline: 'middle'
         };
+    }
+
+    init() {
+
     }
 
     console(message) {
@@ -346,6 +351,11 @@ class GO {
     internalUpdate(now){}
 
     update(now){
+        if(!this.initialized){
+            this.initialized = true;
+            this.init(now);
+        }
+
         if(this.img == undefined && this.imgPropertyName != undefined){ //first run workaround
 			this.img = SCG.images[this.imgPropertyName];
 			if(this.img == undefined){

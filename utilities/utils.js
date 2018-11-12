@@ -404,3 +404,19 @@ function drawByPoints(ctx, startFrom, deltaPoints) {
   
   ctx.stroke();
 }
+
+function fittingString(c, str, maxWidth) {
+  var width = c.measureText(str).width;
+  var ellipsis = '…';
+  var ellipsisWidth = c.measureText(ellipsis).width;
+  if (width<=maxWidth || width<=ellipsisWidth) {
+      return str;
+  } else {
+      var len = str.length;
+      while (width>=maxWidth-ellipsisWidth && len-->0) {
+          str = str.substring(0, len);
+          width = c.measureText(str).width;
+      }
+      return str+ellipsis;
+  }
+}

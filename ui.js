@@ -78,13 +78,16 @@ class UIControl extends GO {
         super(options);
     }
 
-    invalidate() {
+    invalidate(noRender = false) {
         if(!this.isVisible)
             return;
 
         let rp = this.renderPosition;
         let rs = this.renderSize;
         SCG.contexts.ui.clearRect(rp.x - rs.x/2, rp.y - rs.y/2, rs.x, rs.y);
+        if(noRender)
+            return;
+
         this.needRecalcRenderProperties = true;
         this.update();
         this.render();
@@ -114,6 +117,8 @@ class UIPanel extends UIControl {
                 },
                 move: () => { 
                     if(this.scroll.enabled && this.scroll.started){
+                        // add scroll restrictions
+                        // add scroll bar
                         for(let ctl of this.controls){
                             ctl.originalPosition.add(new V2(0, -SCG.controls.mouse.state.movingDelta.y/SCG.viewport.scale), true);
                             this.truncateControl(ctl);
@@ -141,12 +146,22 @@ class UIPanel extends UIControl {
         super(options);
     }
 
-    addControl(control) {
+    addControl(control, fromTopToDown) {
         if(!control instanceof UIControl)
             throw 'Wrong control type';
 
         if(!control.asImage)
             throw 'Cant add not rasterized control';
+
+        if(fromTopToDown){
+            if(this.controls && this.controls.length){
+                let lastAddedControl = this.controls[this.controls.length-1];
+                control.position = new V2(0, lastAddedControl.position.y + lastAddedControl.size.y/2 + control.size.y/2);
+            }
+            else {
+                control.position = new V2(0, -this.size.y/2+control.size.y/2);
+            }
+        }
 
         this.truncateControl(control);
 
@@ -208,8 +223,53 @@ class UIPanel extends UIControl {
 class UIDropdownItem extends UIControl {
     constructor(options = {}) {
         options = assignDeep({}, {
-            
+            textValue: undefined,
+            value: undefined
         }, options);
+
+        if(options.value === undefined)
+            throw 'Dropdown item must have a value';
+
+        if(options.textValue === undefined)
+            options.textValue = options.value;
+
+        options.asImage = true;
+
+        if(!options.defaultImg) {
+            options.defaultImg = SCG.UI.createCanvas(options.size.mul(3), function(innerCtx, size){
+                innerCtx.fillStyle="#EFEFEF";
+                innerCtx.fillRect(0,0,size.x,size.y);
+                innerCtx.lineWidth = size.x*0.05;
+                innerCtx.strokeStyle = '#AAAAAA';
+                innerCtx.beginPath();
+                innerCtx.moveTo(0, size.y);
+                innerCtx.lineTo(size.x, size.y);
+                innerCtx.stroke();
+
+                let text = GO.getTextPropertyDefaults(options.textValue);
+                innerCtx.font = `${parseInt(size.y*1/2)}px ${text.font}`;
+                innerCtx.fillStyle = text.color;
+                innerCtx.textAlign = 'left';
+                innerCtx.textBaseline = text.textBaseline;
+
+                innerCtx.fillText(fittingString(innerCtx, text.value, size.x*0.8), size.x*0.1, size.y/2);  
+            })
+        }
+
+        if(!options.clickedImg){
+            options.clickedImg = SCG.UI.createCanvas(options.size.mul(3), function(innerCtx, size){
+                innerCtx.fillStyle="#EEEEEE";
+                innerCtx.fillRect(0,0,size.x,size.y);
+                innerCtx.lineWidth = size.x*0.05;
+                innerCtx.strokeStyle = '#EFEFEF';
+                innerCtx.beginPath();
+                innerCtx.moveTo(0, size.y);
+                innerCtx.lineTo(size.x, size.y);
+                innerCtx.stroke();
+            })
+        }
+
+        options.img = options.defaultImg;
 
         super(options);
     }
@@ -231,81 +291,175 @@ class UIDropdown extends UIControl {
             selectedItemImg: undefined,
             toggleButtonImg: undefined,
             toggleButtonActiveImg: undefined,
+            handlers: {
+                out: () => {
+                    if(this.itemsPanel.scroll.enabled)
+                        this.itemsPanel.scroll.started = false;
+                }
+            }
         }, options);
 
+        options.preventDiving = true;
+        
         if(!options.selectedItemImg){
             options.selectedItemImg = SCG.UI.createCanvas(new V2(options.size.x - options.toggleButtonWidth, options.size.y).mul(3), function(innerCtx, size){
                 innerCtx.fillStyle="#EFEFEF";
                 innerCtx.fillRect(0,0,size.x,size.y);
+                innerCtx.lineWidth = size.y*0.1;
+                innerCtx.strokeStyle = '#AAAAAA';
+                innerCtx.beginPath();
+                innerCtx.moveTo(0, size.y);
+                innerCtx.lineTo(size.x, size.y);
+                innerCtx.lineTo(size.x, 0);
+                innerCtx.stroke();
             })
         }
 
         if(!options.toggleButtonImg){
-            options.selectedItemImg = SCG.UI.createCanvas(new V2(options.toggleButtonWidth, options.size.y).mul(3), function(innerCtx, size){
-                innerCtx.fillStyle="#EEEEEE";
+            options.toggleButtonImg = SCG.UI.createCanvas(new V2(options.toggleButtonWidth, options.size.y).mul(3), function(innerCtx, size){
+                innerCtx.fillStyle="#EFEFEF";
                 innerCtx.fillRect(0,0,size.x,size.y);
+                innerCtx.lineWidth = size.y*0.1;
+                innerCtx.strokeStyle = '#AAAAAA';
+                innerCtx.beginPath();
+                innerCtx.moveTo(0, size.y);
+                innerCtx.lineTo(size.x, size.y);
+                innerCtx.lineTo(size.x, 0);
+                innerCtx.stroke();
+
+                innerCtx.beginPath();
+                innerCtx.moveTo(size.x/4, size.y/4);
+                innerCtx.lineTo(size.x/2, size.y*2/3);
+                innerCtx.lineTo(size.x*3/4, size.y/4);
+                innerCtx.stroke();
+            })
+        }
+
+        if(!options.toggleButtonClickedImg){
+            options.toggleButtonClickedImg = SCG.UI.createCanvas(new V2(options.toggleButtonWidth, options.size.y).mul(3), function(innerCtx, size){
+                innerCtx.fillStyle="#EFEFEF";
+                innerCtx.fillRect(0,0,size.x,size.y);
+                innerCtx.lineWidth = size.y*0.1;
+                innerCtx.strokeStyle = '#AAAAAA';
+                innerCtx.beginPath();
+                innerCtx.moveTo(0, size.y);
+                innerCtx.lineTo(size.x, size.y);
+                innerCtx.lineTo(size.x, 0);
+                innerCtx.stroke();
+
+                innerCtx.beginPath();
+                innerCtx.moveTo(size.x/4, size.y*2/3);
+                innerCtx.lineTo(size.x/2, size.y/4);
+                innerCtx.lineTo(size.x*3/4, size.y*2/3);
+                innerCtx.stroke();
             })
         }
 
         super(options);
+        this.originalPosition = this.position.clone();
     }
 
-    internalPreUpdate(){
-        if(!this.initialized){
-            this.initialized = true;
-
-            let panelHeight = (this.items.length > this.maxItemsVisible ? this.maxItemsVisible : this.items.length) * this.itemHeight;
-            let toTop = this.position - this.size.y/2
-            let toBottom = SCG.scenes.activeScene.viewport.y - this.position.y+this.size.y/2;
-            
-            let toBorder = toBottom;
-            if(toTop > toBottom){
-                this.panelDirection = "up";
-                toBorder = toTop;
-            }
-
-            if(toBorder < panelHeight){
-                panelHeight = toBorder;
-            }
-
-            this.collapsedSize = this.size.clone();
-            this.expandedSize = new V2(this.size.x, this.size.y+panelHeight);
-
-            this.selectedItemControl = new UIControl({
-                size: new V2(this.size.x - this.toggleButtonWidth, this.size.y),
-                img: this.selectedItemImg,
-                position: new V2(1,1)
-            });
-            this.toggleButtonControl = new UIControl({
-                size: new V2(this.toggleButtonWidth, this.size.y),
-                img: this.toggleButtonImg,
-                position: new V2(1,1)
-            });
-
-            this.setChildSizesAndPositions();
-            this.addChild(this.selectedItemControl);
-            this.addChild(this.toggleButtonControl);
+    init(){
+        let panelHeight = (this.items.length > this.maxItemsVisible ? this.maxItemsVisible : this.items.length) * this.itemHeight;
+        let toTop = this.position - this.size.y/2
+        let toBottom = SCG.scenes.activeScene.viewport.y - this.position.y+this.size.y/2;
+        
+        let toBorder = toBottom;
+        if(toTop > toBottom){
+            this.panelDirection = "up";
+            toBorder = toTop;
         }
+
+        if(toBorder < panelHeight){
+            panelHeight = toBorder;
+        }
+
+        this.collapsedSize = this.size.clone();
+        this.expandedSize = new V2(this.size.x, this.size.y+panelHeight);
+
+        this.selectedItemControl = new UIControl({
+            size: new V2(this.size.x - this.toggleButtonWidth, this.size.y),
+            img: this.selectedItemImg,
+            position: new V2(1,1),
+            handlers: {
+                click: () => {
+                    this.toggle();
+                }
+            }
+        });
+        this.toggleButtonControl = new UIControl({
+            size: new V2(this.toggleButtonWidth, this.size.y),
+            img: this.toggleButtonImg,
+            position: new V2(1,1),
+            handlers: {
+                click: () => {
+                    this.toggle();
+                }
+            }
+        });
+
+        this.itemsPanel = new UIPanel({
+            size: new V2(this.size.x, panelHeight),
+            position: new V2(1,1),
+            isVisible: false,
+            preventDiving: false,
+            scroll: { enabled: true }
+        });
+
+        for(let item of this.items){
+            let itemCtrl = new UIDropdownItem({
+                textValue: item.text,
+                value: item.value,
+                size: new V2(this.size.x, this.itemHeight),
+                position: new V2(1,1)
+            });
+
+            this.itemsPanel.addControl(itemCtrl, true);
+        }
+
+        this.setChildSizesAndPositions();
+        this.addChild(this.selectedItemControl);
+        this.addChild(this.toggleButtonControl);
+        this.addChild(this.itemsPanel);
+
     }
 
     setChildSizesAndPositions(){
+        let sic = this.selectedItemControl;
+        let tbc = this.toggleButtonControl;
+        let pnl = this.itemsPanel;
         if(this.expanded){
             this.size = this.expandedSize;
-            // todo
+            let box = new Box(this.position.add(new V2(-this.collapsedSize.x/2, -this.collapsedSize.y/2)), this.size);
+            this.position = box.center.clone();
+
+            sic.position = new V2((sic.size.x-this.size.x)/2, -this.size.y/2+sic.size.y/2);
+            tbc.position = new V2((this.size.x - tbc.size.x)/2,-this.size.y/2+sic.size.y/2);
+            tbc.img = this.toggleButtonClickedImg;
+            pnl.position = new V2(0, sic.position.y + (sic.size.y/2)+(pnl.size.y/2));
+            pnl.isVisible = true;
         }
         else {
+            this.position = this.originalPosition.clone();
             this.size = this.collapsedSize;
-            let sic = this.selectedItemControl;
-            sic.position = new V2((sic.size.x-this.size.x)/2, 0);
-
-            let tbc = this.toggleButtonControl;
-            tbc.position = new V2((this.size.x - tbc.size.x)/2,0)
+            
+            tbc.img = tbc.img = this.toggleButtonImg;
+            if(this.panelDirection === 'down'){
+                sic.position = new V2((sic.size.x-this.size.x)/2, 0);
+                tbc.position = new V2((this.size.x - tbc.size.x)/2,0);
+            }
+            else {
+                // todo
+            }
+            
+            pnl.isVisible = false;
         }
     }
 
     toggle(){
         this.expanded = !this.expanded;
 
+        //this.invalidate(true);
         this.setChildSizesAndPositions();
         this.invalidate();
     }

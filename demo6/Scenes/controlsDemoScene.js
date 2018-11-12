@@ -121,7 +121,8 @@ class ControlsDemoScene extends Scene {
         this.addUIGo(panel1)
 
         let dd = new UIDropdown({
-            position: new V2(350, 20)
+            position: new V2(350, 20),
+            items: [{value: 'hello'}, {text:'ItemLabel1', value: 100}, {text: 'otherLable', value: 'world'}, {text: 'veryLongTextLabelBla', value: 'world'}]
         })
 
         this.addUIGo(dd);
