@@ -341,7 +341,12 @@ class GO {
         ctx.textAlign = text.align;
         ctx.textBaseline = text.textBaseline;
 
-        ctx.fillText(text.value, text.renderPosition.x, text.renderPosition.y);
+        let textValue = text.value;
+        if(text.preparer && isFunction(text.preparer)){
+            textValue = text.preparer(this, textValue)
+        }
+
+        ctx.fillText(textValue, text.renderPosition.x, text.renderPosition.y);
 
         ctx.restore();
     }
@@ -432,7 +437,7 @@ class GO {
                             this.context.restore();
                     }
                     else 
-                        text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position) : this.renderPosition;
+                        text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position.mul(scale)) : this.renderPosition;
                 }
             }
 

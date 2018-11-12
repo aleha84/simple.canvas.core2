@@ -146,6 +146,24 @@ class UIPanel extends UIControl {
         super(options);
     }
 
+    reset(){
+        for(let ci = 0; ci < this.controls.length; ci++){
+            let control = this.controls[ci];
+            control.size = control.originalSize.clone();
+            if(ci == 0 ){
+                control.position = control.position = new V2(0, -this.size.y/2+control.size.y/2);
+            }
+            else {
+                let prevControl = this.controls[ci-1];
+                control.position = new V2(0, prevControl.position.y + prevControl.size.y/2 + control.size.y/2);
+            }
+
+            control.originalPosition = control.position.clone();
+            
+            control.destSourcePosition = undefined;
+        }
+    }
+
     addControl(control, fromTopToDown) {
         if(!control instanceof UIControl)
             throw 'Wrong control type';
@@ -224,7 +242,12 @@ class UIDropdownItem extends UIControl {
     constructor(options = {}) {
         options = assignDeep({}, {
             textValue: undefined,
-            value: undefined
+            value: undefined,
+            handlers: {
+                click: () => {
+                    this.dropdown.setSelectedItem(this);
+                }   
+            }
         }, options);
 
         if(options.value === undefined)
@@ -279,8 +302,7 @@ class UIDropdown extends UIControl {
     constructor(options = {}) {
         options = assignDeep({}, {
             expanded: false,
-            selectedValue: undefined,
-            selectedIndex: undefined,
+            selectedItem: undefined,
             size: new V2(80, 25),
             items: [],
             maxItemsVisible: 5,
@@ -349,7 +371,7 @@ class UIDropdown extends UIControl {
 
                 innerCtx.beginPath();
                 innerCtx.moveTo(size.x/4, size.y*2/3);
-                innerCtx.lineTo(size.x/2, size.y/4);
+                innerCtx.lineTo(size.x/2, size.y*1/3);
                 innerCtx.lineTo(size.x*3/4, size.y*2/3);
                 innerCtx.stroke();
             })
@@ -377,13 +399,25 @@ class UIDropdown extends UIControl {
         this.collapsedSize = this.size.clone();
         this.expandedSize = new V2(this.size.x, this.size.y+panelHeight);
 
+        let sicSize = new V2(this.size.x - this.toggleButtonWidth, this.size.y);
         this.selectedItemControl = new UIControl({
-            size: new V2(this.size.x - this.toggleButtonWidth, this.size.y),
+            size: sicSize,
             img: this.selectedItemImg,
             position: new V2(1,1),
+            text: {
+                ...GO.getTextPropertyDefaults(this.placeHolderText),
+                size: this.size.y/3,
+                align: 'left',
+                position: new V2(sicSize.x*0.1,sicSize.y/2),
+                preparer: (go, textValue) => {
+                    return fittingString(go.context, textValue, go.renderSize.x*0.8)
+                }
+            },
             handlers: {
                 click: () => {
                     this.toggle();
+                    if(this.itemsPanel.scroll.enabled)
+                        this.itemsPanel.scroll.started = false;
                 }
             }
         });
@@ -394,6 +428,8 @@ class UIDropdown extends UIControl {
             handlers: {
                 click: () => {
                     this.toggle();
+                    if(this.itemsPanel.scroll.enabled)
+                        this.itemsPanel.scroll.started = false;
                 }
             }
         });
@@ -411,7 +447,8 @@ class UIDropdown extends UIControl {
                 textValue: item.text,
                 value: item.value,
                 size: new V2(this.size.x, this.itemHeight),
-                position: new V2(1,1)
+                position: new V2(1,1),
+                dropdown: this
             });
 
             this.itemsPanel.addControl(itemCtrl, true);
@@ -424,6 +461,13 @@ class UIDropdown extends UIControl {
 
     }
 
+    setSelectedItem(item) {
+        this.selectedItem = item;
+        
+        this.selectedItemControl.text.value = item.textValue;//fittingString(this.context, item.textValue, this.selectedItemControl.size.x*0.8);
+        this.toggle();
+    }
+
     setChildSizesAndPositions(){
         let sic = this.selectedItemControl;
         let tbc = this.toggleButtonControl;
@@ -433,33 +477,40 @@ class UIDropdown extends UIControl {
             let box = new Box(this.position.add(new V2(-this.collapsedSize.x/2, -this.collapsedSize.y/2)), this.size);
             this.position = box.center.clone();
 
-            sic.position = new V2((sic.size.x-this.size.x)/2, -this.size.y/2+sic.size.y/2);
-            tbc.position = new V2((this.size.x - tbc.size.x)/2,-this.size.y/2+sic.size.y/2);
             tbc.img = this.toggleButtonClickedImg;
-            pnl.position = new V2(0, sic.position.y + (sic.size.y/2)+(pnl.size.y/2));
+            if(this.panelDirection === 'down'){
+                sic.position = new V2((sic.size.x-this.size.x)/2, -this.size.y/2+sic.size.y/2);
+                tbc.position = new V2((this.size.x - tbc.size.x)/2,-this.size.y/2+sic.size.y/2);
+                pnl.position = new V2(0, sic.position.y + (sic.size.y/2)+(pnl.size.y/2));    
+            }
+            else {
+                // todo
+            }
+            
             pnl.isVisible = true;
+            for(let c of pnl.controls){
+                c.isVisible = true;
+            }
         }
         else {
             this.position = this.originalPosition.clone();
             this.size = this.collapsedSize;
             
             tbc.img = tbc.img = this.toggleButtonImg;
-            if(this.panelDirection === 'down'){
-                sic.position = new V2((sic.size.x-this.size.x)/2, 0);
-                tbc.position = new V2((this.size.x - tbc.size.x)/2,0);
-            }
-            else {
-                // todo
-            }
+            sic.position = new V2((sic.size.x-this.size.x)/2, 0);
+            tbc.position = new V2((this.size.x - tbc.size.x)/2,0);
             
             pnl.isVisible = false;
+            for(let c of pnl.controls){
+                c.isVisible = false;
+            }
+            pnl.reset();
         }
     }
 
     toggle(){
         this.expanded = !this.expanded;
 
-        //this.invalidate(true);
         this.setChildSizesAndPositions();
         this.invalidate();
     }

@@ -152,9 +152,8 @@ SCG.controls = {
             this.getEventAbsolutePosition(event);
 
             this.state.doEventCheck('up');
-            if(!this.state.moving)
+            if(!this.state.moving || this.state.movingDelta.equal(new V2()))
             {
-                //this.state.doClickCheck();
                 this.state.doEventCheck('click');
             }
 
