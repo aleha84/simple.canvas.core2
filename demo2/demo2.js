@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    let scenesNames = ['parallax', 'nightsky', 'flythrough', 'metrotrain'];
+    let scenesNames = ['parallax', 'nightsky', 'flythrough', 'metrotrain', 'cyberslav'];
 
     function sceneSelectByHashValue(){
         let sceneIndex = location.hash !== '' ? scenesNames.indexOf(location.hash.replace('#','')) : 0;
@@ -37,6 +37,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new MetroTrainScene({
         name:'metrotrain',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new CyberslavScene({
+        name:'cyberslav',
         viewport: defaultViewpot
     }));
 

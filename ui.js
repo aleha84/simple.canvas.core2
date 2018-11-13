@@ -14,20 +14,7 @@ SCG.UI = {
 		}
     },
     createCanvas(size, contextProcesser) {
-        if(!size)
-            throw 'SCG.UI.createCanvas -> No size provided ';
-
-        let canvas = document.createElement('canvas');
-        canvas.width = size.x;
-        canvas.height = size.y;
-
-        let ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = false;
-
-        if(contextProcesser && isFunction(contextProcesser))
-            contextProcesser(ctx, size);
-
-        return canvas;
+        return createCanvas(size, contextProcesser);
     }
 }
 

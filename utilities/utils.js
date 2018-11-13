@@ -33,7 +33,7 @@ function isBoolean(variable)
 
 function isString(variable)
 {
-  return typeof myVar == 'string' || myVar instanceof String;
+  return typeof variable == 'string' || variable instanceof String;
 }
 
 function isArray(obj)
@@ -419,4 +419,21 @@ function fittingString(c, str, maxWidth) {
       }
       return str+ellipsis;
   }
+}
+
+function createCanvas(size, contextProcesser) {
+  if(!size)
+      throw 'Utilities.createCanvas -> No size provided ';
+
+  let canvas = document.createElement('canvas');
+  canvas.width = size.x;
+  canvas.height = size.y;
+
+  let ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  if(contextProcesser && isFunction(contextProcesser))
+      contextProcesser(ctx, size);
+
+  return canvas;
 }
