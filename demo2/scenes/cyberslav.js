@@ -4,7 +4,7 @@ class CyberslavScene extends Scene {
             snowflakes: [],
             wind: {
                 enabled: false,
-                originalPower: 2,
+                originalPower: 2.5,
                 direction: 1
             }
         }, options);
@@ -21,6 +21,17 @@ class CyberslavScene extends Scene {
                 innerCtx.fillRect(0,0,size.x,size.y);
             });
 
+
+            let snowFlakeFireImages = [
+            ];
+
+            for(let i = 0; i<25; i++){
+                snowFlakeFireImages.push(createCanvas(new V2(20, 20), function(innerCtx, size){
+                        innerCtx.fillStyle=`rgba(${getRandomInt(220, 255)},${getRandomInt(125,180)},${getRandomInt(10, 80)},${li/10})`;
+                        innerCtx.fillRect(0,0,size.x,size.y);
+                    }));
+            }
+
             let snowflakeGoldImg = createCanvas(new V2(20, 20), function(innerCtx, size){
                 innerCtx.fillStyle=`rgba(237,202,76,${li/10})`;
                 innerCtx.fillRect(0,0,size.x,size.y);
@@ -34,6 +45,7 @@ class CyberslavScene extends Scene {
                     img: snowflakeImg,
                     imgOriginal: snowflakeImg,
                     imgGold: snowflakeGoldImg,
+                    imagesGold: snowFlakeFireImages,
                     isGold: false,
                     size: sfSize.clone(),
                     wind: {
@@ -59,10 +71,24 @@ class CyberslavScene extends Scene {
 
         let titleSize = new V2(256,120);
         this.title = new Title({
-            size:titleSize,
+            size:titleSize.mul(0.6).clone(),
+            originSize: titleSize.clone(),
             position: new V2(this.viewport.x/2-titleSize.x/3, this.viewport.y/2)
         });
         this.addGo(this.title, 7);
+
+        let bottomShineSize = new V2(this.viewport.x, this.viewport.y/4);
+        this.addGo(new GO({
+            size: bottomShineSize.clone(),
+            position: new V2(this.viewport.x/2, this.viewport.y - bottomShineSize.y/2),
+            img: createCanvas(bottomShineSize, function(ctx, size){
+                let grd = ctx.createLinearGradient(size.x/2, size.y, size.x/2, 0);
+                grd.addColorStop(0, 'rgba(255,255,255,0.2)');
+                grd.addColorStop(1, 'rgba(255,255,255,0)');      
+                ctx.fillStyle=grd;
+                ctx.fillRect(0,0,size.x, size.y);
+            })
+        }),11)
 
         this.windTimer = createTimer(3000, this.toggleWind, this, false);
     }
@@ -139,6 +165,8 @@ class Snowflake extends MovingGO {
         options.yAxis.speed = options.speed;
 
         super(options);
+
+        this.originalSize = this.size.clone();
     }
 
     toggleWind() {
@@ -162,6 +190,10 @@ class Snowflake extends MovingGO {
             this.xAxis.current = 0;
             this.yAxis.shift = this.position.y;
             this.yAxis.current = 0;
+            this.size = this.originalSize.clone();
+        }
+        else {
+            this.size = new V2(this.originalSize.x*2, this.originalSize.y/1.5);
         }
     }
 
@@ -176,7 +208,7 @@ class Snowflake extends MovingGO {
 
             if(this.parentScene.title.box.isPointInside(this.position)){
                 this.isGold = true;
-                this.img = this.imgGold;
+                this.img = this.imagesGold[getRandomInt(0, this.imagesGold.length-1)]// this.imgGold;
             }
         }
     }
@@ -196,13 +228,12 @@ class Character extends GO {
 class Title extends GO {
     constructor(options = {}){
         options = assignDeep({}, {
-            imgPropertyName: 'c_title',
             size: new V2(512,240)
         }, options);
 
         super(options);
 
-        this.shineImg = createCanvas(this.size.clone(), function(innerCtx, size){
+        this.shineImg = createCanvas(this.originSize.clone(), function(innerCtx, size){
             var grd = innerCtx.createRadialGradient(size.x/2, size.y/2, 0, size.x/2, size.y/2, size.y/2);
             grd.addColorStop(0, 'rgba(255,168,39,0.5)');
             grd.addColorStop(0.5, 'rgba(237,202,76,0.25)');
@@ -214,18 +245,16 @@ class Title extends GO {
             innerCtx.fillRect(0,0,size.x,size.y);
         });
 
-        this.shineGo = new GO({
-            position: new V2(),
-            size: this.size.clone(),
-            //img: this.shineImg
-        });
-
         this.addChild(new GO({
             position: new V2(),
-            size: this.size.clone(),
+            size: this.originSize.clone(),
             img: this.shineImg
         }));
-        this.addChild(this.shineGo);
+        this.addChild(new GO({
+            position: new V2(),
+            size: this.originSize.clone(),
+            imgPropertyName: 'c_title'
+        }));
         
     }
 }
