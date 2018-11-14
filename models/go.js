@@ -356,11 +356,6 @@ class GO {
     internalUpdate(now){}
 
     update(now){
-        if(!this.initialized){
-            this.initialized = true;
-            this.init(now);
-        }
-
         if(this.img == undefined && this.imgPropertyName != undefined){ //first run workaround
 			this.img = SCG.images[this.imgPropertyName];
 			if(this.img == undefined){
@@ -373,7 +368,12 @@ class GO {
 			if(this.context == undefined){
 				throw `Cant achieve context named: ${this.contextName} `;
 			}
-		}
+        }
+        
+        if(!this.initialized){
+            this.initialized = true;
+            this.init(now);
+        }
 
         this.internalPreUpdate(now);
 

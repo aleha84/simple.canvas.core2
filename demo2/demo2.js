@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.src = {
         vagon: 'images/vagon_lo.png',
         vagonDark: 'images/vagon_lo_dark.png',
+        character: 'images/character1_cut_mid.png',
+        c_background: 'images/c_background.png',
+        c_title: 'images/c_title.png'
 	}
 
     debugger;
