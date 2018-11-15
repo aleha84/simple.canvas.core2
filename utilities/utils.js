@@ -33,7 +33,7 @@ function isBoolean(variable)
 
 function isString(variable)
 {
-  return typeof myVar == 'string' || myVar instanceof String;
+  return typeof variable == 'string' || variable instanceof String;
 }
 
 function isArray(obj)
@@ -391,4 +391,49 @@ function createTimer(delay, method, context, startNow = true) {
       doWorkInternal : method,
       context: context
   }
+}
+
+function drawByPoints(ctx, startFrom, deltaPoints) {
+  ctx.beginPath();
+  ctx.moveTo(startFrom.x, startFrom.y);
+  let current = startFrom.clone();
+  for(let i =0;i<deltaPoints.length;i++){
+      current.add(deltaPoints[i], true);
+      ctx.lineTo(current.x, current.y);
+  }
+  
+  ctx.stroke();
+}
+
+function fittingString(c, str, maxWidth) {
+  var width = c.measureText(str).width;
+  var ellipsis = '…';
+  var ellipsisWidth = c.measureText(ellipsis).width;
+  if (width<=maxWidth || width<=ellipsisWidth) {
+      return str;
+  } else {
+      var len = str.length;
+      while (width>=maxWidth-ellipsisWidth && len-->0) {
+          str = str.substring(0, len);
+          width = c.measureText(str).width;
+      }
+      return str+ellipsis;
+  }
+}
+
+function createCanvas(size, contextProcesser) {
+  if(!size)
+      throw 'Utilities.createCanvas -> No size provided ';
+
+  let canvas = document.createElement('canvas');
+  canvas.width = size.x;
+  canvas.height = size.y;
+
+  let ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  if(contextProcesser && isFunction(contextProcesser))
+      contextProcesser(ctx, size);
+
+  return canvas;
 }

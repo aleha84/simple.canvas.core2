@@ -1,11 +1,15 @@
 class GO {
     constructor(options = {}){
         
-        if(!options.position || !(options.position instanceof V2))
+        if(!options.position || !(options.position instanceof V2)){
+            //console.trace();
             throw `No position defined for graphical object`;
-        
-        if(!options.size || !(options.size instanceof V2))
+        }
+            
+        if(!options.size || !(options.size instanceof V2)){
             throw 'No size defined for grapthical object';
+        }
+            
 
         var objectContext = this;
 
@@ -29,6 +33,7 @@ class GO {
             isVisible: true,
             childrenGO: [],
             tileOptimization: false,
+            initialized: false,
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
@@ -163,6 +168,10 @@ class GO {
             autoCenter: false,
             textBaseline: 'middle'
         };
+    }
+
+    init() {
+
     }
 
     console(message) {
@@ -332,7 +341,12 @@ class GO {
         ctx.textAlign = text.align;
         ctx.textBaseline = text.textBaseline;
 
-        ctx.fillText(text.value, text.renderPosition.x, text.renderPosition.y);
+        let textValue = text.value;
+        if(text.preparer && isFunction(text.preparer)){
+            textValue = text.preparer(this, textValue)
+        }
+
+        ctx.fillText(textValue, text.renderPosition.x, text.renderPosition.y);
 
         ctx.restore();
     }
@@ -354,7 +368,12 @@ class GO {
 			if(this.context == undefined){
 				throw `Cant achieve context named: ${this.contextName} `;
 			}
-		}
+        }
+        
+        if(!this.initialized){
+            this.initialized = true;
+            this.init(now);
+        }
 
         this.internalPreUpdate(now);
 
@@ -418,7 +437,7 @@ class GO {
                             this.context.restore();
                     }
                     else 
-                        text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position) : this.renderPosition;
+                        text.renderPosition = text.position ? this.renderBox.topLeft.add(text.position.mul(scale)) : this.renderPosition;
                 }
             }
 

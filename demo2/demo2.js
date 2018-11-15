@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    let scenesNames = ['parallax', 'nightsky', 'flythrough', 'metrotrain'];
+    let scenesNames = ['parallax', 'nightsky', 'flythrough', 'metrotrain', 'cyberslav'];
 
     function sceneSelectByHashValue(){
         let sceneIndex = location.hash !== '' ? scenesNames.indexOf(location.hash.replace('#','')) : 0;
@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.src = {
         vagon: 'images/vagon_lo.png',
         vagonDark: 'images/vagon_lo_dark.png',
+        character: 'images/character1_cut_mid.png',
+        c_background: 'images/c_background.png',
+        c_title: 'images/c_title.png'
 	}
 
     debugger;
@@ -37,6 +40,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new MetroTrainScene({
         name:'metrotrain',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new CyberslavScene({
+        name:'cyberslav',
         viewport: defaultViewpot
     }));
 

@@ -6,7 +6,8 @@ class MovingGO extends GO {
             direction: new V2,
             setDeadOnDestinationComplete: false,
             path: [],
-            setDestinationOnInit: false
+            setDestinationOnInit: false,
+            positionChangeProcesser: undefined
         }, options);
 
         super(options);
@@ -43,8 +44,16 @@ class MovingGO extends GO {
                 this.setDestination();
             }
 			else{
-                let delta = this.direction.mul(this.speed);
-                this.position.add(delta, true);
+                let delta;
+
+                if(this.positionChangeProcesser && isFunction(this.positionChangeProcesser)){
+                    delta = this.positionChangeProcesser();
+                }
+                else {
+                    delta = this.direction.mul(this.speed);
+                    this.position.add(delta, true);
+                }
+
                 this.positionChangedCallback(delta);
                 this.needRecalcRenderProperties = true;
 			}	

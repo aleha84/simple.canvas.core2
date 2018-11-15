@@ -30,39 +30,77 @@ SCG.controls = {
             movingDirection: new V2(),
             movingDelta: new V2(),
             downTriggered: false,
-            doEventCheck(event){
-                if(!event)
+            doEventCheck(eventType){
+                if(!eventType)
                     return;
 
-                for(let layerIndex = this.eventHandlers[event].length-1;layerIndex>=0;layerIndex--){
-                    let eventLayer = this.eventHandlers[event][layerIndex];
+                if(this.UIEventsHandlers[eventType].length > 0 && !this.doEventCheckByLayer(this.UIEventsHandlers[eventType], eventType)){
+                    return;
+                }  
 
-                    if(!this.doEventCheckByLayer(eventLayer, event)){
+                for(let layerIndex = this.eventHandlers[eventType].length-1;layerIndex>=0;layerIndex--){
+                    let eventLayer = this.eventHandlers[eventType][layerIndex];
+
+                    if(!this.doEventCheckByLayer(eventLayer, eventType)){
                         return;
                     }  
                 }
             },
-            doEventCheckByLayer(eventLayer, event) {
+            // result - continue? false(undefined) - stop; true - continue
+            doEventCheckByLayer(eventLayer, eventType) {
                 if(eventLayer === undefined || event === undefined)
                     return true;
 
                 for(let i = 0; i < eventLayer.length;i++){
                     let chGo = eventLayer[i];
+                    let _res = this.goEventCheck(chGo, eventType);
+                    if(_res)
+                        continue;
+                    
+                    return false;
+                }
 
-                    if(chGo.renderBox!=undefined 
-                        && chGo.isVisible
-                        && chGo.renderBox.isPointInside(this.position) 
-                        && chGo.handlers != undefined 
-                        && chGo.handlers[event] != undefined 
-                        && isFunction(chGo.handlers[event]))
-                    {
-                        var eventResult = chGo.handlers[event].call(chGo);
-                        if(eventResult && eventResult.preventDiving){
+                return true;
+            },
+            // result - continue? false(undefined) - stop; true - continue
+            goEventCheck(go, eventType){
+                if(go.renderBox!=undefined 
+                    && go.isVisible
+                    && go.renderBox.isPointInside(this.position) 
+                    && go.handlers != undefined 
+                    && go.handlers[eventType] != undefined 
+                    && isFunction(go.handlers[eventType])
+                ){//go.handleChildrenEvents && go.handleChildrenEvents[eventType] && 
+                    if(go.childrenGO.length){
+                        for(let i = 0;i<go.childrenGO.length;i++){
+                            let _res = this.goEventCheck(go.childrenGO[i], eventType);
+                            if(_res)
+                                continue;
+                            
                             return false;
                         }
-
-                        break;
                     }
+
+                    var eventResult = go.handlers[eventType].call(go);
+                    if(eventResult){
+                        if(eventResult.preventDiving)
+                            return false;
+                        else {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
+                if(
+                    eventType === 'move' 
+                    && go.moveEventTriggered
+                    && go.handlers != undefined
+                    && go.handlers['out'] != undefined
+                    && isFunction(go.handlers['out'])
+                ){
+                    go.handlers['out'].call(go);
                 }
 
                 return true;
@@ -114,9 +152,9 @@ SCG.controls = {
             this.getEventAbsolutePosition(event);
 
             this.state.doEventCheck('up');
-            if(!this.state.moving)
+            if(!this.state.moving || this.state.movingDelta.equal(new V2()))
             {
-                this.state.doClickCheck();
+                this.state.doEventCheck('click');
             }
 
             this.state.moving = false;
@@ -142,27 +180,34 @@ SCG.controls = {
         },
         move(event) {
             let prevPosition = undefined;
-            if(this.state.position != undefined)
-                prevPosition = this.state.position.clone();
+            let state = this.state;
+            if(state.position != undefined)
+                prevPosition = state.position.clone();
 
             this.getEventAbsolutePosition(event);
 
-            this.state.doEventCheck('move');
+            state.doEventCheck('move');
 
             if(SCG.scenes.activeScene.events.move)
                 SCG.scenes.activeScene.events.move();
+
+            if(prevPosition != undefined){
+                state.movingDelta = prevPosition.substract(state.position);
+                if(!state.movingDelta.equal(new V2())){
+                    state.moving = true;
+                }
+            }
 
             let vp = SCG.viewport;
             if( // drag logics
                 vp.scrollOptions.enabled 
                 && vp.scrollOptions.type === vp.scrollTypes.drag 
                 && prevPosition != undefined
-                && this.state.downTriggered
+                && state.downTriggered
             ){
-                let delta =prevPosition.substract(this.state.position);
-                if(!delta.equal(new V2())){
-                    this.state.moving = true;
-                    vp.camera.updatePosition(SCG.viewport.shift.add(delta.division(vp.scale)));
+                
+                if(!state.movingDelta.equal(new V2())){
+                    vp.camera.updatePosition(SCG.viewport.shift.add(state.movingDelta.division(vp.scale)));
                 }
             }
 
