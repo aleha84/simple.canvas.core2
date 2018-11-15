@@ -11,6 +11,8 @@ Flythrough: https://aleha84.github.io/simple.canvas.core2/demo2/#flythrough
 
 MetroTrain: https://aleha84.github.io/simple.canvas.core2/demo2/#metrotrain
 
+Cyberslav: https://aleha84.github.io/simple.canvas.core2/demo2/#cyberslav
+
 # TODO:
 
 Controls demo
