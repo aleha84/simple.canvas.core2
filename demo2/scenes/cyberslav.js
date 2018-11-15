@@ -15,12 +15,14 @@ class CyberslavScene extends Scene {
         let count = 100;
         let speed = 0.5;
         let koef = 1;
+
         for(let li = 10; li > 5; li--){
             let snowflakeImg = createCanvas(new V2(20, 20), function(innerCtx, size){
                 innerCtx.fillStyle=`rgba(255,255,255,${li/10})`;
-                innerCtx.fillRect(0,0,size.x,size.y);
+                //innerCtx.fillRect(0,0,size.x,size.y);
+                drawFigures(innerCtx, [[new V2(0,5), new V2(5,0), new V2(15,0), new V2(20,5), new V2(20,15), new V2(15,20), new V2(5,20), new V2(0,15), new V2(0,5)]])
+                innerCtx.fill();
             });
-
 
             let snowFlakeFireImages = [
             ];
@@ -28,7 +30,18 @@ class CyberslavScene extends Scene {
             for(let i = 0; i<25; i++){
                 snowFlakeFireImages.push(createCanvas(new V2(20, 20), function(innerCtx, size){
                         innerCtx.fillStyle=`rgba(${getRandomInt(220, 255)},${getRandomInt(125,180)},${getRandomInt(10, 80)},${li/10})`;
-                        innerCtx.fillRect(0,0,size.x,size.y);
+                        //innerCtx.fillRect(0,0,size.x,size.y);
+                        drawFigures(innerCtx, [[new V2(0,5), new V2(5,0), new V2(15,0), new V2(20,5), new V2(20,15), new V2(15,20), new V2(5,20), new V2(0,15), new V2(0,5)]])
+                        innerCtx.fill();
+                    }));
+            }
+
+            for(let i = 0; i<10; i++){
+                snowFlakeFireImages.push(createCanvas(new V2(20, 20), function(innerCtx, size){
+                        innerCtx.fillStyle=`rgba(${getRandomInt(245, 255)},${getRandomInt(0,50)},${getRandomInt(0, 50)},${li/10})`;
+                        //innerCtx.fillRect(0,0,size.x,size.y);
+                        drawFigures(innerCtx, [[new V2(0,5), new V2(5,0), new V2(15,0), new V2(20,5), new V2(20,15), new V2(15,20), new V2(5,20), new V2(0,15), new V2(0,5)]])
+                        innerCtx.fill();
                     }));
             }
 
@@ -99,6 +112,8 @@ class CyberslavScene extends Scene {
         for(let sf of this.snowflakes){
             sf.toggleWind();
         }
+
+        this.character.toggleEyes();
     }
 
     preMainWork(now){
@@ -163,6 +178,7 @@ class Snowflake extends MovingGO {
         options.xAxis.shift = options.position.x;
         options.yAxis.current = options.position.y;
         options.yAxis.speed = options.speed;
+        options.yAxis.originSpeed = options.yAxis.speed;
 
         super(options);
 
@@ -222,8 +238,91 @@ class Character extends GO {
         }, options);
 
         super(options);
+
+        this.leftEye = new Eye({
+            img: createCanvas(new V2(20,20), function(ctx, size){
+                ctx.fillStyle = '#FEF05F';
+                ctx.lineJoin = 'round';
+                drawFigures(ctx, [[new V2(5,5),new V2(20,3), new V2(20,13), new V2(6,17), new V2(5,5)]])
+                ctx.fill();
+            }), 
+            size: new V2(3,3),
+            position: new V2(-4,-125.5),
+        });
+
+        this.addChild(this.leftEye);
+
+        this.rightEye = new Eye({
+            img: createCanvas(new V2(40,20), function(ctx, size){
+                ctx.fillStyle = '#FEF05F';
+                ctx.lineJoin = 'round';
+                drawFigures(ctx, [[new V2(0,15), new V2(7,8), new V2(25,5),new V2(40,5),new V2(30,15), new V2(25,15), new V2(15,16.5), new V2(0,17.5), new V2(0, 15)]])
+                ctx.fill();
+            }), 
+            size: new V2(8,4),
+            position: new V2(10,-128),
+        });
+
+        this.addChild(this.leftEye);
+        this.addChild(this.rightEye);
+    }
+
+    toggleEyes(){
+        this.leftEye.createFadeInOutTimer();
+        this.rightEye.createFadeInOutTimer();
     }
 }
+
+class Eye extends GO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            fadeInOut: {
+                current: 0,
+                direction: 1,
+                delta: 0.075
+            }
+        }, options);
+
+        super(options);
+
+        
+    }
+
+    createFadeInOutTimer(){
+        this.fadeInOutTimer = createTimer(40, this.fadeInOutMethod, this, true);
+    }
+
+    fadeInOutMethod(){
+        this.fadeInOut.current+=this.fadeInOut.delta*this.fadeInOut.direction;
+
+        if(this.fadeInOut.current > 1)
+            this.fadeInOut.current = 1;
+
+        if(this.fadeInOut.current < 0)
+            this.fadeInOut.current = 0;
+
+        if(this.fadeInOut.current >= 1 || this.fadeInOut.current <= 0){
+            this.fadeInOut.direction*=-1;
+            this.fadeInOutTimer = undefined;
+        }
+    }
+
+    internalUpdate(now){
+        if(this.fadeInOutTimer){
+            doWorkByTimer(this.fadeInOutTimer, now);
+        }
+    }
+
+    internalPreRender() {
+        this.context.save();
+        this.context.globalAlpha = this.fadeInOut.current;
+    }
+
+    internalRender() {
+        this.context.restore();
+    }
+}
+
 
 class Title extends GO {
     constructor(options = {}){
@@ -255,6 +354,8 @@ class Title extends GO {
             size: this.originSize.clone(),
             imgPropertyName: 'c_title'
         }));
+
+        
         
     }
 }
