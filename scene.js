@@ -9,6 +9,34 @@ class Scene {
             space: new V2(500, 300),
             AI: undefined,
             ui: [],
+            collisionDetection: {
+                enabled: false,
+                cellSize: new V2(),
+                cells: [],
+                init(spaceSize){
+                    if(this.cellSize.equal(new V2()) || this.cellSize.x <= 0 || this.cellSize.y <= 0)
+                        throw 'Collision cell size must be greater then 0,0';
+
+                    if(spaceSize.x%this.cellSize.x != 0 || spaceSize.y%this.cellSize.y != 0)
+                        throw 'Collision cell size must be multiple of scene space size';
+
+                    let rowsCount = parseInt(spaceSize.y/this.cellSize.y);
+                    let columnsCount = parseInt(spaceSize.x/this.cellSize.x);
+                    this.cells = [];
+
+                    for(let ri = 0; ri < rowsCount; ri++){
+                        this.cells[ri] = [];
+
+                        for(let ci = 0; ci < columnsCount; ci++){
+                            this.cells[ri][ci] = [];
+                        }
+                    }
+                },
+                update(go){
+                    if(!go.collisionDetection || go.collisionDetection.enabled)
+                        throw `GO id: ${go.id} collision detection is disabled.`;
+                }
+            },
             events: { // custom event handling
                 up: undefined,
                 down: undefined,
@@ -69,6 +97,11 @@ class Scene {
                 goLayer[goi].regEvents(layerIndex);
                 // todo reg events for childrens
             }
+        }
+
+        // init collision detection matrix
+        if(this.collisionDetection && this.collisionDetection.enabled){
+            this.collisionDetection.init(this.space);
         }
 
         this.start(sceneProperties);

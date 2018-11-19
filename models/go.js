@@ -34,6 +34,7 @@ class GO {
             childrenGO: [],
             tileOptimization: false,
             initialized: false,
+            detectCollisions: false,
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
