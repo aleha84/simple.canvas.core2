@@ -11,14 +11,17 @@ class Scene {
             ui: [],
             collisionDetection: {
                 enabled: false,
-                cellSize: new V2(),
+                level: 1,
                 cells: [],
                 init(spaceSize){
-                    if(this.cellSize.equal(new V2()) || this.cellSize.x <= 0 || this.cellSize.y <= 0)
-                        throw 'Collision cell size must be greater then 0,0';
+                    if(this.level == 0){
+                        this.enabled = false;
+                    }
 
-                    if(spaceSize.x%this.cellSize.x != 0 || spaceSize.y%this.cellSize.y != 0)
-                        throw 'Collision cell size must be multiple of scene space size';
+                    if(!this.enabled)
+                        return;
+
+                    this.cellSize = new V2(spaceSize.x/this.level, spaceSize.y/this.level);
 
                     let rowsCount = parseInt(spaceSize.y/this.cellSize.y);
                     let columnsCount = parseInt(spaceSize.x/this.cellSize.x);
@@ -35,6 +38,16 @@ class Scene {
                 update(go){
                     if(!go.collisionDetection || go.collisionDetection.enabled)
                         throw `GO id: ${go.id} collision detection is disabled.`;
+
+                    go.collisionDetection.cells = [];
+                    let corners = [go.collisionDetection.box.topLeft, go.collisionDetection.box.topRight, go.collisionDetection.box.bottomLeft, go.collisionDetection.box.bottomRight];
+                    for(ci = 0; ci < corners.length;ci++){
+                        let corner = corners[ci];
+                        let index = new V2(Math.floor(corner.x/this.cellSize.x), Math.floor(corner.y/this.cellSize.y));
+                        if(go.collisionDetection.cells.filter((c) => c.equals(index)).length == 0){
+                            go.collisionDetection.cells.push(index);
+                        }
+                    }
                 }
             },
             events: { // custom event handling

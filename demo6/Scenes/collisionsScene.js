@@ -7,3 +7,7 @@ class CollisionsScene extends Scene {
         super(options);
     }
 }
+
+class CollisionDemoObject extends MovingGO {
+    
+}

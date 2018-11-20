@@ -34,7 +34,10 @@ class GO {
             childrenGO: [],
             tileOptimization: false,
             initialized: false,
-            detectCollisions: false,
+            collisionDetection: {
+                enabled: false,
+                needRecalcBox: false,
+            },
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
@@ -246,6 +249,39 @@ class GO {
         this.absolutePosition = aPosition;
         return aPosition;
     }
+
+    calculateCollisionBox(){
+        if(!this.collisionDetection.enabled)
+            return; 
+
+        let most = {
+            left: this.box.topLeft.x,
+            top: this.box.topLeft.y,
+            right: this.box.bottomRight.x,
+            bottom: this.box.bottomRight.y
+        }
+
+        let getMosts = function(item){
+            if(item.box.topLeft.x < most.left) most.left = item.box.topLeft.x;
+            if(item.box.topLeft.y < most.top) most.top = item.box.topLeft.y;
+            if(item.box.bottomRight.x > most.right) most.right = item.box.bottomRight.x;
+            if(item.box.bottomRight.y > most.bottom) most.bottom = item.box.bottomRight.y;
+
+            if(item.childrenGO.length){
+                for(let ci = 0; ci < item.childrenGO.length; ci++){
+                    getMosts(childrenGO[ci]);
+                }
+            }
+        }
+
+        getMosts(this);
+        let tl = new V2(most.left, most.top);
+        let size = new V2(most.right-most.left, most.bottom-most.top);
+        if(!this.collisionDetection.box)
+            this.collisionDetection.box = new Box(tl, size)
+        else 
+            this.collisionDetection.box.update(tl, size)
+    }
     
     customRender(){ }
         
@@ -443,6 +479,10 @@ class GO {
             }
 
             this.needRecalcRenderProperties = false;
+            
+            if(this.collisionDetection.enabled) {
+                this.collisionDetection.needRecalcBox = true;
+            }
         }
 
 		if(this.isAnimated)
@@ -456,6 +496,12 @@ class GO {
         }
 
         this.childProcesser((child) => child.update(now));
+
+        if(this.collisionDetection.enabled && this.collisionDetection.needRecalcBox){
+            this.collisionDetection.needRecalcBox = false;
+            this.calculateCollisionBox();
+            this.parentScene.collisionDetection.update(this);
+        }
             
         this.console('update completed.');
 	}
