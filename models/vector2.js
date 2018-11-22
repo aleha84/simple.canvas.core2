@@ -136,8 +136,12 @@ class Vector2 {
     }
     
     rotate(angle = 0, inRad = false, inner = false){
-		var result = new Vector2(this.x*Math.cos(inRad?angle:angle*Math.PI/180) - this.y* Math.sin(inRad?angle:angle*Math.PI/180),
-						   this.x*Math.sin(inRad?angle:angle*Math.PI/180) + this.y* Math.cos(inRad?angle:angle*Math.PI/180) );
+        if(!inRad){
+            angle = angle*Math.PI/180;
+        }
+
+		var result = new Vector2(this.x*Math.cos(angle) - this.y* Math.sin(angle),
+						   this.x*Math.sin(angle) + this.y* Math.cos(angle) );
 
 		if(inner)
 		{
@@ -161,6 +165,10 @@ class Vector2 {
 		}
 
 		return this.x === to.x && this.y === to.y;
+    }
+
+    equals(to) {
+        return this.equal(to);
     }
     
     toString(){

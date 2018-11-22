@@ -37,14 +37,17 @@ class GO {
             collisionDetection: {
                 enabled: false,
                 needRecalcBox: false,
+                cells: [],
+                collidedWith: [],
+                onCollision: function(collidedWithGo){}
             },
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
                 framesRowsCount: 0,
                 frameChangeDelay: 0,
-                destinationFrameSize: new V2,
-                sourceFrameSize: new V2,
+                destinationFrameSize: new V2, // original image frame size
+                sourceFrameSize: new V2, // logical size
                 currentDestination : new V2,
                 currentFrame: 0,
                 startFrame: undefined,
@@ -137,6 +140,15 @@ class GO {
         if(this.img == undefined && this.imgPropertyName != undefined)
             this.img = SCG.images[this.imgPropertyName];
 
+        if(typeof this.img === 'string'){
+            if(SCG.images[this.img] == undefined){
+                console.trace();
+                throw `SCG.images has no ${this.img} propery`;
+            }
+
+            this.img = SCG.images[this.img];
+        }
+
         if(this.sendEventsToAI && SCG.AI && SCG.AI.worker)
             SCG.AI.sendEvent({ type: 'created', message: {goType: this.type, id: this.id, position: this.position.clone() }});
 
@@ -189,7 +201,11 @@ class GO {
         this.childProcesser((child) => child.setDead());
 
 		this.beforeDead();
-		
+        
+        if(this.collisionDetection.enabled) {
+            this.parentScene.collisionDetection.remove(this);
+        }
+        
         this.unRegEvents();
 
 		//send to ai msg
@@ -269,7 +285,7 @@ class GO {
 
             if(item.childrenGO.length){
                 for(let ci = 0; ci < item.childrenGO.length; ci++){
-                    getMosts(childrenGO[ci]);
+                    getMosts(item.childrenGO[ci]);
                 }
             }
         }

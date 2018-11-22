@@ -35,17 +35,71 @@ class Scene {
                         }
                     }
                 },
-                update(go){
-                    if(!go.collisionDetection || go.collisionDetection.enabled)
+                remove(go) {
+                    if(!go.collisionDetection || !go.collisionDetection.enabled){
+                        console.trace();
                         throw `GO id: ${go.id} collision detection is disabled.`;
+                    }
+                        
+
+                    for(let ci = 0; ci < go.collisionDetection.cells.length; ci++){
+                        let goCdCell = go.collisionDetection.cells[ci];
+                        let sceneCdCell = this.cells[goCdCell.y][goCdCell.x];
+                        let index = sceneCdCell.indexOf(go);
+                        if(index > -1){
+                            sceneCdCell.splice(index, 1);
+                        }
+                    }
+                },
+                update(go){
+                    if(!go.collisionDetection || !go.collisionDetection.enabled){
+                        console.trace();
+                        throw `GO id: ${go.id} collision detection is disabled.`;
+                    }
+
+                    this.remove(go);
 
                     go.collisionDetection.cells = [];
+
+                    if(!go.alive)
+                        return;
+
                     let corners = [go.collisionDetection.box.topLeft, go.collisionDetection.box.topRight, go.collisionDetection.box.bottomLeft, go.collisionDetection.box.bottomRight];
-                    for(ci = 0; ci < corners.length;ci++){
+                    for(let ci = 0; ci < corners.length;ci++){
                         let corner = corners[ci];
                         let index = new V2(Math.floor(corner.x/this.cellSize.x), Math.floor(corner.y/this.cellSize.y));
                         if(go.collisionDetection.cells.filter((c) => c.equals(index)).length == 0){
+                            if(this.cells[index.y][index.x] === undefined)
+                                continue;
+                                
                             go.collisionDetection.cells.push(index);
+                            this.cells[index.y][index.x].push(go);
+                        }
+                    }
+
+                    this.check(go);
+                },
+                check(go){
+                    let collidedWith = [];
+                    for(let ci = 0; ci < go.collisionDetection.cells.length; ci++){
+                        let goCell = go.collisionDetection.cells[ci];
+                        let sceneCdCell = this.cells[goCell.y][goCell.x];
+
+                        if(sceneCdCell.length <= 1)
+                            continue;
+
+                        for(let gi = 0; gi < sceneCdCell.length; gi++){
+                            let goInSceneCdCell = sceneCdCell[gi];
+                            if(goInSceneCdCell == go)
+                                continue;
+
+                            if(collidedWith.indexOf(goInSceneCdCell) != -1)
+                                continue;
+
+                            if(go.collisionDetection.box.isIntersectsWithBox(goInSceneCdCell.collisionDetection.box)){ // todo more preciese collision
+                                go.collisionDetection.onCollision.call(go, goInSceneCdCell);
+                                collidedWith.push(goInSceneCdCell);
+                            }
                         }
                     }
                 }
