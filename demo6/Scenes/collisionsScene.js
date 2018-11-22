@@ -162,7 +162,6 @@ class Shot extends MovingGO {
     }
 
     beforeDead(){
-        // create explosion
         this.parentScene.addGo(new Explosion({position: this.position.add(this.direction.mul(this.speed))}));
     }
 }
