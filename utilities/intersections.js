@@ -116,7 +116,9 @@ function segmentIntersectCircle2(segment,circle)
   return d1 <= circle.radius || d2 <= circle.radius;
 }
 
-function segmentsIntersectionVector2_1(line1, line2){ //slow
+// slowest if segmentsIntersectionVector2 used without fastRoundWithPrecision
+// medium  if segmentsIntersectionVector2 used with    fastRoundWithPrecision
+function segmentsIntersectionVector2_1(line1, line2){ 
   let result = undefined;
   let b = line1.end.substract(line1.begin);
   let d = line2.end.substract(line2.begin);
@@ -136,8 +138,44 @@ function segmentsIntersectionVector2_1(line1, line2){ //slow
   return line1.begin.add(b.mul(t));
 }
 
+//fastest
+function segmentsIntersectionVector2_1_noV2(line1, line2){ 
+  let result = undefined;
+  //let b = line1.end.substract(line1.begin);
+  let bx = line1.end.x-line1.begin.x;
+  let by = line1.end.y-line1.begin.y;
 
-function segmentsIntersectionVector2(line1, line2) // faster
+  //  let d = line2.end.substract(line2.begin);
+  let dx = line2.end.x-line2.begin.x;
+  let dy = line2.end.y-line2.begin.y;
+
+  let bDotPerp = bx*dy - by*dx;
+  if(bDotPerp === 0)
+    return undefined;
+  
+  //  let c = line2.begin.substract(line1.begin);
+  let cx = line2.begin.x - line1.begin.x;
+  let cy = line2.begin.y - line1.begin.y;
+
+  let t = (cx*dy - cy*dx)/bDotPerp;
+  if(t <0 || t > 1)
+    return undefined;
+  
+  let u = (cx*by - cy*bx)/bDotPerp;
+  if(u < 0 || u > 1)
+    return undefined;
+  
+  //return line1.begin.add(b.mul(t));
+  return new V2(
+    line1.begin.x+bx*t,
+    line1.begin.y+by*t
+  )
+}
+
+// medium faster without fastRoundWithPrecision
+// slowest with fastRoundWithPrecision
+// without fastRoundWithPrecision missing some intersections due to xi < Math.min(x1,x2) and others if values deltas is 0.0000.... DO NOT USE!
+function segmentsIntersectionVector2(line1, line2) 
 {
   let x1 = fastRoundWithPrecision(line1.begin.x,5);//.toFixed(2);
   let x2 = fastRoundWithPrecision(line1.end.x,5);//.toFixed(2);

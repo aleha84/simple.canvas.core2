@@ -415,6 +415,9 @@ String.format = function() {
   return s;
 }
 
+
+// via prototype is extremely slow (chrome)
+// if use precalculatedPrecisions in toFixedFast it will be little faster then fastRoundWithPrecision
 Number.prototype.toFixedFast = function(size){
   if(!size)
     return ~~this;

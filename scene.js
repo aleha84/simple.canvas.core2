@@ -100,7 +100,7 @@ class Scene {
                         let line1 = { begin: c1[ci1-1], end: c1[ci1 == c1.length ? 0:ci1] };
                         for(let ci2 = 1; ci2 <= c2.length; ci2++){
                             let line2 = { begin: c2[ci2-1], end: c2[ci2 == c2.length ? 0:ci2] };
-                            let intersection = segmentsIntersectionVector2(line1, line2);
+                            let intersection = segmentsIntersectionVector2_1_noV2(line1, line2);//segmentsIntersectionVector2(line1, line2);
                             if(intersection !== undefined){
                                 intersections.push(intersection);
                             }
