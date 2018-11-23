@@ -38,8 +38,8 @@ class GO {
                 enabled: false,
                 needRecalcBox: false,
                 cells: [],
-                collidedWith: [],
-                onCollision: function(collidedWithGo){}
+                circuit: [], // контурные точки для более точного детектирования, точки относительно position.
+                onCollision: function(collidedWithGo, collisionPoints){}
             },
             animation: { // todo test needed
                 totalFrameCount: 0,

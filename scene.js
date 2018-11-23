@@ -71,13 +71,43 @@ class Scene {
                         if(go.collisionDetection.cells.filter((c) => c.equals(index)).length == 0){
                             if(this.cells[index.y][index.x] === undefined)
                                 continue;
-                                
+
                             go.collisionDetection.cells.push(index);
                             this.cells[index.y][index.x].push(go);
                         }
                     }
 
                     this.check(go);
+                },
+                getCircuit(go) {
+                    if(!go.collisionDetection.enabled){
+                        console.trace();
+                        throw `GO id: ${go.id} collision detection is disabled.`;
+                    }
+
+                    let cd = go.collisionDetection;
+                    let aCircuit = []
+                    if(cd.circuit.length)
+                        return cd.circuit.map((item) => item.add(go.position));
+                    else 
+                        return [ cd.box.topLeft, cd.box.topRight, cd.box.bottomRight, cd.box.bottomLeft ];
+                },
+                checkCircuitsIntersection(go1, go2) {
+                    let c1 = this.getCircuit(go1);
+                    let c2 = this.getCircuit(go2);
+                    let intersections = [];
+                    for(let ci1 = 1; ci1 <= c1.length; ci1++){
+                        let line1 = { begin: c1[ci1-1], end: c1[ci1 == c1.length ? 0:ci1] };
+                        for(let ci2 = 1; ci2 <= c2.length; ci2++){
+                            let line2 = { begin: c2[ci2-1], end: c2[ci2 == c2.length ? 0:ci2] };
+                            let intersection = segmentsIntersectionVector2(line1, line2);
+                            if(intersection !== undefined){
+                                intersections.push(intersection);
+                            }
+                        }
+                    }
+
+                    return intersections;
                 },
                 check(go){
                     let collidedWith = [];
@@ -97,8 +127,16 @@ class Scene {
                                 continue;
 
                             if(go.collisionDetection.box.isIntersectsWithBox(goInSceneCdCell.collisionDetection.box)){ // todo more preciese collision
-                                go.collisionDetection.onCollision.call(go, goInSceneCdCell);
-                                collidedWith.push(goInSceneCdCell);
+                                if(go.collisionDetection.circuit.length || goInSceneCdCell.collisionDetection.circuit.length){
+                                    let inetersections = this.checkCircuitsIntersection(go, goInSceneCdCell);
+                                    if(inetersections.length){
+                                        go.collisionDetection.onCollision.call(go, goInSceneCdCell, inetersections);    
+                                    }
+                                }
+                                else {
+                                    go.collisionDetection.onCollision.call(go, goInSceneCdCell);
+                                    collidedWith.push(goInSceneCdCell);
+                                }
                             }
                         }
                     }

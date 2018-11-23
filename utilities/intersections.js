@@ -139,14 +139,14 @@ function segmentsIntersectionVector2_1(line1, line2){ //slow
 
 function segmentsIntersectionVector2(line1, line2) // faster
 {
-  let x1 = line1.begin.x;//.toFixed(2);
-  let x2 = line1.end.x;//.toFixed(2);
-  let y1 = line1.begin.y;//.toFixed(2);
-  let y2 = line1.end.y;//.toFixed(2);
-  let x3 = line2.begin.x;//.toFixed(2);
-  let x4 = line2.end.x;//.toFixed(2);
-  let y3 = line2.begin.y;//.toFixed(2);
-  let y4 = line2.end.y;//.toFixed(2);
+  let x1 = fastRoundWithPrecision(line1.begin.x,5);//.toFixed(2);
+  let x2 = fastRoundWithPrecision(line1.end.x,5);//.toFixed(2);
+  let y1 = fastRoundWithPrecision(line1.begin.y,5);//.toFixed(2);
+  let y2 = fastRoundWithPrecision(line1.end.y,5);//.toFixed(2);
+  let x3 = fastRoundWithPrecision(line2.begin.x,5);//.toFixed(2);
+  let x4 = fastRoundWithPrecision(line2.end.x,5);//.toFixed(2);
+  let y3 = fastRoundWithPrecision(line2.begin.y,5);//.toFixed(2);
+  let y4 = fastRoundWithPrecision(line2.end.y,5);//.toFixed(2);
 
   let d = (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4);
   if(d == 0)
@@ -154,8 +154,8 @@ function segmentsIntersectionVector2(line1, line2) // faster
     return undefined;
   }
 
-  let xi = (((x3-x4)*(x1*y2-y1*x2)-(x1-x2)*(x3*y4-y3*x4))/d);//.toFixed(2);
-  let yi = (((y3-y4)*(x1*y2-y1*x2)-(y1-y2)*(x3*y4-y3*x4))/d);//.toFixed(2);
+  let xi = fastRoundWithPrecision((((x3-x4)*(x1*y2-y1*x2)-(x1-x2)*(x3*y4-y3*x4))/d),5);//.toFixed(2);
+  let yi = fastRoundWithPrecision((((y3-y4)*(x1*y2-y1*x2)-(y1-y2)*(x3*y4-y3*x4))/d),5);//.toFixed(2);
 
   let p = new Vector2(xi,yi);
   if (xi < Math.min(x1,x2) || xi > Math.max(x1,x2)) return undefined;

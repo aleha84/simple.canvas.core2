@@ -17,34 +17,41 @@ class CollisionsScene extends Scene {
         });
 
         let obj = new CollisionDemoObject({
-            position: new V2(50,150),
+            position: new V2(200,150),
             img: img,
-            size: new V2(20, 20),
+            size: new V2(40, 40),
             setDestinationOnInit: true,
-            destination: new V2(400, 150),
-            speed: 1
+            //destination: new V2(400, 150),
+            //speed: 1
         });
 
-        let obj1 = new CollisionDemoObject({
-            position: new V2(400,150),
-            img: img,
-            size: new V2(20, 20),
-            setDestinationOnInit: true,
-            destination: new V2(50, 150),
-            speed: 1
-        });
+        // let obj1 = new CollisionDemoObject({
+        //     position: new V2(400,150),
+        //     img: img,
+        //     size: new V2(20, 20),
+        //     setDestinationOnInit: true,
+        //     destination: new V2(50, 150),
+        //     speed: 1
+        // });
 
         this.addGo(obj);
-        this.addGo(obj1);
+        // this.addGo(obj1);
 
         this.shotTimer = createTimer(1000, this.shotTimerInner, this, false);
+
+        // this.addGo(new Shot({
+        //     speed: 3,
+        //     position: new V2(10, this.viewport.y/2),
+        //     destination: new V2(this.viewport.x - 10, 154)
+        // }));
+
     }
 
     shotTimerInner() {
         this.addGo(new Shot({
             speed: 3,
             position: new V2(10, this.viewport.y/2),
-            destination: new V2(this.viewport.x - 10, getRandomInt(10, this.viewport.y-10))
+            destination: new V2(this.viewport.x - 10, getRandomInt(this.viewport.y/2-this.viewport.y/4, this.viewport.y/2+this.viewport.y/4))
         }));
     }
 
@@ -76,7 +83,8 @@ class CollisionsScene extends Scene {
             }
         }
 
-        doWorkByTimer(this.shotTimer, now);
+        if(this.shotTimer)
+            doWorkByTimer(this.shotTimer, now);
     }
 }
 
@@ -85,7 +93,7 @@ class CollisionDemoObject extends MovingGO {
         options = assignDeep({}, {
             collisionDetection: {
                 enabled: true,
-                onCollision: function(collidedWith){
+                onCollision: function(collidedWith, collisionPoints){
                     console.log(`${this.id} collided with ${collidedWith.id}`);
                     this.speed = 0;
                     collidedWith.speed = 0;
@@ -94,6 +102,8 @@ class CollisionDemoObject extends MovingGO {
         }, options);
 
         super(options);
+
+        this.collisionDetection.circuit = [new V2(-this.size.x/2, 0), new V2(0, -this.size.y/2), new V2(this.size.x/2, 0), new V2(0, this.size.y/2)]
     }
 
     internalRender(){
@@ -101,6 +111,18 @@ class CollisionDemoObject extends MovingGO {
         let cdBoxTLRender = this.collisionDetection.box.topLeft.mul(scale);
         this.context.strokeStyle = '#00BFFF';
         this.context.strokeRect(cdBoxTLRender.x, cdBoxTLRender.y, this.collisionDetection.box.width*scale, this.collisionDetection.box.height*scale);
+
+        if(this.collisionDetection.circuit.length){
+            draw(
+                this.context, 
+                {
+                    lineWidth: 2,
+                    strokeStyle: 'red',
+                    closePath: true,
+                    points: this.collisionDetection.circuit.map((item) => item.add(this.position).mul(scale))
+                }
+            )
+        }
     }
 }
 
@@ -113,7 +135,10 @@ class Shot extends MovingGO {
             setDeadOnDestinationComplete: true,
             collisionDetection: {
                 enabled: true,
-                onCollision: function(collidedWith){
+                onCollision: function(collidedWith, intersection){
+                    if(intersection && intersection.length){
+                        this.explosionPoint = V2.average(intersection);
+                    }
                     //console.log(`${this.id} collided with ${collidedWith.id}`);
                     this.setDead();
                 }
@@ -156,13 +181,17 @@ class Shot extends MovingGO {
     }
 
     internalRender(){
+        let scale = SCG.viewport.scale;
+        let cdBoxTLRender = this.collisionDetection.box.topLeft.mul(scale);
+        this.context.strokeStyle = '#00BFFF';
+        this.context.strokeRect(cdBoxTLRender.x, cdBoxTLRender.y, this.collisionDetection.box.width*scale, this.collisionDetection.box.height*scale);
     }
 
     internalPreRender() {
     }
 
     beforeDead(){
-        this.parentScene.addGo(new Explosion({position: this.position.add(this.direction.mul(this.speed))}));
+        this.parentScene.addGo(new Explosion({position: this.explosionPoint ? this.explosionPoint : this.position.add(this.direction.mul(this.speed))}), 3);
     }
 }
 
@@ -173,9 +202,9 @@ class Explosion extends GO {
             isAnimated: true,
             img: 'explosion1',
             animation: {
-                totalFrameCount: 16,
-                framesInRow: 4,
-                framesRowsCount: 4,
+                totalFrameCount: 23,
+                framesInRow: 5,
+                framesRowsCount: 5,
                 frameChangeDelay: 25,
                 destinationFrameSize: new Vector2(10,10),
                 sourceFrameSize: new Vector2(64,64),
