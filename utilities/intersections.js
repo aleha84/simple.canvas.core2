@@ -138,7 +138,7 @@ function segmentsIntersectionVector2_1(line1, line2){
   return line1.begin.add(b.mul(t));
 }
 
-//fastest
+// fastest becouse no V2 used. 
 function segmentsIntersectionVector2_1_noV2(line1, line2){ 
   let result = undefined;
   //let b = line1.end.substract(line1.begin);

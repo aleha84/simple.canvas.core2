@@ -25,6 +25,14 @@ class CollisionsScene extends Scene {
             //speed: 1
         });
 
+        let chObj1 = new CollisionDemoObject({
+            position: new V2(0,-30),
+            img: img,
+            size: new V2(20, 20),
+        });
+
+        obj.addChild(chObj1);
+
         // let obj1 = new CollisionDemoObject({
         //     position: new V2(400,150),
         //     img: img,
@@ -42,7 +50,7 @@ class CollisionsScene extends Scene {
         // this.addGo(new Shot({
         //     speed: 3,
         //     position: new V2(10, this.viewport.y/2),
-        //     destination: new V2(this.viewport.x - 10, 154)
+        //     destination: new V2(this.viewport.x - 10, 90)
         // }));
 
     }
@@ -51,7 +59,7 @@ class CollisionsScene extends Scene {
         this.addGo(new Shot({
             speed: 3,
             position: new V2(10, this.viewport.y/2),
-            destination: new V2(this.viewport.x - 10, getRandomInt(this.viewport.y/2-this.viewport.y/4, this.viewport.y/2+this.viewport.y/4))
+            destination: new V2(this.viewport.x - 10, getRandomInt(80, 100))//getRandomInt(this.viewport.y/2-this.viewport.y/4, this.viewport.y/2+this.viewport.y/4))
         }));
     }
 
@@ -77,7 +85,7 @@ class CollisionsScene extends Scene {
 
                     ctx.font = `${10*SCG.viewport.scale}px Arial`;
                     ctx.fillStyle = 'red';
-                    ctx.textAlign = 'center';
+                    ctx.textAlign = 'right';
                     ctx.fillText(cell.length, ci*renderCellsize.x+renderCellsize.x/7, ri*renderCellsize.y+renderCellsize.y/5);
                 }
             }
@@ -113,13 +121,18 @@ class CollisionDemoObject extends MovingGO {
         this.context.strokeRect(cdBoxTLRender.x, cdBoxTLRender.y, this.collisionDetection.box.width*scale, this.collisionDetection.box.height*scale);
 
         if(this.collisionDetection.circuit.length){
+            let position = this.position;
+            if(this.parent){
+                position = this.absolutePosition;
+            }
+
             draw(
                 this.context, 
                 {
                     lineWidth: 2,
                     strokeStyle: 'red',
                     closePath: true,
-                    points: this.collisionDetection.circuit.map((item) => item.add(this.position).mul(scale))
+                    points: this.collisionDetection.circuit.map((item) => item.add(position).mul(scale))
                 }
             )
         }

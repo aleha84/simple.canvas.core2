@@ -64,18 +64,37 @@ class Scene {
                     if(!go.alive)
                         return;
 
-                    let corners = [go.collisionDetection.box.topLeft, go.collisionDetection.box.topRight, go.collisionDetection.box.bottomLeft, go.collisionDetection.box.bottomRight];
-                    for(let ci = 0; ci < corners.length;ci++){
-                        let corner = corners[ci];
-                        let index = new V2(Math.floor(corner.x/this.cellSize.x), Math.floor(corner.y/this.cellSize.y));
-                        if(go.collisionDetection.cells.filter((c) => c.equals(index)).length == 0){
-                            if(this.cells[index.y][index.x] === undefined)
-                                continue;
+                    //let corners = [go.collisionDetection.box.topLeft, go.collisionDetection.box.topRight, go.collisionDetection.box.bottomLeft, go.collisionDetection.box.bottomRight];
 
-                            go.collisionDetection.cells.push(index);
-                            this.cells[index.y][index.x].push(go);
+                    let tl = go.collisionDetection.box.topLeft;
+                    let topLeftIndex = {x: Math.floor(tl.x/this.cellSize.x), y :Math.floor(tl.y/this.cellSize.y)};
+                    let br = go.collisionDetection.box.bottomRight;
+                    let bottomRightIndex = { x: Math.floor(br.x/this.cellSize.x), y: Math.floor(br.y/this.cellSize.y)};
+
+                    for(let ri = topLeftIndex.y; ri <= bottomRightIndex.y;ri++){
+                        for(let ci = topLeftIndex.x; ci <= bottomRightIndex.x;ci++){
+                            let index = new V2(ci, ri);
+                            if(go.collisionDetection.cells.filter((c) => c.equals(index)).length == 0){
+                                if(this.cells[index.y][index.x] === undefined)
+                                    continue;
+    
+                                go.collisionDetection.cells.push(index);
+                                this.cells[index.y][index.x].push(go);
+                            }
                         }
                     }
+
+                    // for(let ci = 0; ci < corners.length;ci++){
+                    //     let corner = corners[ci];
+                    //     let index = new V2(Math.floor(corner.x/this.cellSize.x), Math.floor(corner.y/this.cellSize.y));
+                    //     if(go.collisionDetection.cells.filter((c) => c.equals(index)).length == 0){
+                    //         if(this.cells[index.y][index.x] === undefined)
+                    //             continue;
+
+                    //         go.collisionDetection.cells.push(index);
+                    //         this.cells[index.y][index.x].push(go);
+                    //     }
+                    // }
 
                     this.check(go);
                 },
@@ -87,8 +106,13 @@ class Scene {
 
                     let cd = go.collisionDetection;
                     let aCircuit = []
-                    if(cd.circuit.length)
-                        return cd.circuit.map((item) => item.add(go.position));
+                    if(cd.circuit.length){
+                        let position = go.position;
+                        if(go.parent){
+                            position = go.absolutePosition;
+                        }
+                        return cd.circuit.map((item) => item.add(position));
+                    }
                     else 
                         return [ cd.box.topLeft, cd.box.topRight, cd.box.bottomRight, cd.box.bottomLeft ];
                 },
@@ -123,6 +147,11 @@ class Scene {
                             if(goInSceneCdCell == go)
                                 continue;
 
+                            if(
+                                go.collisionDetection.exclude.indexOf(goInSceneCdCell) != -1
+                                || goInSceneCdCell.collisionDetection.exclude.indexOf(go) != -1 )
+                                continue;
+
                             if(collidedWith.indexOf(goInSceneCdCell) != -1)
                                 continue;
 
@@ -131,6 +160,7 @@ class Scene {
                                     let inetersections = this.checkCircuitsIntersection(go, goInSceneCdCell);
                                     if(inetersections.length){
                                         go.collisionDetection.onCollision.call(go, goInSceneCdCell, inetersections);    
+                                        collidedWith.push(goInSceneCdCell);
                                     }
                                 }
                                 else {

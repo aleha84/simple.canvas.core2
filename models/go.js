@@ -37,6 +37,7 @@ class GO {
             collisionDetection: {
                 enabled: false,
                 needRecalcBox: false,
+                exclude: [],
                 cells: [],
                 circuit: [], // контурные точки для более точного детектирования, точки относительно position.
                 onCollision: function(collidedWithGo, collisionPoints){}
@@ -198,6 +199,9 @@ class GO {
     beforeDead(){}
 
     setDead() {
+        if(!this.alive) // can setDead only once
+            return;
+
         this.childProcesser((child) => child.setDead());
 
 		this.beforeDead();
@@ -217,6 +221,33 @@ class GO {
         this.console('setDead completed.');
     }
 
+    getAllChildren() {
+        let root = this;
+        let result = [];
+        let getChildren = function(go){
+            if(go.childrenGO.length){
+                result = [...result, ...go.childrenGO];
+                go.childrenGO.map(function(item) {
+                    getChildren(item);
+                });
+            }
+        }
+
+        if(this.parent){
+            let parent = this.parent;
+            while(parent.parent != undefined){
+                parent = parent.parent;
+            }
+
+            root = parent;
+        }
+
+        result.push(root);
+        getChildren(root);
+
+        return result;
+    }
+
     addChild(childGo, regEvents = false) {
         if(!(childGo instanceof GO)){
             console.warn('Can\' add to children object isn\'t inherited from GO');
@@ -228,6 +259,11 @@ class GO {
 
         if(regEvents)
             childGo.regEvents(this.layerIndex);
+
+        if(childGo.collisionDetection.enabled){
+            let all = this.getAllChildren().filter(function(go){ return go.collisionDetection.enabled });
+            all.map((go) => go.collisionDetection.exclude = all);
+        }
     }
 
     removeChild(childGo) {
@@ -239,6 +275,11 @@ class GO {
             this.childrenGO.splice(index,1);
             childGo.parent = undefined;
             childGo.unRegEvents();
+        }
+
+        if(childGo.collisionDetection.enabled){
+            let all = getAllChildren().filter(function(go){ return go.collisionDetection.enabled });
+            all.map((go) => go.collisionDetection.exclude = all);
         }
     }
 
@@ -516,7 +557,20 @@ class GO {
         if(this.collisionDetection.enabled && this.collisionDetection.needRecalcBox){
             this.collisionDetection.needRecalcBox = false;
             this.calculateCollisionBox();
-            this.parentScene.collisionDetection.update(this);
+            let parentScene = undefined;
+            if(this.parent != undefined){
+                let parent = this.parent;
+                while(parent.parent != undefined){
+                    parent = parent.parent;
+                }
+
+                parentScene = parent.parentScene;
+            }
+            else {
+                parentScene = this.parentScene;
+            }
+
+            parentScene.collisionDetection.update(this);
         }
             
         this.console('update completed.');
