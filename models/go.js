@@ -40,6 +40,7 @@ class GO {
                 exclude: [],
                 cells: [],
                 circuit: [], // контурные точки для более точного детектирования, точки относительно position.
+                preCheck: function(go){ return true; }, // some light checking before collision should be checked, if false returned then no cd check will be performed
                 onCollision: function(collidedWithGo, collisionPoints){}
             },
             animation: { // todo test needed

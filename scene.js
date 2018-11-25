@@ -155,6 +155,11 @@ class Scene {
                             if(collidedWith.indexOf(goInSceneCdCell) != -1)
                                 continue;
 
+                            if(go.collisionDetection.preCheck 
+                                && isFunction(go.collisionDetection.preCheck) 
+                                && !go.collisionDetection.preCheck.call(go, goInSceneCdCell))
+                                continue;
+
                             if(go.collisionDetection.box.isIntersectsWithBox(goInSceneCdCell.collisionDetection.box)){ // todo more preciese collision
                                 if(go.collisionDetection.circuit.length || goInSceneCdCell.collisionDetection.circuit.length){
                                     let inetersections = this.checkCircuitsIntersection(go, goInSceneCdCell);

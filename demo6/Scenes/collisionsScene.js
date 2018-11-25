@@ -17,12 +17,10 @@ class CollisionsScene extends Scene {
         });
 
         let obj = new CollisionDemoObject({
-            position: new V2(200,150),
+            position: new V2(250,150),
             img: img,
             size: new V2(40, 40),
             setDestinationOnInit: true,
-            //destination: new V2(400, 150),
-            //speed: 1
         });
 
         let chObj1 = new CollisionDemoObject({
@@ -31,21 +29,63 @@ class CollisionsScene extends Scene {
             size: new V2(20, 20),
         });
 
+        let chObj1_1 = new CollisionDemoObject({
+            position: new V2(0,-15),
+            img: img,
+            size: new V2(10, 10),
+        });
+
+        chObj1.addChild(chObj1_1);
         obj.addChild(chObj1);
-
-        // let obj1 = new CollisionDemoObject({
-        //     position: new V2(400,150),
-        //     img: img,
-        //     size: new V2(20, 20),
-        //     setDestinationOnInit: true,
-        //     destination: new V2(50, 150),
-        //     speed: 1
-        // });
-
         this.addGo(obj);
-        // this.addGo(obj1);
 
-        this.shotTimer = createTimer(1000, this.shotTimerInner, this, false);
+        let obj2 = new CollisionDemoObject({
+            position: new V2(350,250),
+            img: img,
+            size: new V2(40, 40),
+            setDestinationOnInit: true,
+        });
+
+        let chObj2_1 = new CollisionDemoObject({
+            position: new V2(0,-30),
+            img: img,
+            size: new V2(20, 20),
+        });
+
+        let chObj2_1_1 = new CollisionDemoObject({
+            position: new V2(0,-15),
+            img: img,
+            size: new V2(10, 10),
+        });
+
+        chObj2_1.addChild(chObj2_1_1);
+        obj2.addChild(chObj2_1);
+        this.addGo(obj2);
+
+        let obj3 = new CollisionDemoObject({
+            position: new V2(350,75),
+            img: img,
+            size: new V2(40, 40),
+            setDestinationOnInit: true,
+        });
+
+        let chObj3_1 = new CollisionDemoObject({
+            position: new V2(0,-30),
+            img: img,
+            size: new V2(20, 20),
+        });
+
+        let chObj3_1_1 = new CollisionDemoObject({
+            position: new V2(0,-15),
+            img: img,
+            size: new V2(10, 10),
+        });
+
+        chObj3_1.addChild(chObj3_1_1);
+        obj3.addChild(chObj3_1);
+        this.addGo(obj3);
+
+        this.shotTimer = createTimer(100, this.shotTimerInner, this, false);
 
         // this.addGo(new Shot({
         //     speed: 3,
@@ -59,7 +99,7 @@ class CollisionsScene extends Scene {
         this.addGo(new Shot({
             speed: 3,
             position: new V2(10, this.viewport.y/2),
-            destination: new V2(this.viewport.x - 10, getRandomInt(80, 100))//getRandomInt(this.viewport.y/2-this.viewport.y/4, this.viewport.y/2+this.viewport.y/4))
+            destination: new V2(this.viewport.x - 10, getRandomInt(0, this.viewport.y))
         }));
     }
 
@@ -148,6 +188,9 @@ class Shot extends MovingGO {
             setDeadOnDestinationComplete: true,
             collisionDetection: {
                 enabled: true,
+                preCheck: function(go) {
+                    return this.type !== go.type;
+                },
                 onCollision: function(collidedWith, intersection){
                     if(intersection && intersection.length){
                         this.explosionPoint = V2.average(intersection);
