@@ -75,7 +75,7 @@ class Scene {
                         for(let ci = topLeftIndex.x; ci <= bottomRightIndex.x;ci++){
                             let index = new V2(ci, ri);
                             if(go.collisionDetection.cells.filter((c) => c.equals(index)).length == 0){
-                                if(this.cells[index.y][index.x] === undefined)
+                                if(this.cells[index.y] === undefined || this.cells[index.y][index.x] === undefined)
                                     continue;
     
                                 go.collisionDetection.cells.push(index);
@@ -211,6 +211,9 @@ class Scene {
     addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly
         if(go === undefined)
             throw 'No GO provided';
+
+        if(!(go instanceof GO))
+            throw 'To addGo must be passed object derived from GO';
 
         if(this.goLayers[layerIndex] === undefined)
             this.goLayers[layerIndex] = [];
