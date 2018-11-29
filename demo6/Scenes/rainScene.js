@@ -9,13 +9,15 @@ class RainScene extends Scene {
 
         super(options);
 
+        this.rainDropCache = [];
+
         //layers
         this.skyLayer = 0;
         this.backBuildingsLayer = 1;
         this.backStreamLayer = 1
         this.midBuildingsLayer = 4;
         this.midStreamLayer = 4;
-        this.frontBuildingsLayer = 8;
+        this.frontBuildingsLayer = 7;
         this.buildingsLayers = [this.backBuildingsLayer, this.midBuildingsLayer, this.frontBuildingsLayer];
         this.backgroundRainLayer = 10;
         this.roadSideLayer = 11;
@@ -128,6 +130,11 @@ class RainScene extends Scene {
             ctx.fillRect(0,0, size.x, size.y);
         });
 
+        this.recreatedRainDropImg = createCanvas(new V2(5,50), function(ctx, size){
+            ctx.fillStyle = 'green';
+            ctx.fillRect(0,0, size.x, size.y);
+        });
+
         this.splashImg = createCanvas(new V2(10, 10), function(ctx, size){
             ctx.fillStyle = 'red';
             ctx.fillRect(0,0, size.x, size.y);
@@ -139,11 +146,21 @@ class RainScene extends Scene {
         });
 
         this.streamItemRedImg = createCanvas(new V2(5,5), function(ctx, size){
-            ctx.fillStyle = 'red';
+            ctx.fillStyle = 'rgb(190, 0, 0)';
+            ctx.fillRect(0,0, size.x, size.y);
+        })
+
+        this.streamItemBrightRedImg = createCanvas(new V2(5,5), function(ctx, size){
+            ctx.fillStyle = 'rgb(255, 0, 0)';
             ctx.fillRect(0,0, size.x, size.y);
         })
 
         this.streamItemYelloImg = createCanvas(new V2(5,5), function(ctx, size){
+            ctx.fillStyle = 'rgb(200, 200, 0)';
+            ctx.fillRect(0,0, size.x, size.y);
+        })
+
+        this.streamItemBrightYelloImg = createCanvas(new V2(5,5), function(ctx, size){
             ctx.fillStyle = 'yellow';
             ctx.fillRect(0,0, size.x, size.y);
         })
@@ -156,6 +173,7 @@ class RainScene extends Scene {
             let h = this.midStreamHeight+ (getRandomBool() ? 1 : -1)*getRandom(0,2);
             this.addGo(new StreamItem({
                 img: this.streamItemRedImg,
+                brightImg: this.streamItemBrightRedImg,
                 position: new V2(i, h),
                 destination: new V2(this.viewport.x+1, h)
             }), this.midStreamLayer);
@@ -168,6 +186,7 @@ class RainScene extends Scene {
             let h = this.backStreamHeight+ (getRandomBool() ? 1 : -1)*getRandom(0,1.5);
             this.addGo(new StreamItem({
                 img: this.streamItemYelloImg,
+                brightImg: this.streamItemBrightYelloImg,
                 position: new V2(i, h),
                 destination: new V2(-1, h),
                 size: this.backStreamSize,
@@ -178,7 +197,7 @@ class RainScene extends Scene {
         // timers
         this.rainDropTimer = createTimer(50, this.rainDropTimerMethod, this, true);
         this.midRainDropTimer = createTimer(50, this.midRainDropTimerMethod, this, true);
-        this.backRainDropTimer = createTimer(50, this.backRainDropTimerMethod, this, true);
+         this.backRainDropTimer = createTimer(50, this.backRainDropTimerMethod, this, true);
 
         this.backStraemTimer = createTimer(175, this.backStreamTimerMethod, this, true);
         this.midStraemTimer = createTimer(175, this.midStreamTimerMethod, this, true);
@@ -228,7 +247,11 @@ class RainScene extends Scene {
                     for(let ci = 0; ci < cCount; ci++){
                         if(getRandomInt(0,4) === 4)
                             continue;
-                        ctx.fillStyle = windowColors[getRandomInt(0, windowColors.length-1)];
+
+                        ctx.fillStyle =// getRandomInt(0,10) > 7 
+                            //? `rgb(${getRandomInt(brightWindows[0][0],brightWindows[1][0])}, ${getRandomInt(brightWindows[0][1],brightWindows[1][1])}, ${getRandomInt(brightWindows[0][2],brightWindows[1][2])})`
+                            //: `rgb(${getRandomInt(darkWindows[0][0],darkWindows[1][0])}, ${getRandomInt(darkWindows[0][1],darkWindows[1][1])}, ${getRandomInt(darkWindows[0][2],darkWindows[1][2])})`;
+                          windowColors[getRandomInt(0, windowColors.length-1)];
                         ctx.fillRect(windowSize.x*ci, windowSize.y*ri, windowSize.x, windowSize.y);
                     }
                     
@@ -237,68 +260,96 @@ class RainScene extends Scene {
         });
     }
 
+    getRaindropCacheItem(layer, position, destination){
+        let cache = this.rainDropCache;
+        if(!cache[layer]){
+            cache[layer] = [];
+        }
+
+        if(cache[layer].length){
+            let rd = cache[layer].pop();
+            rd.position = position;
+            rd.setDestination(destination);
+            rd.isVisible = true;
+            //rd.img = this.recreatedRainDropImg;
+            return true;
+        }
+
+        // if(this.createdRainDrops === undefined){ this.createdRainDrops = 0 }
+        // console.log(++this.createdRainDrops + ' createdRainDrops');
+        return false;
+    }
+
     backRainDropTimerMethod(){
         for(let i = 0; i < 10; i++){
             let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
-            this.addGo(new RainDrop({
-                collisionDetection: {
-                    enabled: false
-                },
-                position: position,
-                destination:new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y),
-                img: this.backRainDropImg,
-                splash: false,
-                speed: 6,
-                size: new V2(0.25,4),
-                layer: this.backgroundRainLayer-1,
-            }), this.backgroundRainLayer-2);
+            let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
+            if(!this.getRaindropCacheItem(this.backgroundRainLayer-2, position, destination)) 
+                this.addGo(new RainDrop({
+                    collisionDetection: {
+                        enabled: false
+                    },
+                    position: position,
+                    destination:destination,
+                    img: this.backRainDropImg,
+                    splash: false,
+                    speed: 6,
+                    size: new V2(0.25,4),
+                    layer: this.backgroundRainLayer-2,
+                }), this.backgroundRainLayer-2);
         }
 
         for(let i = 0; i < 15; i++){
             let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
-            this.addGo(new RainDrop({
-                collisionDetection: {
-                    enabled: false
-                },
-                position: position,
-                destination:new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y),
-                img: this.backRainDropImg,
-                splash: false,
-                speed: 4,
-                size: new V2(0.15,2),
-                layer: this.backgroundRainLayer-1,
-            }), this.backgroundRainLayer-1);
+            let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
+            if(!this.getRaindropCacheItem(this.backgroundRainLayer-1, position, destination)) 
+                this.addGo(new RainDrop({
+                    collisionDetection: {
+                        enabled: false
+                    },
+                    position: position,
+                    destination: destination,
+                    img: this.backRainDropImg,
+                    splash: false,
+                    speed: 4,
+                    size: new V2(0.15,2),
+                    layer: this.backgroundRainLayer-1,
+                }), this.backgroundRainLayer-1);
         }
 
         for(let i = 0; i < 20; i++){
-            let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
-            this.addGo(new RainDrop({
-                collisionDetection: {
-                    enabled: false
-                },
-                position: position,
-                destination:new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y),
-                img: this.backRainDropImg,
-                splash: false,
-                speed: 3,
-                size: new V2(0.1,1),
-                layer: this.backgroundRainLayer,
-            }), this.backgroundRainLayer);
+            let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0));
+            let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
+            if(!this.getRaindropCacheItem(this.backgroundRainLayer, position, destination))  
+                this.addGo(new RainDrop({
+                    collisionDetection: {
+                        enabled: false
+                    },
+                    position: position,
+                    destination: destination,
+                    img: this.backRainDropImg,
+                    splash: false,
+                    speed: 3,
+                    size: new V2(0.1,1),
+                    layer: this.backgroundRainLayer,
+                }), this.backgroundRainLayer);
         }
     }
 
     midRainDropTimerMethod(){
         for(let i = 0; i < 4; i++){
             let position =new V2(getRandomInt(1, this.viewport.x-1), -10); 
-            this.addGo(new RainDrop({
-                position: position,
-                destination:new V2(position.x, getRandomInt(this.viewport.y-this.floorSize.y - this.roadSize.y*2/3, this.viewport.y-this.floorSize.y)),
-                img: this.midRainDropImg,
-                isBack: true,
-                speed: 10,
-                size: new V2(0.5,8),
-                layer: this.middleRainLayer,
-            }), this.middleRainLayer);
+            let destination = new V2(position.x, getRandomInt(this.viewport.y-this.floorSize.y - this.roadSize.y*2/3, this.viewport.y-this.floorSize.y));
+            if(!this.getRaindropCacheItem(this.middleRainLayer, position, destination)) 
+                this.addGo(new RainDrop({
+                    position: position,
+                    destination: destination,
+                    img: this.midRainDropImg,
+                    isBack: true,
+                    speed: 10,
+                    size: new V2(0.5,8),
+                    layer: this.middleRainLayer,
+                }), this.middleRainLayer);
         }
     }
 
@@ -306,6 +357,7 @@ class RainScene extends Scene {
         let h = this.backStreamHeight+ (getRandomBool() ? 1 : -1)*getRandom(0,1.5);
         this.addGo(new StreamItem({
             img: this.streamItemYelloImg,
+            brightImg: this.streamItemBrightYelloImg,
             position: new V2(this.viewport.x, h),
             destination: new V2(-1, h),
             size: this.backStreamSize,
@@ -316,6 +368,7 @@ class RainScene extends Scene {
         let h = this.midStreamHeight+ (getRandomBool() ? 1 : -1)*getRandom(0,2);
         this.addGo(new StreamItem({
             img: this.streamItemRedImg,
+            brightImg: this.streamItemBrightRedImg,
             position: new V2(0, h),
             destination: new V2(this.viewport.x+1, h)
         }), this.midStreamLayer);
@@ -324,12 +377,14 @@ class RainScene extends Scene {
     rainDropTimerMethod(){
         for(let i = 0; i < 3; i++){
             let position =new V2(getRandomInt(1, this.viewport.x-1), -10); 
-            this.addGo(new RainDrop({
-                position: position,
-                destination:new V2(position.x, getRandomInt(this.viewport.y-this.floorSize.y*2/3, this.viewport.y)),
-                img: this.rainDropImg,
-                layer: this.frontalRainLayer,
-            }), this.frontalRainLayer);
+            let destination = new V2(position.x, getRandomInt(this.viewport.y-this.floorSize.y*2/3, this.viewport.y));
+            if(!this.getRaindropCacheItem(this.frontalRainLayer, position, destination)) 
+                this.addGo(new RainDrop({
+                    position: position,
+                    destination:destination,
+                    img: this.rainDropImg,
+                    layer: this.frontalRainLayer
+                }), this.frontalRainLayer);
         }
         
     }
@@ -375,14 +430,22 @@ class RainDrop extends MovingGO {
             speed: 12,
             size: new V2(0.5,10),
             setDestinationOnInit: true,
-            setDeadOnDestinationComplete: true,
+            setDeadOnDestinationComplete: false,
             splash: true
         }, options);
 
         super(options);
     }
 
-    beforeDead(){
+    destinationCompleteCallBack(){
+        let cache = this.parentScene.rainDropCache;
+        if(!cache[this.layer]){
+            cache[this.layer] = [];
+        }
+
+        cache[this.layer].push(this);
+
+        this.isVisible = false;
         if(!this.splash)
             return;
 
@@ -460,5 +523,36 @@ class StreamItem extends MovingGO {
         }, options);
 
         super(options);
+
+        this.originImage = this.img;
+        this.brightTimer = createTimer(getRandomInt(250, 750), this.brightTimerMethod, this, true);
+    }
+
+    brightTimerMethod(){
+        if(this.bright)
+            return;
+
+        if(getRandomInt(0,50) > 45){
+            this.bright = true;
+            this.img = this.brightImg;
+
+            this.brightOffTimer = createTimer(getRandomInt(500, 1500), this.brightOffTimerMethod, this, false);
+        }
+    }
+
+    brightOffTimerMethod(){
+        this.brightOffTimer = undefined;
+        this.bright = false;
+        this.img = this.originImage;
+    }
+
+    internalUpdate(now){
+        if(this.brightTimer){
+            doWorkByTimer(this.brightTimer, now);
+        }
+
+        if(this.brightOffTimer){
+            doWorkByTimer(this.brightOffTimer, now);
+        }
     }
 }
