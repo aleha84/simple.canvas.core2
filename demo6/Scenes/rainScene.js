@@ -74,13 +74,17 @@ class RainScene extends Scene {
                     img: this.buildingGenerator(li, points)
                 });
 
-                if(getRandomInt(1,3) == 3){
+                if(li ==2 || getRandomInt(1,3) == 3){
                     let upper = Math.min.apply(null, points.map((p) => p.y));
-                    let size = new V2(building.size.x*(0.5-0.1*li), building.size.x*(0.75-0.1*li));
+                    let size = li ==0 ? new V2(building.size.x*0.2, building.size.x*getRandom(0.3, 0.6)): new V2(building.size.x*(0.5-0.1*li), building.size.x*(0.75-0.1*li));
                     building.addChild(new AdvertisementScreen({
                         position: new V2(getRandom(-building.size.x/2, building.size.x/2), -building.size.y/2+upper+size.y),
                         size: size,
-                        color: this.neonColors[getRandomInt(0,this.neonColors.length-1)]
+                        color: this.neonColors[getRandomInt(0,this.neonColors.length-1)],
+                        blinking: {
+                            enabled: li == 2,
+                            fast: li ==2
+                        }
                     }));
                 }
 
@@ -177,6 +181,11 @@ class RainScene extends Scene {
             ctx.fillRect(0,0, size.x, size.y);
         })
 
+        this.streamItemBlueImg = createCanvas(new V2(5,5), function(ctx, size){
+            ctx.fillStyle = 'rgb(0, 0, 255)';
+            ctx.fillRect(0,0, size.x, size.y);
+        })
+
         this.streamItemBrightRedImg = createCanvas(new V2(5,5), function(ctx, size){
             ctx.fillStyle = 'rgb(255, 0, 0)';
             ctx.fillRect(0,0, size.x, size.y);
@@ -235,10 +244,15 @@ class RainScene extends Scene {
             }), this.frontStreamLayer);
         }
         
-        // this.addGo(new AdvertisementScreen({
-        //     size: new V2(30,30),
-        //     position: new V2(this.viewport.x/2, this.viewport.y/2)
-        // }),100);
+        // this.addGo(new StreamItem({
+        //     position: new V2(this.viewport.x/2, 40),
+        //     itemType: 'police',
+        //     img: this.streamItemBrightRedImg,
+        //     brightImg: this.streamItemBlueImg,
+        //     destination: new V2(this.viewport.x+1, this.viewport.y/2),
+        //     size: this.fronStreamItemSize,
+        //     speed: 0.6,
+        // }), 30);
 
         // timers
         this.rainDropTimer = createTimer(50, this.rainDropTimerMethod, this, true);
@@ -248,6 +262,8 @@ class RainScene extends Scene {
         this.backStraemTimer = createTimer(175, this.backStreamTimerMethod, this, true);
         this.midStraemTimer = createTimer(175, this.midStreamTimerMethod, this, true);
         this.frontStreamTimer = createTimer(125, this.frontStreamTimerMethod, this, true);
+
+        this.customStreamTimer = createTimer(1500, this.customStreamTimerMethod, this, true);
     }
 
     fenceGenerator(ctx, size) {
@@ -375,13 +391,9 @@ class RainScene extends Scene {
                         if(getRandomInt(0,4) === 4)
                             continue;
 
-                        ctx.fillStyle =// getRandomInt(0,10) > 7 
-                            //? `rgb(${getRandomInt(brightWindows[0][0],brightWindows[1][0])}, ${getRandomInt(brightWindows[0][1],brightWindows[1][1])}, ${getRandomInt(brightWindows[0][2],brightWindows[1][2])})`
-                            //: `rgb(${getRandomInt(darkWindows[0][0],darkWindows[1][0])}, ${getRandomInt(darkWindows[0][1],darkWindows[1][1])}, ${getRandomInt(darkWindows[0][2],darkWindows[1][2])})`;
-                          windowColors[getRandomInt(0, windowColors.length-1)];
+                        ctx.fillStyle = windowColors[getRandomInt(0, windowColors.length-1)];
                         ctx.fillRect(windowSize.x*ci, windowSize.y*ri, windowSize.x, windowSize.y);
                     }
-                    
                 }
 
                 let alpha = 0.9 - howFar*0.3;
@@ -536,6 +548,59 @@ class RainScene extends Scene {
         }), this.frontStreamLayer);
     }
 
+    customStreamTimerMethod(){
+        let howFar = getRandomInt(0,2);
+        let h;
+        let size;
+        let position;
+        let destination;
+        let layer;
+        let speed;
+        //console.log(howFar);
+        switch(howFar){
+            case 0:
+                h = this.backStreamHeight;
+                size = this.backStreamSize;
+                position = new V2(this.viewport.x, h)
+                destination =  new V2(-1, h),
+                layer = this.backStreamLayer;
+                speed = 0.6;
+                break;
+            case 1:
+                h = this.midStreamHeight;
+                size = this.backStreamSize;
+                position = new V2(0, h);
+                destination =  new V2(this.viewport.x+1, h);
+                layer = this.midStreamLayer;
+                speed = 0.6;
+                break;
+            case 2: 
+                h = this.frontStreamHeight;
+                size = this.fronStreamItemSize;
+                position = new V2(0, h);
+                destination =  new V2(this.viewport.x+1, h);
+                layer = this.frontStreamLayer;
+                speed = 1.5;
+                break;
+        }
+
+        if(getRandomBool()){
+            h = getRandom(20, this.viewport.y*1/3);
+            position.y = h;
+            destination.y = h;
+        }
+
+        this.addGo(new StreamItem({
+                position: position,
+                itemType: 'police',
+                img: this.streamItemBrightRedImg,
+                brightImg: this.streamItemBlueImg,
+                destination: destination,
+                size: size,
+                speed: speed,
+            }), layer);
+    }
+
     backgroundRender(){
         let grd = SCG.contexts.background.createLinearGradient(SCG.viewport.real.width/2, SCG.viewport.real.height, SCG.viewport.real.width/2, 0);
         //grd.addColorStop(0, '#4184AD');
@@ -572,6 +637,10 @@ class RainScene extends Scene {
 
         if(this.frontStreamTimer) {
             doWorkByTimer(this.frontStreamTimer, now);
+        }
+
+        if(this.customStreamTimer) {
+            doWorkByTimer(this.customStreamTimer, now);
         }
     }
 }
@@ -674,13 +743,24 @@ class StreamItem extends MovingGO {
             size: new V2(1,1),
             speed: 0.1,
             setDeadOnDestinationComplete: true,
-            setDestinationOnInit: true
+            setDestinationOnInit: true,
+            itemType: 'simple'
         }, options);
 
         super(options);
 
         this.originImage = this.img;
-        this.brightTimer = createTimer(getRandomInt(250, 750), this.brightTimerMethod, this, true);
+        if(this.itemType == 'police'){
+            this.imgSwitchTimer = createTimer(250, this.imgSwitchTimerMethod, this, true);
+        }
+        else {
+            this.brightTimer = createTimer(getRandomInt(250, 750), this.brightTimerMethod, this, true);
+        }
+    }
+
+    imgSwitchTimerMethod(){
+        this.bright = !this.bright;
+        this.img = this.bright ? this.brightImg : this.originImage;
     }
 
     brightTimerMethod(){
@@ -709,6 +789,10 @@ class StreamItem extends MovingGO {
         if(this.brightOffTimer){
             doWorkByTimer(this.brightOffTimer, now);
         }
+
+        if(this.imgSwitchTimer){
+            doWorkByTimer(this.imgSwitchTimer, now);
+        }
     }
 }
 
@@ -727,6 +811,10 @@ class AdvertisementScreen extends GO {
                 enabled: false
             }
         }, options);
+
+        if(options.blinking.enabled && options.blinking.fast){
+            options.blinking.step = getRandom(0.1, 0.4);
+        }
 
         options.img = createCanvas(options.size.mul(3), function(ctx, size){
 
