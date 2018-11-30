@@ -337,7 +337,8 @@ function draw(ctx, props) {
     strokeStyle: undefined,
     points: [],
     isDeltas: false,
-    closePath: true
+    closePath: true,
+    lineWidth: 1
   }, props);
 
   if(props.strokeStyle === undefined || props.points.length < 2)

@@ -18,6 +18,7 @@ class RainScene extends Scene {
         this.midBuildingsLayer = 4;
         this.midStreamLayer = 4;
         this.frontBuildingsLayer = 7;
+        this.frontStreamLayer = 7;
         this.buildingsLayers = [this.backBuildingsLayer, this.midBuildingsLayer, this.frontBuildingsLayer];
         this.backgroundRainLayer = 10;
         this.roadSideLayer = 11;
@@ -32,32 +33,58 @@ class RainScene extends Scene {
         this.fenceColumnSize = new V2(10, 15);
         this.roadSideSize = new V2(this.viewport.x, 10);
         this.backStreamSize = new V2(0.75,0.75);
+        this.fronStreamItemSize = new V2(2,2)
 
         //positions
         this.backStreamHeight = 78;
         this.midStreamHeight = 80;
+        this.frontStreamHeight = 130;
 
         // counters
         this.fenceColumnsCount = 8;
         this.backBuildingsCount = 16;
         this.minBuildingsCount = 12;
-        this.frontBuildingsCount = 8;
+        this.frontBuildingsCount = 10;
         this.buildingsCount = [this.backBuildingsCount, this.minBuildingsCount, this.frontBuildingsCount];
+
+        this.neonColors = [[133,207,116],[222,133,87],[250,235,114],[101,172,219],[152,59,102],[102,170,95],[223,176,92],[76,129,170]]
 
         //backBuildings
         let widthStep = 20;
         let heightFromTo = [3/5, 7/8];
         for(let li = 0; li < this.buildingsCount.length; li++){
             for(let i = 0; i < this.buildingsCount[li]; i++){
-                
-                this.addGo(new GO({
-                    position: new V2(getRandom(0, this.viewport.x), this.viewport.y/2+this.viewport.y*1/6*li),
+                let position;
+
+                if(li == 2){
+                    let w = this.viewport.x/this.buildingsCount[li];
+                    position = new V2(getRandom(w*i, w*i+w), this.viewport.y/2+this.viewport.y*1/6*li+getRandom(0, this.viewport.y*1/6));
+                }
+                else {
+                    position = new V2(getRandom(0, this.viewport.x), this.viewport.y/2+this.viewport.y*1/6*li+getRandom(0, this.viewport.y*1/4));
+                }
+
+                let points = [];
+                let building = new GO({
+                    position: position,
                     size: new V2(
                         getRandom(widthStep+(widthStep*li/2),widthStep*2+widthStep*li), 
-                        getRandom(this.viewport.y*heightFromTo[0], this.viewport.y*heightFromTo[1])
+                        this.viewport.y
                     ),
-                    img: this.buildingGenerator(li)
-                }), this.buildingsLayers[li]);
+                    img: this.buildingGenerator(li, points)
+                });
+
+                if(getRandomInt(1,3) == 3){
+                    let upper = Math.min.apply(null, points.map((p) => p.y));
+                    let size = new V2(building.size.x*(0.5-0.1*li), building.size.x*(0.75-0.1*li));
+                    building.addChild(new AdvertisementScreen({
+                        position: new V2(getRandom(-building.size.x/2, building.size.x/2), -building.size.y/2+upper+size.y),
+                        size: size,
+                        color: this.neonColors[getRandomInt(0,this.neonColors.length-1)]
+                    }));
+                }
+
+                this.addGo(building, this.buildingsLayers[li]);
             }
         }
         
@@ -192,7 +219,26 @@ class RainScene extends Scene {
                 size: this.backStreamSize,
             }), this.backStreamLayer);
         }
+
+        for(let i = 0; i< this.viewport.x; i++){
+            if(getRandomInt(0,2) === 2)
+                continue;
+
+            let h = this.frontStreamHeight+ getRandom(-5,5);
+            this.addGo(new StreamItem({
+                img: this.streamItemRedImg,
+                brightImg: this.streamItemBrightRedImg,
+                position: new V2(i, h),
+                destination: new V2(this.viewport.x+1, h),
+                size: this.fronStreamItemSize,
+                speed: 0.3
+            }), this.frontStreamLayer);
+        }
         
+        // this.addGo(new AdvertisementScreen({
+        //     size: new V2(30,30),
+        //     position: new V2(this.viewport.x/2, this.viewport.y/2)
+        // }),100);
 
         // timers
         this.rainDropTimer = createTimer(50, this.rainDropTimerMethod, this, true);
@@ -201,6 +247,7 @@ class RainScene extends Scene {
 
         this.backStraemTimer = createTimer(175, this.backStreamTimerMethod, this, true);
         this.midStraemTimer = createTimer(175, this.midStreamTimerMethod, this, true);
+        this.frontStreamTimer = createTimer(125, this.frontStreamTimerMethod, this, true);
     }
 
     fenceGenerator(ctx, size) {
@@ -208,7 +255,7 @@ class RainScene extends Scene {
         ctx.fillRect(0,0,size.x, size.y);
     }
 
-    buildingGenerator(howFar){
+    buildingGenerator(howFar, points){
         return createCanvas(new V2(100, 500), function(ctx, size){
             let darkWindows = [[32,64, 74], [53,100,136]]
             let brightWindows = [[93, 158,209], [176,208,223]];
@@ -217,32 +264,112 @@ class RainScene extends Scene {
             
             switch(howFar){
                 case 0:
-                    ctx.fillStyle = '#142833';
+                    //ctx.fillStyle = '#142833';
+                    windowSize = new V2(5,1.5);
                     break;
                 case 1: 
-                    ctx.fillStyle = '#A79FE1';
+                    windowSize = new V2(4, 2);
+                    //ctx.fillStyle = '#A79FE1';
                     break;
                 case 2:
-                    ctx.fillStyle = '#A79FFF';
+                    windowSize = new V2(3,2.5);
+                    //ctx.fillStyle = '#A79FFF';
                     break;
             }
 
             //let gapHeight = windowSize.y*0.5;
+            //ctx.fillStyle = '#142833';
+            //ctx.strokeStyle = '#1C5561';
+            //ctx.lineWidth = 3;
 
-            ctx.strokeStyle = '#1C5561';
-            ctx.lineWidth = 3;
+            let leftWallStraight = getRandomBool();
+            let roofStraight = getRandomBool();
+            let rightWallStraight = true;//getRandomBool();
+
+            if(!leftWallStraight){
+                let defCount = getRandomInt(1, (6 - howFar));
+                let segHeight = size.y/2/defCount;
+                let prev = undefined;
+                for(let i = 0; i < defCount; i++){
+                    let p = new V2( 
+                        (prev == undefined ?  0 : prev.x)+getRandom(2, size.x/6)  //getRandom(2, size.x/4)
+                        ,(prev == undefined ? size.y/2 - segHeight : prev.y-segHeight)+2);
+                    if(i > 0 && getRandomBool()){//i%2 != 0 ){//&& getRandomBool()){
+                        p.x = prev.x;
+                    }
+                    prev = p;
+                    points.push(p);
+                }
+            }
+            else {
+                points.push(new V2(2, size.y/2));
+                points.push(new V2(2, 2));
+            }
+
+            let roofDots = [];
+            roofDots.push(points[points.length-1]);
+            
+            if(!roofStraight){
+                let defCount = 1;//getRandomInt(1, (1 + howFar));
+                let segWidth = size.x/defCount;
+                let prev = points[points.length-1];
+                
+                prev.y = getRandom(2, size.y/10);
+                for(let i = 0; i < defCount; i++){
+                    let p = new V2(size.x-getRandom(size.x/6, size.x/4), getRandom(2, size.y/10));
+                    
+                    prev = p;
+                    points.push(p);
+                    roofDots.push(p);
+                }
+            }
+            else {
+                let p = new V2(size.x-2, 2);
+                points.push(p);
+                roofDots.push(p);
+            }
+
+            if(!rightWallStraight){
+                let defCount = getRandomInt(1, (6 - howFar));
+                let segHeight = (size.y/2 - points[points.length-1].y)/defCount;
+                let prev = undefined;
+
+                for(let i = 0; i < defCount; i++){
+                    let p = new V2( getRandom(size.x*3/4, size.x-2), (prev == undefined ? points[points.length-1].y + segHeight : prev.y+segHeight));
+                    if(i > 0 && getRandomBool()){// && i%2 != 0 ){//&& getRandomBool()){
+                        p.x = prev.x;
+                    }
+
+                    prev = p;
+                    points.push(p);
+                }
+            }
+
+            points.push(new V2(size.x-2, size.y-2));
+
+            points.push(new V2(2, size.y-2));
+
+            draw(ctx, {
+                points: points,//[new V2(0, size.y/2), new V2(size.x/2, 0), new V2(size.x, 0), new V2(size.x, size.y), new V2(0, size.y)],
+                closePath: true,
+                strokeStyle: '#1C5561',
+                lineWidth: 3
+            });
+            ctx.save();
+            ctx.clip();
+            ctx.clearRect(0, 0, size.x, size.y);
             ctx.fillRect(0,0, size.x, size.y);
-            ctx.strokeRect(0,0, size.x, size.y);
+            //ctx.strokeRect(0,0, size.x, size.y);
 
-            if(howFar == 0){
+            if(true){//if(howFar == 0){
                 let rCount = parseInt(size.y/windowSize.y);
                 let cCount = parseInt(size.x/windowSize.x);
                 for(let ri = 0; ri < rCount; ri++){
                     if(ri%2 == 0)
                         continue;
 
-                    if(getRandomInt(0,20) === 20)
-                        continue;
+                    // if(getRandomInt(0,20) === 20)
+                    //     continue;
 
                     for(let ci = 0; ci < cCount; ci++){
                         if(getRandomInt(0,4) === 4)
@@ -255,6 +382,19 @@ class RainScene extends Scene {
                         ctx.fillRect(windowSize.x*ci, windowSize.y*ri, windowSize.x, windowSize.y);
                     }
                     
+                }
+
+                let alpha = 0.9 - howFar*0.3;
+                if(alpha < 0) alpha = 0;
+                ctx.fillStyle = `rgba(26,49,58,${alpha})`
+                ctx.fillRect(0,0, size.x, size.y);
+
+                ctx.restore();
+                if(howFar < 2){
+                    for(let p of roofDots){
+                        ctx.fillStyle = 'rgb(250,0,0)';
+                        ctx.fillRect(p.x,p.y-1, 3, 2);
+                    }
                 }
             }
         });
@@ -271,12 +411,8 @@ class RainScene extends Scene {
             rd.position = position;
             rd.setDestination(destination);
             rd.isVisible = true;
-            //rd.img = this.recreatedRainDropImg;
             return true;
         }
-
-        // if(this.createdRainDrops === undefined){ this.createdRainDrops = 0 }
-        // console.log(++this.createdRainDrops + ' createdRainDrops');
         return false;
     }
 
@@ -353,6 +489,20 @@ class RainScene extends Scene {
         }
     }
 
+    rainDropTimerMethod(){
+        for(let i = 0; i < 3; i++){
+            let position =new V2(getRandomInt(1, this.viewport.x-1), -10); 
+            let destination = new V2(position.x, getRandomInt(this.viewport.y-this.floorSize.y*2/3, this.viewport.y));
+            if(!this.getRaindropCacheItem(this.frontalRainLayer, position, destination)) 
+                this.addGo(new RainDrop({
+                    position: position,
+                    destination:destination,
+                    img: this.rainDropImg,
+                    layer: this.frontalRainLayer
+                }), this.frontalRainLayer);
+        }   
+    }
+
     backStreamTimerMethod(){
         let h = this.backStreamHeight+ (getRandomBool() ? 1 : -1)*getRandom(0,1.5);
         this.addGo(new StreamItem({
@@ -374,28 +524,29 @@ class RainScene extends Scene {
         }), this.midStreamLayer);
     }
 
-    rainDropTimerMethod(){
-        for(let i = 0; i < 3; i++){
-            let position =new V2(getRandomInt(1, this.viewport.x-1), -10); 
-            let destination = new V2(position.x, getRandomInt(this.viewport.y-this.floorSize.y*2/3, this.viewport.y));
-            if(!this.getRaindropCacheItem(this.frontalRainLayer, position, destination)) 
-                this.addGo(new RainDrop({
-                    position: position,
-                    destination:destination,
-                    img: this.rainDropImg,
-                    layer: this.frontalRainLayer
-                }), this.frontalRainLayer);
-        }
-        
+    frontStreamTimerMethod() {
+        let h = this.frontStreamHeight+ getRandom(-5,5);
+        this.addGo(new StreamItem({
+            img: this.streamItemRedImg,
+            brightImg: this.streamItemBrightRedImg,
+            position: new V2(0, h),
+            destination: new V2(this.viewport.x+1, h),
+            size: this.fronStreamItemSize,
+            speed: 0.3
+        }), this.frontStreamLayer);
     }
 
     backgroundRender(){
         let grd = SCG.contexts.background.createLinearGradient(SCG.viewport.real.width/2, SCG.viewport.real.height, SCG.viewport.real.width/2, 0);
-        grd.addColorStop(0, '#4184AD');
-        grd.addColorStop(0.65, '#316282');
-        grd.addColorStop(1, '#1A313A');
+        //grd.addColorStop(0, '#4184AD');
+        grd.addColorStop(0, '#316282');
+        grd.addColorStop(0.95, '#1A313A');
+        grd.addColorStop(1, '#031921');
         SCG.contexts.background.fillStyle = grd;
         SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+
+        SCG.contexts.background.fillStyle = 'rgb(26,49,58)';
+        SCG.contexts.background.fillRect(0,SCG.viewport.real.width/3,SCG.viewport.real.width,SCG.viewport.real.height/3);
     }
 
     preMainWork(now) {
@@ -417,6 +568,10 @@ class RainScene extends Scene {
 
         if(this.midStraemTimer) {
             doWorkByTimer(this.midStraemTimer, now);
+        }
+
+        if(this.frontStreamTimer) {
+            doWorkByTimer(this.frontStreamTimer, now);
         }
     }
 }
@@ -554,5 +709,136 @@ class StreamItem extends MovingGO {
         if(this.brightOffTimer){
             doWorkByTimer(this.brightOffTimer, now);
         }
+    }
+}
+
+class AdvertisementScreen extends GO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            color: [255,0,0],
+            blinking: {
+                enabled: getRandomBool(),
+                alpha: 1,
+                direction: -1,
+                step: getRandom(0.01,0.05),
+                border: getRandom(0.1,0.6)
+            },
+            shaking: {
+                enabled: false
+            }
+        }, options);
+
+        options.img = createCanvas(options.size.mul(3), function(ctx, size){
+
+            //TODO: other shapes
+            let wh = size.x*1/4;
+
+            let grd = ctx.createLinearGradient(0, size.y/2, wh, size.y/2);
+            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(0,wh,wh, size.y-2*wh);
+
+            grd = ctx.createLinearGradient(size.x/2, 0, size.x/2, wh);
+            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(wh,0,size.x*1/2, wh);
+
+            grd = ctx.createLinearGradient(size.x*3/4, size.y/2, size.x, size.y/2);
+            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(size.x*3/4,wh,wh, size.y-2*wh);
+
+            grd = ctx.createLinearGradient(size.x/2, size.y-wh, size.x/2, size.y);
+            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(wh,size.y-wh,size.x*1/2, wh);
+
+            grd = ctx.createLinearGradient(0, 0, wh, wh);
+            grd.addColorStop(0.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(0,0,wh, wh);
+
+            grd = ctx.createLinearGradient(size.x*3/4, wh, 1*size.x, 0);
+            grd.addColorStop(.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(size.x*3/4,0,wh, wh);
+
+            grd = ctx.createLinearGradient(size.x*3/4, size.y-wh, size.x, size.y);
+            grd.addColorStop(.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(size.x*3/4,size.y-wh,wh, wh);
+
+            grd = ctx.createLinearGradient(wh, size.y-wh, 0, size.y);
+            grd.addColorStop(.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(0,size.y-wh,wh, wh);
+
+            //let h = size.y/2/6;
+            //ctx.fillRect(size.x*1/4+size.x*1/8, size.y*1/4+h, size.x*1/4, size.y*2/6)
+
+            let h = size.y/2/6;
+            if(getRandomBool()){
+                ctx.fillRect(size.x*1/4+size.x*1/8, size.y*1/4+h, size.x*1/4, size.y*2/6)
+            }
+            else {
+                for(let i = 0;i<6;i++){
+                    // if(i%2 === 0)
+                    //     continue;
+    
+                    //ctx.fillRect(size.x*1/4+size.x*1/8, size.y*1/4+i*h, size.x*1/4, h*2/3);
+                    for(let j = size.x*1/4+size.x*1/16; j < size.x*3/4-size.x*1/16;j++){
+                        if(getRandomBool())
+                            ctx.fillRect(j, size.y*1/4+i*h,1, h*2/3);
+                    }
+                }
+            }
+            
+            
+        })
+
+        super(options);
+
+        if(this.blinking.enabled){
+            this.blinkingTimer = createTimer(getRandomInt(50,150), this.blinkingTimerMethod, this, true);
+        }
+        
+    }
+
+    blinkingTimerMethod(){
+        let b = this.blinking;
+        b.alpha+=b.direction*b.step;
+
+        if(b.alpha > 1){
+            b.alpha = 1;
+            b.direction*=-1;
+        }
+
+        if(b.alpha < b.border){
+            b.alpha = b.border;
+            b.direction*=-1;
+        }
+    }
+
+    internalUpdate(now){
+        if(this.blinking.enabled){
+            doWorkByTimer(this.blinkingTimer, now)
+        }
+    }
+
+    internalPreRender() {
+        this.context.save();
+        this.context.globalAlpha = this.blinking.alpha;
+    }
+
+    internalRender(){
+        this.context.restore();
     }
 }
