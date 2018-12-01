@@ -223,6 +223,7 @@ class Scene {
             go.regEvents(layerIndex);
 
         go.parentScene = this;
+        go.layerIndex = layerIndex;
 
         return go;
     }

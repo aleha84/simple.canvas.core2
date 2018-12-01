@@ -10,6 +10,7 @@ class RainScene extends Scene {
         super(options);
 
         this.rainDropCache = [];
+        this.streamItemsCache = [];
 
         //layers
         this.skyLayer = 0;
@@ -74,23 +75,65 @@ class RainScene extends Scene {
                     img: this.buildingGenerator(li, points)
                 });
 
-                if(li ==2 || getRandomInt(1,3) == 3){
+                if(true){//li ==2 || getRandomInt(1,2) == 2){
+                    let count = li == 0 ? getRandom(3,8) : getRandomInt(1,3);
+                    
                     let upper = Math.min.apply(null, points.map((p) => p.y));
-                    let size = li ==0 ? new V2(building.size.x*0.2, building.size.x*getRandom(0.3, 0.6)): new V2(building.size.x*(0.5-0.1*li), building.size.x*(0.75-0.1*li));
-                    building.addChild(new AdvertisementScreen({
-                        position: new V2(getRandom(-building.size.x/2, building.size.x/2), -building.size.y/2+upper+size.y),
-                        size: size,
-                        color: this.neonColors[getRandomInt(0,this.neonColors.length-1)],
-                        blinking: {
-                            enabled: li == 2,
-                            fast: li ==2
+                    let positions = [];
+                    for(let i = 0; i< count;i++){
+                        let size = (li == 0 
+                            ? new V2(building.size.x*0.2, building.size.x*getRandom(0.3, 0.6)) 
+                            : new V2(building.size.x*(getRandom(0.3, 0.5)-0.1*li), building.size.x*(getRandom(0.5,0.75)-0.1*li)));
+                        let top = -building.size.y/2+upper+size.y;
+
+                        let pCounter = 5;
+                        let position;
+                        while(pCounter != 0){
+                            position = new V2(
+                                getRandom(-(building.size.x/2)*0.8, (building.size.x/2)*0.8), 
+                                getRandom(top,li == 0 ? 0: -building.size.y/4));
+                            
+                            if(positions.some((p) => p.distance(position) < 15))
+                                pCounter--;
+                            else 
+                                break;
                         }
-                    }));
+
+                        positions.push(position);
+
+                        building.addChild(new AdvertisementScreen({
+                            position: position,
+                            size: size,
+                            color: this.neonColors[getRandomInt(0,this.neonColors.length-1)],
+                            blinking: {
+                                enabled: li == 2,
+                                fast: li ==2
+                            }
+                        }));
+                    }
+                    
                 }
 
                 this.addGo(building, this.buildingsLayers[li]);
             }
         }
+
+        // this.addGo(new AdvertisementScreen({
+        //     position: new V2(this.viewport.x/2, this.viewport.y/2),
+        //     size: new V2(40, 80),
+        //     color: this.neonColors[getRandomInt(0,this.neonColors.length-1)],
+        //     screenType: 1,
+        //     contentType: 2,
+        //     blinking: {
+        //         enabled: false
+        //     }
+        // }), 50)
+
+        this.addGo(new Robot({
+            size: new V2(20,20),
+            position: new V2(this.viewport.x/2, this.viewport.y-80),
+            layer: this.frontalRainLayer,
+        }), this.frontalRainLayer)
         
         //roadside
         let roadSide = new GO({
@@ -211,7 +254,8 @@ class RainScene extends Scene {
                 img: this.streamItemRedImg,
                 brightImg: this.streamItemBrightRedImg,
                 position: new V2(i, h),
-                destination: new V2(this.viewport.x+1, h)
+                destination: new V2(this.viewport.x+1, h),
+                layer: this.midStreamLayer
             }), this.midStreamLayer);
         }
 
@@ -226,6 +270,7 @@ class RainScene extends Scene {
                 position: new V2(i, h),
                 destination: new V2(-1, h),
                 size: this.backStreamSize,
+                layer: this.backStreamLayer
             }), this.backStreamLayer);
         }
 
@@ -240,30 +285,17 @@ class RainScene extends Scene {
                 position: new V2(i, h),
                 destination: new V2(this.viewport.x+1, h),
                 size: this.fronStreamItemSize,
-                speed: 0.3
+                speed: 0.3,
+                layer: this.frontStreamLayer
             }), this.frontStreamLayer);
         }
-        
-        // this.addGo(new StreamItem({
-        //     position: new V2(this.viewport.x/2, 40),
-        //     itemType: 'police',
-        //     img: this.streamItemBrightRedImg,
-        //     brightImg: this.streamItemBlueImg,
-        //     destination: new V2(this.viewport.x+1, this.viewport.y/2),
-        //     size: this.fronStreamItemSize,
-        //     speed: 0.6,
-        // }), 30);
 
         // timers
         this.rainDropTimer = createTimer(50, this.rainDropTimerMethod, this, true);
         this.midRainDropTimer = createTimer(50, this.midRainDropTimerMethod, this, true);
-         this.backRainDropTimer = createTimer(50, this.backRainDropTimerMethod, this, true);
+        this.backRainDropTimer = createTimer(50, this.backRainDropTimerMethod, this, true);
 
-        this.backStraemTimer = createTimer(175, this.backStreamTimerMethod, this, true);
-        this.midStraemTimer = createTimer(175, this.midStreamTimerMethod, this, true);
-        this.frontStreamTimer = createTimer(125, this.frontStreamTimerMethod, this, true);
-
-        this.customStreamTimer = createTimer(1500, this.customStreamTimerMethod, this, true);
+        this.customStreamTimer = createTimer(3000, this.customStreamTimerMethod, this, true);
     }
 
     fenceGenerator(ctx, size) {
@@ -280,23 +312,15 @@ class RainScene extends Scene {
             
             switch(howFar){
                 case 0:
-                    //ctx.fillStyle = '#142833';
                     windowSize = new V2(5,1.5);
                     break;
                 case 1: 
                     windowSize = new V2(4, 2);
-                    //ctx.fillStyle = '#A79FE1';
                     break;
                 case 2:
                     windowSize = new V2(3,2.5);
-                    //ctx.fillStyle = '#A79FFF';
                     break;
             }
-
-            //let gapHeight = windowSize.y*0.5;
-            //ctx.fillStyle = '#142833';
-            //ctx.strokeStyle = '#1C5561';
-            //ctx.lineWidth = 3;
 
             let leftWallStraight = getRandomBool();
             let roofStraight = getRandomBool();
@@ -515,39 +539,6 @@ class RainScene extends Scene {
         }   
     }
 
-    backStreamTimerMethod(){
-        let h = this.backStreamHeight+ (getRandomBool() ? 1 : -1)*getRandom(0,1.5);
-        this.addGo(new StreamItem({
-            img: this.streamItemYelloImg,
-            brightImg: this.streamItemBrightYelloImg,
-            position: new V2(this.viewport.x, h),
-            destination: new V2(-1, h),
-            size: this.backStreamSize,
-        }), this.backStreamLayer);
-    }
-
-    midStreamTimerMethod(){
-        let h = this.midStreamHeight+ (getRandomBool() ? 1 : -1)*getRandom(0,2);
-        this.addGo(new StreamItem({
-            img: this.streamItemRedImg,
-            brightImg: this.streamItemBrightRedImg,
-            position: new V2(0, h),
-            destination: new V2(this.viewport.x+1, h)
-        }), this.midStreamLayer);
-    }
-
-    frontStreamTimerMethod() {
-        let h = this.frontStreamHeight+ getRandom(-5,5);
-        this.addGo(new StreamItem({
-            img: this.streamItemRedImg,
-            brightImg: this.streamItemBrightRedImg,
-            position: new V2(0, h),
-            destination: new V2(this.viewport.x+1, h),
-            size: this.fronStreamItemSize,
-            speed: 0.3
-        }), this.frontStreamLayer);
-    }
-
     customStreamTimerMethod(){
         let howFar = getRandomInt(0,2);
         let h;
@@ -598,6 +589,7 @@ class RainScene extends Scene {
                 destination: destination,
                 size: size,
                 speed: speed,
+                setDeadOnDestinationComplete: true,
             }), layer);
     }
 
@@ -649,7 +641,16 @@ class RainDrop extends MovingGO {
     constructor(options = {}){
         options = assignDeep({}, {
             collisionDetection: {
-                enabled: true
+                enabled: true,
+                preCheck: function(go) {
+                    return this.type !== go.type && this.layer == go.layer;
+                },
+                onCollision: function(collidedWith, intersection){
+                    if(intersection && intersection.length){
+                        this.splashPoint = V2.average(intersection);
+                    }
+                    this.setDead();
+                }
             },
             speed: 12,
             size: new V2(0.5,10),
@@ -661,6 +662,28 @@ class RainDrop extends MovingGO {
         super(options);
     }
 
+    beforeDead(){
+        this.createSplash();
+    }
+
+    createSplash() {
+        let count = this.isBack ? getRandomInt(1,2): getRandomInt(1,3);
+        for(let i = 0;i < count; i++)
+        {
+            this.parentScene.addGo(new Splash({
+                position: this.splashPoint ? this.splashPoint.clone() : this.position.clone(),
+                img: this.isBack ? this.parentScene.backSplashImg : this.parentScene.splashImg,
+                speed: this.isBack ? getRandom(0.1, 0.13):getRandom(0.09, 0.11),
+                coefficients: {
+                    a: this.isBack ? getRandom(1,3) : getRandom(2,4),
+                    b: this.isBack ? getRandom(3,9) : getRandom(5,12)
+                },
+                xAxis: {
+                    direction: getRandomBool() ? 1: -1
+                }
+            }), this.layer+1);
+        }
+    }
     destinationCompleteCallBack(){
         let cache = this.parentScene.rainDropCache;
         if(!cache[this.layer]){
@@ -673,22 +696,7 @@ class RainDrop extends MovingGO {
         if(!this.splash)
             return;
 
-        let count = this.isBack ? getRandomInt(1,2): getRandomInt(1,3);
-        for(let i = 0;i < count; i++)
-        {
-            this.parentScene.addGo(new Splash({
-                position: this.position.clone(),
-                img: this.isBack ? this.parentScene.backSplashImg : this.parentScene.splashImg,
-                speed: this.isBack ? getRandom(0.075, 0.09):getRandom(0.065, 0.08),
-                coefficients: {
-                    a: this.isBack ? getRandom(1,3) : getRandom(2,4),
-                    b: this.isBack ? getRandom(3,9) : getRandom(5,12)
-                },
-                xAxis: {
-                    direction: getRandomBool() ? 1: -1
-                }
-            }), this.layer);
-        }
+        this.createSplash();
     }
 }
 
@@ -712,7 +720,7 @@ class Splash extends MovingGO {
             },
             positionChangeProcesser: function(){
                 let oldPosition = this.position.clone();
-                this.yAxis.current = (this.coefficients.a*this.xAxis.current*this.xAxis.current)+this.coefficients.b*this.xAxis.current;
+                this.yAxis.current = this.getYAxisCurrent()
 
                 if(this.yAxis.current > 0){
                     this.setDead();
@@ -720,11 +728,15 @@ class Splash extends MovingGO {
                 }
 
                 this.position = this.initialPosition.add(new V2(this.xAxis.current, this.yAxis.current));
-                this.xAxis.current+=this.xAxis.direction*this.xAxis.speed;
+                this.xAxis.current = fastRoundWithPrecision(this.xAxis.current + this.xAxis.direction*this.xAxis.speed,3);
 
                 return this.position.substract(oldPosition); 
             }
         }, options);
+
+        options.coefficients.a = fastRoundWithPrecision(options.coefficients.a,2);
+        options.coefficients.b = fastRoundWithPrecision(options.coefficients.b,2);
+        options.speed = fastRoundWithPrecision(options.speed, 3);
 
         options.xAxis.speed = options.speed;
         if(options.xAxis.direction > 0){
@@ -735,14 +747,30 @@ class Splash extends MovingGO {
 
         this.initialPosition = this.position.clone();
     }
+
+    getYAxisCurrent(){
+        let key = this.coefficients.a+'_'+this.xAxis.current+'_'+this.coefficients.b;
+        let cacheItem = Splash.yAxisCache[key];
+        if(cacheItem===undefined){
+            cacheItem = (this.coefficients.a*this.xAxis.current*this.xAxis.current)+this.coefficients.b*this.xAxis.current;
+            Splash.yAxisCache[key] = cacheItem;
+        }
+        // else {
+        //     console.log(`key '${key}' found, return value '${cacheItem}'`);
+        // }
+
+        return cacheItem;
+    }
 }
+
+Splash.yAxisCache = [];
 
 class StreamItem extends MovingGO {
     constructor(options = {}) {
         options = assignDeep({}, {
             size: new V2(1,1),
             speed: 0.1,
-            setDeadOnDestinationComplete: true,
+            setDeadOnDestinationComplete: false,
             setDestinationOnInit: true,
             itemType: 'simple'
         }, options);
@@ -751,10 +779,27 @@ class StreamItem extends MovingGO {
 
         this.originImage = this.img;
         if(this.itemType == 'police'){
+            this.setDeadOnDestinationComplete = true;
             this.imgSwitchTimer = createTimer(250, this.imgSwitchTimerMethod, this, true);
         }
         else {
             this.brightTimer = createTimer(getRandomInt(250, 750), this.brightTimerMethod, this, true);
+        }
+    }
+
+    destinationCompleteCallBack() {
+        if(this.setDeadOnDestinationComplete){
+            this.setDead();
+            return;
+        }
+
+        if(this.position.x <= 0){
+            this.position.x = this.parentScene.viewport.x+1;
+            this.setDestination(new V2(-1, this.position.y));
+        }
+        else if(this.position.x > this.parentScene.viewport.x){
+            this.position.x = -1;
+            this.setDestination(new V2(this.parentScene.viewport.x+1, this.position.y));
         }
     }
 
@@ -805,8 +850,10 @@ class AdvertisementScreen extends GO {
                 alpha: 1,
                 direction: -1,
                 step: getRandom(0.01,0.05),
-                border: getRandom(0.1,0.6)
+                border: getRandom(0.1,0.6),
             },
+            screenType: getRandomInt(0,1),
+            contentType: getRandomInt(0,2),
             shaking: {
                 enabled: false
             }
@@ -816,88 +863,220 @@ class AdvertisementScreen extends GO {
             options.blinking.step = getRandom(0.1, 0.4);
         }
 
+        if(options.screenType == 1){
+            let w = options.size.x;
+            options.size.x = options.size.y;
+            options.size.y = w;
+        } 
+
+        //options.contentType = getRandomInt(0,1);
         options.img = createCanvas(options.size.mul(3), function(ctx, size){
+            if(options.screenType == 0 || options.screenType == 1){
+                let t = options.screenType;
+                let wh = t == 0 ? size.x*1/4 : size.y*1/4;
 
-            //TODO: other shapes
-            let wh = size.x*1/4;
-
-            let grd = ctx.createLinearGradient(0, size.y/2, wh, size.y/2);
-            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
-            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
-            ctx.fillStyle = grd;
-            ctx.fillRect(0,wh,wh, size.y-2*wh);
-
-            grd = ctx.createLinearGradient(size.x/2, 0, size.x/2, wh);
-            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
-            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
-            ctx.fillStyle = grd;
-            ctx.fillRect(wh,0,size.x*1/2, wh);
-
-            grd = ctx.createLinearGradient(size.x*3/4, size.y/2, size.x, size.y/2);
-            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
-            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
-            ctx.fillStyle = grd;
-            ctx.fillRect(size.x*3/4,wh,wh, size.y-2*wh);
-
-            grd = ctx.createLinearGradient(size.x/2, size.y-wh, size.x/2, size.y);
-            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
-            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
-            ctx.fillStyle = grd;
-            ctx.fillRect(wh,size.y-wh,size.x*1/2, wh);
-
-            grd = ctx.createLinearGradient(0, 0, wh, wh);
-            grd.addColorStop(0.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
-            grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
-            ctx.fillStyle = grd;
-            ctx.fillRect(0,0,wh, wh);
-
-            grd = ctx.createLinearGradient(size.x*3/4, wh, 1*size.x, 0);
-            grd.addColorStop(.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
-            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
-            ctx.fillStyle = grd;
-            ctx.fillRect(size.x*3/4,0,wh, wh);
-
-            grd = ctx.createLinearGradient(size.x*3/4, size.y-wh, size.x, size.y);
-            grd.addColorStop(.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
-            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
-            ctx.fillStyle = grd;
-            ctx.fillRect(size.x*3/4,size.y-wh,wh, wh);
-
-            grd = ctx.createLinearGradient(wh, size.y-wh, 0, size.y);
-            grd.addColorStop(.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
-            grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
-            ctx.fillStyle = grd;
-            ctx.fillRect(0,size.y-wh,wh, wh);
-
-            //let h = size.y/2/6;
-            //ctx.fillRect(size.x*1/4+size.x*1/8, size.y*1/4+h, size.x*1/4, size.y*2/6)
-
-            let h = size.y/2/6;
-            if(getRandomBool()){
-                ctx.fillRect(size.x*1/4+size.x*1/8, size.y*1/4+h, size.x*1/4, size.y*2/6)
-            }
-            else {
-                for(let i = 0;i<6;i++){
-                    // if(i%2 === 0)
-                    //     continue;
+                let grd = ctx.createLinearGradient(0, size.y/2, wh, size.y/2); //left
+                grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+                grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                ctx.fillStyle = grd;
+                if(t==0)
+                    ctx.fillRect(0,wh,wh, size.y-2*wh);
+                else 
+                    ctx.fillRect(0,wh, wh, size.y*1/2);
     
-                    //ctx.fillRect(size.x*1/4+size.x*1/8, size.y*1/4+i*h, size.x*1/4, h*2/3);
-                    for(let j = size.x*1/4+size.x*1/16; j < size.x*3/4-size.x*1/16;j++){
-                        if(getRandomBool())
-                            ctx.fillRect(j, size.y*1/4+i*h,1, h*2/3);
+                grd = ctx.createLinearGradient(size.x/2, 0, size.x/2, wh); //top
+                grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+                grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                ctx.fillStyle = grd;
+                if(t == 0)
+                    ctx.fillRect(wh,0,size.x*1/2, wh);
+                else 
+                    ctx.fillRect(wh,0,size.x-2*wh, wh);
+
+                if(t==0) //right
+                    grd = ctx.createLinearGradient(size.x*3/4, size.y/2, size.x, size.y/2);
+                else 
+                    grd = ctx.createLinearGradient(size.x-wh, size.y/2, size.x, size.y/2);
+                grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+                grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                ctx.fillStyle = grd;
+                if(t== 0)
+                    ctx.fillRect(size.x*3/4,wh,wh, size.y-2*wh);
+                else 
+                    ctx.fillRect(size.x-wh,wh,wh, size.y*1/2);
+
+                grd = ctx.createLinearGradient(size.x/2, size.y-wh, size.x/2, size.y);//bottom
+                grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+                grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                ctx.fillStyle = grd;
+                if(t == 0)
+                    ctx.fillRect(wh,size.y-wh,size.x*1/2, wh);
+                else 
+                    ctx.fillRect(wh,size.y*3/4,size.x-2*wh, wh);
+    
+                grd = ctx.createLinearGradient(0, 0, wh, wh);//topleft
+                grd.addColorStop(0.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+                grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                ctx.fillStyle = grd;
+                if(t==0)
+                    ctx.fillRect(0,0,wh, wh);
+                else 
+                    ctx.fillRect(0,0,wh, wh);
+    
+                if(t==0)//topright
+                    grd = ctx.createLinearGradient(size.x*3/4, wh, size.x, 0);
+                else 
+                    grd = ctx.createLinearGradient(size.x-wh, wh, size.x, 0);
+                grd.addColorStop(.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+                grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                ctx.fillStyle = grd;
+                if(t== 0)
+                    ctx.fillRect(size.x*3/4,0,wh, wh);
+                else
+                    ctx.fillRect(size.x-wh,0,wh, wh);
+    
+                if(t==0) //bottomright
+                    grd = ctx.createLinearGradient(size.x*3/4, size.y-wh, size.x, size.y);
+                else
+                    grd = ctx.createLinearGradient(size.x-wh, size.y-wh, size.x, size.y);
+                grd.addColorStop(.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+                grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                ctx.fillStyle = grd;
+                if(t==0)
+                    ctx.fillRect(size.x*3/4,size.y-wh,wh, wh);
+                else 
+                    ctx.fillRect(size.x-wh,size.y*3/4,wh, wh);
+    
+                grd = ctx.createLinearGradient(wh, size.y-wh, 0, size.y);
+                grd.addColorStop(.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+                grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                ctx.fillStyle = grd;
+                if(t==0)
+                    ctx.fillRect(0,size.y-wh,wh, wh);
+                else
+                    ctx.fillRect(0,size.y*3/4,wh, wh);
+
+                let h = size.y/2/6;
+                
+                if(options.contentType == 0){
+                    
+                }
+                else if(options.contentType == 1) {
+                    let from = wh+size.x*1/16;
+                    let to = size.x-wh-size.x*1/16;
+                    for(let i = 0;i<6;i++){
+                        for(let j = from; j < to;j++){
+                            if(getRandomBool())
+                                ctx.fillRect(j, size.y*1/4+i*h,1, h*2/3);
+                        }
                     }
                 }
             }
+            else if(options.screenType == 2){
+
+            }
+            //TODO: other shapes
+            
             
             
         })
 
         super(options);
 
+        if(this.contentType == 0){
+            let size;
+            let t = this.screenType;
+            let wh = t == 0 ? this.size.x*1/4 : this.size.y*1/4;
+            if(t==0){
+                size = new V2(this.size.x*1/4, this.size.y*2/6)
+            }
+            else {
+                size = new V2(this.size.x-4*wh, this.size.y*2/6)
+            }
+
+            this.content = new GO({
+                position: new V2(0,0),
+                size: size,
+                img: createCanvas(new V2(10,10), function(ctx, size){
+                    ctx.fillStyle = `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`;
+                    ctx.fillRect(0,0,size.x, size.y);
+                })
+            });
+
+            this.addChild(this.content);
+
+            if(true){
+                this.contentAnimationTimer = createTimer(50, this.contentAnimationMethod, this, true);
+                this.contentAnimation = {
+                    maxX: size.x,
+                    maxY: size.y,
+                    minX: size.x/3,
+                    minY: size.y/3,
+                    speedX: (size.x- size.x/3)/10,
+                    speedY: (size.y- size.y/3)/10,
+                    directionX: -1,
+                    directionY: 0
+                }
+            }
+        }
+        else if(this.contentType == 2){
+            this.content = new GO({
+                position: new V2(0,0),
+                size: this.screenType == 0 ? new V2(this.size.x/2,this.size.x/2) : new V2(this.size.x/2,this.size.y/2),
+            });
+
+            let letters = ['1','2','3','4','5','A','B','C','D','E','Э','Я','Ю','Ъ','Ф','!','?','$','@','#','人','九','个','万','ﻞ','ﺲ','ﻦ','ﻚ'];
+            let that = this;
+            this.content.images = letters.map((letter) => 
+                createCanvas(new V2(40,40), function(ctx, size){
+                    ctx.font = '25px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`;
+                    ctx.fillText(letter+ (that.screenType==1? letters[getRandomInt(0, letters.length-1)]:''), size.x/2, size.y*3/4);
+                }));
+
+            this.content.img = this.content.images[getRandomInt(0,this.content.images.length-1)];
+            this.addChild(this.content);
+            this.contentLetterChangeTimer = createTimer(getRandomInt(50,250), this.contentLetterChangeMethod, this, true);
+        }
+
         if(this.blinking.enabled){
             this.blinkingTimer = createTimer(getRandomInt(50,150), this.blinkingTimerMethod, this, true);
         }
-        
+    }
+
+    contentLetterChangeMethod() {
+        this.content.img = this.content.images[getRandomInt(0,this.content.images.length-1)];
+    }
+
+    contentAnimationMethod(){
+        let ca = this.contentAnimation;
+        this.content.size.x+=ca.directionX*ca.speedX;
+        this.content.size.y+=ca.directionY*ca.speedY;
+
+        if(this.content.size.x < ca.minX){
+            this.content.size.x = ca.minX;
+            ca.directionX=1;
+        }
+
+        if(this.content.size.x > ca.maxX){
+            this.content.size.x = ca.maxX;
+            ca.directionX = 0;
+            ca.directionY = -1;
+        }
+
+        if(this.content.size.y < ca.minY){
+            this.content.size.y = ca.minY;
+            ca.directionY = 1;
+        }
+
+        if(this.content.size.y > ca.maxY){
+            this.content.size.y = ca.maxY;
+            ca.directionY = 0;
+            ca.directionX = -1;
+        }
+
+        this.needRecalcRenderProperties = true;
     }
 
     blinkingTimerMethod(){
@@ -917,7 +1096,15 @@ class AdvertisementScreen extends GO {
 
     internalUpdate(now){
         if(this.blinking.enabled){
-            doWorkByTimer(this.blinkingTimer, now)
+            doWorkByTimer(this.blinkingTimer, now);
+        }
+
+        if(this.contentAnimationTimer){
+            doWorkByTimer(this.contentAnimationTimer, now);
+        }
+
+        if(this.contentLetterChangeTimer){
+            doWorkByTimer(this.contentLetterChangeTimer, now);
         }
     }
 
@@ -928,5 +1115,26 @@ class AdvertisementScreen extends GO {
 
     internalRender(){
         this.context.restore();
+    }
+}
+
+class Robot extends MovingGO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            robotType: 0,
+            collisionDetection: {
+                enabled: true,
+            }
+        }, options);
+
+        super(options);
+
+        this.collisionDetection.circuit = [new V2(-this.size.x/2, 0), new V2(0, -this.size.y/2), new V2(this.size.x/2, 0)];
+        this.img = createCanvas(new V2(100, 100), function(ctx, size) {
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(size.x/2, size.y/2, size.x/2, 0, 2 * Math.PI, false);
+            ctx.fill();
+        });
     }
 }
