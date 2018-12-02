@@ -49,7 +49,9 @@ class RainScene extends Scene {
         this.buildingsCount = [this.backBuildingsCount, this.minBuildingsCount, this.frontBuildingsCount];
 
         this.neonColors = [[133,207,116],[222,133,87],[250,235,114],[101,172,219],[152,59,102],[102,170,95],[223,176,92],[76,129,170]]
-
+    
+        this.prepareSplashCaches(true);
+        this.prepareSplashCaches(false);
         //backBuildings
         let widthStep = 20;
         let heightFromTo = [3/5, 7/8];
@@ -130,8 +132,12 @@ class RainScene extends Scene {
         // }), 50)
 
         this.addGo(new Robot({
-            size: new V2(20,20),
-            position: new V2(this.viewport.x/2, this.viewport.y-80),
+            size: new V2(40,20),
+            position: new V2(this.viewport.x/2, this.viewport.y-60),
+            //position: new V2(0, this.viewport.y-80),
+            destination: new V2(this.viewport.x, this.viewport.y-80),
+            setDestinationOnInit: true,
+            //speed: 0.5,
             layer: this.frontalRainLayer,
         }), this.frontalRainLayer)
         
@@ -296,6 +302,47 @@ class RainScene extends Scene {
         this.backRainDropTimer = createTimer(50, this.backRainDropTimerMethod, this, true);
 
         this.customStreamTimer = createTimer(3000, this.customStreamTimerMethod, this, true);
+    }
+
+    prepareSplashCaches(isBack = false){
+        let cache;
+        if(isBack){
+            Splash.yAxisCacheBack = [];
+            cache = Splash.yAxisCacheBack;
+        }
+        else {
+            Splash.yAxisCacheFront = [];
+            cache = Splash.yAxisCacheFront;
+        }
+
+        for(let i = 0; i < 1000; i++){
+            let props = {
+                speed: isBack ? getRandom(0.1, 0.13):getRandom(0.09, 0.11),
+                coefficients: {
+                    a: isBack ? getRandom(1,3) : getRandom(2,4),
+                    b: isBack ? getRandom(3,9) : getRandom(5,12)
+                },
+                xAxis: {
+                    direction: getRandomBool() ? 1: -1
+                },
+                points: []
+            }
+
+            if(props.xAxis.direction > 0){
+                props.coefficients.b*=-1;
+            }
+
+            let yAxisCurrent = 0;
+            let xAxisCurrent = 0;
+            while(yAxisCurrent <= 0){
+                yAxisCurrent = (props.coefficients.a*xAxisCurrent*xAxisCurrent)+props.coefficients.b*xAxisCurrent;
+                props.points.push({x: xAxisCurrent, y: yAxisCurrent});
+
+                xAxisCurrent = fastRoundWithPrecision(xAxisCurrent + props.xAxis.direction*props.speed,1);
+            }
+
+            cache[i] = props;
+        }
     }
 
     fenceGenerator(ctx, size) {
@@ -671,6 +718,8 @@ class RainDrop extends MovingGO {
         for(let i = 0;i < count; i++)
         {
             this.parentScene.addGo(new Splash({
+                isBack: this.isBack,
+                cacheKey: getRandomInt(0,999),
                 position: this.splashPoint ? this.splashPoint.clone() : this.position.clone(),
                 img: this.isBack ? this.parentScene.backSplashImg : this.parentScene.splashImg,
                 speed: this.isBack ? getRandom(0.1, 0.13):getRandom(0.09, 0.11),
@@ -720,23 +769,27 @@ class Splash extends MovingGO {
             },
             positionChangeProcesser: function(){
                 let oldPosition = this.position.clone();
-                this.yAxis.current = this.getYAxisCurrent()
 
-                if(this.yAxis.current > 0){
+                if(this.currentPointIndex >= this.cachedPoints.points.length){
                     this.setDead();
                     return;
                 }
 
+                let p = this.cachedPoints.points[this.currentPointIndex];
+                this.yAxis.current = p.y;
+                this.xAxis.current = p.x;
+
                 this.position = this.initialPosition.add(new V2(this.xAxis.current, this.yAxis.current));
-                this.xAxis.current = fastRoundWithPrecision(this.xAxis.current + this.xAxis.direction*this.xAxis.speed,3);
+
+                this.currentPointIndex++;
 
                 return this.position.substract(oldPosition); 
             }
         }, options);
 
-        options.coefficients.a = fastRoundWithPrecision(options.coefficients.a,2);
-        options.coefficients.b = fastRoundWithPrecision(options.coefficients.b,2);
-        options.speed = fastRoundWithPrecision(options.speed, 3);
+        options.coefficients.a = fastRoundWithPrecision(options.coefficients.a,1);
+        options.coefficients.b = fastRoundWithPrecision(options.coefficients.b,1);
+        options.speed = fastRoundWithPrecision(options.speed, 1);
 
         options.xAxis.speed = options.speed;
         if(options.xAxis.direction > 0){
@@ -746,24 +799,10 @@ class Splash extends MovingGO {
         super(options);
 
         this.initialPosition = this.position.clone();
-    }
-
-    getYAxisCurrent(){
-        let key = this.coefficients.a+'_'+this.xAxis.current+'_'+this.coefficients.b;
-        let cacheItem = Splash.yAxisCache[key];
-        if(cacheItem===undefined){
-            cacheItem = (this.coefficients.a*this.xAxis.current*this.xAxis.current)+this.coefficients.b*this.xAxis.current;
-            Splash.yAxisCache[key] = cacheItem;
-        }
-        // else {
-        //     console.log(`key '${key}' found, return value '${cacheItem}'`);
-        // }
-
-        return cacheItem;
+        this.cachedPoints = this.isBack ? Splash.yAxisCacheBack[this.cacheKey] : Splash.yAxisCacheFront[this.cacheKey];
+        this.currentPointIndex = 0;
     }
 }
-
-Splash.yAxisCache = [];
 
 class StreamItem extends MovingGO {
     constructor(options = {}) {
@@ -1130,11 +1169,87 @@ class Robot extends MovingGO {
         super(options);
 
         this.collisionDetection.circuit = [new V2(-this.size.x/2, 0), new V2(0, -this.size.y/2), new V2(this.size.x/2, 0)];
-        this.img = createCanvas(new V2(100, 100), function(ctx, size) {
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(size.x/2, size.y/2, size.x/2, 0, 2 * Math.PI, false);
-            ctx.fill();
+        // this.img = createCanvas(new V2(100, 100), function(ctx, size) {
+        //     ctx.fillStyle = 'white';
+        //     ctx.beginPath();
+        //     ctx.arc(size.x/2, size.y/2, size.x/2, 0, 2 * Math.PI, false);
+        //     ctx.fill();
+        // });
+
+        this.body = new GO({
+            position: new V2(-this.size.x/4+this.size.x/16, -this.size.y/4+this.size.y/8),
+            size: new V2(this.size.x/2, this.size.y/2),
+            img: createCanvas(new V2(100, 100), function(ctx, size){
+                ctx.fillStyle = 'blue';
+                ctx.fillRect(0,0, size.x, size.y);
+            })
         });
+
+        this.addChild(this.body);
+
+        this.head = new GO({
+            position: new V2(this.size.x*3/4-this.size.x/2, 0),
+            size: new V2(this.size.x/2, this.size.y),
+            img: createCanvas(new V2(100, 100), function(ctx, size){
+                ctx.fillStyle = 'green';
+                ctx.beginPath();
+                ctx.moveTo(0, size.y/2);
+                ctx.bezierCurveTo(30, 10, 70, 10, size.x, size.y/2);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = 'darkgreen';
+                ctx.beginPath();
+                ctx.moveTo(10, size.y/2);
+                ctx.bezierCurveTo(35, 80, 65, 80, 90, size.y/2);
+                ctx.closePath();
+                ctx.fill();
+                
+                //ctx.fillRect(0,0, size.x, size.y);
+            })
+        });
+        this.addChild(this.head);
+
+        this.thruster = new GO({
+            angle: 45,
+            position: new V2(0, 0),
+            size: new V2(this.size.x/3, this.size.y/3),
+            img: createCanvas(new V2(100, 100), function(ctx, size){
+                ctx.fillStyle = 'red';
+                //ctx.fillRect(0,0, size.x, size.y);
+                ctx.beginPath();
+                ctx.moveTo(10,100);
+                ctx.bezierCurveTo(0, 70, 0, 30, 10, 0);
+                ctx.lineTo(90, 0);
+                ctx.bezierCurveTo(100, 30, 100, 70, 90, 100);
+                ctx.closePath();
+                ctx.fill();
+            }),
+            internalPreRender() {
+                //this.context.save();
+        
+                this.context.translate(this.renderPosition.x, this.renderPosition.y);
+                this.context.rotate(degreeToRadians(this.angle));
+                this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+            },
+            internalRender() {
+                this.context.translate(this.renderPosition.x, this.renderPosition.y);
+                this.context.rotate(degreeToRadians(-this.angle));
+                this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+                //this.context.restore();
+            }
+        });
+
+        this.addChild(this.thruster);
+
+        this.originalPosition = this.position.clone();
+    }
+
+    beforePositionChange(){
+        this.position.y = this.originalPosition.y;
+    }
+    
+    positionChangedCallback(){
+        this.position.y+=Math.sin(this.position.x)*0.5;
     }
 }
