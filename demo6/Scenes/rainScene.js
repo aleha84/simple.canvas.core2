@@ -296,15 +296,15 @@ class RainScene extends Scene {
             }), this.frontStreamLayer);
         }
 
-        this.addGo(new Robot({
-            size: new V2(40,20),
-            position: new V2(this.viewport.x/2, this.viewport.y-60),
-            setDestinationOnInit: true,
-            speed: 0,
-            flip: false,
-            robotType: 1,
-            layer: this.frontalRainLayer,
-        }), this.frontalRainLayer)
+        // this.addGo(new Robot({
+        //     size: new V2(40,20),
+        //     position: new V2(this.viewport.x/2, this.viewport.y-60),
+        //     setDestinationOnInit: true,
+        //     speed: 0,
+        //     flip: false,
+        //     robotType: 1,
+        //     layer: this.frontalRainLayer,
+        // }), this.frontalRainLayer)
 
         // timers
         this.rainDropTimer = createTimer(50, this.rainDropTimerMethod, this, true);
@@ -329,6 +329,7 @@ class RainScene extends Scene {
             setDestinationOnInit: true,
             speed: getRandom(0.1,1),
             //thrusterAngle: 45,
+            robotType: getRandomInt(0,1),
             flip: !isLeft,
             layer: this.frontalRainLayer-relativeHShift,
         }), this.frontalRainLayer-relativeHShift)
@@ -1198,7 +1199,7 @@ class Robot extends MovingGO {
             thrusterAngle: 0,
             maxSpeed: 1,
             maxAngle: 45,
-            cargoType: getRandomInt(0, Robot.cargoTypes.length-1), 
+            cargoType: getRandomInt(0, Robot.cargoTypesBarcodeImages.length-1), 
             flip: false,
             collisionDetection: {
                 enabled: true,
@@ -1237,7 +1238,7 @@ class Robot extends MovingGO {
         this.cargo = new GO({
             position: new V2(-this.size.x/4+this.size.x/16, -this.size.y/4),
             size: new V2(this.size.x/2, this.size.y*3/4),
-            img: Robot.cragoTypesImages[this.cargoType]
+            img: Robot.cargoTypesBarcodeImages[this.cargoType]//Robot.cragoTypesImages[this.cargoType]
         });
 
         this.addChild(this.cargo);
@@ -1246,10 +1247,22 @@ class Robot extends MovingGO {
             position: new V2(-this.size.x/4+this.size.x/16, -this.size.y/4+this.size.y/8),
             size: new V2(this.size.x/2, this.size.y/2),
             img: createCanvas(new V2(100, 100), function(ctx, size){
-                ctx.fillStyle = '#395463';
-                ctx.fillRect(0,0, 10, size.y);
-                ctx.fillStyle = '#24363F';
-                ctx.fillRect(0,size.y-20, size.x, 20);
+                if(that.robotType == 0){
+                    ctx.fillStyle = '#395463';
+                    ctx.fillRect(0,0, 10, size.y);
+                    ctx.fillStyle = '#24363F';
+                    ctx.fillRect(0,size.y-20, size.x, 20);
+                }
+                else if(that.robotType == 1){
+                    draw(ctx, {
+                        closePath: true,
+                        fillStyle: '#316839',
+                        points: [new V2(0, 100), new V2(0, 25), new V2(100, 80), new V2(100, 100)]
+                    });
+
+                    ctx.fillStyle = '#1A381E';
+                    ctx.fillRect(0,size.y-20, size.x, 20);
+                }
             })
         });
 
@@ -1326,7 +1339,7 @@ class Robot extends MovingGO {
                     draw(ctx, {
                         closePath: true,
                         fillStyle: grd,
-                        points: [new V2(0,0), new V2(75,0), new V2(100, 25), new V2(100, 50), new V2(0, 50)]
+                        points: [new V2(0,30),new V2(10,20), new V2(75,20), new V2(100, 35), new V2(100, 50), new V2(0, 50)]
                     })
 
                     grd = ctx.createLinearGradient(size.x/2, size.y/2-size.y/8, size.x*1/3, size.y*3/4);
@@ -1335,7 +1348,7 @@ class Robot extends MovingGO {
                     draw(ctx, {
                         closePath: true,
                         fillStyle: grd,
-                        points: [new V2(20,50), new V2(80,50), new V2(80, 75), new V2(50, 100), new V2(20, 100)]
+                        points: [new V2(20,50), new V2(80,50), new V2(80, 65), new V2(50, 75), new V2(20, 75)]
                     })
                 }
                 
@@ -1359,7 +1372,9 @@ class Robot extends MovingGO {
         
         this.frontalLeds = [
             new Led({
-                position: new V2(this.head.size.x*1/3, this.head.size.y/12),
+                position: this.robotType == 0 ? new V2(this.head.size.x*1/3, this.head.size.y/12)
+                          : (this.robotType == 1 ? new V2(this.head.size.x*1/2, -this.head.size.y/16) 
+                          : undefined),
                 size: new V2(5,5),
                 img: Robot.frontalLedImg,
                 blinking: {
@@ -1370,7 +1385,9 @@ class Robot extends MovingGO {
                 autoStartFadeOut: 5000
             }),
             new Led({
-                position: new V2(this.head.size.x*1/6, this.head.size.y/7),
+                position: this.robotType == 0 ? new V2(this.head.size.x*1/6, this.head.size.y/7)
+                        : (this.robotType == 1 ? new V2(this.head.size.x*1/3, -this.head.size.y/16) 
+                          : undefined),
                 size: new V2(5,5),
                 img: Robot.frontalLedImg,
                 blinking: {
@@ -1381,7 +1398,9 @@ class Robot extends MovingGO {
                 autoStartFadeOut: 5500
             }),
             new Led({
-                position: new V2(this.head.size.x*0, this.head.size.y/6),
+                position: this.robotType == 0 ? new V2(this.head.size.x*0, this.head.size.y/6)
+                        : (this.robotType == 1 ? new V2(this.head.size.x*1/6, -this.head.size.y/16) 
+                          : undefined),
                 size: new V2(5,5),
                 img: Robot.frontalLedImg,
                 blinking: {
@@ -1407,18 +1426,31 @@ class Robot extends MovingGO {
             position: new V2(0, 0),
             size: new V2(this.size.x/3, this.size.y/4),
             img: createCanvas(new V2(100, 100), function(ctx, size){
-                let grd = ctx.createLinearGradient(size.x/2, -size.y*2/4, size.x/2, size.y);
-                grd.addColorStop(0, '#8CCEF5')
-                grd.addColorStop(1, '#24363F')
-                ctx.fillStyle = grd;//'red';
+                if(that.robotType == 0){
+                    let grd = ctx.createLinearGradient(size.x/2, -size.y*2/4, size.x/2, size.y);
+                    grd.addColorStop(0, '#8CCEF5')
+                    grd.addColorStop(1, '#24363F')
+                    ctx.fillStyle = grd;//'red';
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(10,100);
+                    ctx.bezierCurveTo(0, 70, 0, 30, 10, 0);
+                    ctx.lineTo(90, 0);
+                    ctx.bezierCurveTo(100, 30, 100, 70, 90, 100);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                else if(that.robotType == 1){
+                    let grd = ctx.createLinearGradient(size.x/2, -size.y*2/4, size.x/2, size.y);
+                    grd.addColorStop(0, '#316839')
+                    grd.addColorStop(1, '#1A381E')
+                    draw(ctx,{
+                        closePath: true,
+                        fillStyle: grd,
+                        points: [new V2(0, 0), new V2(50, 0), new V2(100, 50), new V2(100, 100), new V2(0, 100)]
+                    });
+                }
                 
-                ctx.beginPath();
-                ctx.moveTo(10,100);
-                ctx.bezierCurveTo(0, 70, 0, 30, 10, 0);
-                ctx.lineTo(90, 0);
-                ctx.bezierCurveTo(100, 30, 100, 70, 90, 100);
-                ctx.closePath();
-                ctx.fill();
             }),
             internalPreRender() {
                 //this.context.save();
@@ -1435,7 +1467,8 @@ class Robot extends MovingGO {
             }
         });
 
-        this.thrusterPowerColor = '122,187,249';
+        this.thrusterPowerColor = this.robotType == 0 ? '122,187,249' : 
+                                  (this.robotType == 1 ? '255, 128, 0' : undefined);
         this.thrusterPower = new GO({
             position: new V2(0,this.thruster.size.y+this.thruster.size.y*1/2),
             size: new V2(this.thruster.size.x*0.8, this.thruster.size.y*2),
@@ -1574,24 +1607,6 @@ class Robot extends MovingGO {
             this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
         }
 
-        let scale = SCG.viewport.scale;
-        let cdBoxTLRender = this.collisionDetection.box.topLeft.mul(scale);
-        this.context.strokeStyle = '#00BFFF';
-        this.context.strokeRect(cdBoxTLRender.x, cdBoxTLRender.y, this.collisionDetection.box.width*scale, this.collisionDetection.box.height*scale);
-        let position = this.position;
-        draw(
-            this.context, 
-            {
-                lineWidth: 2,
-                strokeStyle: 'red',
-                closePath: true,
-                points: this.collisionDetection.circuit.map((item) => item.add(position).mul(scale))
-            }
-        )
-        
-    }
-
-    //internalRender(){
         // let scale = SCG.viewport.scale;
         // let cdBoxTLRender = this.collisionDetection.box.topLeft.mul(scale);
         // this.context.strokeStyle = '#00BFFF';
@@ -1606,15 +1621,8 @@ class Robot extends MovingGO {
         //         points: this.collisionDetection.circuit.map((item) => item.add(position).mul(scale))
         //     }
         // )
-    //}
-
-    // beforePositionChange(){
-    //     this.position.y = this.originalPosition.y;
-    // }
-    
-    // positionChangedCallback(){
-    //     this.position.y+=Math.sin(this.position.x)*0.5;
-    // }
+        
+    }
 }
 
 class Led extends GO {
@@ -1717,23 +1725,43 @@ class Led extends GO {
     }
 }
 
-Robot.cargoTypes = ['Food', 'Guns', 'Meds', 'Еда', 'Пухи', 'Мёд', '食物', '武器', '药', 'الطعام', 'سلاح', 'دواء' ]
-Robot.cragoTypesImages = Robot.cargoTypes.map((type) => createCanvas(new V2(100, 100), function(ctx, size){
-    let grd = ctx.createLinearGradient(size.x, 0, 0, size.y);
-    grd.addColorStop(0, '#CFA26A')
-    grd.addColorStop(1, '#705638')
-    ctx.fillStyle = grd;
-    ctx.fillRect(0,0, size.x, size.y);
-    ctx.fillStyle = '#F3E2C9';
-    ctx.fillRect(0,0, size.x, 2);
-    ctx.fillRect(size.x-2,0, size.x, size.y);
+// Robot.cargoTypes = ['Food', 'Guns', 'Meds', 'Еда', 'Пухи', 'Мёд', '食物', '武器', '药', 'الطعام', 'سلاح', 'دواء' ]
+// Robot.cragoTypesImages = Robot.cargoTypes.map((type) => createCanvas(new V2(100, 100), function(ctx, size){
+//     let grd = ctx.createLinearGradient(size.x, 0, 0, size.y);
+//     grd.addColorStop(0, '#CFA26A')
+//     grd.addColorStop(1, '#705638')
+//     ctx.fillStyle = grd;
+//     ctx.fillRect(0,0, size.x, size.y);
+//     ctx.fillStyle = '#F3E2C9';
+//     ctx.fillRect(0,0, size.x, 2);
+//     ctx.fillRect(size.x-2,0, size.x, size.y);
 
-    ctx.translate(size.x/2, size.y/2);
-    ctx.rotate(degreeToRadians(-35));
-    ctx.translate(-size.x/2, -size.y/2);
-    ctx.font = '25px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = `#443527`;
-    ctx.fillText(type, size.x/2, size.y/2);
+//     ctx.translate(size.x/2, size.y/2);
+//     ctx.rotate(degreeToRadians(-35));
+//     ctx.translate(-size.x/2, -size.y/2);
+//     ctx.font = '25px Arial';
+//     ctx.textAlign = 'center';
+//     ctx.fillStyle = `#443527`;
+//     ctx.fillText(type, size.x/2, size.y/2);
 
-}))
+// }));
+
+Robot.cargoTypesBarcodeImages = [...Array(20).keys()].map((item) => 
+    createCanvas(new V2(100, 100), function(ctx, size){
+        let grd = ctx.createLinearGradient(size.x, 0, 0, size.y);
+        grd.addColorStop(0, '#CFA26A')
+        grd.addColorStop(1, '#705638')
+        ctx.fillStyle = grd;
+        ctx.fillRect(0,0, size.x, size.y);
+        ctx.fillStyle = '#F3E2C9';
+        ctx.fillRect(0,0, size.x, 2);
+        ctx.fillRect(size.x-2,0, size.x, size.y);
+
+        let barsCount = 20;
+        let itemWidth = (size.x*3/4)/barsCount;
+        ctx.fillStyle = 'black';
+        for(let i = 0; i < barsCount; i++){
+            ctx.fillRect(10 + itemWidth*i, 10, getRandomBool() ? itemWidth*3/4 : itemWidth*1/4, 30);
+        }
+    })
+)
