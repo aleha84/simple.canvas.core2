@@ -341,7 +341,7 @@ function draw(ctx, props) {
     lineWidth: 1
   }, props);
 
-  if(props.strokeStyle === undefined || props.points.length < 2)
+  if(props.points.length < 2)
     return;
 
   let oldLineWidth = ctx.lineWidth;
@@ -379,9 +379,12 @@ function draw(ctx, props) {
     ctx.fill();
   }
 
-  ctx.lineWidth = props.lineWidth;
-  ctx.strokeStyle = props.strokeStyle;
-  ctx.stroke();
+  if(props.strokeStyle){
+    ctx.lineWidth = props.lineWidth;
+    ctx.strokeStyle = props.strokeStyle;
+    ctx.stroke();
+  }
+  
 
   ctx.lineWidth = oldLineWidth;
   ctx.strokeStyle = oldStrokeStyle;
@@ -446,7 +449,7 @@ function createTimer(delay, method, context, startNow = true) {
   return {
       lastTimeWork: new Date,
       delta : startNow ? 0 : delay,
-      currentDelay: delay,
+      currentDelay: startNow ? 0 : delay,//delay,
       originDelay: delay,
       doWorkInternal : method,
       context: context

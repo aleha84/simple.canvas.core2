@@ -131,15 +131,15 @@ class RainScene extends Scene {
         //     }
         // }), 50)
 
-        this.addGo(new Robot({
-            size: new V2(40,20),
-            position: new V2(this.viewport.x/2, this.viewport.y-60),
-            //position: new V2(0, this.viewport.y-80),
-            destination: new V2(this.viewport.x, this.viewport.y-80),
-            setDestinationOnInit: true,
-            //speed: 0.5,
-            layer: this.frontalRainLayer,
-        }), this.frontalRainLayer)
+        // this.addGo(new Robot({
+        //     size: new V2(40,20),
+        //     position: new V2(this.viewport.x/2, this.viewport.y-60),
+        //     //position: new V2(0, this.viewport.y-80),
+        //     //destination: new V2(this.viewport.x, this.viewport.y-60),
+        //     setDestinationOnInit: true,
+        //     //speed: 0.5,
+        //     layer: this.frontalRainLayer,
+        // }), this.frontalRainLayer)
         
         //roadside
         let roadSide = new GO({
@@ -196,17 +196,17 @@ class RainScene extends Scene {
 
         // images
         this.rainDropImg = createCanvas(new V2(5,50), function(ctx, size){
-            ctx.fillStyle = 'blue';
+            ctx.fillStyle = '#4C96C4';
             ctx.fillRect(0,0, size.x, size.y);
         });
 
         this.midRainDropImg = createCanvas(new V2(5,50), function(ctx, size){
-            ctx.fillStyle = 'darkblue';
+            ctx.fillStyle = '#3D7AA0';
             ctx.fillRect(0,0, size.x, size.y);
         });
 
         this.backRainDropImg = createCanvas(new V2(5,50), function(ctx, size){
-            ctx.fillStyle = 'black';
+            ctx.fillStyle = '#386F91';
             ctx.fillRect(0,0, size.x, size.y);
         });
 
@@ -216,12 +216,12 @@ class RainScene extends Scene {
         });
 
         this.splashImg = createCanvas(new V2(10, 10), function(ctx, size){
-            ctx.fillStyle = 'red';
+            ctx.fillStyle = '#4C96C4';
             ctx.fillRect(0,0, size.x, size.y);
         });
 
         this.backSplashImg = createCanvas(new V2(10, 10), function(ctx, size){
-            ctx.fillStyle = 'darkred';
+            ctx.fillStyle = '#3D7AA0';
             ctx.fillRect(0,0, size.x, size.y);
         });
 
@@ -296,12 +296,42 @@ class RainScene extends Scene {
             }), this.frontStreamLayer);
         }
 
+        this.addGo(new Robot({
+            size: new V2(40,20),
+            position: new V2(this.viewport.x/2, this.viewport.y-60),
+            setDestinationOnInit: true,
+            speed: 0,
+            flip: false,
+            robotType: 1,
+            layer: this.frontalRainLayer,
+        }), this.frontalRainLayer)
+
         // timers
         this.rainDropTimer = createTimer(50, this.rainDropTimerMethod, this, true);
         this.midRainDropTimer = createTimer(50, this.midRainDropTimerMethod, this, true);
         this.backRainDropTimer = createTimer(50, this.backRainDropTimerMethod, this, true);
 
         this.customStreamTimer = createTimer(3000, this.customStreamTimerMethod, this, true);
+
+        this.deliveryDronsTimer = createTimer(12000, this.deliveryDronsTimerMethod, this, true);
+    }
+
+    deliveryDronsTimerMethod(){
+        let isLeft = getRandomBool();
+        let hShift = getRandom(30, 70);
+        let position = new V2(isLeft ? -100 : this.viewport.x + 100, this.viewport.y-hShift);
+        let relativeHShift = parseInt((hShift - 30)/8);
+
+        this.addGo(new Robot({
+            size: new V2(40,20),
+            position: position,
+            destination: new V2(isLeft ? this.viewport.x+100 : -100, position.y),
+            setDestinationOnInit: true,
+            speed: getRandom(0.1,1),
+            //thrusterAngle: 45,
+            flip: !isLeft,
+            layer: this.frontalRainLayer-relativeHShift,
+        }), this.frontalRainLayer-relativeHShift)
     }
 
     prepareSplashCaches(isBack = false){
@@ -680,6 +710,10 @@ class RainScene extends Scene {
 
         if(this.customStreamTimer) {
             doWorkByTimer(this.customStreamTimer, now);
+        }
+
+        if(this.deliveryDronsTimer){
+            doWorkByTimer(this.deliveryDronsTimer, now);
         }
     }
 }
@@ -1161,29 +1195,101 @@ class Robot extends MovingGO {
     constructor(options = {}){
         options = assignDeep({}, {
             robotType: 0,
+            thrusterAngle: 0,
+            maxSpeed: 1,
+            maxAngle: 45,
+            cargoType: getRandomInt(0, Robot.cargoTypes.length-1), 
+            flip: false,
             collisionDetection: {
                 enabled: true,
+            },
+            swinging: {
+                currentXdegree: 0, 
+                currentY: 0,
+                degreeStep: 5,
+            },
+            thrusterPowerPropulsion: {
+                originalSize: undefined,
+                originalPosition: undefined,
+                current: 100, 
+                max: 100,
+                min: 50, 
+                step: 4,
+                direction: -1
             }
         }, options);
 
         super(options);
 
-        this.collisionDetection.circuit = [new V2(-this.size.x/2, 0), new V2(0, -this.size.y/2), new V2(this.size.x/2, 0)];
-        // this.img = createCanvas(new V2(100, 100), function(ctx, size) {
-        //     ctx.fillStyle = 'white';
-        //     ctx.beginPath();
-        //     ctx.arc(size.x/2, size.y/2, size.x/2, 0, 2 * Math.PI, false);
-        //     ctx.fill();
-        // });
+        this.collisionDetection.circuit = [
+            new V2(-this.size.x/2+this.size.x/14, -this.size.y/2-this.size.y/10), new V2(this.size.x/14, -this.size.y/2-this.size.y/10), 
+            new V2(this.size.x/14, -this.size.y/4), new V2(this.size.x/3, -this.size.y/4), new V2(this.size.x/2, 0)];
+
+        if(this.flip) {
+            this.collisionDetection.circuit = this.collisionDetection.circuit.map(point => {
+                point.x = -point.x;
+                return point;
+            })
+        }
+
+        let that = this;
+
+        this.cargo = new GO({
+            position: new V2(-this.size.x/4+this.size.x/16, -this.size.y/4),
+            size: new V2(this.size.x/2, this.size.y*3/4),
+            img: Robot.cragoTypesImages[this.cargoType]
+        });
+
+        this.addChild(this.cargo);
 
         this.body = new GO({
             position: new V2(-this.size.x/4+this.size.x/16, -this.size.y/4+this.size.y/8),
             size: new V2(this.size.x/2, this.size.y/2),
             img: createCanvas(new V2(100, 100), function(ctx, size){
-                ctx.fillStyle = 'blue';
-                ctx.fillRect(0,0, size.x, size.y);
+                ctx.fillStyle = '#395463';
+                ctx.fillRect(0,0, 10, size.y);
+                ctx.fillStyle = '#24363F';
+                ctx.fillRect(0,size.y-20, size.x, 20);
             })
         });
+
+        //rear leds
+        if(!Robot.rearLedImg){
+            Robot.rearLedImg = createCanvas(new V2(100, 100), function(ctx, size){
+                let grd = ctx.createRadialGradient(size.x*3/4, size.y/2, 5, size.x*1/3, size.y/2, 50);
+                grd.addColorStop(0, 'rgba(209,137,51, 1)');
+                grd.addColorStop(0.1, 'rgba(190,50,25, 1)');
+                grd.addColorStop(0.5, 'rgba(190,50,25, 0.2)');
+                grd.addColorStop(0.8, 'rgba(190,50,25, 0)');
+                // ctx.scale(1,0.5);
+                // ctx.translate(0,size.y/2);
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0, size.x, size.y);
+            });
+        }
+        
+
+        this.rearLeds = [
+            new Led({
+                position: new V2(-this.body.size.x/2-this.body.size.x/12, this.size.y/6),
+                size: new V2(5,10),
+                img: Robot.rearLedImg,
+                blinking: {
+                    enabled: false
+                }
+            }),
+            new Led({
+                position: new V2(-this.body.size.x/2-this.body.size.x/12, -this.size.y/6),
+                size: new V2(5,10),
+                img: Robot.rearLedImg,
+                blinking: {
+                    enabled: false
+                }
+            })
+        ]
+
+        this.body.addChild(this.rearLeds[0])
+        this.body.addChild(this.rearLeds[1])
 
         this.addChild(this.body);
 
@@ -1191,32 +1297,121 @@ class Robot extends MovingGO {
             position: new V2(this.size.x*3/4-this.size.x/2, 0),
             size: new V2(this.size.x/2, this.size.y),
             img: createCanvas(new V2(100, 100), function(ctx, size){
-                ctx.fillStyle = 'green';
-                ctx.beginPath();
-                ctx.moveTo(0, size.y/2);
-                ctx.bezierCurveTo(30, 10, 70, 10, size.x, size.y/2);
-                ctx.closePath();
-                ctx.fill();
+                if(that.robotType == 0){
+                    let grd = ctx.createLinearGradient(size.x/2, size.y/2-size.y/8, size.x*3/4, 0);
+                    grd.addColorStop(0, '#395463')
+                    grd.addColorStop(1, '#8CCEF5')
+                    ctx.fillStyle = grd;//'green';
+                    ctx.beginPath();
+                    ctx.moveTo(0, size.y/2);
+                    ctx.bezierCurveTo(30, 10, 70, 10, size.x, size.y/2);
+                    ctx.closePath();
+                    ctx.fill();
+    
+                    //grd = ctx.createLinearGradient(size.x/2, size.y*1/3, size.x*1/4, size.y);
+                    grd = ctx.createLinearGradient(size.x/2, size.y/2-size.y/8, size.x*1/3, size.y*3/4);
+                    grd.addColorStop(0, '#24363F')
+                    grd.addColorStop(1, '#395463')
+                    ctx.fillStyle = grd;//'darkgreen';
+                    ctx.beginPath();
+                    ctx.moveTo(10, size.y/2);
+                    ctx.bezierCurveTo(35, 80, 65, 80, 90, size.y/2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                else if(that.robotType == 1){
+                    let grd = ctx.createLinearGradient(size.x*2/3, size.y/2-size.y/8, size.x*7/8, 0);
+                    grd.addColorStop(0, '#316839')
+                    grd.addColorStop(1, '#5FCC70')
+                    draw(ctx, {
+                        closePath: true,
+                        fillStyle: grd,
+                        points: [new V2(0,0), new V2(75,0), new V2(100, 25), new V2(100, 50), new V2(0, 50)]
+                    })
 
-                ctx.fillStyle = 'darkgreen';
-                ctx.beginPath();
-                ctx.moveTo(10, size.y/2);
-                ctx.bezierCurveTo(35, 80, 65, 80, 90, size.y/2);
-                ctx.closePath();
-                ctx.fill();
+                    grd = ctx.createLinearGradient(size.x/2, size.y/2-size.y/8, size.x*1/3, size.y*3/4);
+                    grd.addColorStop(0, '#1A381E')
+                    grd.addColorStop(1, '#316839')
+                    draw(ctx, {
+                        closePath: true,
+                        fillStyle: grd,
+                        points: [new V2(20,50), new V2(80,50), new V2(80, 75), new V2(50, 100), new V2(20, 100)]
+                    })
+                }
                 
                 //ctx.fillRect(0,0, size.x, size.y);
             })
         });
+
+        //frontal leds
+        if(!Robot.frontalLedImg){
+            Robot.frontalLedImg = createCanvas(new V2(100, 100), function(ctx, size){
+                let grd = ctx.createRadialGradient(size.x/4, size.y/2, 5, size.x/2, size.y*2/3, 50);
+                grd.addColorStop(0, 'rgba(160,255,255, 1)');
+                grd.addColorStop(0.01, 'rgba(255,255,255, 1)');
+                grd.addColorStop(0.5, 'rgba(0,0,255, 0.2)');
+                grd.addColorStop(0.8, 'rgba(0,0,255, 0)');
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0, size.x, size.y);
+            });
+        }
+        
+        
+        this.frontalLeds = [
+            new Led({
+                position: new V2(this.head.size.x*1/3, this.head.size.y/12),
+                size: new V2(5,5),
+                img: Robot.frontalLedImg,
+                blinking: {
+                    step: 0.1
+                },
+                fadeInPause: 500,
+                fadeOutPause: 5000,
+                autoStartFadeOut: 5000
+            }),
+            new Led({
+                position: new V2(this.head.size.x*1/6, this.head.size.y/7),
+                size: new V2(5,5),
+                img: Robot.frontalLedImg,
+                blinking: {
+                    step: 0.1
+                },
+                fadeInPause: 500,
+                fadeOutPause: 5000,
+                autoStartFadeOut: 5500
+            }),
+            new Led({
+                position: new V2(this.head.size.x*0, this.head.size.y/6),
+                size: new V2(5,5),
+                img: Robot.frontalLedImg,
+                blinking: {
+                    step: 0.1
+                },
+                fadeInPause: 500,
+                fadeOutPause: 5000,
+                autoStartFadeOut: 6000
+            })
+        ];
+
+        this.head.addChild(this.frontalLeds[0]);
+        this.head.addChild(this.frontalLeds[1]);
+        this.head.addChild(this.frontalLeds[2]);
+
         this.addChild(this.head);
 
+
+        this.thrusterAngle = (this.maxAngle/this.maxSpeed)*this.speed;
+
         this.thruster = new GO({
-            angle: 45,
+            angle: this.thrusterAngle,
             position: new V2(0, 0),
-            size: new V2(this.size.x/3, this.size.y/3),
+            size: new V2(this.size.x/3, this.size.y/4),
             img: createCanvas(new V2(100, 100), function(ctx, size){
-                ctx.fillStyle = 'red';
-                //ctx.fillRect(0,0, size.x, size.y);
+                let grd = ctx.createLinearGradient(size.x/2, -size.y*2/4, size.x/2, size.y);
+                grd.addColorStop(0, '#8CCEF5')
+                grd.addColorStop(1, '#24363F')
+                ctx.fillStyle = grd;//'red';
+                
                 ctx.beginPath();
                 ctx.moveTo(10,100);
                 ctx.bezierCurveTo(0, 70, 0, 30, 10, 0);
@@ -1240,16 +1435,305 @@ class Robot extends MovingGO {
             }
         });
 
+        this.thrusterPowerColor = '122,187,249';
+        this.thrusterPower = new GO({
+            position: new V2(0,this.thruster.size.y+this.thruster.size.y*1/2),
+            size: new V2(this.thruster.size.x*0.8, this.thruster.size.y*2),
+            img: createCanvas(new V2(100, 100), function(ctx, size){
+                let grd = ctx.createLinearGradient(size.x/2, 0, size.x/2, size.y);
+                grd.addColorStop(0, 'rgba('+that.thrusterPowerColor+', 1)');
+                grd.addColorStop(0.3, 'rgba('+that.thrusterPowerColor+', 0.4)');
+                grd.addColorStop(1, 'rgba('+that.thrusterPowerColor+', 0)');
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0, size.x, size.y);
+            })
+        });
+
+        this.thruster.addChild(this.thrusterPower);
+
+        if(!Robot.sideLedImg){
+            Robot.sideLedImg = createCanvas(new V2(50,50), function(ctx, size){
+                ctx.fillStyle = '#88F854';
+                ctx.fillRect(0,0, size.x, size.y);
+            });
+        }
+        this.sideLeds = [
+            new Led({
+                position: new V2(-this.size.x/10,0),
+                size: new V2(1,1),
+                img: Robot.sideLedImg,
+                blinking: {
+                    step: 0.2
+                },
+                autoStartFadeOut: 100,
+                fadeInPause: 50,
+                fadeOutPause: 50
+            })
+        ];
+        
+        this.thruster.addChild(this.sideLeds[0]);
         this.addChild(this.thruster);
 
         this.originalPosition = this.position.clone();
+        this.thrusterPowerPropulsion.originalSize = this.thrusterPower.size.clone();
+        this.thrusterPowerPropulsion.originalPosition = this.thrusterPower.position.clone();
+        this.swingingTimer = createTimer(100, this.swingingTimerMethod, this, true);
+        this.thrusterPowerPropulsionTimer = createTimer(50, this.thrusterPowerPropulsionTimerMethod, this, true);
+
+        //this.startSpeedChange(0.1);
     }
 
-    beforePositionChange(){
-        this.position.y = this.originalPosition.y;
+    startSpeedChange(newSpeed) {
+        this.speedChange = {
+            max: newSpeed,
+            current: this.speed,
+            step: (newSpeed - this.speed)/30,
+            angleStep: (this.maxAngle - this.thruster.angle)/30
+        }
+
+        this.speedChangeTimer = createTimer(30, this.speedChangeTimerMethod, this, true);
     }
+
+    speedChangeTimerMethod(){
+        this.speed+=this.speedChange.step;
+        this.thruster.angle+=this.speedChange.angleStep;
+
+        if(this.speed > this.speedChange.max){
+            this.speed = this.speedChange.max;
+            this.speedChangeTimer = undefined;
+        }
+
+        if(this.angle > this.maxAngle){
+            this.angle = this.maxAngle;
+        }
+
+        this.needRecalcRenderProperties = true;
+    }
+
+    thrusterPowerPropulsionTimerMethod(){
+        let tpp = this.thrusterPowerPropulsion;
+
+        let tppCur = tpp.current/100;
+        this.thrusterPower.size.y = this.thrusterPowerPropulsion.originalSize.y*tppCur;
+        this.thrusterPower.position.y = this.thruster.size.y/2+this.thrusterPower.size.y/2;
+
+        tpp.current+=tpp.direction*tpp.step;
+        if(tpp.current < tpp.min){
+            tpp.current = tpp.min;
+            tpp.direction = 1;
+        }
+        else if(tpp.current > tpp.max){
+            tpp.current = tpp.max;
+            tpp.direction = -1;
+        }
+
+        this.needRecalcRenderProperties = true;
+    }
+
+    swingingTimerMethod() {
+        this.position.y = this.originalPosition.y + Math.sin(degreeToRadians(this.swinging.currentXdegree))*2;
+        this.swinging.currentXdegree+=this.swinging.degreeStep;
+        if(this.swinging.currentXdegree > 360){
+            this.swinging.currentXdegree = 0;
+        }
+
+        this.needRecalcRenderProperties = true;
+    }
+
+    internalUpdate(now){
+        if(this.swingingTimer){
+            doWorkByTimer(this.swingingTimer, now);
+        }
+
+        if(this.thrusterPowerPropulsionTimer){
+            doWorkByTimer(this.thrusterPowerPropulsionTimer, now);
+        }
+
+        if(this.speedChangeTimer){
+            doWorkByTimer(this.speedChangeTimer, now);
+        }
+    }
+
+    internalPreRender() {
+        this.originImageSmoothingEnabled = this.context.imageSmoothingEnabled;
+        this.context.imageSmoothingEnabled = true;
+
+        if(this.flip){
+            this.context.translate(this.renderPosition.x, this.renderPosition.y);
+            this.context.scale(-1, 1);        
+            this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+        }
+    }
+
+    internalRender(){
+        this.context.imageSmoothingEnabled = this.originImageSmoothingEnabled;
+
+        if(this.flip){
+            this.context.translate(this.renderPosition.x, this.renderPosition.y);
+            this.context.scale(-1, 1);
+            this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+        }
+
+        let scale = SCG.viewport.scale;
+        let cdBoxTLRender = this.collisionDetection.box.topLeft.mul(scale);
+        this.context.strokeStyle = '#00BFFF';
+        this.context.strokeRect(cdBoxTLRender.x, cdBoxTLRender.y, this.collisionDetection.box.width*scale, this.collisionDetection.box.height*scale);
+        let position = this.position;
+        draw(
+            this.context, 
+            {
+                lineWidth: 2,
+                strokeStyle: 'red',
+                closePath: true,
+                points: this.collisionDetection.circuit.map((item) => item.add(position).mul(scale))
+            }
+        )
+        
+    }
+
+    //internalRender(){
+        // let scale = SCG.viewport.scale;
+        // let cdBoxTLRender = this.collisionDetection.box.topLeft.mul(scale);
+        // this.context.strokeStyle = '#00BFFF';
+        // this.context.strokeRect(cdBoxTLRender.x, cdBoxTLRender.y, this.collisionDetection.box.width*scale, this.collisionDetection.box.height*scale);
+        // let position = this.position;
+        // draw(
+        //     this.context, 
+        //     {
+        //         lineWidth: 2,
+        //         strokeStyle: 'red',
+        //         closePath: true,
+        //         points: this.collisionDetection.circuit.map((item) => item.add(position).mul(scale))
+        //     }
+        // )
+    //}
+
+    // beforePositionChange(){
+    //     this.position.y = this.originalPosition.y;
+    // }
     
-    positionChangedCallback(){
-        this.position.y+=Math.sin(this.position.x)*0.5;
+    // positionChangedCallback(){
+    //     this.position.y+=Math.sin(this.position.x)*0.5;
+    // }
+}
+
+class Led extends GO {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            blinking: {
+                enabled: true,
+                alpha: 1,
+                direction: -1,
+                step: 0.01,
+                border: 0,
+            },
+            autoStartFadeOut: -1,
+            fadeInPause: 500,
+            fadeOutPause: 500
+        }, options);
+
+        super(options);
+
+        if(this.blinking.enabled && this.autoStartFadeOut != -1){
+            this.startFadeOut(this.autoStartFadeOut);
+        }
+    }
+
+    startFadeOut(delay){
+        if(!this.blinking.enabled)
+            return; 
+
+        let that = this;
+        this.startFadeOutTimer = createTimer(delay || this.fadeOutPause, function() {
+            this.startFadeOutTimer  = undefined;
+            this.fadeOutTimer = createTimer(50, this.fadeInOutMethod, that, true);
+        }, this, false);
+    }
+
+    startFadeIn(){
+        if(!this.blinking.enabled)
+            return; 
+
+        let that = this;
+        this.startFadeInTimer = createTimer(this.fadeInPause, function() {
+            this.startFadeInTimer  = undefined;
+            this.fadeOutTimer = createTimer(50, this.fadeInOutMethod, that, true);
+        }, this, false);
+    }
+
+    fadeInOutMethod(){
+        if(!this.blinking.enabled)
+            return; 
+
+        let b = this.blinking;
+        
+        b.alpha+=b.direction*b.step;
+
+        if(b.alpha < b.border){
+            b.alpha = b.border;
+            b.direction = 1;
+            this.fadeOutTimer = undefined;
+            this.fadeInTimer = undefined;
+            this.startFadeIn();
+        }
+
+        if(b.alpha > 1){
+            b.alpha = 1;
+            b.direction = -1;
+            this.fadeOutTimer = undefined;
+            this.fadeInTimer = undefined;
+            this.startFadeOut();
+        }
+    }
+
+    internalUpdate(now){
+        if(this.blinking.enabled)
+        {
+            if(this.startFadeInTimer){
+                doWorkByTimer(this.startFadeInTimer, now);
+            }
+    
+            if(this.startFadeOutTimer){
+                doWorkByTimer(this.startFadeOutTimer, now);
+            }
+    
+            if(this.fadeInTimer){
+                doWorkByTimer(this.fadeInTimer, now);
+            }
+    
+            if(this.fadeOutTimer){
+                doWorkByTimer(this.fadeOutTimer, now);
+            }    
+        } 
+    }
+
+    internalPreRender() {
+        this.originContextGlobalAlpha = this.context.globalAlpha;
+        this.context.globalAlpha = this.blinking.alpha;
+    }
+
+    internalRender(){
+        this.context.globalAlpha = this.originContextGlobalAlpha;
     }
 }
+
+Robot.cargoTypes = ['Food', 'Guns', 'Meds', 'Еда', 'Пухи', 'Мёд', '食物', '武器', '药', 'الطعام', 'سلاح', 'دواء' ]
+Robot.cragoTypesImages = Robot.cargoTypes.map((type) => createCanvas(new V2(100, 100), function(ctx, size){
+    let grd = ctx.createLinearGradient(size.x, 0, 0, size.y);
+    grd.addColorStop(0, '#CFA26A')
+    grd.addColorStop(1, '#705638')
+    ctx.fillStyle = grd;
+    ctx.fillRect(0,0, size.x, size.y);
+    ctx.fillStyle = '#F3E2C9';
+    ctx.fillRect(0,0, size.x, 2);
+    ctx.fillRect(size.x-2,0, size.x, size.y);
+
+    ctx.translate(size.x/2, size.y/2);
+    ctx.rotate(degreeToRadians(-35));
+    ctx.translate(-size.x/2, -size.y/2);
+    ctx.font = '25px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = `#443527`;
+    ctx.fillText(type, size.x/2, size.y/2);
+
+}))

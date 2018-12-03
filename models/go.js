@@ -496,7 +496,7 @@ class GO {
                 this.box.update(tl, this.size);
 
             this.renderPosition = undefined;
-            if(SCG.viewport.logical.isIntersectsWithBox(this.box) || this.isStatic)
+            if(SCG.viewport.logical.isIntersectsWithBox(this.collisionDetection.box ||  this.box) || this.isStatic)
             {
                 this.renderPosition = position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
 
