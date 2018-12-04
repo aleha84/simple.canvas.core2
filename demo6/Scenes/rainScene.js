@@ -9,6 +9,7 @@ class RainScene extends Scene {
 
         super(options);
 
+        this.performance = 3;
         this.rainDropCache = [];
         this.streamItemsCache = [];
 
@@ -340,6 +341,29 @@ class RainScene extends Scene {
         this.customStreamTimer = createTimer(3000, this.customStreamTimerMethod, this, true);
 
         this.deliveryDronsTimer = createTimer(12000, this.deliveryDronsTimerMethod, this, true);
+
+        this.preformanceOptimizationTImer = createTimer(6000, this.preformanceOptimizationTImerMethod, this, false);
+    }
+
+    preformanceOptimizationTImerMethod() {
+        // if(SCG.main.performance.fps > 30){
+        //     this.performance++;
+        // }
+        if(SCG.main.performance.fps > 20){
+            this.performance++;
+        }
+        else  {
+            this.performance--;
+        }
+
+        if(this.performance > 3)
+            this.performance = 3;
+        
+        if(this.performance < 1)
+            this.performance = 1;
+
+        console.log('performance: '+ this.performance);
+        //this.preformanceOptimizationTImer = undefined;
     }
 
     deliveryDronsTimerMethod(){
@@ -576,59 +600,62 @@ class RainScene extends Scene {
     }
 
     backRainDropTimerMethod(){
-        for(let i = 0; i < 10; i++){
-            let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
-            let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
-            if(!this.getRaindropCacheItem(this.backgroundRainLayer-2, position, destination)) 
-                this.addGo(new RainDrop({
-                    collisionDetection: {
-                        enabled: false
-                    },
-                    position: position,
-                    destination:destination,
-                    img: this.backRainDropImg,
-                    splash: false,
-                    speed: 6,
-                    size: new V2(0.25,4),
-                    layer: this.backgroundRainLayer-2,
-                }), this.backgroundRainLayer-2);
-        }
+        if(this.performance > 0)
+            for(let i = 0; i < 10; i++){
+                let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
+                let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
+                if(!this.getRaindropCacheItem(this.backgroundRainLayer-2, position, destination)) 
+                    this.addGo(new RainDrop({
+                        collisionDetection: {
+                            enabled: false
+                        },
+                        position: position,
+                        destination:destination,
+                        img: this.backRainDropImg,
+                        splash: false,
+                        speed: 6,
+                        size: new V2(0.25,4),
+                        layer: this.backgroundRainLayer-2,
+                    }), this.backgroundRainLayer-2);
+            }
 
-        for(let i = 0; i < 15; i++){
-            let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
-            let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
-            if(!this.getRaindropCacheItem(this.backgroundRainLayer-1, position, destination)) 
-                this.addGo(new RainDrop({
-                    collisionDetection: {
-                        enabled: false
-                    },
-                    position: position,
-                    destination: destination,
-                    img: this.backRainDropImg,
-                    splash: false,
-                    speed: 4,
-                    size: new V2(0.15,2),
-                    layer: this.backgroundRainLayer-1,
-                }), this.backgroundRainLayer-1);
-        }
+        if(this.performance > 1)
+            for(let i = 0; i < 15; i++){
+                let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
+                let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
+                if(!this.getRaindropCacheItem(this.backgroundRainLayer-1, position, destination)) 
+                    this.addGo(new RainDrop({
+                        collisionDetection: {
+                            enabled: false
+                        },
+                        position: position,
+                        destination: destination,
+                        img: this.backRainDropImg,
+                        splash: false,
+                        speed: 4,
+                        size: new V2(0.15,2),
+                        layer: this.backgroundRainLayer-1,
+                    }), this.backgroundRainLayer-1);
+            }
 
-        for(let i = 0; i < 20; i++){
-            let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0));
-            let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
-            if(!this.getRaindropCacheItem(this.backgroundRainLayer, position, destination))  
-                this.addGo(new RainDrop({
-                    collisionDetection: {
-                        enabled: false
-                    },
-                    position: position,
-                    destination: destination,
-                    img: this.backRainDropImg,
-                    splash: false,
-                    speed: 3,
-                    size: new V2(0.1,1),
-                    layer: this.backgroundRainLayer,
-                }), this.backgroundRainLayer);
-        }
+        if(this.performance > 2)
+            for(let i = 0; i < 20; i++){
+                let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0));
+                let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
+                if(!this.getRaindropCacheItem(this.backgroundRainLayer, position, destination))  
+                    this.addGo(new RainDrop({
+                        collisionDetection: {
+                            enabled: false
+                        },
+                        position: position,
+                        destination: destination,
+                        img: this.backRainDropImg,
+                        splash: false,
+                        speed: 3,
+                        size: new V2(0.1,1),
+                        layer: this.backgroundRainLayer,
+                    }), this.backgroundRainLayer);
+            }
     }
 
     midRainDropTimerMethod(){
@@ -761,6 +788,11 @@ class RainScene extends Scene {
         if(this.deliveryDronsTimer){
             doWorkByTimer(this.deliveryDronsTimer, now);
         }
+
+        if(this.preformanceOptimizationTImer){
+            doWorkByTimer(this.preformanceOptimizationTImer, now);
+        }
+
     }
 }
 
@@ -776,7 +808,9 @@ class RainDrop extends MovingGO {
                     if(intersection && intersection.length){
                         this.splashPoint = V2.average(intersection);
                     }
-                    this.setDead();
+
+                    this.setDestination();
+                    //this.setDead();
                 }
             },
             speed: 12,
@@ -789,9 +823,9 @@ class RainDrop extends MovingGO {
         super(options);
     }
 
-    beforeDead(){
-        this.createSplash();
-    }
+    // beforeDead(){
+    //     this.createSplash();
+    // }
 
     createSplash() {
         let count = this.isBack ? getRandomInt(1,2): getRandomInt(1,3);
@@ -812,6 +846,8 @@ class RainDrop extends MovingGO {
                 }
             }), this.layer+1);
         }
+
+        this.splashPoint = undefined;
     }
     destinationCompleteCallBack(){
         let cache = this.parentScene.rainDropCache;
