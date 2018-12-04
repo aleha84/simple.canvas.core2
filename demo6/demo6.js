@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new RainScene({
         name:'rain',
-        viewport: defaultViewpot
+        viewport: new V2(500,300)
     }));
 
     sceneSelectByHashValue();

@@ -124,19 +124,22 @@ class RainScene extends Scene {
         //     position: new V2(this.viewport.x/2, this.viewport.y/2),
         //     size: new V2(40, 80),
         //     color: this.neonColors[getRandomInt(0,this.neonColors.length-1)],
-        //     screenType: 1,
-        //     contentType: 2,
+        //     screenType: 2,
+        //     contentType: 0,
         //     blinking: {
         //         enabled: false
         //     }
         // }), 50)
 
         // this.addGo(new Robot({
-        //     size: new V2(40,20),
+        //     special: true,
+        //     size: new V2(160,80),
         //     position: new V2(this.viewport.x/2, this.viewport.y-60),
         //     //position: new V2(0, this.viewport.y-80),
         //     //destination: new V2(this.viewport.x, this.viewport.y-60),
         //     setDestinationOnInit: true,
+        //     flip: true,
+        //     robotType: 0,
         //     //speed: 0.5,
         //     layer: this.frontalRainLayer,
         // }), this.frontalRainLayer)
@@ -151,12 +154,35 @@ class RainScene extends Scene {
             })
         });
         let segmentWidth = this.roadSideSize.x/this.fenceColumnsCount;
+        let fenceColumnLedImg = createCanvas(new V2(50,50), function(ctx, size){
+            let grd = ctx.createRadialGradient(size.x/2, size.y, size.x/8, size.x/2, size.y, size.x);
+            grd.addColorStop(0, 'yellow');
+            grd.addColorStop(0.25, 'red');
+            grd.addColorStop(1, 'rgba(255,0,0,0)');
+            ctx.fillStyle = grd;
+            ctx.fillRect(0,0, size.x, size.y);
+        })
         for(let ci = 0; ci < this.fenceColumnsCount; ci++){
-            roadSide.addChild(new GO({
+            let fenceColumn = new GO({
                 size: this.fenceColumnSize, 
                 position: new V2(-this.roadSideSize.x/2 + segmentWidth*ci+segmentWidth/2, -this.fenceColumnSize.y/2),
                 img: createCanvas(new V2(50,50), this.fenceGenerator)
-            }))
+            });
+
+            
+            fenceColumn.addChild(new Led({
+                position: new V2(0, -fenceColumn.size.y/2),
+                size: new V2(5,5),
+                autoStartFadeOut: 250*ci,
+                blinking: {
+                    step: 0.15
+                },
+                fadeInPause: 1000,
+                fadeOutPause: 250,
+                img: fenceColumnLedImg
+            }));
+
+            roadSide.addChild(fenceColumn)
         }
         this.addGo(roadSide, this.roadSideLayer);
 
@@ -331,7 +357,7 @@ class RainScene extends Scene {
             //thrusterAngle: 45,
             robotType: getRandomInt(0,1),
             flip: !isLeft,
-            layer: this.frontalRainLayer-relativeHShift,
+            layer: this.frontalRainLayer,
         }), this.frontalRainLayer-relativeHShift)
     }
 
@@ -377,8 +403,27 @@ class RainScene extends Scene {
     }
 
     fenceGenerator(ctx, size) {
-        ctx.fillStyle = 'darkgreen';
-        ctx.fillRect(0,0,size.x, size.y);
+        ctx.fillStyle = '#919191';
+        ctx.beginPath();
+        ctx.moveTo(0,6);
+        ctx.bezierCurveTo(11,3, 39,3, 49,6);
+        ctx.bezierCurveTo(42,11, 9,11, 0,6);
+        ctx.closePath();
+        ctx.fill();
+
+        let grd = ctx.createLinearGradient(0, size.y/2, size.x, size.y/2);
+        grd.addColorStop(0, '#211F1F');
+        grd.addColorStop(0.5, '#3F3C3A');
+        grd.addColorStop(1, '#898986');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.moveTo(49,6);
+        ctx.bezierCurveTo(42,11, 9,11, 0,6);
+        ctx.lineTo(0,44)
+        ctx.bezierCurveTo(12,48, 39,48, 49,44);
+        ctx.closePath();
+        ctx.fill();
+
     }
 
     buildingGenerator(howFar, points){
@@ -612,7 +657,7 @@ class RainScene extends Scene {
                     position: position,
                     destination:destination,
                     img: this.rainDropImg,
-                    layer: this.frontalRainLayer
+                    layer: this.frontalRainLayer,
                 }), this.frontalRainLayer);
         }   
     }
@@ -926,7 +971,7 @@ class AdvertisementScreen extends GO {
                 step: getRandom(0.01,0.05),
                 border: getRandom(0.1,0.6),
             },
-            screenType: getRandomInt(0,1),
+            screenType: getRandomInt(0,2),
             contentType: getRandomInt(0,2),
             shaking: {
                 enabled: false
@@ -942,6 +987,15 @@ class AdvertisementScreen extends GO {
             options.size.x = options.size.y;
             options.size.y = w;
         } 
+        else if(options.screenType == 2){
+            let max = Math.min(options.size.x, options.size.y);
+            options.size.x = max;
+            options.size.y = max;
+
+            if(options.contentType == 1) {
+                options.contentType = 0;
+            }
+        }
 
         //options.contentType = getRandomInt(0,1);
         options.img = createCanvas(options.size.mul(3), function(ctx, size){
@@ -1047,7 +1101,23 @@ class AdvertisementScreen extends GO {
                 }
             }
             else if(options.screenType == 2){
+                let grd = ctx.createRadialGradient(size.x/2, size.y/2, size.x/4, size.x/2, size.y/2, size.x/2);
+                grd.addColorStop(0, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
+                if(options.size.x < 10){
+                    grd.addColorStop(0.5, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`)
+                }
+                else {
+                    grd.addColorStop(0.45, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                    grd.addColorStop(0.5, `rgba(255,255,255, 1)`);
+                    grd.addColorStop(0.55, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`);
+                }
+                
+                grd.addColorStop(1, `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 0)`);
 
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0,size.x, size.y);
+                // ctx.strokeStyle = 'yellow';
+                // ctx.strokeRect(0,0,size.x, size.y);
             }
             //TODO: other shapes
             
@@ -1064,6 +1134,9 @@ class AdvertisementScreen extends GO {
             if(t==0){
                 size = new V2(this.size.x*1/4, this.size.y*2/6)
             }
+            else if(t == 2){
+                size = new V2(this.size.x*1/2, this.size.y*1/2);
+            }
             else {
                 size = new V2(this.size.x-4*wh, this.size.y*2/6)
             }
@@ -1071,9 +1144,18 @@ class AdvertisementScreen extends GO {
             this.content = new GO({
                 position: new V2(0,0),
                 size: size,
-                img: createCanvas(new V2(10,10), function(ctx, size){
+                img: createCanvas(t == 2 ? new V2(50,50) : new V2(10,10), function(ctx, size){
                     ctx.fillStyle = `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`;
-                    ctx.fillRect(0,0,size.x, size.y);
+
+                    if(t == 2){
+                        ctx.beginPath();
+                        ctx.arc(size.x/2, size.x/2, size.x/2, 0, 2*Math.PI, false);
+                        ctx.fill();
+                    }
+                    else {
+                        ctx.fillRect(0,0,size.x, size.y);
+                    }
+                    
                 })
             });
 
@@ -1084,10 +1166,10 @@ class AdvertisementScreen extends GO {
                 this.contentAnimation = {
                     maxX: size.x,
                     maxY: size.y,
-                    minX: size.x/3,
-                    minY: size.y/3,
-                    speedX: (size.x- size.x/3)/10,
-                    speedY: (size.y- size.y/3)/10,
+                    minX: size.x/8,
+                    minY: size.y/8,
+                    speedX: (size.x- size.x/8)/10,
+                    speedY: (size.y- size.y/8)/10,
                     directionX: -1,
                     directionY: 0
                 }
@@ -1199,6 +1281,7 @@ class Robot extends MovingGO {
             thrusterAngle: 0,
             maxSpeed: 1,
             maxAngle: 45,
+            setDeadOnDestinationComplete: true,
             cargoType: getRandomInt(0, Robot.cargoTypesBarcodeImages.length-1), 
             flip: false,
             collisionDetection: {
@@ -1564,7 +1647,7 @@ class Robot extends MovingGO {
     }
 
     swingingTimerMethod() {
-        this.position.y = this.originalPosition.y + Math.sin(degreeToRadians(this.swinging.currentXdegree))*2;
+        this.position.y = this.originalPosition.y +  fastRoundWithPrecision(Math.sin(degreeToRadians(this.swinging.currentXdegree))*2, 5);
         this.swinging.currentXdegree+=this.swinging.degreeStep;
         if(this.swinging.currentXdegree > 360){
             this.swinging.currentXdegree = 0;
@@ -1585,11 +1668,23 @@ class Robot extends MovingGO {
         if(this.speedChangeTimer){
             doWorkByTimer(this.speedChangeTimer, now);
         }
+
+        if((this.flip && this.position.x < this.destination.x) || (!this.flip && this.position.x > this.destination.x)){
+            this.setDead();
+        }
+        
+
+        // if(this.special){
+        //     console.log(this.cargo.renderSize);
+        // }
     }
 
     internalPreRender() {
         this.originImageSmoothingEnabled = this.context.imageSmoothingEnabled;
+        this.originImageSmoothingQuality = this.context.imageSmoothingQuality;
+
         this.context.imageSmoothingEnabled = true;
+        this.context.imageSmoothingQuality = 'high';
 
         if(this.flip){
             this.context.translate(this.renderPosition.x, this.renderPosition.y);
@@ -1600,6 +1695,7 @@ class Robot extends MovingGO {
 
     internalRender(){
         this.context.imageSmoothingEnabled = this.originImageSmoothingEnabled;
+        this.context.imageSmoothingQuality = this.originImageSmoothingQuality;
 
         if(this.flip){
             this.context.translate(this.renderPosition.x, this.renderPosition.y);
