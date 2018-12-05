@@ -250,8 +250,8 @@ class GO {
     }
 
     addChild(childGo, regEvents = false) {
-        if(!(childGo instanceof GO)){
-            console.warn('Can\' add to children object isn\'t inherited from GO');
+        if(childGo == undefined || !(childGo instanceof GO)){
+            console.warn('Can\'t add to children object isn\'t inherited from GO');
             return;
         }
     

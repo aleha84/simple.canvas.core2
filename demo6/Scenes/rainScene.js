@@ -1810,8 +1810,10 @@ class Robot extends MovingGO {
         this.thruster.addChild(this.thrusterPower);
 
         //shadow
-        this.addChild(new GO({
-            position: new V2(0, this.size.x/4),
+        let shadowPosition = new V2(0, this.size.x/4);
+        this.shadow = new GO({
+            position: shadowPosition,
+            originalPosition: shadowPosition.clone(),
             size: new V2(this.size.x*0.7, this.size.y*0.15),
             img: createCanvas(new V2(50,50), function(ctx, size){
                 let grd = ctx.createRadialGradient(size.x/2, size.y/2, size.x/6, size.x/2, size.y/2, size.x/2);
@@ -1822,7 +1824,9 @@ class Robot extends MovingGO {
                 ctx.fillStyle = grd;
                 ctx.fillRect(0,0, size.x, size.y);
             })
-        }))
+        });
+
+        this.addChild(this.shadow);
 
         if(!Robot.sideLedImg){
             Robot.sideLedImg = createCanvas(new V2(50,50), function(ctx, size){
@@ -1904,7 +1908,9 @@ class Robot extends MovingGO {
     }
 
     swingingTimerMethod() {
-        this.position.y = this.originalPosition.y +  fastRoundWithPrecision(Math.sin(degreeToRadians(this.swinging.currentXdegree))*2, 5);
+        let shift = fastRoundWithPrecision(Math.sin(degreeToRadians(this.swinging.currentXdegree))*2, 5);
+        this.position.y = this.originalPosition.y +  shift;
+        this.shadow.position.y = this.shadow.originalPosition.y - shift;
         this.swinging.currentXdegree+=this.swinging.degreeStep;
         if(this.swinging.currentXdegree > 360){
             this.swinging.currentXdegree = 0;
