@@ -479,7 +479,45 @@ class RainScene extends Scene {
                 }
             }), layer == 2 ? this.midBuildingsLayer + 1: (layer == 1 ? this.midBuildingsLayer - 1 : this.backBuildingsLayer - 1));
         }
+
+        this.taxi = new GO({
+            position: new V2(this.viewport.x/2, this.viewport.y/2),
+            size: new V2(250, 150),
+            img: createCanvas(this.viewport, function(ctx, size){
+                ctx.beginPath();
+                ctx.moveTo(390, 219);
+                ctx.bezierCurveTo(386, 260, 282, 240, 219, 234);
+                ctx.bezierCurveTo(140, 218, 87,183, 43, 169);
+                ctx.bezierCurveTo(31,157,29,143, 31, 131);
+                ctx.bezierCurveTo(109, 161, 182, 197, 390, 219);
+                ctx.closePath();
+
+                ctx.fillStyle = 'red';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(31, 131);
+                ctx.bezierCurveTo(40,70, 135, 93, 196, 80);
+                ctx.bezierCurveTo(283,73,391, 120, 390, 219);
+                ctx.bezierCurveTo(182, 197, 109, 161, 31, 131);
+
+                ctx.fillStyle = 'yellow';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(386, 185);
+                ctx.bezierCurveTo(343,195, 278, 150, 192, 141);
+                //ctx.bezierCurveTo(343,179, 278, 158, 192, 141);
+                ctx.bezierCurveTo(161, 130, 150, 104, 198, 81);
+                ctx.bezierCurveTo(261, 69, 382,101, 386,185);
+                ctx.closePath();
+
+                ctx.fillStyle = 'blue';
+                ctx.fill();
+            })
+        });
         
+        this.addGo(this.taxi, 50);
 
         // this.addGo(new Robot({
         //     size: new V2(40,20),
@@ -792,65 +830,6 @@ class RainScene extends Scene {
         }
         return false;
     }
-
-    // backRainDropTimerMethod(){
-    //     if(this.performance > 0)
-    //         for(let i = 0; i < 10; i++){
-    //             let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
-    //             let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
-    //             if(!this.getRaindropCacheItem(this.backgroundRainLayer-2, position, destination)) 
-    //                 this.addGo(new RainDrop({
-    //                     collisionDetection: {
-    //                         enabled: false
-    //                     },
-    //                     position: position,
-    //                     destination:destination,
-    //                     img: this.backRainDropImg,
-    //                     splash: false,
-    //                     speed: 6,
-    //                     size: new V2(0.25,4),
-    //                     layer: this.backgroundRainLayer-2,
-    //                 }), this.backgroundRainLayer-2);
-    //         }
-
-    //     if(this.performance > 1)
-    //         for(let i = 0; i < 15; i++){
-    //             let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
-    //             let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
-    //             if(!this.getRaindropCacheItem(this.backgroundRainLayer-1, position, destination)) 
-    //                 this.addGo(new RainDrop({
-    //                     collisionDetection: {
-    //                         enabled: false
-    //                     },
-    //                     position: position,
-    //                     destination: destination,
-    //                     img: this.backRainDropImg,
-    //                     splash: false,
-    //                     speed: 4,
-    //                     size: new V2(0.15,2),
-    //                     layer: this.backgroundRainLayer-1,
-    //                 }), this.backgroundRainLayer-1);
-    //         }
-
-    //     if(this.performance > 2)
-    //         for(let i = 0; i < 20; i++){
-    //             let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0));
-    //             let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
-    //             if(!this.getRaindropCacheItem(this.backgroundRainLayer, position, destination))  
-    //                 this.addGo(new RainDrop({
-    //                     collisionDetection: {
-    //                         enabled: false
-    //                     },
-    //                     position: position,
-    //                     destination: destination,
-    //                     img: this.backRainDropImg,
-    //                     splash: false,
-    //                     speed: 3,
-    //                     size: new V2(0.1,1),
-    //                     layer: this.backgroundRainLayer,
-    //                 }), this.backgroundRainLayer);
-    //         }
-    // }
 
     midRainDropTimerMethod(){
         for(let i = 0; i < 4; i++){
