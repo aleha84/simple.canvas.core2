@@ -9,6 +9,14 @@ class RainScene extends Scene {
 
         super(options);
 
+        this.debugging = {
+            enabled: true,
+            font: (25*SCG.viewport.scale) + 'px Arial',
+            textAlign: 'center',
+            fillStyle: 'red',
+            position: new V2(20*SCG.viewport.scale, 20*SCG.viewport.scale)
+        }
+
         this.performance = 3;
         this.rainDropCache = [];
         this.streamItemsCache = [];
@@ -144,6 +152,8 @@ class RainScene extends Scene {
         //     //speed: 0.5,
         //     layer: this.frontalRainLayer,
         // }), this.frontalRainLayer)
+
+        this.deliveryDronsTimerMethod(this.viewport.x/2)
         
         //roadside
         let roadSide = new GO({
@@ -209,17 +219,100 @@ class RainScene extends Scene {
         this.addGo(road, this.roadLayer);
 
         // floor
-        this.addGo(new GO({
+        let floor = new GO({
             size: this.floorSize,
             position: new V2(this.viewport.x/2, this.viewport.y - this.floorSize.y/2),
             img: createCanvas(new V2(50, 50), function(ctx, size){
+                ctx.fillStyle = '#162A44';
+                ctx.fillRect(0,0,size.x,size.y);
                 let grd = ctx.createLinearGradient(size.x/2, size.y, size.x/2, 0);
-                grd.addColorStop(0, '#AAAAAA');
-                grd.addColorStop(1, '#505050');
+                grd.addColorStop(0, 'rgba(255,255,255, 0)');
+                grd.addColorStop(0.2, 'rgba(255,255,255, 0.1)');
+                grd.addColorStop(0.55, 'rgba(255,255,255, 0.5)');
+                grd.addColorStop(0.85, 'rgba(255,255,255, 0.1)');
+                grd.addColorStop(1, 'rgba(255,255,255, 0)');
                 ctx.fillStyle = grd;
                 ctx.fillRect(0,0,size.x, size.y)
             })
-        }), this.floorLayer);
+        });
+
+        //lamps
+        this.lampSize = new V2(100, 150);
+        this.lampsCount =4 ;
+        for(let i = 0; i < this.lampsCount+1; i++){
+            this.addGo(new GO({
+                position: new V2(i*this.viewport.x/this.lampsCount,this.viewport.y-this.floorSize.y/2 - this.lampSize.y/2),
+                size: this.lampSize,
+                img: createCanvas(this.lampSize, function(ctx, size){
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    let lightColor = '255,255,255';
+                    let grd = ctx.createRadialGradient(27,20,10, 18,57,15);
+                    grd.addColorStop(0, 'rgba('+lightColor+', 0)');
+                    grd.addColorStop(0.2, 'rgba('+lightColor+', 0)');
+                    grd.addColorStop(0.2, 'rgba('+lightColor+', 1)');
+                    grd.addColorStop(0.3, 'rgba('+lightColor+', 0.75)');
+                    grd.addColorStop(1, 'rgba('+lightColor+', 0)');
+    
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(0,0,size.x/2, size.y);
+
+                    /// shadow start
+                    ctx.translate(size.x/2, 154)
+                    ctx.scale(1, 0.1)
+                    ctx.translate(-size.x/2, -154)
+                    grd = ctx.createRadialGradient(size.x/2, size.y/2, 0, size.x/2, size.y/2, 40);
+                    grd.addColorStop(0, 'rgba(0,0,0,1)');
+                    grd.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(10,35,80, 80);
+                    ctx.translate(size.x/2, 154)
+                    ctx.scale(1, 10)
+                    ctx.translate(-size.x/2, -154)
+                    /// shadow end
+    
+                    grd = ctx.createRadialGradient(73,20,10, 82,57,15);
+                    grd.addColorStop(0, 'rgba('+lightColor+', 0)');
+                    grd.addColorStop(0.2, 'rgba('+lightColor+', 0)');
+                    grd.addColorStop(0.2, 'rgba('+lightColor+', 1)');
+                    grd.addColorStop(0.3, 'rgba('+lightColor+', 0.75)');
+                    grd.addColorStop(1, 'rgba('+lightColor+', 0)');
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(size.x/2,0,size.x/2, size.y);
+    
+                    grd = ctx.createLinearGradient(45,75, 55,75);
+                    grd.addColorStop(0, '#272727');
+                    grd.addColorStop(1, '#585D63');
+                    ctx.fillStyle = grd;
+                    ctx.beginPath();
+                    ctx.moveTo(47.5, 20);
+                    ctx.lineTo(45,60);ctx.lineTo(45, 145);
+                    ctx.bezierCurveTo(46.5,149,53.5,148,55, 145);
+                    ctx.lineTo(55,60);ctx.lineTo(52.5,20);
+                    ctx.closePath();
+                    ctx.fill();
+    
+                    ctx.strokeStyle = 'black';
+                    ctx.beginPath();
+                    ctx.moveTo(45,78)
+                    ctx.bezierCurveTo(46,79,48,81, 50, 80);
+                    ctx.lineTo(50, 100);
+                    ctx.bezierCurveTo(48,100, 46,99, 45, 98);
+                    ctx.stroke();
+    
+                    grd = ctx.createLinearGradient(50, 0, 50,40);
+                    grd.addColorStop(0, '#272727');
+                    grd.addColorStop(1, '#585D63');
+                    draw(ctx, {fillStyle: grd, closePath: true, points: [new V2(47.5, 20), new V2(20, 10), new V2(15,20), new V2(36,27), new V2(39,20), new V2(50, 24)]})
+                    draw(ctx, {fillStyle: grd, closePath: true, points: [new V2(52.5, 20), new V2(80, 10), new V2(85,20), new V2(64,27), new V2(61,20), new V2(50, 24)]})
+    
+                    draw(ctx, {strokeStyle: 'black', lineWidth:1, closePath: false, points: [new V2(15,20),new V2(36,27), new V2(39,20)]})
+                    draw(ctx, {strokeStyle: 'black', lineWidth:1, closePath: false, points: [new V2(85,20), new V2(64,27),new V2(61,20)]})
+                })
+            }), this.frontalRainLayer-2);
+        }
+
+        this.addGo(floor, this.floorLayer);
 
         // images
         this.rainDropImg = createCanvas(new V2(5,50), function(ctx, size){
@@ -318,10 +411,75 @@ class RainScene extends Scene {
                 position: new V2(i, h),
                 destination: new V2(this.viewport.x+1, h),
                 size: this.fronStreamItemSize,
-                speed: 0.3,
+                speed: 0.3 + getRandom(-0.02, 0.02),
                 layer: this.frontStreamLayer
             }), this.frontStreamLayer);
         }
+
+        //spotlights
+        let spotlightSectionsCount = 3;
+        for(let j = 0; j < spotlightSectionsCount; j++)
+        for(let i = 0; i < getRandomInt(1,5); i++){
+            let initialAngle = getRandom(-5, 5);
+            let enabled = getRandomBool();
+            let layer = getRandomInt(0,2);
+            let rotation = {
+                enabled: enabled,
+                angle: initialAngle,
+                min: enabled ? initialAngle - getRandomInt(1,5): initialAngle,
+                max: enabled ? initialAngle + getRandomInt(1,5): initialAngle,
+                direction: 1,
+                step: 0.05
+            };
+
+            if(enabled){
+                rotation.step = (rotation.max - rotation.min)/getRandomInt(300, 600);
+            }
+
+            this.addGo(new GO({
+                rotation: rotation,
+                position: new V2(getRandom(j*this.viewport.x/spotlightSectionsCount, j*this.viewport.x/spotlightSectionsCount + this.viewport.x/spotlightSectionsCount), this.viewport.y),
+                size: new V2(5 + layer*5, this.viewport.y*2.2),
+                img: createCanvas(new V2(50,10), function(ctx, size){
+                    let grd = ctx.createLinearGradient(0,0,size.x, 0);
+                    grd.addColorStop(0, 'rgba(255,255,255, 0)')
+                    grd.addColorStop(0.5, 'rgba(255,255,255, 0.5)')
+                    grd.addColorStop(1, 'rgba(255,255,255, 0)');
+    
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(0,0, size.x, size.y);
+                }), 
+                internalUpdate() {
+                    
+                    let r = this.rotation;
+                    if(!r.enabled)
+                        return;
+
+                    r.angle+=r.direction*r.step;
+    
+                    if(r.angle > r.max){
+                        r.angle = r.max;
+                        r.direction = -1;
+                    }
+    
+                    if(r.angle < r.min){
+                        r.angle = r.min;
+                        r.direction = 1;
+                    }
+                },
+                internalPreRender() {
+                    this.context.translate(this.renderPosition.x, this.renderPosition.y);
+                    this.context.rotate(degreeToRadians(this.rotation.angle));
+                    this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+                },
+                internalRender() {
+                    this.context.translate(this.renderPosition.x, this.renderPosition.y);
+                    this.context.rotate(degreeToRadians(-this.rotation.angle));
+                    this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+                }
+            }), layer == 2 ? this.midBuildingsLayer + 1: (layer == 1 ? this.midBuildingsLayer - 1 : this.backBuildingsLayer - 1));
+        }
+        
 
         // this.addGo(new Robot({
         //     size: new V2(40,20),
@@ -336,40 +494,76 @@ class RainScene extends Scene {
         // timers
         this.rainDropTimer = createTimer(50, this.rainDropTimerMethod, this, true);
         this.midRainDropTimer = createTimer(50, this.midRainDropTimerMethod, this, true);
-        this.backRainDropTimer = createTimer(50, this.backRainDropTimerMethod, this, true);
+        // this.backRainDropTimer = createTimer(50, this.backRainDropTimerMethod, this, true);
 
         this.customStreamTimer = createTimer(3000, this.customStreamTimerMethod, this, true);
 
         this.deliveryDronsTimer = createTimer(12000, this.deliveryDronsTimerMethod, this, true);
-
-        this.preformanceOptimizationTImer = createTimer(6000, this.preformanceOptimizationTImerMethod, this, false);
     }
 
-    preformanceOptimizationTImerMethod() {
-        // if(SCG.main.performance.fps > 30){
-        //     this.performance++;
-        // }
-        if(SCG.main.performance.fps > 20){
-            this.performance++;
-        }
-        else  {
-            this.performance--;
-        }
+    start(sceneProperties) {
+        let that = this;
+        let viewport = this.viewport.clone();
+        let totalSheets = 6;
+        let multiplier = 3;
+        let destination = new V2(this.viewport.x/2, this.viewport.y*3/2);
+        for(let layerIndex = 2; layerIndex >= 0; layerIndex--){
+            let speed;
+            let rdSize;
+            let layer;
+            switch(layerIndex){
+                case 2:
+                    speed = 3.5;
+                    rdSize = new V2(0.25,4);
+                    layer = this.frontBuildingsLayer-1;
+                    break;
+                case 1:
+                    speed = 2;
+                    rdSize = new V2(0.15,2);
+                    layer = this.midBuildingsLayer-1;
+                    break;
+                case 0:
+                    speed = 1.5;
+                    rdSize = new V2(0.1,1);
+                    layer = this.backBuildingsLayer-1;
+                    break;
+            }
 
-        if(this.performance > 3)
-            this.performance = 3;
+            rdSize.mul(multiplier, true);
+
+            for(let j = 0; j < totalSheets; j++){
+            
+                this.addGo(new MovingGO({
+                    position: new V2(this.viewport.x/2, (this.viewport.y/2) - this.viewport.y*j),
+                    size: viewport,
+                    speed: speed,
+                    setDestinationOnInit: true,
+                    destination: destination,
+                    destinationCompleteCheck: function(){
+                        return this.position.y >= destination.y;
+                    },
+                    destinationCompleteCallBack: function(){
+                        this.position = new V2(viewport.x/2, viewport.y/2 - viewport.y*(totalSheets-1));
+                        this.setDestination(destination);
+                    },
+                    img: createCanvas(viewport.mul(multiplier), function(ctx, size){
+                        ctx.fillStyle = '#386F91';
+                        for(let i = 0; i < 1000 + 2000*(2 - layerIndex); i++){
+                            let position =new V2(getRandom(1, size.x-1), getRandom(1,size.y-1)); 
+    
+                            ctx.fillRect(position.x,position.y, rdSize.x, rdSize.y);
+                        }
+                    })
+                }), layer);
+            }
+        }
         
-        if(this.performance < 1)
-            this.performance = 1;
-
-        console.log('performance: '+ this.performance);
-        //this.preformanceOptimizationTImer = undefined;
     }
 
-    deliveryDronsTimerMethod(){
+    deliveryDronsTimerMethod(positionX){
         let isLeft = getRandomBool();
         let hShift = getRandom(30, 70);
-        let position = new V2(isLeft ? -100 : this.viewport.x + 100, this.viewport.y-hShift);
+        let position = new V2(positionX || (isLeft ? -100 : this.viewport.x + 100), this.viewport.y-hShift);
         let relativeHShift = parseInt((hShift - 30)/8);
 
         this.addGo(new Robot({
@@ -599,64 +793,64 @@ class RainScene extends Scene {
         return false;
     }
 
-    backRainDropTimerMethod(){
-        if(this.performance > 0)
-            for(let i = 0; i < 10; i++){
-                let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
-                let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
-                if(!this.getRaindropCacheItem(this.backgroundRainLayer-2, position, destination)) 
-                    this.addGo(new RainDrop({
-                        collisionDetection: {
-                            enabled: false
-                        },
-                        position: position,
-                        destination:destination,
-                        img: this.backRainDropImg,
-                        splash: false,
-                        speed: 6,
-                        size: new V2(0.25,4),
-                        layer: this.backgroundRainLayer-2,
-                    }), this.backgroundRainLayer-2);
-            }
+    // backRainDropTimerMethod(){
+    //     if(this.performance > 0)
+    //         for(let i = 0; i < 10; i++){
+    //             let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
+    //             let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
+    //             if(!this.getRaindropCacheItem(this.backgroundRainLayer-2, position, destination)) 
+    //                 this.addGo(new RainDrop({
+    //                     collisionDetection: {
+    //                         enabled: false
+    //                     },
+    //                     position: position,
+    //                     destination:destination,
+    //                     img: this.backRainDropImg,
+    //                     splash: false,
+    //                     speed: 6,
+    //                     size: new V2(0.25,4),
+    //                     layer: this.backgroundRainLayer-2,
+    //                 }), this.backgroundRainLayer-2);
+    //         }
 
-        if(this.performance > 1)
-            for(let i = 0; i < 15; i++){
-                let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
-                let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
-                if(!this.getRaindropCacheItem(this.backgroundRainLayer-1, position, destination)) 
-                    this.addGo(new RainDrop({
-                        collisionDetection: {
-                            enabled: false
-                        },
-                        position: position,
-                        destination: destination,
-                        img: this.backRainDropImg,
-                        splash: false,
-                        speed: 4,
-                        size: new V2(0.15,2),
-                        layer: this.backgroundRainLayer-1,
-                    }), this.backgroundRainLayer-1);
-            }
+    //     if(this.performance > 1)
+    //         for(let i = 0; i < 15; i++){
+    //             let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0)); 
+    //             let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
+    //             if(!this.getRaindropCacheItem(this.backgroundRainLayer-1, position, destination)) 
+    //                 this.addGo(new RainDrop({
+    //                     collisionDetection: {
+    //                         enabled: false
+    //                     },
+    //                     position: position,
+    //                     destination: destination,
+    //                     img: this.backRainDropImg,
+    //                     splash: false,
+    //                     speed: 4,
+    //                     size: new V2(0.15,2),
+    //                     layer: this.backgroundRainLayer-1,
+    //                 }), this.backgroundRainLayer-1);
+    //         }
 
-        if(this.performance > 2)
-            for(let i = 0; i < 20; i++){
-                let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0));
-                let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
-                if(!this.getRaindropCacheItem(this.backgroundRainLayer, position, destination))  
-                    this.addGo(new RainDrop({
-                        collisionDetection: {
-                            enabled: false
-                        },
-                        position: position,
-                        destination: destination,
-                        img: this.backRainDropImg,
-                        splash: false,
-                        speed: 3,
-                        size: new V2(0.1,1),
-                        layer: this.backgroundRainLayer,
-                    }), this.backgroundRainLayer);
-            }
-    }
+    //     if(this.performance > 2)
+    //         for(let i = 0; i < 20; i++){
+    //             let position =new V2(getRandom(1, this.viewport.x-1), getRandom(-10,0));
+    //             let destination = new V2(position.x, this.viewport.y - this.floorSize.y-this.roadSize.y);
+    //             if(!this.getRaindropCacheItem(this.backgroundRainLayer, position, destination))  
+    //                 this.addGo(new RainDrop({
+    //                     collisionDetection: {
+    //                         enabled: false
+    //                     },
+    //                     position: position,
+    //                     destination: destination,
+    //                     img: this.backRainDropImg,
+    //                     splash: false,
+    //                     speed: 3,
+    //                     size: new V2(0.1,1),
+    //                     layer: this.backgroundRainLayer,
+    //                 }), this.backgroundRainLayer);
+    //         }
+    // }
 
     midRainDropTimerMethod(){
         for(let i = 0; i < 4; i++){
@@ -792,7 +986,19 @@ class RainScene extends Scene {
         if(this.preformanceOptimizationTImer){
             doWorkByTimer(this.preformanceOptimizationTImer, now);
         }
+    }
 
+    afterMainWork(){
+        if(this.debugging.enabled){
+            let ctx = SCG.contexts.main;
+
+            ctx.font = this.debugging.font;
+            ctx.textAlign = this.debugging.textAlign;
+            ctx.fillStyle = this.debugging.fillStyle;
+            
+            ctx.fillText(SCG.main.performance.fps, this.debugging.position.x, this.debugging.position.y);
+        }
+        
     }
 }
 
@@ -1602,6 +1808,21 @@ class Robot extends MovingGO {
         });
 
         this.thruster.addChild(this.thrusterPower);
+
+        //shadow
+        this.addChild(new GO({
+            position: new V2(0, this.size.x/4),
+            size: new V2(this.size.x*0.7, this.size.y*0.15),
+            img: createCanvas(new V2(50,50), function(ctx, size){
+                let grd = ctx.createRadialGradient(size.x/2, size.y/2, size.x/6, size.x/2, size.y/2, size.x/2);
+                grd.addColorStop(0, 'black'),
+                grd.addColorStop(0.5, 'rgba(0,0,0, 0.5)'),
+                grd.addColorStop(1, 'rgba(0,0,0, 0)')
+
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0, size.x, size.y);
+            })
+        }))
 
         if(!Robot.sideLedImg){
             Robot.sideLedImg = createCanvas(new V2(50,50), function(ctx, size){

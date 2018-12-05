@@ -40,7 +40,9 @@ class MovingGO extends GO {
 
         if(this.destination)
 		{
-            if(this.position.distance(this.destination) <= this.speed){
+            if(
+                (this.destinationCompleteCheck && isFunction(this.destinationCompleteCheck) && this.destinationCompleteCheck()) 
+                || (this.position.distance(this.destination) <= this.speed)){
                 this.setDestination();
             }
 			else{
@@ -79,7 +81,6 @@ class MovingGO extends GO {
     
     setDestination(newDestination, relative = false)
 	{
-
 		if(newDestination && newDestination instanceof V2){
 
 			this.destination = !relative ? newDestination : this.position.add(newDestination);

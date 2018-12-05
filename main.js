@@ -21,7 +21,6 @@ SCG.main = {
 				p.fps = p.currentSecondFps;
 				p.currentSecondFps = 0;
 				p.currentSecond = second;
-				console.log(p.fps);
 			}
 	
 			SCG.logics.doPauseWork(now);

@@ -48,7 +48,7 @@ SCG.controls = {
             },
             // result - continue? false(undefined) - stop; true - continue
             doEventCheckByLayer(eventLayer, eventType) {
-                if(eventLayer === undefined || event === undefined)
+                if(eventLayer === undefined || eventType === undefined)
                     return true;
 
                 for(let i = 0; i < eventLayer.length;i++){
