@@ -485,36 +485,162 @@ class RainScene extends Scene {
             size: new V2(250, 150),
             img: createCanvas(this.viewport, function(ctx, size){
                 ctx.beginPath();
-                ctx.moveTo(390, 219);
-                ctx.bezierCurveTo(386, 260, 282, 240, 219, 234);
-                ctx.bezierCurveTo(140, 218, 87,183, 43, 169);
-                ctx.bezierCurveTo(31,157,29,143, 31, 131);
-                ctx.bezierCurveTo(109, 161, 182, 197, 390, 219);
+                ctx.moveTo(427, 207);
+                ctx.bezierCurveTo(426,237,377,246, 337,247);ctx.lineTo(208,237);
+                ctx.bezierCurveTo(183,228,129,180,44,163);
+                ctx.bezierCurveTo(34,159,31,146,31,139);
+                ctx.bezierCurveTo(64,162,166,188,370,230);
+                ctx.bezierCurveTo(393,232,414,217,429,199);
                 ctx.closePath();
 
-                ctx.fillStyle = 'red';
+                let grd = ctx.createLinearGradient(212,199,204,237);
+                grd.addColorStop(0, '#4C4944');
+                grd.addColorStop(0.6, '#241F23');
+                ctx.fillStyle = grd;
                 ctx.fill();
 
                 ctx.beginPath();
-                ctx.moveTo(31, 131);
-                ctx.bezierCurveTo(40,70, 135, 93, 196, 80);
-                ctx.bezierCurveTo(283,73,391, 120, 390, 219);
-                ctx.bezierCurveTo(182, 197, 109, 161, 31, 131);
+                ctx.moveTo(31, 139);
+                ctx.bezierCurveTo(64,162,166,188,370,230);
+                ctx.bezierCurveTo(393,232,414,217,429,199);ctx.lineTo(429,188);ctx.lineTo(422,180);
+                ctx.bezierCurveTo(402,148,367,113,317,91);
+                ctx.bezierCurveTo(260,82,146,83,50,95);
+                ctx.bezierCurveTo(31,104,30,127, 31, 139);
+                ctx.closePath();
+                
+                grd = ctx.createLinearGradient(175,78,175,250);
+                grd.addColorStop(0, '#FFB744');
+                grd.addColorStop(0.2, '#FA9A2C');
+                grd.addColorStop(1, '#BD7119');
+                ctx.fillStyle = grd;
+                ctx.fill();
+  
 
-                ctx.fillStyle = 'yellow';
+                ctx.beginPath();
+                ctx.moveTo(317,91);
+                ctx.bezierCurveTo(295,96,237,96,179, 106);
+                ctx.bezierCurveTo(156,117,156,133,176,144);
+                ctx.bezierCurveTo(262,165,336,187,368,197);
+                ctx.bezierCurveTo(389,201,409,190,422,179);
+                ctx.bezierCurveTo(395,138,358,108,317,91);
+                ctx.closePath();
+
+                grd = ctx.createLinearGradient(300,200,385,100);
+                grd.addColorStop(0, '#463931');
+                grd.addColorStop(0.45, '#463931');
+                grd.addColorStop(1, '#696970');
+                ctx.fillStyle = grd;
                 ctx.fill();
 
                 ctx.beginPath();
-                ctx.moveTo(386, 185);
-                ctx.bezierCurveTo(343,195, 278, 150, 192, 141);
-                //ctx.bezierCurveTo(343,179, 278, 158, 192, 141);
-                ctx.bezierCurveTo(161, 130, 150, 104, 198, 81);
-                ctx.bezierCurveTo(261, 69, 382,101, 386,185);
-                ctx.closePath();
+                ctx.moveTo(173,206);
+                ctx.bezierCurveTo(170,173,173,136,179,106);
+                ctx.bezierCurveTo(204,102,237,98,265,96);
+                ctx.bezierCurveTo(258,140,255,191,259,228);
+                ctx.bezierCurveTo(229,222,201,216,173,206);
 
-                ctx.fillStyle = 'blue';
+                ctx.closePath();
+                ctx.strokeStyle = '#7A4911'
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(0,0,0, 0.05)'
                 ctx.fill();
-            })
+
+                grd = ctx.createRadialGradient(115,160,0,115,190, 70);
+                grd.addColorStop(0, 'rgba(0,0,0,1)')
+                grd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0, size.x/2, size.y);
+            }),
+            init() {
+                this.thruster = new GO({
+                    position: new V2(-75, 5),
+                    size: new V2(63,84),
+                    img: createCanvas(new V2(84,112), function(ctx, size){
+                        ctx.beginPath();
+                        ctx.moveTo(77,99);
+                        ctx.bezierCurveTo(59,106,24,105,9,98);
+                        ctx.bezierCurveTo(12,54,26,15,43,20);
+                        ctx.bezierCurveTo(60,17,74,59,77,99);
+                        ctx.closePath();
+
+                        let grd = ctx.createRadialGradient(65,20, 5, 30, 55, 100)
+                        grd.addColorStop(0, '#FFB744')
+                        grd.addColorStop(0.5, '#BD7119')
+                        ctx.fillStyle = grd;
+                        ctx.fill();
+
+                        grd = ctx.createLinearGradient(0, size.y/2, size.x, size.y/2);
+                        grd.addColorStop(0, 'rgba(0,0,0,0.3)')
+                        grd.addColorStop(0.5, 'rgba(0,0,0,0)');
+
+                        ctx.fillStyle = grd;
+                        ctx.fill();
+
+                        ctx.beginPath();
+                        ctx.moveTo(77,99);
+                        ctx.bezierCurveTo(59,106,24,105,9,98);
+                        ctx.bezierCurveTo(10,74,15,54,17,51);
+                        ctx.strokeStyle = 'black';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    })
+                });
+
+                this.addChild(this.thruster);
+
+                this.clearWindow = new GO({
+                    position: new V2(52, -4),
+                    size: new V2(71,55),
+                    img: createCanvas(new V2(143,110), function(ctx, size){
+                        ctx.beginPath();
+                        ctx.moveTo(137,91);ctx.lineTo(121,103);
+                        ctx.bezierCurveTo(84,59,52,37,5,15);
+                        ctx.bezierCurveTo(19,14,29,11,35,5);
+                        ctx.bezierCurveTo(79,25,112,54,137,91);
+                        ctx.closePath();
+
+                        ctx.fillStyle = 'rgba(255,255,255, 0.3)';
+                        ctx.fill();
+                    })
+                });
+
+                this.windowCleaner = new MovingGO({
+                    size: new V2(71,55).mul(0.9),
+                    position: new V2(0,0),//new V2(9,-5),
+                    speed: 1.5,
+                    isVisible: false,
+                    side: 1,
+                    img: createCanvas(new V2(143,110), function(ctx, size){
+                        ctx.beginPath();
+                        ctx.moveTo(121,103)
+                        ctx.bezierCurveTo(84,59,52,37,10,15)
+                        ctx.strokeStyle = 'red';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }),
+                    init() {
+                        this.clearingTimer = createTimer(3000, this.clearingTimerMethod, this, true);
+                    },
+                    clearingTimerMethod() {
+                        this.isVisible = true;
+                        this.setDestination(this.side > 0 ? new V2(9,-5): new V2(0,0))
+                    },
+                    destinationCompleteCallBack() {
+                        //console.log('destinationCompleteCallBack. this.side ' + this.side);
+                        this.isVisible = false;
+                        this.side *=-1;
+                    },
+                    internalUpdate(now) {
+                        doWorkByTimer(this.clearingTimer, now);
+                    }
+                });
+
+                this.clearWindow.addChild(this.windowCleaner);
+
+                this.addChild(this.clearWindow);
+
+                
+            }
         });
         
         this.addGo(this.taxi, 50);
