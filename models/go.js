@@ -2,11 +2,12 @@ class GO {
     constructor(options = {}){
         
         if(!options.position || !(options.position instanceof V2)){
-            //console.trace();
+            console.trace();
             throw `No position defined for graphical object`;
         }
             
         if(!options.size || !(options.size instanceof V2)){
+            console.trace()
             throw 'No size defined for grapthical object';
         }
             

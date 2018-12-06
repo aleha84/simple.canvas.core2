@@ -480,81 +480,108 @@ class RainScene extends Scene {
             }), layer == 2 ? this.midBuildingsLayer + 1: (layer == 1 ? this.midBuildingsLayer - 1 : this.backBuildingsLayer - 1));
         }
 
+        let taxiSize=this.viewport.division(4);
         this.taxi = new GO({
-            position: new V2(this.viewport.x/2, this.viewport.y/2),
-            size: new V2(250, 150),
-            img: createCanvas(this.viewport, function(ctx, size){
-                ctx.beginPath();
-                ctx.moveTo(427, 207);
-                ctx.bezierCurveTo(426,237,377,246, 337,247);ctx.lineTo(208,237);
-                ctx.bezierCurveTo(183,228,129,180,44,163);
-                ctx.bezierCurveTo(34,159,31,146,31,139);
-                ctx.bezierCurveTo(64,162,166,188,370,230);
-                ctx.bezierCurveTo(393,232,414,217,429,199);
-                ctx.closePath();
-
-                let grd = ctx.createLinearGradient(212,199,204,237);
-                grd.addColorStop(0, '#4C4944');
-                grd.addColorStop(0.6, '#241F23');
-                ctx.fillStyle = grd;
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.moveTo(31, 139);
-                ctx.bezierCurveTo(64,162,166,188,370,230);
-                ctx.bezierCurveTo(393,232,414,217,429,199);ctx.lineTo(429,188);ctx.lineTo(422,180);
-                ctx.bezierCurveTo(402,148,367,113,317,91);
-                ctx.bezierCurveTo(260,82,146,83,50,95);
-                ctx.bezierCurveTo(31,104,30,127, 31, 139);
-                ctx.closePath();
-                
-                grd = ctx.createLinearGradient(175,78,175,250);
-                grd.addColorStop(0, '#FFB744');
-                grd.addColorStop(0.2, '#FA9A2C');
-                grd.addColorStop(1, '#BD7119');
-                ctx.fillStyle = grd;
-                ctx.fill();
-  
-
-                ctx.beginPath();
-                ctx.moveTo(317,91);
-                ctx.bezierCurveTo(295,96,237,96,179, 106);
-                ctx.bezierCurveTo(156,117,156,133,176,144);
-                ctx.bezierCurveTo(262,165,336,187,368,197);
-                ctx.bezierCurveTo(389,201,409,190,422,179);
-                ctx.bezierCurveTo(395,138,358,108,317,91);
-                ctx.closePath();
-
-                grd = ctx.createLinearGradient(300,200,385,100);
-                grd.addColorStop(0, '#463931');
-                grd.addColorStop(0.45, '#463931');
-                grd.addColorStop(1, '#696970');
-                ctx.fillStyle = grd;
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.moveTo(173,206);
-                ctx.bezierCurveTo(170,173,173,136,179,106);
-                ctx.bezierCurveTo(204,102,237,98,265,96);
-                ctx.bezierCurveTo(258,140,255,191,259,228);
-                ctx.bezierCurveTo(229,222,201,216,173,206);
-
-                ctx.closePath();
-                ctx.strokeStyle = '#7A4911'
-                ctx.stroke();
-                ctx.fillStyle = 'rgba(0,0,0, 0.05)'
-                ctx.fill();
-
-                grd = ctx.createRadialGradient(115,160,0,115,190, 70);
-                grd.addColorStop(0, 'rgba(0,0,0,1)')
-                grd.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = grd;
-                ctx.fillRect(0,0, size.x/2, size.y);
-            }),
+            position: new V2(this.viewport.x/8, this.viewport.y-this.floorSize.y-this.roadSize.y/2-taxiSize.y/4),
+            size: taxiSize,//new V2(125, 75),
+            layer: this.middleRainLayer,
+            collisionDetection: {
+                enabled: true,
+                circuit: [new V2(-50,-12),new V2(10,-15), new V2(45,10)]
+            },
+            // internalRender() {
+            //     let scale = SCG.viewport.scale;
+            //     let cdBoxTLRender = this.collisionDetection.box.topLeft.mul(scale);
+            //     this.context.strokeStyle = '#00BFFF';
+            //     this.context.strokeRect(cdBoxTLRender.x, cdBoxTLRender.y, this.collisionDetection.box.width*scale, this.collisionDetection.box.height*scale);
+            //     let position = this.position;
+            //     draw(
+            //         this.context, 
+            //         {
+            //             lineWidth: 2,
+            //             strokeStyle: 'red',
+            //             closePath: true,
+            //             points: this.collisionDetection.circuit.map((item) => item.add(position).mul(scale))
+            //         }
+            //     )
+            // },
+            
             init() {
+                this.body = new GO({
+                    position: new V2(),
+                    size: taxiSize, 
+                    img: createCanvas(this.parentScene.viewport, function(ctx, size){
+                        ctx.beginPath();
+                        ctx.moveTo(427, 207);
+                        ctx.bezierCurveTo(426,237,377,246, 337,247);ctx.lineTo(208,237);
+                        ctx.bezierCurveTo(183,228,129,180,44,163);
+                        ctx.bezierCurveTo(34,159,31,146,31,139);
+                        ctx.bezierCurveTo(64,162,166,188,370,230);
+                        ctx.bezierCurveTo(393,232,414,217,429,199);
+                        ctx.closePath();
+        
+                        let grd = ctx.createLinearGradient(212,199,204,237);
+                        grd.addColorStop(0, '#4C4944');
+                        grd.addColorStop(0.6, '#241F23');
+                        ctx.fillStyle = grd;
+                        ctx.fill();
+        
+                        ctx.beginPath();
+                        ctx.moveTo(31, 139);
+                        ctx.bezierCurveTo(64,162,166,188,370,230);
+                        ctx.bezierCurveTo(393,232,414,217,429,199);ctx.lineTo(429,188);ctx.lineTo(422,180);
+                        ctx.bezierCurveTo(402,148,367,113,317,91);
+                        ctx.bezierCurveTo(260,82,146,83,50,95);
+                        ctx.bezierCurveTo(31,104,30,127, 31, 139);
+                        ctx.closePath();
+                        
+                        grd = ctx.createLinearGradient(175,78,175,250);
+                        grd.addColorStop(0, '#FFB744');
+                        grd.addColorStop(0.2, '#FA9A2C');
+                        grd.addColorStop(1, '#BD7119');
+                        ctx.fillStyle = grd;
+                        ctx.fill();
+          
+        
+                        ctx.beginPath();
+                        ctx.moveTo(317,91);
+                        ctx.bezierCurveTo(295,96,237,96,179, 106);
+                        ctx.bezierCurveTo(156,117,156,133,176,144);
+                        ctx.bezierCurveTo(262,165,336,187,368,197);
+                        ctx.bezierCurveTo(389,201,409,190,422,179);
+                        ctx.bezierCurveTo(395,138,358,108,317,91);
+                        ctx.closePath();
+        
+                        grd = ctx.createLinearGradient(300,200,385,100);
+                        grd.addColorStop(0, '#463931');
+                        grd.addColorStop(0.45, '#463931');
+                        grd.addColorStop(1, '#696970');
+                        ctx.fillStyle = grd;
+                        ctx.fill();
+        
+                        ctx.beginPath();
+                        ctx.moveTo(173,206);
+                        ctx.bezierCurveTo(170,173,173,136,179,106);
+                        ctx.bezierCurveTo(204,102,237,98,265,96);
+                        ctx.bezierCurveTo(258,140,255,191,259,228);
+                        ctx.bezierCurveTo(229,222,201,216,173,206);
+        
+                        ctx.closePath();
+                        ctx.strokeStyle = '#7A4911'
+                        ctx.stroke();
+                        ctx.fillStyle = 'rgba(0,0,0, 0.05)'
+                        ctx.fill();
+        
+                        grd = ctx.createRadialGradient(115,160,0,115,190, 70);
+                        grd.addColorStop(0, 'rgba(0,0,0,1)')
+                        grd.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(0,0, size.x/2, size.y);
+                    }),
+                })
                 this.thruster = new GO({
-                    position: new V2(-75, 5),
-                    size: new V2(63,84),
+                    position: new V2(-75, 5).division(2),
+                    size: new V2(63,84).division(2),
                     img: createCanvas(new V2(84,112), function(ctx, size){
                         ctx.beginPath();
                         ctx.moveTo(77,99);
@@ -586,64 +613,128 @@ class RainScene extends Scene {
                     })
                 });
 
-                this.addChild(this.thruster);
+                this.body.addChild(this.thruster);
 
                 this.clearWindow = new GO({
-                    position: new V2(52, -4),
-                    size: new V2(71,55),
+                    position: new V2(52, -4).division(2),
+                    size: new V2(71,55).division(2),
                     img: createCanvas(new V2(143,110), function(ctx, size){
                         ctx.beginPath();
-                        ctx.moveTo(137,91);ctx.lineTo(121,103);
-                        ctx.bezierCurveTo(84,59,52,37,5,15);
+                        ctx.moveTo(137,91);ctx.lineTo(101,109);
+                        ctx.bezierCurveTo(75,59,42,37,5,15);
                         ctx.bezierCurveTo(19,14,29,11,35,5);
                         ctx.bezierCurveTo(79,25,112,54,137,91);
                         ctx.closePath();
 
                         ctx.fillStyle = 'rgba(255,255,255, 0.3)';
                         ctx.fill();
-                    })
+                    }),
+                    alpha: {
+                        current: 1,
+                        direction: 1,
+                        step: 0.1
+                    },
+                    startFadeIn() {
+                        this.alpha.direction = 1;
+                        this.alpha.speed = 0.25;
+                        this.alphaChangeTimer = createTimer(50, this.alphaChangeTimerMethod, this, true);
+                    },
+                    alphaChangeTimerMethod() {
+                        this.alpha.current+=this.alpha.direction*this.alpha.speed;
+                        if(this.alpha.current > 1){
+                            this.alpha.current = 1;
+                            this.alpha.direction = -1;
+                            this.alpha.speed = 0.05;
+                            this.alphaChangeTimer = undefined;
+                            this.alpha.shouldStartFadeOut = true;
+                        }
+                        else if(this.alpha.current < 0){
+                            this.alpha.current = 0;
+                            this.alphaChangeTimer = undefined;
+                        }
+                    },
+                    internalUpdate(now){
+                        if(this.alphaChangeTimer){
+                            doWorkByTimer(this.alphaChangeTimer, now)
+                        }
+
+                        if(this.alpha.shouldStartFadeOut){
+                            this.alpha.shouldStartFadeOut = false;
+                            this.alphaChangeTimer = createTimer(50, this.alphaChangeTimerMethod, this, true);
+                        }
+                    },
+                    internalPreRender() {
+                        this.alpha.originContextGlobalAlpha = this.context.globalAlpha;
+                        this.context.globalAlpha = this.alpha.current;
+                    },
+                    internalRender(){
+                        this.context.globalAlpha = this.alpha.originContextGlobalAlpha;
+                    }
                 });
 
                 this.windowCleaner = new MovingGO({
-                    size: new V2(71,55).mul(0.9),
-                    position: new V2(0,0),//new V2(9,-5),
-                    speed: 1.5,
+                    size: new V2(71,55).division(2).mul(0.9),
+                    position: new V2(-1,1),
+                    speed: 2.5,
                     isVisible: false,
                     side: 1,
                     img: createCanvas(new V2(143,110), function(ctx, size){
                         ctx.beginPath();
-                        ctx.moveTo(121,103)
-                        ctx.bezierCurveTo(84,59,52,37,10,15)
-                        ctx.strokeStyle = 'red';
+                        ctx.moveTo(107,103)
+                        ctx.bezierCurveTo(84,59,52,37,22,15)
+                        ctx.strokeStyle = 'rgba(255,0,0,0.25)';
                         ctx.lineWidth = 3;
                         ctx.stroke();
                     }),
                     init() {
-                        this.clearingTimer = createTimer(3000, this.clearingTimerMethod, this, true);
+                        this.clearingTimer = createTimer(6000, this.clearingTimerMethod, this, true);
                     },
                     clearingTimerMethod() {
                         this.isVisible = true;
-                        this.setDestination(this.side > 0 ? new V2(9,-5): new V2(0,0))
+                        this.setDestination(this.side > 0 ? new V2(6,-1): new V2(-1,1))
                     },
                     destinationCompleteCallBack() {
                         //console.log('destinationCompleteCallBack. this.side ' + this.side);
                         this.isVisible = false;
                         this.side *=-1;
+                        this.parent.startFadeIn();
                     },
                     internalUpdate(now) {
                         doWorkByTimer(this.clearingTimer, now);
+                    },
+                    internalPreRender() {
+                        this.originContextGlobalAlpha = this.context.globalAlpha;
+                        this.context.globalAlpha = 1;
+                    },
+                    internalRender(){
+                        this.context.globalAlpha = this.originContextGlobalAlpha;
                     }
                 });
 
                 this.clearWindow.addChild(this.windowCleaner);
 
-                this.addChild(this.clearWindow);
+                this.shadow = new GO({
+                    position: new V2(0, this.size.y/4),
+                    size: new V2(this.size.x, this.size.y/4),
+                    img: createCanvas(new V2(100, 100), function(ctx, size){
+                        let grd = ctx.createRadialGradient(size.x/2, size.y/2, 1, size.x/2, size.y/2, size.x/2);
+                        grd.addColorStop(0, 'rgba(0,0,0,1)')
+                        grd.addColorStop(0.8, 'rgba(0,0,0,0)')
 
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(0,0, size.x, size.y);
+                    })
+                })
+
+                this.addChild(this.shadow);
+                this.body.addChild(this.clearWindow);
                 
+
+                this.addChild(this.body);
             }
         });
         
-        this.addGo(this.taxi, 50);
+        this.addGo(this.taxi, this.middleRainLayer);
 
         // this.addGo(new Robot({
         //     size: new V2(40,20),
