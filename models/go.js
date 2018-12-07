@@ -2,11 +2,12 @@ class GO {
     constructor(options = {}){
         
         if(!options.position || !(options.position instanceof V2)){
-            //console.trace();
+            console.trace();
             throw `No position defined for graphical object`;
         }
             
         if(!options.size || !(options.size instanceof V2)){
+            console.trace()
             throw 'No size defined for grapthical object';
         }
             
@@ -34,13 +35,22 @@ class GO {
             childrenGO: [],
             tileOptimization: false,
             initialized: false,
+            collisionDetection: {
+                enabled: false,
+                needRecalcBox: false,
+                exclude: [],
+                cells: [],
+                circuit: [], // контурные точки для более точного детектирования, точки относительно position (0,0) в центре.
+                preCheck: function(go){ return true; }, // some light checking before collision should be checked, if false returned then no cd check will be performed
+                onCollision: function(collidedWithGo, collisionPoints){}
+            },
             animation: { // todo test needed
                 totalFrameCount: 0,
                 framesInRow: 0,
                 framesRowsCount: 0,
                 frameChangeDelay: 0,
-                destinationFrameSize: new V2,
-                sourceFrameSize: new V2,
+                destinationFrameSize: new V2, // original image frame size
+                sourceFrameSize: new V2, // logical size
                 currentDestination : new V2,
                 currentFrame: 0,
                 startFrame: undefined,
@@ -133,6 +143,15 @@ class GO {
         if(this.img == undefined && this.imgPropertyName != undefined)
             this.img = SCG.images[this.imgPropertyName];
 
+        if(typeof this.img === 'string'){
+            if(SCG.images[this.img] == undefined){
+                console.trace();
+                throw `SCG.images has no ${this.img} propery`;
+            }
+
+            this.img = SCG.images[this.img];
+        }
+
         if(this.sendEventsToAI && SCG.AI && SCG.AI.worker)
             SCG.AI.sendEvent({ type: 'created', message: {goType: this.type, id: this.id, position: this.position.clone() }});
 
@@ -182,10 +201,17 @@ class GO {
     beforeDead(){}
 
     setDead() {
+        if(!this.alive) // can setDead only once
+            return;
+
         this.childProcesser((child) => child.setDead());
 
 		this.beforeDead();
-		
+        
+        if(this.collisionDetection.enabled) {
+            this.parentScene.collisionDetection.remove(this);
+        }
+        
         this.unRegEvents();
 
 		//send to ai msg
@@ -197,9 +223,36 @@ class GO {
         this.console('setDead completed.');
     }
 
+    getAllChildren() {
+        let root = this;
+        let result = [];
+        let getChildren = function(go){
+            if(go.childrenGO.length){
+                result = [...result, ...go.childrenGO];
+                go.childrenGO.map(function(item) {
+                    getChildren(item);
+                });
+            }
+        }
+
+        if(this.parent){
+            let parent = this.parent;
+            while(parent.parent != undefined){
+                parent = parent.parent;
+            }
+
+            root = parent;
+        }
+
+        result.push(root);
+        getChildren(root);
+
+        return result;
+    }
+
     addChild(childGo, regEvents = false) {
-        if(!(childGo instanceof GO)){
-            console.warn('Can\' add to children object isn\'t inherited from GO');
+        if(childGo == undefined || !(childGo instanceof GO)){
+            console.warn('Can\'t add to children object isn\'t inherited from GO');
             return;
         }
     
@@ -208,6 +261,11 @@ class GO {
 
         if(regEvents)
             childGo.regEvents(this.layerIndex);
+
+        if(childGo.collisionDetection.enabled){
+            let all = this.getAllChildren().filter(function(go){ return go.collisionDetection.enabled });
+            all.map((go) => go.collisionDetection.exclude = all);
+        }
     }
 
     removeChild(childGo) {
@@ -219,6 +277,11 @@ class GO {
             this.childrenGO.splice(index,1);
             childGo.parent = undefined;
             childGo.unRegEvents();
+        }
+
+        if(childGo.collisionDetection.enabled){
+            let all = getAllChildren().filter(function(go){ return go.collisionDetection.enabled });
+            all.map((go) => go.collisionDetection.exclude = all);
         }
     }
 
@@ -244,6 +307,39 @@ class GO {
 
         this.absolutePosition = aPosition;
         return aPosition;
+    }
+
+    calculateCollisionBox(){
+        if(!this.collisionDetection.enabled)
+            return; 
+
+        let most = {
+            left: this.box.topLeft.x,
+            top: this.box.topLeft.y,
+            right: this.box.bottomRight.x,
+            bottom: this.box.bottomRight.y
+        }
+
+        let getMosts = function(item){
+            if(item.box.topLeft.x < most.left) most.left = item.box.topLeft.x;
+            if(item.box.topLeft.y < most.top) most.top = item.box.topLeft.y;
+            if(item.box.bottomRight.x > most.right) most.right = item.box.bottomRight.x;
+            if(item.box.bottomRight.y > most.bottom) most.bottom = item.box.bottomRight.y;
+
+            if(item.childrenGO.length){
+                for(let ci = 0; ci < item.childrenGO.length; ci++){
+                    getMosts(item.childrenGO[ci]);
+                }
+            }
+        }
+
+        getMosts(this);
+        let tl = new V2(most.left, most.top);
+        let size = new V2(most.right-most.left, most.bottom-most.top);
+        if(!this.collisionDetection.box)
+            this.collisionDetection.box = new Box(tl, size)
+        else 
+            this.collisionDetection.box.update(tl, size)
     }
     
     customRender(){ }
@@ -401,7 +497,7 @@ class GO {
                 this.box.update(tl, this.size);
 
             this.renderPosition = undefined;
-            if(SCG.viewport.logical.isIntersectsWithBox(this.box) || this.isStatic)
+            if(SCG.viewport.logical.isIntersectsWithBox(this.collisionDetection.box ||  this.box) || this.isStatic)
             {
                 this.renderPosition = position.add(this.isStatic ? new V2 : SCG.viewport.shift.mul(-1)).mul(scale);
 
@@ -442,6 +538,10 @@ class GO {
             }
 
             this.needRecalcRenderProperties = false;
+            
+            if(this.collisionDetection.enabled) {
+                this.collisionDetection.needRecalcBox = true;
+            }
         }
 
 		if(this.isAnimated)
@@ -455,6 +555,25 @@ class GO {
         }
 
         this.childProcesser((child) => child.update(now));
+
+        if(this.collisionDetection.enabled && this.collisionDetection.needRecalcBox){
+            this.collisionDetection.needRecalcBox = false;
+            this.calculateCollisionBox();
+            let parentScene = undefined;
+            if(this.parent != undefined){
+                let parent = this.parent;
+                while(parent.parent != undefined){
+                    parent = parent.parent;
+                }
+
+                parentScene = parent.parentScene;
+            }
+            else {
+                parentScene = this.parentScene;
+            }
+
+            parentScene.collisionDetection.update(this);
+        }
             
         this.console('update completed.');
 	}

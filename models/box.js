@@ -26,10 +26,33 @@ class Box {
             this.height = this.size.y;
             
             this.topLeft = topLeft.clone();
-            this.center = new V2(this.topLeft.x + (this.width/2), this.topLeft.y + (this.height/2));
-            this.bottomRight = new V2(this.topLeft.x + this.width,this.topLeft.y+this.height);
-            this.topRight = new V2(this.bottomRight.x, this.topLeft.y);
-            this.bottomLeft = new V2(this.topLeft.x, this.bottomRight.y);
+            if(!this.center)
+                this.center = new V2(this.topLeft.x + (this.width/2), this.topLeft.y + (this.height/2));
+            else {
+                this.center.x = this.topLeft.x + (this.width/2);
+                this.center.y = this.topLeft.y + (this.height/2)
+            }
+
+            if(!this.bottomRight)
+                this.bottomRight = new V2(this.topLeft.x + this.width,this.topLeft.y+this.height);
+            else {
+                this.bottomRight.x = this.topLeft.x + this.width;
+                this.bottomRight.y = this.topLeft.y+this.height;
+            }
+
+            if(!this.topRight)
+                this.topRight = new V2(this.bottomRight.x, this.topLeft.y);
+            else {
+                this.topRight.x = this.bottomRight.x;
+                this.topRight.y = this.topLeft.y;
+            }
+
+            if(!this.bottomLeft)
+                this.bottomLeft = new V2(this.topLeft.x, this.bottomRight.y);
+            else {
+                this.bottomLeft.x = this.topLeft.x;
+                this.bottomLeft.y = this.bottomRight.y;
+            }
         }
         
     }

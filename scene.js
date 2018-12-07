@@ -9,6 +9,174 @@ class Scene {
             space: new V2(500, 300),
             AI: undefined,
             ui: [],
+            collisionDetection: {
+                enabled: false,
+                level: 1,
+                cells: [],
+                init(spaceSize){
+                    if(this.level == 0){
+                        this.enabled = false;
+                    }
+
+                    if(!this.enabled)
+                        return;
+
+                    this.cellSize = new V2(spaceSize.x/this.level, spaceSize.y/this.level);
+
+                    let rowsCount = parseInt(spaceSize.y/this.cellSize.y);
+                    let columnsCount = parseInt(spaceSize.x/this.cellSize.x);
+                    this.cells = [];
+
+                    for(let ri = 0; ri < rowsCount; ri++){
+                        this.cells[ri] = [];
+
+                        for(let ci = 0; ci < columnsCount; ci++){
+                            this.cells[ri][ci] = [];
+                        }
+                    }
+                },
+                remove(go) {
+                    if(!go.collisionDetection || !go.collisionDetection.enabled){
+                        console.trace();
+                        throw `GO id: ${go.id} collision detection is disabled.`;
+                    }
+                        
+
+                    for(let ci = 0; ci < go.collisionDetection.cells.length; ci++){
+                        let goCdCell = go.collisionDetection.cells[ci];
+                        let sceneCdCell = this.cells[goCdCell.y][goCdCell.x];
+                        let index = sceneCdCell.indexOf(go);
+                        if(index > -1){
+                            sceneCdCell.splice(index, 1);
+                        }
+                    }
+                },
+                update(go){
+                    if(!go.collisionDetection || !go.collisionDetection.enabled){
+                        console.trace();
+                        throw `GO id: ${go.id} collision detection is disabled.`;
+                    }
+
+                    this.remove(go);
+
+                    go.collisionDetection.cells = [];
+
+                    if(!go.alive)
+                        return;
+
+                    //let corners = [go.collisionDetection.box.topLeft, go.collisionDetection.box.topRight, go.collisionDetection.box.bottomLeft, go.collisionDetection.box.bottomRight];
+
+                    let tl = go.collisionDetection.box.topLeft;
+                    let topLeftIndex = {x: Math.floor(tl.x/this.cellSize.x), y :Math.floor(tl.y/this.cellSize.y)};
+                    let br = go.collisionDetection.box.bottomRight;
+                    let bottomRightIndex = { x: Math.floor(br.x/this.cellSize.x), y: Math.floor(br.y/this.cellSize.y)};
+
+                    for(let ri = topLeftIndex.y; ri <= bottomRightIndex.y;ri++){
+                        for(let ci = topLeftIndex.x; ci <= bottomRightIndex.x;ci++){
+                            let index = new V2(ci, ri);
+                            if(go.collisionDetection.cells.filter((c) => c.equals(index)).length == 0){
+                                if(this.cells[index.y] === undefined || this.cells[index.y][index.x] === undefined)
+                                    continue;
+    
+                                go.collisionDetection.cells.push(index);
+                                this.cells[index.y][index.x].push(go);
+                            }
+                        }
+                    }
+
+                    // for(let ci = 0; ci < corners.length;ci++){
+                    //     let corner = corners[ci];
+                    //     let index = new V2(Math.floor(corner.x/this.cellSize.x), Math.floor(corner.y/this.cellSize.y));
+                    //     if(go.collisionDetection.cells.filter((c) => c.equals(index)).length == 0){
+                    //         if(this.cells[index.y][index.x] === undefined)
+                    //             continue;
+
+                    //         go.collisionDetection.cells.push(index);
+                    //         this.cells[index.y][index.x].push(go);
+                    //     }
+                    // }
+
+                    this.check(go);
+                },
+                getCircuit(go) {
+                    if(!go.collisionDetection.enabled){
+                        console.trace();
+                        throw `GO id: ${go.id} collision detection is disabled.`;
+                    }
+
+                    let cd = go.collisionDetection;
+                    let aCircuit = []
+                    if(cd.circuit.length){
+                        let position = go.position;
+                        if(go.parent){
+                            position = go.absolutePosition;
+                        }
+                        return cd.circuit.map((item) => item.add(position));
+                    }
+                    else 
+                        return [ cd.box.topLeft, cd.box.topRight, cd.box.bottomRight, cd.box.bottomLeft ];
+                },
+                checkCircuitsIntersection(go1, go2) {
+                    let c1 = this.getCircuit(go1);
+                    let c2 = this.getCircuit(go2);
+                    let intersections = [];
+                    for(let ci1 = 1; ci1 <= c1.length; ci1++){
+                        let line1 = { begin: c1[ci1-1], end: c1[ci1 == c1.length ? 0:ci1] };
+                        for(let ci2 = 1; ci2 <= c2.length; ci2++){
+                            let line2 = { begin: c2[ci2-1], end: c2[ci2 == c2.length ? 0:ci2] };
+                            let intersection = segmentsIntersectionVector2_1_noV2(line1, line2);//segmentsIntersectionVector2(line1, line2);
+                            if(intersection !== undefined){
+                                intersections.push(intersection);
+                            }
+                        }
+                    }
+
+                    return intersections;
+                },
+                check(go){
+                    let collidedWith = [];
+                    for(let ci = 0; ci < go.collisionDetection.cells.length; ci++){
+                        let goCell = go.collisionDetection.cells[ci];
+                        let sceneCdCell = this.cells[goCell.y][goCell.x];
+
+                        if(sceneCdCell.length <= 1)
+                            continue;
+
+                        for(let gi = 0; gi < sceneCdCell.length; gi++){
+                            let goInSceneCdCell = sceneCdCell[gi];
+                            if(goInSceneCdCell == go)
+                                continue;
+
+                            if(
+                                go.collisionDetection.exclude.indexOf(goInSceneCdCell) != -1
+                                || goInSceneCdCell.collisionDetection.exclude.indexOf(go) != -1 )
+                                continue;
+
+                            if(collidedWith.indexOf(goInSceneCdCell) != -1)
+                                continue;
+
+                            if(go.collisionDetection.preCheck 
+                                && isFunction(go.collisionDetection.preCheck) 
+                                && !go.collisionDetection.preCheck.call(go, goInSceneCdCell))
+                                continue;
+
+                            if(go.collisionDetection.box.isIntersectsWithBox(goInSceneCdCell.collisionDetection.box)){ // todo more preciese collision
+                                if(go.collisionDetection.circuit.length || goInSceneCdCell.collisionDetection.circuit.length){
+                                    let inetersections = this.checkCircuitsIntersection(go, goInSceneCdCell);
+                                    if(inetersections.length){
+                                        go.collisionDetection.onCollision.call(go, goInSceneCdCell, inetersections);    
+                                        collidedWith.push(goInSceneCdCell);
+                                    }
+                                }
+                                else {
+                                    go.collisionDetection.onCollision.call(go, goInSceneCdCell);
+                                    collidedWith.push(goInSceneCdCell);
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             events: { // custom event handling
                 up: undefined,
                 down: undefined,
@@ -44,6 +212,9 @@ class Scene {
         if(go === undefined)
             throw 'No GO provided';
 
+        if(!(go instanceof GO))
+            throw 'To addGo must be passed object derived from GO';
+
         if(this.goLayers[layerIndex] === undefined)
             this.goLayers[layerIndex] = [];
 
@@ -52,6 +223,7 @@ class Scene {
             go.regEvents(layerIndex);
 
         go.parentScene = this;
+        go.layerIndex = layerIndex;
 
         return go;
     }
@@ -69,6 +241,11 @@ class Scene {
                 goLayer[goi].regEvents(layerIndex);
                 // todo reg events for childrens
             }
+        }
+
+        // init collision detection matrix
+        if(this.collisionDetection && this.collisionDetection.enabled){
+            this.collisionDetection.init(this.space);
         }
 
         this.start(sceneProperties);

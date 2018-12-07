@@ -1,4 +1,9 @@
 SCG.main = {
+	performance: {
+		currentSecond: 0,
+		fps: 0,
+		currentSecondFps: 0
+	},
 	cycle: {
 		process(){ //main work cycle, never stops
 			SCG.main.cycle.draw();
@@ -9,6 +14,14 @@ SCG.main = {
 				throw 'Active scene corrupted!';
 	
 			var now = new Date;
+
+			let p = SCG.main.performance;
+			let second = now.getSeconds();
+			if(p.currentSecond != second){
+				p.fps = p.currentSecondFps;
+				p.currentSecondFps = 0;
+				p.currentSecond = second;
+			}
 	
 			SCG.logics.doPauseWork(now);
 	
@@ -25,7 +38,9 @@ SCG.main = {
 				SCG.frameCounter.doWork(now);
 		
 			if(SCG.audio)
-				SCG.audio.update(now);	
+				SCG.audio.update(now);
+				
+			p.currentSecondFps++;
 		}
 	},
 	loader: {

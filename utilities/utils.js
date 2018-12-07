@@ -331,6 +331,66 @@ function addListenerMulti(el, s, fn) {
   s.split(' ').forEach(function(e) {el.addEventListener(e, fn, false)});
 }
 
+function draw(ctx, props) {
+  props = assignDeep({}, {
+    fillStyle: undefined,
+    strokeStyle: undefined,
+    points: [],
+    isDeltas: false,
+    closePath: true,
+    lineWidth: 1
+  }, props);
+
+  if(props.points.length < 2)
+    return;
+
+  let oldLineWidth = ctx.lineWidth;
+  let oldStrokeStyle = ctx.strokeStyle;
+  let oldFillStyle = ctx.fillStyle;
+
+  ctx.beginPath();
+
+  ctx.moveTo(props.points[0].x, props.points[0].y);
+  let current = undefined;
+  if(props.isDeltas){
+    current = props.points[0].clone();
+  }
+
+  for(let i = 1; i < props.points.length; i++){
+    let next = props.points[i]
+    if(props.isDeltas){
+      current.add(props.points[i], true);
+      next = current;
+    }
+
+    ctx.lineTo(next.x,next.y);
+  }
+
+  if(props.closePath){
+    ctx.closePath();
+  }
+
+  if(props.fillStyle){
+    if(typeof props.fillStyle === 'boolean')
+      ctx.fillStyle = 'white';
+    else 
+      ctx.fillStyle = props.fillStyle;
+
+    ctx.fill();
+  }
+
+  if(props.strokeStyle){
+    ctx.lineWidth = props.lineWidth;
+    ctx.strokeStyle = props.strokeStyle;
+    ctx.stroke();
+  }
+  
+
+  ctx.lineWidth = oldLineWidth;
+  ctx.strokeStyle = oldStrokeStyle;
+  ctx.fillStyle = oldFillStyle;
+}
+
 function drawFigures(ctx, points, alpha){
   if(alpha == undefined){
     alpha = 1;
@@ -359,6 +419,9 @@ String.format = function() {
   return s;
 }
 
+
+// via prototype is extremely slow (chrome)
+// if use precalculatedPrecisions in toFixedFast it will be little faster then fastRoundWithPrecision
 Number.prototype.toFixedFast = function(size){
   if(!size)
     return ~~this;
@@ -386,7 +449,7 @@ function createTimer(delay, method, context, startNow = true) {
   return {
       lastTimeWork: new Date,
       delta : startNow ? 0 : delay,
-      currentDelay: delay,
+      currentDelay: startNow ? 0 : delay,//delay,
       originDelay: delay,
       doWorkInternal : method,
       context: context
