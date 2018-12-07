@@ -418,11 +418,13 @@ class RainScene extends Scene {
 
         //spotlights
         let spotlightSectionsCount = 3;
+        let spotLightColors = ['255,255,255', '255,255,230', '255,230,255', '230, 255,255'];
         for(let j = 0; j < spotlightSectionsCount; j++)
-        for(let i = 0; i < getRandomInt(1,5); i++){
+        for(let i = 0; i < getRandomInt(2,5); i++){
             let initialAngle = getRandom(-5, 5);
             let enabled = getRandomBool();
             let layer = getRandomInt(0,2);
+            let color = spotLightColors[getRandomInt(0, spotLightColors.length-1)];
             let rotation = {
                 enabled: enabled,
                 angle: initialAngle,
@@ -442,9 +444,9 @@ class RainScene extends Scene {
                 size: new V2(5 + layer*5, this.viewport.y*2.2),
                 img: createCanvas(new V2(50,10), function(ctx, size){
                     let grd = ctx.createLinearGradient(0,0,size.x, 0);
-                    grd.addColorStop(0, 'rgba(255,255,255, 0)')
-                    grd.addColorStop(0.5, 'rgba(255,255,255, 0.5)')
-                    grd.addColorStop(1, 'rgba(255,255,255, 0)');
+                    grd.addColorStop(0, 'rgba('+color+', 0)')
+                    grd.addColorStop(0.5, 'rgba('+color+', 0.5)')
+                    grd.addColorStop(1, 'rgba('+color+', 0)');
     
                     ctx.fillStyle = grd;
                     ctx.fillRect(0,0, size.x, size.y);
@@ -606,12 +608,41 @@ class RainScene extends Scene {
                         ctx.beginPath();
                         ctx.moveTo(77,99);
                         ctx.bezierCurveTo(59,106,24,105,9,98);
-                        ctx.bezierCurveTo(10,74,15,54,17,51);
-                        ctx.strokeStyle = 'black';
-                        ctx.lineWidth = 1;
-                        ctx.stroke();
+                        ctx.strokeStyle = 'black'; ctx.lineWidth = 1; ctx.stroke();
+
+                        ctx.beginPath(); ctx.moveTo(14,96); ctx.bezierCurveTo(15,74,20,54,26,41);
+                        ctx.strokeStyle = '#7B4813'; ctx.lineWidth = 1; ctx.stroke();
+                        
+                        ctx.beginPath(); ctx.moveTo(19,98); ctx.bezierCurveTo(20,74,25,54,27,51);
+                        ctx.strokeStyle = '#7B4813'; ctx.lineWidth = 1; ctx.stroke();
+
+                        ctx.beginPath(); ctx.moveTo(24,100); ctx.bezierCurveTo(25,74,30,54,30,61);
+                        ctx.strokeStyle = '#7B4813'; ctx.lineWidth = 1; ctx.stroke();
+
+                        ctx.beginPath(); ctx.moveTo(29,101); ctx.bezierCurveTo(30,74,35,54,32,71);
+                        ctx.strokeStyle = '#7B4813'; ctx.lineWidth = 1; ctx.stroke();
+
                     })
                 });
+
+                let taxiSqareImg = createCanvas(new V2(100, 100), function(ctx, size){
+                    draw(ctx, {fillStyle: 'black', closePath: true, points: [new V2(0,0), new V2(99,25), new V2(99,99), new V2(0,74)]})
+                });
+
+                for(let i = 0; i < 25; i++){
+                    this.body.addChild(new Led({
+                        position: new V2(-50+3*i, -7+0.8*i + (i%2==0 ? 2.2 : 0)),
+                        size: new V2(3,3),
+                        img: taxiSqareImg,
+                        blinking: {
+                            step: 0.5
+                        },
+                        fadeInPause: 50,
+                        fadeOutPause: 2500,
+                        autoStartFadeOut: i*500
+                    }));
+                }
+                
 
                 this.body.addChild(this.thruster);
 
@@ -672,53 +703,53 @@ class RainScene extends Scene {
                     }
                 });
 
-                this.windowCleaner = new MovingGO({
-                    size: new V2(71,55).division(2).mul(0.9),
-                    position: new V2(-1,1),
-                    speed: 2.5,
-                    isVisible: false,
-                    side: 1,
-                    img: createCanvas(new V2(143,110), function(ctx, size){
-                        ctx.beginPath();
-                        ctx.moveTo(107,103)
-                        ctx.bezierCurveTo(84,59,52,37,22,15)
-                        ctx.strokeStyle = 'rgba(255,0,0,0.25)';
-                        ctx.lineWidth = 3;
-                        ctx.stroke();
-                    }),
-                    init() {
-                        this.clearingTimer = createTimer(6000, this.clearingTimerMethod, this, true);
-                    },
-                    clearingTimerMethod() {
-                        this.isVisible = true;
-                        this.setDestination(this.side > 0 ? new V2(6,-1): new V2(-1,1))
-                    },
-                    destinationCompleteCallBack() {
-                        //console.log('destinationCompleteCallBack. this.side ' + this.side);
-                        this.isVisible = false;
-                        this.side *=-1;
-                        this.parent.startFadeIn();
-                    },
-                    internalUpdate(now) {
-                        doWorkByTimer(this.clearingTimer, now);
-                    },
-                    internalPreRender() {
-                        this.originContextGlobalAlpha = this.context.globalAlpha;
-                        this.context.globalAlpha = 1;
-                    },
-                    internalRender(){
-                        this.context.globalAlpha = this.originContextGlobalAlpha;
-                    }
-                });
+                // this.windowCleaner = new MovingGO({
+                //     size: new V2(71,55).division(2).mul(0.9),
+                //     position: new V2(-1,1),
+                //     speed: 2.5,
+                //     isVisible: false,
+                //     side: 1,
+                //     img: createCanvas(new V2(143,110), function(ctx, size){
+                //         ctx.beginPath();
+                //         ctx.moveTo(107,103)
+                //         ctx.bezierCurveTo(84,59,52,37,22,15)
+                //         ctx.strokeStyle = 'rgba(255,0,0,0.25)';
+                //         ctx.lineWidth = 3;
+                //         ctx.stroke();
+                //     }),
+                //     init() {
+                //         this.clearingTimer = createTimer(6000, this.clearingTimerMethod, this, true);
+                //     },
+                //     clearingTimerMethod() {
+                //         this.isVisible = true;
+                //         this.setDestination(this.side > 0 ? new V2(6,-1): new V2(-1,1))
+                //     },
+                //     destinationCompleteCallBack() {
+                //         //console.log('destinationCompleteCallBack. this.side ' + this.side);
+                //         this.isVisible = false;
+                //         this.side *=-1;
+                //         this.parent.startFadeIn();
+                //     },
+                //     internalUpdate(now) {
+                //         doWorkByTimer(this.clearingTimer, now);
+                //     },
+                //     internalPreRender() {
+                //         this.originContextGlobalAlpha = this.context.globalAlpha;
+                //         this.context.globalAlpha = 1;
+                //     },
+                //     internalRender(){
+                //         this.context.globalAlpha = this.originContextGlobalAlpha;
+                //     }
+                // });
 
-                this.clearWindow.addChild(this.windowCleaner);
+                // this.clearWindow.addChild(this.windowCleaner);
 
                 this.shadow = new GO({
-                    position: new V2(0, this.size.y/4),
+                    position: new V2(0, this.size.y/3),
                     size: new V2(this.size.x, this.size.y/4),
                     img: createCanvas(new V2(100, 100), function(ctx, size){
-                        let grd = ctx.createRadialGradient(size.x/2, size.y/2, 1, size.x/2, size.y/2, size.x/2);
-                        grd.addColorStop(0, 'rgba(0,0,0,1)')
+                        let grd = ctx.createRadialGradient(size.x/2, size.y/2, size.x/4, size.x/2, size.y/2, size.x/2);
+                        grd.addColorStop(0, 'rgba(0,0,0,0.5)')
                         grd.addColorStop(0.8, 'rgba(0,0,0,0)')
 
                         ctx.fillStyle = grd;
@@ -727,10 +758,134 @@ class RainScene extends Scene {
                 })
 
                 this.addChild(this.shadow);
-                this.body.addChild(this.clearWindow);
+                // this.body.addChild(this.clearWindow);
                 
+                this.sign = new GO({
+                    position: new V2(-5, -17),
+                    size: new V2(10,10),
+                    img: createCanvas(new V2(100, 100), function(ctx, size){
+                        let grd = ctx.createLinearGradient(size.x, 0, 0, size.y);
+                        grd.addColorStop(0, '#fc6600');
+                        grd.addColorStop(1, '#87380E');
+                        draw(ctx, {fillStyle: grd, closePath: true, points: [new V2(10, 70), new V2(30, 40), new V2(70, 30), new V2(90, 55), new V2(55, 75)]})
+                    })
+                })
+                
+                this.sign.addChild(new Led({
+                    position: new V2(),
+                    size: new V2(10,10),
+                    img: createCanvas(new V2(100, 100), function(ctx, size) {
+                        draw(ctx, {fillStyle: '#FFBF3E', closePath: true, points: [new V2(45,50), new V2(60, 40), new V2(70, 50), new V2(55, 60)]})
+                    }),
+                    autoStartFadeOut: 0,
+                    blinking: {
+                        step: 0.25
+                    },
+                    fadeInPause: 250,
+                    fadeOutPause: 250
+                }));
+
+                this.frontalLamps = new GO({
+                    position: new V2(35, 18),
+                    size: new V2(71,68).division(3),
+                    img: createCanvas(new V2(71,68), function(ctx, size){
+                        ctx.beginPath();ctx.moveTo(60,3)
+                        ctx.bezierCurveTo(46,14,29,20,20,18);
+                        ctx.bezierCurveTo(14,23,15,30,24,29);
+                        ctx.bezierCurveTo(38,27,52,17,64,9);
+                        ctx.closePath();
+
+                        let grd = ctx.createLinearGradient(36, 14,39,24);
+                        grd.addColorStop(0, '#F7D128');
+                        grd.addColorStop(0.75, '#FDFF2D')
+                        grd.addColorStop(1, '#FFFEFF');
+                        ctx.fillStyle =grd; ctx.fill();
+                        ctx.strokeStyle = '#BB9646'; ctx.lineWidth = 1;ctx.stroke();
+                    })
+                });
+
+                // lights
+                let frontalLampLightImg = createCanvas(new V2(200, 100), function(ctx, size){
+                    let lightsColor = '255,255,185';
+                    let grd = ctx.createRadialGradient(20, 50, 10, 170,85, 50);
+                    grd.addColorStop(0, 'rgba('+ lightsColor +', 0.75)');
+                    grd.addColorStop(0.25, 'rgba('+ lightsColor +', 0.4)');
+                    grd.addColorStop(0.75, 'rgba('+ lightsColor +', 0)');
+
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(0,0, size.x, size.y);
+                });
+
+                this.frontalLamps.addChild(new GO({
+                    position: new V2(108, -7.5),
+                    size: new V2(200, 30),
+                    img: frontalLampLightImg
+                }))
+
+                this.frontalLamps.addChild(new GO({
+                    position: new V2(96, -2),
+                    size: new V2(200, 30),
+                    img: frontalLampLightImg
+                }));
+
+                let sideLampImg = createCanvas(new V2(10, 10), function(ctx, size){
+                    draw(ctx, { fillStyle: 'darkred', closePath: true, points: [new V2(0,size.y/2), new V2(size.x/2, 0), new V2(size.x, size.y/2), new V2(size.x/2, size.y)] });
+                });
+
+                let sideLampShineImg = createCanvas(new V2(10, 10), function(ctx, size){
+                    let grd = ctx.createRadialGradient(size.x/2, size.y/2, 0, size.x/2, size.y/2, size.x/2);
+                    grd.addColorStop(0, '#FEFEFC');
+                    grd.addColorStop(0.25, '#FFFB14');
+                    grd.addColorStop(0.75, 'red');
+                    grd.addColorStop(1, '#F0713C');
+                    draw(ctx, { fillStyle: grd, closePath: true, points: [new V2(0,size.y/2), new V2(size.x/2, 0), new V2(size.x, size.y/2), new V2(size.x/2, size.y)] });
+                });
+
+                this.frontalLamps.addChild(new Led({ position: new V2(-5.5,-3), size: new V2(2,4), img: sideLampImg }))
+                this.frontalLamps.addChild(new Led({
+                    position: new V2(-5.5,-3),
+                    size: new V2(2,4),
+                    img: sideLampShineImg,
+                    blinking: {
+                        step: 0.2
+                    },
+                    fadeInPause: 500,
+                    fadeOutPause: 500,
+                    autoStartFadeOut: 0
+                }))
+
+                this.body.addChild(new Led({ position: new V2(0,16), size: new V2(2,4), img: sideLampImg }))
+
+                this.body.addChild(new Led({
+                    position: new V2(0,16),
+                    size: new V2(2,4),
+                    img: sideLampShineImg,
+                    blinking: {
+                        step: 0.2
+                    },
+                    fadeInPause: 500,
+                    fadeOutPause: 500,
+                    autoStartFadeOut: 0
+                }))
+
+                this.thruster.addChild(new Led({ position: new V2(-2,-3), size: new V2(2,4), img: sideLampImg }))
+
+                this.thruster.addChild(new Led({
+                    position: new V2(-2,-3),
+                    size: new V2(2,4),
+                    img: sideLampShineImg,
+                    blinking: {
+                        step: 0.2
+                    },
+                    fadeInPause: 500,
+                    fadeOutPause: 500,
+                    autoStartFadeOut: 0
+                }))
 
                 this.addChild(this.body);
+                this.addChild(this.sign);
+                this.addChild(this.frontalLamps);
+
             }
         });
         
@@ -897,6 +1052,7 @@ class RainScene extends Scene {
         ctx.closePath();
         ctx.fill();
 
+        draw(ctx, {closePath: true, fillStyle: 'darkred', points: [new V2(17.5, 8), new V2(32.5, 8), new V2(25,5)]})
     }
 
     buildingGenerator(howFar, points){
