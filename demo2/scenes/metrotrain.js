@@ -272,14 +272,14 @@ class MetroVagon extends MovingGO {
         if(this.triggerShaking) {
             this.triggerShaking = false;
             this.shaking.enabled = true;
-            this.shakingTimer = createTimer(this.effectLenght, this.shakingMethod, this, true);
+            this.shakingTimer = createTimer(this.effectLenght, this.shakingMethod, this, false);
         }
 
         if(this.triggerDarkVagon){
             this.triggerDarkVagon = false;
             this.darkVagon.enabled = true;
             this.img = SCG.images['vagonDark'];
-            this.darkVagonTimer = createTimer(this.darkVagon.time, this.darkVagonMethod, this, true);
+            this.darkVagonTimer = createTimer(this.darkVagon.time, this.darkVagonMethod, this, false);
         }
 
         if(this.light.enabled){
