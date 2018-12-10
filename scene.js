@@ -52,6 +52,11 @@ class Scene {
                     }
                 },
                 update(go){
+                    if(!this.enabled) {
+                        console.trace();
+                        throw `Scene collision detection is disabled.`;
+                    }
+
                     if(!go.collisionDetection || !go.collisionDetection.enabled){
                         console.trace();
                         throw `GO id: ${go.id} collision detection is disabled.`;

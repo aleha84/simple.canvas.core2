@@ -37,6 +37,7 @@ class GO {
             initialized: false,
             collisionDetection: {
                 enabled: false,
+                render: false,
                 needRecalcBox: false,
                 exclude: [],
                 cells: [],
@@ -417,6 +418,10 @@ class GO {
             if(this.text){
                 this.renderText();
             }
+
+            if(this.collisionDetection && this.collisionDetection.enabled && this.collisionDetection.render){
+                this.renderCollisionDetection()
+            }
 		}
         
         this.childProcesser((child) => child.render());
@@ -424,6 +429,30 @@ class GO {
         this.internalRender();
 
         this.console('render completed.');
+    }
+
+    renderCollisionDetection() {
+        let scale = SCG.viewport.scale;
+        let cdBoxTLRender = this.collisionDetection.box.topLeft.mul(scale);
+        this.context.strokeStyle = '#00BFFF';
+        this.context.strokeRect(cdBoxTLRender.x, cdBoxTLRender.y, this.collisionDetection.box.width*scale, this.collisionDetection.box.height*scale);
+
+        if(this.collisionDetection.circuit.length){
+            let position = this.position;
+            if(this.parent){
+                position = this.absolutePosition;
+            }
+
+            draw(
+                this.context, 
+                {
+                    lineWidth: 2,
+                    strokeStyle: 'red',
+                    closePath: true,
+                    points: this.collisionDetection.circuit.map((item) => item.add(position).mul(scale))
+                }
+            )
+        }
     }
     
     renderText(){

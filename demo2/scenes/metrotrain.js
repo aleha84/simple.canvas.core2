@@ -83,7 +83,7 @@ class MetroTrainScene extends Scene {
     preMainWork(now){
         doWorkByTimer(this.lightTimer, now);
         doWorkByTimer(this.shakingTimer, now);
-        doWorkByTimer(this.darkVagonTimer, now);
+        //doWorkByTimer(this.darkVagonTimer, now);
         
         if(this.turnBackTimer){
             doWorkByTimer(this.turnBackTimer, now);
