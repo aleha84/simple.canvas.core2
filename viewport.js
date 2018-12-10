@@ -96,10 +96,10 @@ SCG.viewport = {
         }
     },
     graphInit() { 
-        if(!window.matchMedia("(orientation: landscape)").matches) {
-            // todo show message - wrongDeviceOrientation
-            throw 'wrong device orientation - portrait';
-        }
+        // if(!window.matchMedia("(orientation: landscape)").matches) {
+        //     // todo show message - wrongDeviceOrientation
+        //     throw 'wrong device orientation - portrait';
+        // }
             
         if(!SCG.globals.parentElement)
             return;
