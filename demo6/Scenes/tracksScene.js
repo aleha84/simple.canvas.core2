@@ -48,11 +48,19 @@ class Track extends MovingGO {
             collisionDetection: {
                 enabled: true,
                 render: true,
+                rotation: {
+                    current: 0,
+                    step: 1
+                }
             }
         }, options);
 
         super(options);
 
+        this.collisionDetection.initialCircuit = [new V2(-this.size.x/2, this.size.y/2), new V2(this.size.x/2, this.size.y/2), new V2(0, -this.size.y/2)];
+        this.collisionDetection.circuit = this.collisionDetection.initialCircuit.map(p => p.clone());
+        this.collisionDetection.left = this.collisionDetection.circuit[0];
+        this.collisionDetection.right = this.collisionDetection.circuit[1];
         this.collisionDetection.onCollision = this.onCollisionInternal;
     }
 
@@ -79,8 +87,33 @@ class Track extends MovingGO {
 
         let delta = Math.abs(thisHighestY - collisionPointsLowestY);
 
+        if(collisionPoints.every(p => p.distance(this.collisionDetection.left) > 5)) {
+            let position = this.parent ? this.absolutePosition : this.position;
+            let that = this;
+            //this.collisionDetection.circuit = 
+            this.collisionDetection.circuit.map(p => {
+                //return p.substract(position, true).rotate(-1* that.collisionDetection.rotation.step, false, true).add(position, true);
+                p.rotate(-1* that.collisionDetection.rotation.step, false, true);
+            })
 
-        this.position.y-=(delta<this.speed ? this.speed : delta) ;//-=this.speed;
+            let p = [this.box.topLeft, this.box.topRight, this.box.bottomLeft, this.box.bottomRight];
+            p = p.map(p => {
+                return p.substract(position).rotate(-1* that.collisionDetection.rotation.step).add(position);
+            });
+            let allX = p.map(p => p.x);
+            let allY = p.map(p => p.y);
+            let minX = Math.min.apply(null, allX);
+            let minY = Math.min.apply(null, allY);
+            let maxX = Math.max.apply(null, allX);
+            let maxY = Math.max.apply(null, allY);
+            let tl = new V2(minX, minY);
+            //this.box.update(new V2(minX, minY), new V2(maxX - minX, maxY - minY));
+            this.size = new V2(maxX - minX, maxY - minY);
+        }
+        else {
+            this.position.y-=(delta<this.speed ? this.speed : delta) ;//-=this.speed;
+        }
+        
         this.setDestination(new V2(this.position.x, this.parentScene.viewport.y));
     }
 
