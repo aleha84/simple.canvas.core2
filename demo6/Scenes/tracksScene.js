@@ -9,16 +9,16 @@ class TracksScene extends Scene {
 
         super(options);
 
-        this.testGroundSize = new V2(this.viewport.x/3, this.viewport.y/10);
+        this.testGroundSize = new V2(this.viewport.x, this.viewport.y/10);
         let tgs = this.testGroundSize;
 
         this.grnd = new GO({
-            position: new V2(this.viewport.x*4/6, this.viewport.y*2/3),
+            position: new V2(this.viewport.x/2, this.viewport.y*2/3),
             size: tgs,
             collisionDetection: {
                 enabled: true,
                 render: true,
-                circuit: [new V2(-tgs.x/2, tgs.y/2), new V2(0, -tgs.y/2), new V2(tgs.x/2, tgs.y/2)]
+                circuit: [new V2(-tgs.x/2, tgs.y/2),  new V2(0, tgs.y/2), new V2(tgs.x/6, -tgs.y/2), new V2(tgs.x*2/6, tgs.y/2), new V2(tgs.x, (tgs.y/2)+10)]
             }
         });
 
@@ -86,9 +86,9 @@ class Track extends MovingGO {
 
 
         let delta = Math.abs(thisHighestY - collisionPointsLowestY);
-
-        if(collisionPoints.every(p => p.distance(this.collisionDetection.left) > 5)) {
-            let position = this.parent ? this.absolutePosition : this.position;
+        let position = this.parent ? this.absolutePosition : this.position;
+        if(collisionPoints.every(p => p.distance(this.collisionDetection.left.add(position)) > 2)) {
+            
             let that = this;
             //this.collisionDetection.circuit = 
             this.collisionDetection.circuit.map(p => {
