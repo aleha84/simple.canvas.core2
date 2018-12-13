@@ -9,6 +9,7 @@ class SandScene extends Scene {
 
         super(options);
 
+        
 
         this.sandImg = function(color = 'white') {
             if(!this.sandImgs){
@@ -29,12 +30,12 @@ class SandScene extends Scene {
             return img;
         } 
 
-        this.sandGenerationTimer = createTimer(230, this.sandGenerationMethod, this, true);
+        this.sandGenerationTimer = createTimer(10, this.sandGenerationMethod, this, true);
 
         //obstackle
         this.addGo(new GO({
             position: new V2(this.viewport.x/2, this.viewport.y/2),
-            size: new V2(300, 30),
+            size: new V2(30, 30),
             collisionDetection: {
                 enabled: true
             },
@@ -66,8 +67,25 @@ class SandScene extends Scene {
     sandGenerationMethod(){
         this.addGo(new Sand({
             img: this.sandImg('white'),
-            position: new V2(this.viewport.x/2, 1)
-        }));
+            position: new V2(getRandom(0,this.viewport.x), 1)
+        }), 20);
+
+        for(let i = 0; i < 3; i++){
+            this.addGo(new Sand({
+                img: this.sandImg('rgba(255,255,255,0.75)'),
+                position: new V2(getRandom(0,this.viewport.x), 1),
+                speedKoef: 0.75
+            }), 19);
+        }
+
+        for(let i = 0; i < 6; i++){
+            this.addGo(new Sand({
+                img: this.sandImg('rgba(255,255,255,0.5)'),
+                position: new V2(getRandom(0,this.viewport.x), 1),
+                speedKoef: 0.5
+            }), 19);
+        }
+
     }
 
     backgroundRender(){
@@ -96,6 +114,7 @@ class Sand extends MovingGO {
             next: {
 
             },
+            speedKoef: 1,
             defaultYAcceleration: new V2(0, 10/120),
             defaultXDelta: 1/100,
             size: new V2(1,1),
@@ -104,10 +123,10 @@ class Sand extends MovingGO {
             positionChangeProcesser: function() { return this.positionChangeProcesserInternal() },
             collisionDetection: {
                 enabled: true,
-                render: true,
-                // preCheck: function(go) {
-                //     return this.type !== go.type;
-                // },
+                //render: true,
+                preCheck: function(go) {
+                    return this.type !== go.type;
+                },
                 onCollision: function(collidedWith, collisionPoints) { this.onCollisionInternal(collidedWith, collisionPoints); }
             }
         }, options);
@@ -156,31 +175,23 @@ class Sand extends MovingGO {
             if(this.speedV2.module() < 0.5){
                 if(collidedWith.speedV2.module() < 0.5){
                     this.next.speed =new V2(); 
-
-                    //this.speedV2 = new V2();
-                    //this.collisionDetection.circuit[0]= this.speedV2.clone();
                     cv.enabled = false;
                     cv.direction = undefined;
                     return;
                 }
                 else {
                     this.next.speed = collidedWith.speedV2.divide(2);
-                    //this.speedV2 = collidedWith.speedV2.divide(2);
-                    //this.collisionDetection.circuit[0]= this.speedV2.clone();
                     this.skipPositionUpdate = true;
                     return;
                 }
             }
             else {
                 if(collidedWith.speedV2.module() < 0.5){
-                    //this.position.substract(this.speedV2, true);
                     this.next.position = nextPosition.substract(this.speedV2);
                     this.position = this.next.position.clone();
                 }
                 else {
                     this.next.speed = collidedWith.speedV2.divide(2);
-                    // this.speedV2 = collidedWith.speedV2.divide(2);
-                    // this.collisionDetection.circuit[0]= this.speedV2.clone();
                     return;
                 }
             }
@@ -197,7 +208,6 @@ class Sand extends MovingGO {
                 return;
             }
             else {
-                //this.position.substract(this.speedV2, true);
                 this.next.position = nextPosition;
                 this.position = this.next.position.clone();
             }    
@@ -246,7 +256,7 @@ class Sand extends MovingGO {
         }
 
         let cv = this.curvedMovement;
-        this.position.add(this.speedV2, true);
+        this.position.add(this.speedV2.mul(this.speedKoef), true);
 
         if(cv.enabled){
             
