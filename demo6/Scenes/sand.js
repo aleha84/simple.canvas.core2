@@ -9,12 +9,27 @@ class SandScene extends Scene {
 
         super(options);
 
-        this.sandImg = createCanvas(new V2(10, 10), function(ctx, size) {
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0,0, size.x, size.y);
-        })
 
-        this.sandGenerationTimer = createTimer(100, this.sandGenerationMethod, this, true);
+        this.sandImg = function(color = 'white') {
+            if(!this.sandImgs){
+                this.sandImgs = {};
+            }
+
+            if(this.sandImgs[color]){
+                return this.sandImgs[color];
+            }
+
+            let img = createCanvas(new V2(10, 10), function(ctx, size) {
+                ctx.fillStyle = color;
+                ctx.fillRect(0,0, size.x, size.y);
+            });
+
+            this.sandImgs[color] = img;
+
+            return img;
+        } 
+
+        this.sandGenerationTimer = createTimer(230, this.sandGenerationMethod, this, true);
 
         //obstackle
         this.addGo(new GO({
@@ -24,25 +39,33 @@ class SandScene extends Scene {
                 enabled: true
             },
             img: createCanvas(new V2(50,50), function(ctx, size){
-                ctx.fillStyle = 'red';
+                ctx.fillStyle = 'lightgray';
                 ctx.fillRect(0,0, size.x, size.y);
             })
-        }))
+        }), 0)
 
-        this.addGo(new Sand({
-            img: this.sandImg,
-            position: new V2(250, 138)
-        }));
+        // this.addGo(new Sand({
+        //     img: this.sandImg('yellow'),
+        //     sandType: 'yellow',
+        //     position: new V2(250, 134)
+        // }));
 
-        this.addGo(new Sand({
-            img: this.sandImg,
-            position: new V2(this.viewport.x/2, 1)
-        }));
+        // this.addGo(new Sand({
+        //     img: this.sandImg('green'),
+        //     sandType: 'green',
+        //     position: new V2(250, 133)
+        // }));
+
+        // this.addGo(new Sand({
+        //     img: this.sandImg('blue'),
+        //     sandType: 'blue',
+        //     position: new V2(this.viewport.x/2, 1)
+        // }), 1);
     }
 
     sandGenerationMethod(){
         this.addGo(new Sand({
-            img: this.sandImg,
+            img: this.sandImg('white'),
             position: new V2(this.viewport.x/2, 1)
         }));
     }
@@ -70,6 +93,9 @@ class Sand extends MovingGO {
                 timeMultiplier: 1/60,
                 startPoint: undefined,
             },
+            next: {
+
+            },
             defaultYAcceleration: new V2(0, 10/120),
             defaultXDelta: 1/100,
             size: new V2(1,1),
@@ -78,6 +104,7 @@ class Sand extends MovingGO {
             positionChangeProcesser: function() { return this.positionChangeProcesserInternal() },
             collisionDetection: {
                 enabled: true,
+                render: true,
                 // preCheck: function(go) {
                 //     return this.type !== go.type;
                 // },
@@ -86,6 +113,9 @@ class Sand extends MovingGO {
         }, options);
 
         super(options);
+
+        this.collisionDetection.circuit = [this.defaultYAcceleration.clone(), //new V2(0, 0),
+            new V2(0, this.size.y/2), new V2(-this.size.x/2, this.size.y/2),new V2(-this.size.x/2, -this.size.y/2), new V2(this.size.x/2, -this.size.y/2), new V2(this.size.x/2, this.size.y/2), new V2(0, this.size.y/2)];
     }
 
     init() {
@@ -93,37 +123,89 @@ class Sand extends MovingGO {
     }
 
     onCollisionInternal(collidedWith, collisionPoints) {
-        
-        let cv = this.curvedMovement;
+        let nextPosition; 
+        if(isArray(collidedWith)){
+            let closest = collidedWith[0];
+            let closestAvg = closest.collisionPoints ? V2.average(closest.collisionPoints): closest.collidedWith.position;
+            let distance = this.position.distance(closestAvg);
+            for(let i = 1; i < collidedWith.length; i++){
+                let c = collidedWith[i];
+                let avg = c.collisionPoints ? V2.average(c.collisionPoints): c.collidedWith.position;
+                let d = this.position.distance(avg);
 
+                if(d < distance){
+                    closest = c;
+                    closestAvg = avg;
+                    distance = d;
+                }
+            }
+
+            collidedWith = closest.collidedWith;
+            collisionPoints = closest.collisionPoints;
+            nextPosition = closestAvg;
+        }
+        else {
+            nextPosition = (collisionPoints ? V2.average(collisionPoints): this.position);//.substract(this.speedV2);
+        }
+
+        let cv = this.curvedMovement;
         // if collidedWith - stopped
         // if collidedWith - moving
 
         if(collidedWith.type == 'Sand'){
-            if(collidedWith.speedV2.module() < 0.3){
-                this.position.substract(this.speedV2, true);
+            if(this.speedV2.module() < 0.5){
+                if(collidedWith.speedV2.module() < 0.5){
+                    this.next.speed =new V2(); 
+
+                    //this.speedV2 = new V2();
+                    //this.collisionDetection.circuit[0]= this.speedV2.clone();
+                    cv.enabled = false;
+                    cv.direction = undefined;
+                    return;
+                }
+                else {
+                    this.next.speed = collidedWith.speedV2.divide(2);
+                    //this.speedV2 = collidedWith.speedV2.divide(2);
+                    //this.collisionDetection.circuit[0]= this.speedV2.clone();
+                    this.skipPositionUpdate = true;
+                    return;
+                }
             }
             else {
-                this.speedV2 = collidedWith.speedV2.divide(2);
-                return;
+                if(collidedWith.speedV2.module() < 0.5){
+                    //this.position.substract(this.speedV2, true);
+                    this.next.position = nextPosition.substract(this.speedV2);
+                    this.position = this.next.position.clone();
+                }
+                else {
+                    this.next.speed = collidedWith.speedV2.divide(2);
+                    // this.speedV2 = collidedWith.speedV2.divide(2);
+                    // this.collisionDetection.circuit[0]= this.speedV2.clone();
+                    return;
+                }
             }
+            
         }
         else {
-            if(this.speedV2.module() < 0.3){
+            if(this.speedV2.module() < 0.5){
 
                 this.position.substract(this.defaultYAcceleration, true);
-                this.speedV2 = new V2();
+                this.next.speed = new V2(); 
+                //this.speedV2 = new V2();
                 cv.enabled = false;
+                cv.direction = undefined;
                 return;
             }
             else {
-                this.position.substract(this.speedV2, true);
+                //this.position.substract(this.speedV2, true);
+                this.next.position = nextPosition;
+                this.position = this.next.position.clone();
             }    
         }
         
         cv.enabled = true;
 
-        cv.startPoint = (collisionPoints ? V2.average(collisionPoints): this.position).substract(this.speedV2);
+        
         if(cv.direction == undefined){
             cv.direction =  getRandomBool() ? -1 : 1;
             cv.angleInRads = degreeToRadians(getRandom(30, 60));
@@ -141,14 +223,33 @@ class Sand extends MovingGO {
 
         this.speedV2.x = cv.direction*cv.speed*Math.cos(cv.angleInRads);
         this.speedV2.y = -1*(cv.speed*Math.sin(cv.angleInRads)-this.defaultYAcceleration.y*cv.time);
+        this.collisionDetection.circuit[0]= this.speedV2.clone();
         cv.time++;
     }
 
     positionChangeProcesserInternal(){
+        if(this.next.position){
+            this.position = this.next.position;
+            this.next.position = undefined;
+            //return;
+        }
+
+        if(this.next.speed){
+            this.speedV2 = this.next.speed;
+            this.collisionDetection.circuit[0]= this.speedV2.clone();
+            this.next.speed = undefined;
+        }
+
+        if(this.skipPositionUpdate){
+            this.skipPositionUpdate = false;
+            return;
+        }
+
+        let cv = this.curvedMovement;
         this.position.add(this.speedV2, true);
 
-        if(this.curvedMovement.enabled){
-            let cv = this.curvedMovement;
+        if(cv.enabled){
+            
             
         if(this.speedV2.x != 0){
             let lesserZero = this.speedV2.x < 0;
@@ -165,6 +266,8 @@ class Sand extends MovingGO {
         else {
             this.speedV2.add(this.defaultYAcceleration, true);
         }
+
+        this.collisionDetection.circuit[0] = this.speedV2.clone();
     }
 
     destinationCompleteCheck(){

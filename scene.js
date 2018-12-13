@@ -140,6 +140,7 @@ class Scene {
                 },
                 check(go){
                     let collidedWith = [];
+                    let onCollisionPayload = [];
                     for(let ci = 0; ci < go.collisionDetection.cells.length; ci++){
                         let goCell = go.collisionDetection.cells[ci];
                         let sceneCdCell = this.cells[goCell.y][goCell.x];
@@ -169,15 +170,26 @@ class Scene {
                                 if(go.collisionDetection.circuit.length || goInSceneCdCell.collisionDetection.circuit.length){
                                     let inetersections = this.checkCircuitsIntersection(go, goInSceneCdCell);
                                     if(inetersections.length){
-                                        go.collisionDetection.onCollision.call(go, goInSceneCdCell, inetersections);    
+                                        onCollisionPayload.push({collidedWith: goInSceneCdCell, collisionPoints:inetersections})
+                                        //go.collisionDetection.onCollision.call(go, goInSceneCdCell, inetersections);    
                                         collidedWith.push(goInSceneCdCell);
                                     }
                                 }
                                 else {
-                                    go.collisionDetection.onCollision.call(go, goInSceneCdCell);
+                                    onCollisionPayload.push({go: goInSceneCdCell});
+                                    //go.collisionDetection.onCollision.call(go, goInSceneCdCell);
                                     collidedWith.push(goInSceneCdCell);
                                 }
                             }
+                        }
+                    }
+
+                    if(onCollisionPayload.length){
+                        if(onCollisionPayload.length == 1){
+                            go.collisionDetection.onCollision.call(go, onCollisionPayload[0].collidedWith, onCollisionPayload[0].collisionPoints);
+                        }
+                        else {
+                            go.collisionDetection.onCollision.call(go, onCollisionPayload);
                         }
                     }
                 }

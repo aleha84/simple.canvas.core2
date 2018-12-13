@@ -327,6 +327,21 @@ class GO {
             if(item.box.bottomRight.x > most.right) most.right = item.box.bottomRight.x;
             if(item.box.bottomRight.y > most.bottom) most.bottom = item.box.bottomRight.y;
 
+            if(item.collisionDetection.circuit){
+                let position = item.position;
+                if(item.parent){
+                    position = item.absolutePosition;
+                }
+
+                for(let i = 0; i < item.collisionDetection.circuit.length;i++){
+                    let cp = item.collisionDetection.circuit[i].add(position);
+                    if(cp.x < most.left) most.left = cp.x;
+                    else if(cp.x > most.right) most.right = cp.x;
+                    if(cp.y < most.top) most.top = cp.y;
+                    else if(cp.y > most.bottom) most.bottom = cp.y;
+                }
+            }
+
             if(item.childrenGO.length){
                 for(let ci = 0; ci < item.childrenGO.length; ci++){
                     getMosts(item.childrenGO[ci]);
