@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new SandScene({
         name:'sand',
-        viewport: defaultViewpot
+        viewport: new V2(300, 500)
     }));
 
     sceneSelectByHashValue();
