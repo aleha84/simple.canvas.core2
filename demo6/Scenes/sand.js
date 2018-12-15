@@ -42,7 +42,8 @@ class SandScene extends Scene {
             draw(ctx, {fillStyle: '#B6B5B4', points: [new V2(49,10), new V2(41,14), new V2(47,33), new V2(52,33), new V2(58,14)]});
             draw(ctx, {fillStyle: '#DEDAD8', points: [new V2(59,15), new V2(73,16), new V2(78,26), new V2(78,31), new V2(53,33)]});
             draw(ctx, {fillStyle: '#DFD9CD', points: [new V2(33,34), new V2(41,43), new V2(47,34)]});
-            draw(ctx, {fillStyle: '#9B9187', points: [new V2(27,33), new V2(34,34), new V2(38,40), new V2(32,40)]}); // left eye
+            draw(ctx, {fillStyle: '#9B9187', points: [new V2(27,33), new V2(35,34), new V2(38,40), new V2(32,40)]}); // left eye
+            draw(ctx, {strokeStyle: '#2B2A27', lineWidth:2, closePath: false, points: [new V2(36,37), new V2(39,41), new V2(32,40), new V2(27,35), new V2(31,35)]})
             draw(ctx, {fillStyle: '#A09893', points: [new V2(21,32), new V2(21,48), new V2(27,56), new V2(34,51), new V2(29,45), new V2(31,39), new V2(26,33)]});
             draw(ctx, {fillStyle: '#C6BFB6', points: [new V2(31,39), new V2(29,45), new V2(34,51), new V2(41,43), new V2(38,40)]});
             draw(ctx, {fillStyle: '#4A4D54', points: [new V2(47,34), new V2(27,57), new V2(31,65), new V2(38,61), new V2(43,53)]});
@@ -50,18 +51,30 @@ class SandScene extends Scene {
             draw(ctx, {fillStyle: '#EFE8E2', points: [new V2(50,33), new V2(50,54), new V2(61,58), new V2(53,33)]}); // nose right
             draw(ctx, {fillStyle: '#DAD3C6', points: [new V2(53,33), new V2(65,33), new V2(57,42)]});
             draw(ctx, {fillStyle: '#9B9187', points: [new V2(60,40), new V2(65,33), new V2(71,32), new V2(66,39)]}); // right eye
+            draw(ctx, {strokeStyle: '#524A4B', lineWidth: 2, closePath: false, points: [new V2(62,37), new V2(60,40), new V2(67,40), new V2(70,36)]})
             draw(ctx, {fillStyle: '#E7E1D5', points: [new V2(67,40), new V2(73,32),new V2(78,31), new V2(78,47), new V2(67,64), new V2(61,56), new V2(57,42), new V2(60,40)]});
+            draw(ctx, {fillStyle: '#D8D0C2', points: [new V2(57,42), new V2(60,50), new V2(68,48), new V2(67,40), new V2(60,40)]}); 
             draw(ctx, {fillStyle: '#D4CEC2', points: [new V2(42,59), new V2(50,54), new V2(59,58), new V2(51,64)]}); // nose central
             draw(ctx, {fillStyle: '#A49587', points: [new V2(34,64), new V2(44,72), new V2(51,67), new V2(51,64), new V2(41,59)]});
             draw(ctx, {fillStyle: '#D1C5B6', points: [new V2(51,67), new V2(51,64), new V2(62,58), new V2(67,64), new V2(58,71)]});
+            draw(ctx, {strokeStyle: '#796B60', closePath: false, lineWidth: 1, points: [new V2(49,64), new V2(46,61), new V2(42, 59), new V2(46,57)]})
             draw(ctx, {fillStyle: '#3F3E43', points: [new V2(51,67), new V2(44,72), new V2(51,75), new V2(58,71)]}); // mouth
             draw(ctx, {fillStyle: '#757273', points: [new V2(31,65), new V2(40,74), new V2(42,82), new V2(51,87), new V2(51,75), new V2(34,64)]});
             draw(ctx, {fillStyle: '#C5C1B9', points: [new V2(67,64), new V2(65,70), new V2(59,78), new V2(59,82), new V2(51,87), new V2(51,75)]});
+
+            //griva
+            // draw(ctx, {fillStyle: '#504A41', points: [new V2(79,20), new V2(86,24), new V2(85,33)]});
+            // draw(ctx, {fillStyle: '#938B8A', points: [new V2(87,20), new V2(90,25), new V2(89,31)]});
+            // draw(ctx, {fillStyle: '#968B82', points: [new V2(88,33), new V2(88,39), new V2(93,43)]});
+            // draw(ctx, {fillStyle: '#514C4B', points: [new V2(85,35), new V2(83,40), new V2(89,48), new V2(86,41)]});
+            // draw(ctx, {fillStyle: '#77675E', points: [new V2(80,40), new V2(80,48), new V2(93,57)]});
+            // draw(ctx, {fillStyle: '#65554F', points: [new V2(76,52), new V2(75,56), new V2(83,62)]});
+            // draw(ctx, {fillStyle: '#5C524D', points: [new V2(73,58), new V2(73,63), new V2(83,78), new V2(84,69)]});
         });
 
         let obstacle = new GO({
             position: new V2(this.viewport.x/2, this.viewport.y/2),
-            size: new V2(50, 50),
+            size: new V2(80, 80),
             collisionDetection: {
                 enabled: true,
                 //render: true,
@@ -77,10 +90,12 @@ class SandScene extends Scene {
         });
         //obstacle.collisionDetection.circuit = [new V2(-obstacle.size.x/2, obstacle.size.y/2), new V2(obstacle.size.x/2, -obstacle.size.y/2), new V2(obstacle.size.x/2, obstacle.size.y/2)];
         //obstacle.collisionDetection.circuit = [new V2(-obstacle.size.x/2,-obstacle.size.y/2), new V2(obstacle.size.x/2, obstacle.size.y/2), new V2(-obstacle.size.x/2, obstacle.size.y/2)];
-        obstacle.collisionDetection.circuit = [new V2(-obstacle.size.x/2, 0), new V2(0, -obstacle.size.y/2), new V2(obstacle.size.x/2,0)];
+        obstacle.collisionDetection.circuit = [new V2(-obstacle.size.x/3, -(obstacle.size.y*2/6)*0.9), new V2(0, -(obstacle.size.y*5/10)*0.9), new V2(obstacle.size.x/3, -(obstacle.size.y*2/6)*0.9)];
 
         this.addGo(obstacle, 0);
 
+        this.dropColors = ['CACFD2', 'C6CCCA', 'CAD0CF', 'C1C4C5', 'C3C4C3', 'CCCBC6', 'CACBC7', 'D6D7D5', '9A9EA8', 'A6AAAF', 'A1A8AB', '9DA4A7', 'B2B7B9', 'BBBDB8', 'B0B2B2', 'A8ADAE', 
+                           'FFFCF5', 'D4D9DC', 'FCF7F4', 'D0E3E9', 'F3F8FB', 'CAD1D7', 'E1EBEC', 'ABC7CB', 'F5FBFB', 'D1E3E3', '8FAEB3', 'DFE5E1', 'EDFFFF', 'AFBDC0', 'D9EAE0', 'F5FCFF'];
         // this.addGo(new Sand({
         //     img: this.sandImg('yellow'),
         //     sandType: 'yellow',
@@ -112,29 +127,46 @@ class SandScene extends Scene {
         console.log('sand generation timers stopped');
     }
 
+    hexToRgb(hex) {
+        var bigint = parseInt(hex, 16);
+        var r = (bigint >> 16) & 255;
+        var g = (bigint >> 8) & 255;
+        var b = bigint & 255;
+    
+        return r + "," + g + "," + b;
+    }
+
+    dropGenerator(opacity = 1) {
+        return this.sandImg(`rgba(${this.hexToRgb(this.dropColors[getRandomInt(0, this.dropColors.length-1)])}, ${opacity})`)
+    }
+
     sandGenerationMethod(){
+        let isMouth = getRandomInt(1,4) == 4;
         this.addGo(new Sand({
-            img: this.sandImg('white'),
-            position: new V2(getRandom(0,this.viewport.x), 1),
+            img: this.dropGenerator(1),//this.sandImg('white'),
+            position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) : new V2(getRandom(0,this.viewport.x), 1),
             speedKoef: getRandom(0.9,1),
-            size: this.sizes[0]
+            size: this.sizes[0], 
+            isMouth: isMouth
         }), 20);
 
         for(let i = 0; i < 3; i++){
             this.addGo(new Sand({
-                img: this.sandImg('rgba(255,255,255,0.75)'),
-                position: new V2(getRandom(0,this.viewport.x), 1),
+                img: this.dropGenerator(0.75),//this.sandImg('rgba(255,255,255,0.75)'),
+                position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) :new V2(getRandom(0,this.viewport.x), 1),
                 speedKoef: getRandom(0.6, 0.8),
-                size: this.sizes[1]
+                size: this.sizes[1],
+                isMouth: isMouth
             }), 19);
         }
 
         for(let i = 0; i < 6; i++){
             this.addGo(new Sand({
-                img: this.sandImg('rgba(255,255,255,0.5)'),
-                position: new V2(getRandom(0,this.viewport.x), 1),
+                img: this.dropGenerator(0.5),//this.sandImg('rgba(255,255,255,0.5)'),
+                position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) :new V2(getRandom(0,this.viewport.x), 1),
                 speedKoef: getRandom(0.35,0.55),
-                size: this.sizes[2]
+                size: this.sizes[2],
+                isMouth: isMouth
             }), 18);
         }
 
@@ -363,7 +395,7 @@ class Sand extends MovingGO {
     destinationCompleteCheck(){
         if(this.position.y > this.parentScene.viewport.y) {
             this.speedV2 =  new V2(0, 0),
-            this.position = new V2(getRandom(0,this.parentScene.viewport.x), 1)
+            this.position = this.isMouth ? new V2(this.parentScene.viewport.x/2 + getRandom(-4, 4), this.parentScene.viewport.y/2+this.parentScene.viewport.y*0.035) : new V2(getRandom(0,this.parentScene.viewport.x), 1)
             this.curvedMovement = {
                 angleInRads: 0,
                 direction: undefined,
