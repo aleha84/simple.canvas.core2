@@ -4,12 +4,19 @@ class SandScene extends Scene {
             collisionDetection: {
                 enabled: true,
                 level: 12
+            },
+            debugging: {
+                enabled: true,
+                font: (25*SCG.viewport.scale) + 'px Arial',
+                textAlign: 'center',
+                fillStyle: 'red',
+                position: new V2(20*SCG.viewport.scale, 20*SCG.viewport.scale)
             }
         }, options);
 
         super(options);
 
-        this.sizes = [new V2(2,2), new V2(1.75,1.75), new V2(1.5,1.5),new V2(1.25,1.25), new V2(1,1)]
+        this.sizes = [new V2(2,4), new V2(1.75,3.5), new V2(1.5,3),new V2(1.25,1.25), new V2(1,1)]
 
         this.sandImg = function(color = 'white') {
             if(!this.sandImgs){
@@ -34,10 +41,72 @@ class SandScene extends Scene {
         this.stopSandGeneratorTimer = createTimer(3000, this.stopSandGeneratorTimerMethod, this, false);
         //obstackle
 
+        this.backgroundImg = createCanvas(new V2(this.viewport.x, this.viewport.y), function(ctx, size) {
+            let brickSize = new V2(size.x/8, size.y/30);
+            let firstRowFillStyle = ctx.createLinearGradient(brickSize.x/2, 0, brickSize.x/2, brickSize.y);
+            let defaulBrickFillStyle = '#CEB298';
+            firstRowFillStyle.addColorStop(0, 'white');
+            firstRowFillStyle.addColorStop(0.3, '#A09D98');
+            firstRowFillStyle.addColorStop(1, defaulBrickFillStyle);
+            //ctx.imageSmoothingEnabled = false;
+
+            for(let ri = 0;ri<size.y/brickSize.y;ri++){
+                let shift = ri%2 == 0;
+                for(let ci = 0; ci < size.x/brickSize.x + (shift ? 1 : 0);ci++){  
+                    let tlx =  brickSize.x*ci - (shift ? brickSize.x/2 : 0);
+                    let tly = brickSize.y*ri;
+                       
+                    ctx.fillStyle = defaulBrickFillStyle;
+                    ctx.fillRect(tlx,tly, brickSize.x, brickSize.y);
+                    ctx.strokeStyle = 'black';
+                    ctx.strokeRect(tlx,tly, brickSize.x, brickSize.y);
+                    let cLineWidth = 2;
+                    draw(ctx, {strokeStyle: '#7A695A', closePath: false, lineWidth:cLineWidth, 
+                        points: [new V2(tlx+cLineWidth/2, tly+cLineWidth/2), new V2(tlx+cLineWidth/2, tly +brickSize.y - cLineWidth/2), new V2(tlx+brickSize.x-cLineWidth/2, tly+brickSize.y-cLineWidth/2)]})
+                    draw(ctx, {strokeStyle: '#E5C5A9', closePath: false, lineWidth:cLineWidth, 
+                        points: [new V2(tlx+cLineWidth, tly+cLineWidth/2), new V2(tlx+brickSize.x-cLineWidth/2, tly + cLineWidth/2), new V2(tlx+brickSize.x-cLineWidth/2, tly+brickSize.y-cLineWidth)]})
+
+                    // if(true){//if(getRandomInt(0,3) == 3){
+                    //     let p = [1,2].map(x => new V2(getRandom(0,brickSize.x), getRandom(0, brickSize.y)).add(new V2(tlx, tly)))
+                    //     draw(ctx, {strokeStyle: '#5A5D62', closePath: false, points: p});
+                    // }
+
+                    if(ri == 0){
+                        ctx.fillStyle = firstRowFillStyle;
+                        ctx.fillRect(tlx,tly, brickSize.x, brickSize.y);
+                    }
+
+                    ctx.fillStyle = '#5A5D62';
+                    for(let i = 0; i < brickSize.x*brickSize.y*0.005;i++){
+                        ctx.fillRect(parseInt(getRandomInt(0, brickSize.x) + tlx),parseInt(getRandomInt(0, brickSize.y)+tly),1,1);
+                    }
+                }
+            }
+
+            let grd = ctx.createLinearGradient(0, size.y/2, size.x, size.y/2);
+            grd.addColorStop(0, 'rgba(0,0,0,0.3)');
+            grd.addColorStop(1, 'rgba(0,0,0,0.1)');
+            ctx.fillStyle = grd;
+            ctx.fillRect(0,0, size.x, size.y)
+        })
+
         this.lionHeadImg = createCanvas(new V2(100, 100), function(ctx, size){
             draw(ctx, {fillStyle: '#CECAC3', points: [new V2(49,0), new V2(14,9), new V2(0, 53), new V2(17,86), new V2(49,99), new V2(82,86), new V2(99,53), new V2(85,9)]});
-            draw(ctx, {fillStyle: '#BAAEA2', points: [new V2(44,7), new V2(22,13), new V2(15,23), new V2(16,48), new V2(25,69), new V2(48,88), 
-                new V2(55,88), new V2(75,69), new V2(83,48), new V2(84,23), new V2(77,13), new V2(55,7)]});
+            // draw(ctx, {fillStyle: '#BAAEA2', points: [new V2(44,7), new V2(22,13), new V2(15,23), new V2(16,48), new V2(25,69), new V2(48,88), 
+            //     new V2(55,88), new V2(75,69), new V2(83,48), new V2(84,23), new V2(77,13), new V2(55,7)]});
+            //griva
+            draw(ctx, {fillStyle: '#888A94', points: [new V2(49,10), new V2(49, 0), new V2(35,4), new V2(43, 12)]})
+            draw(ctx, {fillStyle: '#B8B0AF', points: [new V2(35,4), new V2(43, 12), new V2(27,14), new V2(15,9)]});
+            draw(ctx, {fillStyle: '#887F76', points: [new V2(27,14), new V2(15,9), new V2(12, 17), new V2(26,18)]});
+            draw(ctx, {fillStyle: '#CAC3BA', points: [new V2(12, 17), new V2(26,18), new V2(22,26), new V2(7,34)]});
+            draw(ctx, {fillStyle: '#645F62', points: [new V2(22,26), new V2(7,34), new V2(6,37), new V2(21,33)]});
+            draw(ctx, {fillStyle: '#C8C2B5', points: [new V2(6,37), new V2(21,33), new V2(21,39), new V2(3,47)]});
+            draw(ctx, {fillStyle: '#83838B', points: [new V2(21,39), new V2(3,47), new V2(1,53), new V2(3,58), new V2(10,48), new V2(21,43)]});
+            draw(ctx, {fillStyle: '#C4BDB6', points: [new V2(3,58), new V2(10,48), new V2(21,43), new V2(21,48), new V2(23,52), new V2(15,56), new V2(8,66)]});
+            draw(ctx, {fillStyle: '#655F5C', points: [new V2(23,52), new V2(15,56), new V2(8,66), new V2(10, 72), new V2(16,62), new V2(28,58)]});
+            
+            
+
             draw(ctx, {fillStyle: '#616571', points: [new V2(41,14), new V2(28,14), new V2(22,25), new V2(22,32), new V2(30,34), new V2(47,33)]});
             draw(ctx, {fillStyle: '#B6B5B4', points: [new V2(49,10), new V2(41,14), new V2(47,33), new V2(52,33), new V2(58,14)]});
             draw(ctx, {fillStyle: '#DEDAD8', points: [new V2(59,15), new V2(73,16), new V2(78,26), new V2(78,31), new V2(53,33)]});
@@ -62,7 +131,7 @@ class SandScene extends Scene {
             draw(ctx, {fillStyle: '#757273', points: [new V2(31,65), new V2(40,74), new V2(42,82), new V2(51,87), new V2(51,75), new V2(34,64)]});
             draw(ctx, {fillStyle: '#C5C1B9', points: [new V2(67,64), new V2(65,70), new V2(59,78), new V2(59,82), new V2(51,87), new V2(51,75)]});
 
-            //griva
+            
             // draw(ctx, {fillStyle: '#504A41', points: [new V2(79,20), new V2(86,24), new V2(85,33)]});
             // draw(ctx, {fillStyle: '#938B8A', points: [new V2(87,20), new V2(90,25), new V2(89,31)]});
             // draw(ctx, {fillStyle: '#968B82', points: [new V2(88,33), new V2(88,39), new V2(93,43)]});
@@ -72,9 +141,11 @@ class SandScene extends Scene {
             // draw(ctx, {fillStyle: '#5C524D', points: [new V2(73,58), new V2(73,63), new V2(83,78), new V2(84,69)]});
         });
 
+        this.lionHeadSize = new V2(80, 80);
+
         let obstacle = new GO({
             position: new V2(this.viewport.x/2, this.viewport.y/2),
-            size: new V2(80, 80),
+            size: this.lionHeadSize,
             collisionDetection: {
                 enabled: true,
                 //render: true,
@@ -137,14 +208,15 @@ class SandScene extends Scene {
     }
 
     dropGenerator(opacity = 1) {
-        return this.sandImg(`rgba(${this.hexToRgb(this.dropColors[getRandomInt(0, this.dropColors.length-1)])}, ${opacity})`)
+        return this.sandImg(`rgba(${getRandomInt(115, 122)},${getRandomInt(158,216)},${getRandomInt(228,255)}, ${opacity})`)
+        //return this.sandImg(`rgba(${this.hexToRgb(this.dropColors[getRandomInt(0, this.dropColors.length-1)])}, ${opacity})`)
     }
 
     sandGenerationMethod(){
         let isMouth = getRandomInt(1,4) == 4;
         this.addGo(new Sand({
             img: this.dropGenerator(1),//this.sandImg('white'),
-            position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) : new V2(getRandom(0,this.viewport.x), 1),
+            position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) : new V2(getRandom(0,this.viewport.x), -1),
             speedKoef: getRandom(0.9,1),
             size: this.sizes[0], 
             isMouth: isMouth
@@ -153,7 +225,7 @@ class SandScene extends Scene {
         for(let i = 0; i < 3; i++){
             this.addGo(new Sand({
                 img: this.dropGenerator(0.75),//this.sandImg('rgba(255,255,255,0.75)'),
-                position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) :new V2(getRandom(0,this.viewport.x), 1),
+                position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) :new V2(getRandom(0,this.viewport.x), -1),
                 speedKoef: getRandom(0.6, 0.8),
                 size: this.sizes[1],
                 isMouth: isMouth
@@ -163,7 +235,7 @@ class SandScene extends Scene {
         for(let i = 0; i < 6; i++){
             this.addGo(new Sand({
                 img: this.dropGenerator(0.5),//this.sandImg('rgba(255,255,255,0.5)'),
-                position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) :new V2(getRandom(0,this.viewport.x), 1),
+                position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) :new V2(getRandom(0,this.viewport.x), -1),
                 speedKoef: getRandom(0.35,0.55),
                 size: this.sizes[2],
                 isMouth: isMouth
@@ -173,8 +245,13 @@ class SandScene extends Scene {
     }
 
     backgroundRender(){
-        SCG.contexts.background.fillStyle = 'black';
-        SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+        // SCG.contexts.background.fillStyle = 'black';
+        // SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+
+        SCG.contexts.background.drawImage(this.backgroundImg, 
+            0, 0, 
+            SCG.viewport.real.width, 
+            SCG.viewport.real.height);
     }
 
     preMainWork(now){
@@ -183,6 +260,19 @@ class SandScene extends Scene {
 
         if(this.sandGenerationTimer)
             doWorkByTimer(this.sandGenerationTimer, now);
+    }
+
+    afterMainWork(){
+        if(this.debugging.enabled){
+            let ctx = SCG.contexts.main;
+
+            ctx.font = this.debugging.font;
+            ctx.textAlign = this.debugging.textAlign;
+            ctx.fillStyle = this.debugging.fillStyle;
+            
+            ctx.fillText(SCG.main.performance.fps, this.debugging.position.x, this.debugging.position.y);
+        }
+        
     }
 }
 
@@ -202,7 +292,7 @@ class Sand extends MovingGO {
 
             },
             speedKoef: 1,
-            defaultYAcceleration: new V2(0, 10/120),
+            defaultYAcceleration: new V2(0, 10/90),
             defaultXDelta: 1/100,
             size: new V2(1,1),
             speedV2: new V2(0, 0),
@@ -220,6 +310,7 @@ class Sand extends MovingGO {
 
         super(options);
 
+        this.initialPosition = this.position.clone();
         this.collisionDetection.circuit = [this.defaultYAcceleration.clone(), new V2(0, -this.size.y/2)];
         // this.collisionDetection.circuit = [this.defaultYAcceleration.clone(), //new V2(0, 0),
         //     new V2(0, this.size.y/2), new V2(-this.size.x/2, this.size.y/2),new V2(-this.size.x/2, -this.size.y/2), new V2(this.size.x/2, -this.size.y/2), new V2(this.size.x/2, this.size.y/2), new V2(0, this.size.y/2)];
@@ -227,6 +318,11 @@ class Sand extends MovingGO {
 
     init() {
         this.setDestination(new V2(this.position.x, this.parentScene.viewport.y+20));
+
+        let ps = this.parentScene;
+        if(this.isMouth || this.position.x < (ps.viewport.x/2-(ps.lionHeadSize.x/2)) || this.position.x > (ps.viewport.x/2+(ps.lionHeadSize.x/2)) ){
+            this.collisionDetection.enabled = false;
+        }
     }
 
     onCollisionInternal(collidedWith, collisionPoints, details) {
@@ -395,7 +491,9 @@ class Sand extends MovingGO {
     destinationCompleteCheck(){
         if(this.position.y > this.parentScene.viewport.y) {
             this.speedV2 =  new V2(0, 0),
-            this.position = this.isMouth ? new V2(this.parentScene.viewport.x/2 + getRandom(-4, 4), this.parentScene.viewport.y/2+this.parentScene.viewport.y*0.035) : new V2(getRandom(0,this.parentScene.viewport.x), 1)
+            this.position.y = this.initialPosition.y;
+            this.position.x = this.initialPosition.x;
+            //this.isMouth ? new V2(this.parentScene.viewport.x/2 + getRandom(-4, 4), this.parentScene.viewport.y/2+this.parentScene.viewport.y*0.035) : new V2(getRandom(0,this.parentScene.viewport.x), 1)
             this.curvedMovement = {
                 angleInRads: 0,
                 direction: undefined,
@@ -408,6 +506,12 @@ class Sand extends MovingGO {
             this.next = {
 
             }
+
+            // let ps = this.parentScene;
+            // this.collisionDetection.enabled = true;
+            // if(this.isMouth || this.position.x < (ps.viewport.x/2-(ps.lionHeadSize.x/2)) || this.position.x > (ps.viewport.x/2+(ps.lionHeadSize.x/2)) ){
+            //     this.collisionDetection.enabled = false;
+            // }
             //this.setDead();
             //console.log('sand setDead');
         }
