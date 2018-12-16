@@ -1,4 +1,11 @@
 function getRandom(min, max){
+  if(min > max)
+  {
+    var swap = max;
+    max = min;
+    min = swap;
+  }
+  
 	return Math.random() * (max - min) + min;
 }
 

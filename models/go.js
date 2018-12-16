@@ -35,6 +35,7 @@ class GO {
             childrenGO: [],
             tileOptimization: false,
             initialized: false,
+            disabled: false,
             collisionDetection: {
                 enabled: false,
                 render: false,
@@ -365,7 +366,7 @@ class GO {
     internalRender(){}
 
     render(){ 
-        if(!this.alive || !this.renderPosition || !this.isVisible)
+        if(this.disabled || !this.alive || !this.renderPosition || !this.isVisible)
             return;
 
 		this.internalPreRender();
@@ -495,7 +496,17 @@ class GO {
         
     internalUpdate(now){}
 
+    beforeUpdateStarted() {}
+
+    afterUpdateCompleted() {}
+
     update(now){
+        this.beforeUpdateStarted();
+
+        if(this.disabled){
+            return;
+        }
+
         if(this.img == undefined && this.imgPropertyName != undefined){ //first run workaround
 			this.img = SCG.images[this.imgPropertyName];
 			if(this.img == undefined){
@@ -619,8 +630,9 @@ class GO {
             parentScene.collisionDetection.update(this);
         }
             
+        this.afterUpdateCompleted();
         this.console('update completed.');
-	}
+    }
 
     regEvents(layerIndex = 0){
         if(!SCG.controls.initialized)
