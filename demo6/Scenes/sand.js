@@ -51,6 +51,7 @@ class SandScene extends Scene {
         } 
 
         this.sandGenerationTimer = createTimer(10, this.sandGenerationMethod, this, true);
+        this.mouthWaterGenerationTimer = createTimer(100, this.mouthWaterGenerationMethod, this, true);
         //this.stopSandGeneratorTimer = createTimer(6000, this.stopSandGeneratorTimerMethod, this, false);
         //obstackle
 
@@ -239,19 +240,45 @@ class SandScene extends Scene {
 
         this.addGo(obstacle, 0);
 
-        this.cupPosition = new V2(this.viewport.x/2, this.viewport.y/2);
-        this.cupSize = new V2(this.viewport.x/3, this.viewport.y/8);
+        this.cupPosition = new V2(this.viewport.x/2, this.viewport.y/2+this.viewport.y/15);
+        this.cupSize = new V2(this.viewport.x/3, this.viewport.y/10);
 
         this.cup = new GO({
             position: this.cupPosition,
             size: this.cupSize,
             img: createCanvas(this.cupSize, function(ctx, size){
-                ctx.fillStyle = 'red';
-                ctx.fillRect(0,0, size.x, size.y)
+                //ctx.fillStyle = 'red';
+                let topBorderSize = new V2(size.x, size.y/4);
+                let tly = 0;
+                let tlx = 0;
+                draw(ctx, {fillStyle: 'red', points: [new V2(tlx, tly+topBorderSize.y/2), new V2(tlx+topBorderSize.y/2, tly), new V2(tlx + topBorderSize.x - topBorderSize.y/2, tly),
+                                                      new V2(tlx + topBorderSize.x, tly+topBorderSize.y/2), new V2(tlx + topBorderSize.x, tly + topBorderSize.y), new V2(tlx, tly + topBorderSize.y)]})
+                
+                let middlePartSize = new V2(size.x, size.y/2);
+                tly += topBorderSize.y;
+                ctx.fillStyle = 'green';
+                ctx.beginPath();ctx.moveTo(tlx + topBorderSize.y/2, tly);
+                ctx.bezierCurveTo(tlx + middlePartSize.x*1/6, tly + middlePartSize.y*3/6, tlx + middlePartSize.x*2/6, tly + middlePartSize.y*5/6, tlx + middlePartSize.x/2, tly + middlePartSize.y);
+                ctx.bezierCurveTo(tlx + middlePartSize.x*4/6, tly + middlePartSize.y*5/6, tlx + middlePartSize.x*5/6, tly + middlePartSize.y*3/6, tlx + middlePartSize.x - topBorderSize.y/2, tly);
+                ctx.closePath();ctx.fill();
+
+                let bottomPartSize = new V2(size.x/4, size.y/3);
+                tly = size.y - bottomPartSize.y;
+                tlx = size.x/2 - bottomPartSize.x/2;
+
+                ctx.fillStyle = 'blue';
+                ctx.beginPath(); ctx.moveTo(tlx, tly); ctx.lineTo(tlx, tly + bottomPartSize.y/2);
+                ctx.bezierCurveTo(tlx, tly + bottomPartSize.y, tlx + bottomPartSize.x, tly + bottomPartSize.y, tlx + bottomPartSize.x, tly + bottomPartSize.y/2);
+                ctx.lineTo(tlx + bottomPartSize.x, tly); ctx.closePath(); ctx.fill();
+
+                //ctx.fillRect(tlx,tly, bottomPartSize.x, bottomPartSize.y)
+
+                // ctx.strokeStyle = 'yellow';
+                // ctx.strokeRect(0,0, size.x-1, size.y-1);
             })
         });
 
-        this.addGo(this.cup, 30);
+        this.addGo(this.cup, 20);
 
         this.bottomBorderSize = new V2(this.viewport.x, this.viewport.y/20);
         this.addGo(new GO({
@@ -400,45 +427,91 @@ class SandScene extends Scene {
         }
     }
 
-    sandGenerationMethod(){
-        let isMouth = getRandomInt(1,4) == 4;
-        let multiplier = 3;
+    mouthWaterGenerationMethod() {
+        let isMouth = true;
         let mouthPosition = new V2(this.lionHeadPosition.x + getRandom(-4, 4), this.lionHeadPosition.y + this.lionHeadSize.y*0.23);
-        //new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035)
         for(let i = 0; i < 1; i++){
-            if(!this.getDropItemFromCache(20))
+            let layer = isMouth ? 19 :  23;
+            if(!this.getDropItemFromCache(layer))
                 this.addGo(new Sand({
                     img: this.dropGenerator2(0),//this.dropGenerator(1),//this.sandImg('white'),
                     position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
                     speedKoef: getRandom(0.9,1),
                     size: this.sizes[0], 
                     isMouth: isMouth,
-                    layer: 20
-                }), 20);
+                    layerIndex: layer
+                }), layer);
         }
 
         for(let i = 0; i < 3; i++){
-            if(!this.getDropItemFromCache(19))
+            let layer = isMouth ? 18 :  22;
+            if(!this.getDropItemFromCache(layer))
                 this.addGo(new Sand({
                     img: this.dropGenerator2(1),//this.dropGenerator(0.95),//this.sandImg('rgba(255,255,255,0.75)'),
                     position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
                     speedKoef: getRandom(0.6, 0.8),
                     size: this.sizes[1],
                     isMouth: isMouth,
-                    layer: 19
-                }), 19);
+                    layerIndex: layer
+                }), layer);
         }
 
         for(let i = 0; i < 6; i++){
-            if(!this.getDropItemFromCache(18))
+            let layer = isMouth ? 17 :  21;
+            if(!this.getDropItemFromCache(layer))
                 this.addGo(new Sand({
                     img: this.dropGenerator2(2),//this.dropGenerator(0.85),//this.sandImg('rgba(255,255,255,0.5)'),
                     position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
                     speedKoef: getRandom(0.35,0.55),
                     size: this.sizes[2],
                     isMouth: isMouth,
-                    layer: 18
-                }), 18);
+                    layerIndex: layer
+                }), layer);
+        }
+    }
+
+    sandGenerationMethod(){
+        let isMouth = false//getRandomInt(1,4) == 4;
+        let multiplier = 3;
+        let mouthPosition = new V2(this.lionHeadPosition.x + getRandom(-4, 4), this.lionHeadPosition.y + this.lionHeadSize.y*0.23);
+        //new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035)
+        for(let i = 0; i < 1; i++){
+            let layer = isMouth ? 19 :  23;
+            if(!this.getDropItemFromCache(layer))
+                this.addGo(new Sand({
+                    img: this.dropGenerator2(0),//this.dropGenerator(1),//this.sandImg('white'),
+                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
+                    speedKoef: getRandom(0.9,1),
+                    size: this.sizes[0], 
+                    isMouth: isMouth,
+                    layerIndex: layer
+                }), layer);
+        }
+
+        for(let i = 0; i < 3; i++){
+            let layer = isMouth ? 18 :  22;
+            if(!this.getDropItemFromCache(layer))
+                this.addGo(new Sand({
+                    img: this.dropGenerator2(1),//this.dropGenerator(0.95),//this.sandImg('rgba(255,255,255,0.75)'),
+                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
+                    speedKoef: getRandom(0.6, 0.8),
+                    size: this.sizes[1],
+                    isMouth: isMouth,
+                    layerIndex: layer
+                }), layer);
+        }
+
+        for(let i = 0; i < 6; i++){
+            let layer = isMouth ? 17 :  21;
+            if(!this.getDropItemFromCache(layer))
+                this.addGo(new Sand({
+                    img: this.dropGenerator2(2),//this.dropGenerator(0.85),//this.sandImg('rgba(255,255,255,0.5)'),
+                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
+                    speedKoef: getRandom(0.35,0.55),
+                    size: this.sizes[2],
+                    isMouth: isMouth,
+                    layerIndex: layer
+                }), layer);
         }
 
     }
@@ -459,6 +532,9 @@ class SandScene extends Scene {
 
         if(this.sandGenerationTimer)
             doWorkByTimer(this.sandGenerationTimer, now);
+
+        if(this.mouthWaterGenerationTimer)
+            doWorkByTimer(this.mouthWaterGenerationTimer, now);
     }
 
     afterMainWork(now){
@@ -736,7 +812,15 @@ class Sand extends MovingGO {
     }
 
     destinationCompleteCheck(){
-        if(this.position.y > this.parentScene.viewport.y) {
+        let check = false;
+        if(this.isMouth){
+            check = this.position.y > this.parentScene.cupPosition.y - this.parentScene.cupSize.y/2;
+        }
+        else {
+            check = this.position.y > this.parentScene.viewport.y;
+        }
+
+        if(check) {
             this.speedV2.x = 0;
             this.speedV2.y = 0;
             this.position.y = this.initialPosition.y;
