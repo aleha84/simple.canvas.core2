@@ -55,6 +55,8 @@ class SandScene extends Scene {
         //obstackle
 
         this.brickSize = new V2(this.viewport.x/8, this.viewport.y/30);
+        this.defaulBrickFillStyle = '#CEB298';
+        this.randomBrickFillStyle = ['#C4A991', '#B59B85', '#B59B85', '#A8907C', '#9E8774'];
 
         this.flipX = function(p, xOrigin) {
             let relativeOrigin = p.x - xOrigin;
@@ -67,8 +69,8 @@ class SandScene extends Scene {
         this.backgroundImg = createCanvas(new V2(this.viewport.x, this.viewport.y), function(ctx, size) {
             let brickSize = that.brickSize;
             let firstRowFillStyle = ctx.createLinearGradient(brickSize.x/2, 0, brickSize.x/2, brickSize.y);
-            let defaulBrickFillStyle = '#CEB298';
-            let randomBrickFillStyle = ['#C4A991', '#B59B85', '#B59B85', '#A8907C', '#9E8774']
+            let defaulBrickFillStyle = that.defaulBrickFillStyle;
+            let randomBrickFillStyle = that.randomBrickFillStyle;
             let leafsColor = ['#5A8162', '#0E1E14', '#2D582D', '#4C775C', '#69936D', '#456444']
             firstRowFillStyle.addColorStop(0, 'white');
             firstRowFillStyle.addColorStop(0.3, '#A09D98');
@@ -221,21 +223,14 @@ class SandScene extends Scene {
         });
 
         this.lionHeadSize = new V2(80, 80);
-
+        this.lionHeadPosition = new V2(this.viewport.x/2, this.viewport.y/3);
         let obstacle = new GO({
-            position: new V2(this.viewport.x/2, this.viewport.y/2),
+            position: this.lionHeadPosition,
             size: this.lionHeadSize,
             collisionDetection: {
                 enabled: true,
                 //render: true,
             },
-            /*img: createCanvas(new V2(50,50), function(ctx, size){
-                //ctx.fillStyle = 'lightgray';
-                //ctx.fillRect(0,0, size.x, size.y);
-                //draw(ctx, { fillStyle: 'lightgray', points: [new V2(0,size.y), new V2(size.x, 0), new V2(size.x, size.y)] })
-                //draw(ctx, { fillStyle: 'lightgray', points: [new V2(0,0), new V2(size.x, size.y), new V2(0, size.y)] })
-                draw(ctx, { fillStyle: 'lightgray', points: [new V2(0, size.x/2), new V2(size.x/2, 0), new V2(size.x, size.y/2)] });
-            })*/
             img: this.lionHeadImg
         });
         //obstacle.collisionDetection.circuit = [new V2(-obstacle.size.x/2, obstacle.size.y/2), new V2(obstacle.size.x/2, -obstacle.size.y/2), new V2(obstacle.size.x/2, obstacle.size.y/2)];
@@ -244,13 +239,70 @@ class SandScene extends Scene {
 
         this.addGo(obstacle, 0);
 
-        this.addGo(new GO({
-            img: createCanvas(new V2(this.viewport.x, this.viewport.y/20), function(ctx, size) {
+        this.cupPosition = new V2(this.viewport.x/2, this.viewport.y/2);
+        this.cupSize = new V2(this.viewport.x/3, this.viewport.y/8);
+
+        this.cup = new GO({
+            position: this.cupPosition,
+            size: this.cupSize,
+            img: createCanvas(this.cupSize, function(ctx, size){
                 ctx.fillStyle = 'red';
+                ctx.fillRect(0,0, size.x, size.y)
+            })
+        });
+
+        this.addGo(this.cup, 30);
+
+        this.bottomBorderSize = new V2(this.viewport.x, this.viewport.y/20);
+        this.addGo(new GO({
+            img: createCanvas(this.bottomBorderSize, function(ctx, size) {
+                // ctx.fillStyle = 'red';
+                // ctx.fillRect(0,0, size.x, size.y);
+                
+                let bottomBrickSize = new V2(that.bottomBorderSize.x/5, that.bottomBorderSize.y);
+                let tly = 0;//that.viewport.y - that.bottomBorderSize.y;
+                
+                for(let i =0; i < 6;i++){
+                    let tlx = i*bottomBrickSize.x - bottomBrickSize.x/2;
+                    if(getRandomBool()){
+                        ctx.fillStyle = that.randomBrickFillStyle[getRandomInt(0, that.randomBrickFillStyle.length -1)]
+                    }
+                    else {
+                        ctx.fillStyle = that.defaulBrickFillStyle;
+                    }
+                    //ctx.fillStyle = 'red';
+                    
+                    ctx.fillRect(tlx,tly, bottomBrickSize.x, bottomBrickSize.y);
+                    //
+                    //
+                    draw(ctx, {strokeStyle: 'black', lineWidth: 1, points: [new V2(tlx, tly), new V2(tlx, tly+bottomBrickSize.y)]});
+                    draw(ctx, {strokeStyle: 'black', lineWidth: 1, points: [new V2(tlx+bottomBrickSize.x, tly), new V2(tlx+bottomBrickSize.x, tly+bottomBrickSize.y)]});
+
+                    draw(ctx, {strokeStyle: '#7A695A', lineWidth: 1, points: [new V2(tlx+2, tly), new V2(tlx+2, tly+bottomBrickSize.y)]});
+                    draw(ctx, {strokeStyle: '#E5C5A9', lineWidth: 1, points: [new V2(tlx+bottomBrickSize.x-2, tly), new V2(tlx+bottomBrickSize.x-2, tly+bottomBrickSize.y)]});
+                    
+                    ctx.fillStyle = '#5A5D62';
+                    for(let i = 0; i < bottomBrickSize.x*bottomBrickSize.y*0.01;i++){
+                        ctx.fillRect(parseInt(getRandomInt(0, bottomBrickSize.x) + tlx),parseInt(getRandomInt(0, bottomBrickSize.y)+tly),1,1);
+                    }
+                }
+
+                let grd = ctx.createLinearGradient(size.x/2, 0, size.x/2, size.y);
+                grd.addColorStop(0, 'rgba(0,0,0,0.2)');
+                grd.addColorStop(0.15, 'rgba(255,255,255,0.2)');
+                grd.addColorStop(0.35, 'rgba(255,255,255,0.4)');
+                grd.addColorStop(1, 'rgba(0,0,0,0.3)');
+
+                ctx.fillStyle = grd;
                 ctx.fillRect(0,0, size.x, size.y);
+
+                for(let i =0; i < 6;i++){
+                    let tlx = i*bottomBrickSize.x - bottomBrickSize.x/2;
+                    ctx.clearRect(tlx-1, tly,2,1)
+                }
             }),
-            position: new V2(this.viewport.x/2, this.viewport.y - this.viewport.y/20/2),
-            size: new V2(this.viewport.x, this.viewport.y/20)
+            position: new V2(this.viewport.x/2, this.viewport.y - this.bottomBorderSize.y/2),
+            size: this.bottomBorderSize
         }), 30)
 
         this.dropColors = ['CACFD2', 'C6CCCA', 'CAD0CF', 'C1C4C5', 'C3C4C3', 'CCCBC6', 'CACBC7', 'D6D7D5', '9A9EA8', 'A6AAAF', 'A1A8AB', '9DA4A7', 'B2B7B9', 'BBBDB8', 'B0B2B2', 'A8ADAE', 
@@ -351,11 +403,13 @@ class SandScene extends Scene {
     sandGenerationMethod(){
         let isMouth = getRandomInt(1,4) == 4;
         let multiplier = 3;
+        let mouthPosition = new V2(this.lionHeadPosition.x + getRandom(-4, 4), this.lionHeadPosition.y + this.lionHeadSize.y*0.23);
+        //new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035)
         for(let i = 0; i < 1; i++){
             if(!this.getDropItemFromCache(20))
                 this.addGo(new Sand({
                     img: this.dropGenerator2(0),//this.dropGenerator(1),//this.sandImg('white'),
-                    position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) : new V2(this.getXPosition(), -1),
+                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
                     speedKoef: getRandom(0.9,1),
                     size: this.sizes[0], 
                     isMouth: isMouth,
@@ -367,7 +421,7 @@ class SandScene extends Scene {
             if(!this.getDropItemFromCache(19))
                 this.addGo(new Sand({
                     img: this.dropGenerator2(1),//this.dropGenerator(0.95),//this.sandImg('rgba(255,255,255,0.75)'),
-                    position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) : new V2(this.getXPosition(), -1),
+                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
                     speedKoef: getRandom(0.6, 0.8),
                     size: this.sizes[1],
                     isMouth: isMouth,
@@ -379,7 +433,7 @@ class SandScene extends Scene {
             if(!this.getDropItemFromCache(18))
                 this.addGo(new Sand({
                     img: this.dropGenerator2(2),//this.dropGenerator(0.85),//this.sandImg('rgba(255,255,255,0.5)'),
-                    position: isMouth ? new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035) : new V2(this.getXPosition(), -1),
+                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
                     speedKoef: getRandom(0.35,0.55),
                     size: this.sizes[2],
                     isMouth: isMouth,
@@ -484,7 +538,7 @@ class Sand extends MovingGO {
 
     checkCollisionDetectionEnable() {
         let ps = this.parentScene;
-        if(this.isMouth || this.position.x < (ps.viewport.x/2-(ps.lionHeadSize.x/2)) || this.position.x > (ps.viewport.x/2+(ps.lionHeadSize.x/2)) ){
+        if(this.isMouth || this.position.x < (ps.lionHeadPosition.x-(ps.lionHeadSize.x/2)) || this.position.x > (ps.lionHeadPosition.x+(ps.lionHeadSize.x/2)) ){
             this.collisionDetection.enabled = false;
         }
         
