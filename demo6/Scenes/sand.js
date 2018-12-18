@@ -6,7 +6,7 @@ class SandScene extends Scene {
                 level: 12
             },
             debugging: {
-                enabled: true,
+                enabled: false,
                 font: (25*SCG.viewport.scale) + 'px Arial',
                 textAlign: 'left',
                 fillStyle: 'red',
