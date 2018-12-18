@@ -91,5 +91,9 @@ class MovingGO extends GO {
             this.direction = new V2;
             this.destinationCompleteCallBack();
 		}
-	}
+    }
+    
+    stop() {
+        this.setDestination();
+    }
 }

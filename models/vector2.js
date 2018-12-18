@@ -96,6 +96,10 @@ class Vector2 {
 		return new Vector2(this.x*coef,this.y*coef);
     }
     
+    divide(coef = 1, inner = false) {
+        return this.division(coef, inner);
+    }
+
     division(coef = 1, inner = false){
         if(coef == 0)
             coef = 1;

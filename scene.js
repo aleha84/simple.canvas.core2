@@ -52,6 +52,11 @@ class Scene {
                     }
                 },
                 update(go){
+                    if(!this.enabled) {
+                        console.trace();
+                        throw `Scene collision detection is disabled.`;
+                    }
+
                     if(!go.collisionDetection || !go.collisionDetection.enabled){
                         console.trace();
                         throw `GO id: ${go.id} collision detection is disabled.`;
@@ -121,12 +126,18 @@ class Scene {
                     let c2 = this.getCircuit(go2);
                     let intersections = [];
                     for(let ci1 = 1; ci1 <= c1.length; ci1++){
+                        if(c1.length == 2 && ci1 == 2)
+                            continue;
+
                         let line1 = { begin: c1[ci1-1], end: c1[ci1 == c1.length ? 0:ci1] };
                         for(let ci2 = 1; ci2 <= c2.length; ci2++){
+                            if(c2.length == 2 && ci2 == 2)
+                                continue;
+
                             let line2 = { begin: c2[ci2-1], end: c2[ci2 == c2.length ? 0:ci2] };
                             let intersection = segmentsIntersectionVector2_1_noV2(line1, line2);//segmentsIntersectionVector2(line1, line2);
                             if(intersection !== undefined){
-                                intersections.push(intersection);
+                                intersections.push({intersection, line: line2});
                             }
                         }
                     }
@@ -135,6 +146,7 @@ class Scene {
                 },
                 check(go){
                     let collidedWith = [];
+                    let onCollisionPayload = [];
                     for(let ci = 0; ci < go.collisionDetection.cells.length; ci++){
                         let goCell = go.collisionDetection.cells[ci];
                         let sceneCdCell = this.cells[goCell.y][goCell.x];
@@ -164,15 +176,26 @@ class Scene {
                                 if(go.collisionDetection.circuit.length || goInSceneCdCell.collisionDetection.circuit.length){
                                     let inetersections = this.checkCircuitsIntersection(go, goInSceneCdCell);
                                     if(inetersections.length){
-                                        go.collisionDetection.onCollision.call(go, goInSceneCdCell, inetersections);    
+                                        onCollisionPayload.push({collidedWith: goInSceneCdCell, collisionPoints:inetersections.map(i => i.intersection), details: inetersections})
+                                        //go.collisionDetection.onCollision.call(go, goInSceneCdCell, inetersections);    
                                         collidedWith.push(goInSceneCdCell);
                                     }
                                 }
                                 else {
-                                    go.collisionDetection.onCollision.call(go, goInSceneCdCell);
+                                    onCollisionPayload.push({go: goInSceneCdCell});
+                                    //go.collisionDetection.onCollision.call(go, goInSceneCdCell);
                                     collidedWith.push(goInSceneCdCell);
                                 }
                             }
+                        }
+                    }
+
+                    if(onCollisionPayload.length){
+                        if(onCollisionPayload.length == 1){
+                            go.collisionDetection.onCollision.call(go, onCollisionPayload[0].collidedWith, onCollisionPayload[0].collisionPoints, onCollisionPayload[0].details);
+                        }
+                        else {
+                            go.collisionDetection.onCollision.call(go, onCollisionPayload);
                         }
                     }
                 }

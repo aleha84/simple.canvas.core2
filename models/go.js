@@ -35,14 +35,16 @@ class GO {
             childrenGO: [],
             tileOptimization: false,
             initialized: false,
+            disabled: false,
             collisionDetection: {
                 enabled: false,
+                render: false,
                 needRecalcBox: false,
                 exclude: [],
                 cells: [],
                 circuit: [], // контурные точки для более точного детектирования, точки относительно position (0,0) в центре.
                 preCheck: function(go){ return true; }, // some light checking before collision should be checked, if false returned then no cd check will be performed
-                onCollision: function(collidedWithGo, collisionPoints){}
+                onCollision: function(collidedWithGo, collisionPoints, details){}
             },
             animation: { // todo test needed
                 totalFrameCount: 0,
@@ -326,6 +328,21 @@ class GO {
             if(item.box.bottomRight.x > most.right) most.right = item.box.bottomRight.x;
             if(item.box.bottomRight.y > most.bottom) most.bottom = item.box.bottomRight.y;
 
+            if(item.collisionDetection.circuit){
+                let position = item.position;
+                if(item.parent){
+                    position = item.absolutePosition;
+                }
+
+                for(let i = 0; i < item.collisionDetection.circuit.length;i++){
+                    let cp = item.collisionDetection.circuit[i].add(position);
+                    if(cp.x < most.left) most.left = cp.x;
+                    else if(cp.x > most.right) most.right = cp.x;
+                    if(cp.y < most.top) most.top = cp.y;
+                    else if(cp.y > most.bottom) most.bottom = cp.y;
+                }
+            }
+
             if(item.childrenGO.length){
                 for(let ci = 0; ci < item.childrenGO.length; ci++){
                     getMosts(item.childrenGO[ci]);
@@ -349,7 +366,7 @@ class GO {
     internalRender(){}
 
     render(){ 
-        if(!this.alive || !this.renderPosition || !this.isVisible)
+        if(this.disabled || !this.alive || !this.renderPosition || !this.isVisible)
             return;
 
 		this.internalPreRender();
@@ -417,6 +434,10 @@ class GO {
             if(this.text){
                 this.renderText();
             }
+
+            if(this.collisionDetection && this.collisionDetection.enabled && this.collisionDetection.render){
+                this.renderCollisionDetection()
+            }
 		}
         
         this.childProcesser((child) => child.render());
@@ -424,6 +445,30 @@ class GO {
         this.internalRender();
 
         this.console('render completed.');
+    }
+
+    renderCollisionDetection() {
+        let scale = SCG.viewport.scale;
+        let cdBoxTLRender = this.collisionDetection.box.topLeft.mul(scale);
+        this.context.strokeStyle = '#00BFFF';
+        this.context.strokeRect(cdBoxTLRender.x, cdBoxTLRender.y, this.collisionDetection.box.width*scale, this.collisionDetection.box.height*scale);
+
+        if(this.collisionDetection.circuit.length){
+            let position = this.position;
+            if(this.parent){
+                position = this.absolutePosition;
+            }
+
+            draw(
+                this.context, 
+                {
+                    lineWidth: 2,
+                    strokeStyle: 'red',
+                    closePath: true,
+                    points: this.collisionDetection.circuit.map((item) => item.add(position).mul(scale))
+                }
+            )
+        }
     }
     
     renderText(){
@@ -451,7 +496,17 @@ class GO {
         
     internalUpdate(now){}
 
+    beforeUpdateStarted() {}
+
+    afterUpdateCompleted() {}
+
     update(now){
+        this.beforeUpdateStarted();
+
+        if(this.disabled){
+            return;
+        }
+
         if(this.img == undefined && this.imgPropertyName != undefined){ //first run workaround
 			this.img = SCG.images[this.imgPropertyName];
 			if(this.img == undefined){
@@ -575,8 +630,9 @@ class GO {
             parentScene.collisionDetection.update(this);
         }
             
+        this.afterUpdateCompleted();
         this.console('update completed.');
-	}
+    }
 
     regEvents(layerIndex = 0){
         if(!SCG.controls.initialized)

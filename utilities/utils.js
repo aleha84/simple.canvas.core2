@@ -1,4 +1,11 @@
 function getRandom(min, max){
+  if(min > max)
+  {
+    var swap = max;
+    max = min;
+    min = swap;
+  }
+  
 	return Math.random() * (max - min) + min;
 }
 
@@ -371,12 +378,20 @@ function draw(ctx, props) {
   }
 
   if(props.fillStyle){
-    if(typeof props.fillStyle === 'boolean')
-      ctx.fillStyle = 'white';
-    else 
-      ctx.fillStyle = props.fillStyle;
+    if(isArray(props.fillStyle)){
+      for(let i = 0; i < props.fillStyle.length;i++){
+        ctx.fillStyle = props.fillStyle[i];
+        ctx.fill();
+      }
+    }
+    else {
+      if(typeof props.fillStyle === 'boolean')
+        ctx.fillStyle = 'white';
+      else 
+        ctx.fillStyle = props.fillStyle;
 
-    ctx.fill();
+      ctx.fill();
+    }
   }
 
   if(props.strokeStyle){
@@ -499,4 +514,26 @@ function createCanvas(size, contextProcesser) {
       contextProcesser(ctx, size);
 
   return canvas;
+}
+
+function hexToRgb(hex, asArray = false, asObject = false) {
+  var bigint = parseInt(hex, 16);
+  var r = (bigint >> 16) & 255;
+  var g = (bigint >> 8) & 255;
+  var b = bigint & 255;
+
+  if(asArray) 
+      return [r,g,b];
+  
+  if(asObject)
+    return {r,g,b};
+  
+  return r + "," + g + "," + b;
+}
+
+function flipX(p, xOrigin) {
+  let relativeOrigin = p.x - xOrigin;
+  let reverted = -relativeOrigin;
+
+  return new V2(reverted+xOrigin, p.y)
 }
