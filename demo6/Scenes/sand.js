@@ -51,8 +51,9 @@ class SandScene extends Scene {
         } 
 
         this.sandGenerationTimer = createTimer(10, this.sandGenerationMethod, this, true);
-        this.mouthWaterGenerationTimer = createTimer(100, this.mouthWaterGenerationMethod, this, true);
-        //this.stopSandGeneratorTimer = createTimer(6000, this.stopSandGeneratorTimerMethod, this, false);
+        this.mouthWaterGenerationTimer = createTimer(50, this.mouthWaterGenerationMethod, this, true);
+        this.cupWaterGenerationTimer = createTimer(100, this.cupWaterGenerationMethod, this, true);
+        
         //obstackle
 
         this.brickSize = new V2(this.viewport.x/8, this.viewport.y/30);
@@ -251,34 +252,87 @@ class SandScene extends Scene {
                 let topBorderSize = new V2(size.x, size.y/4);
                 let tly = 0;
                 let tlx = 0;
-                draw(ctx, {fillStyle: 'red', points: [new V2(tlx, tly+topBorderSize.y/2), new V2(tlx+topBorderSize.y/2, tly), new V2(tlx + topBorderSize.x - topBorderSize.y/2, tly),
+                let grd = ctx.createLinearGradient(size.x/2, tly, size.x/2, tly + topBorderSize.y);
+                grd.addColorStop(0, '#CECAC3');
+                grd.addColorStop(1, '#A49790');
+                let matGrd = ctx.createLinearGradient(size.x/2, tly, size.x/2, tly + topBorderSize.y);
+                matGrd.addColorStop(0, 'rgba(0,0,0,0.3)');
+                matGrd.addColorStop(0.4, 'rgba(255,255,255,0.5)');
+                matGrd.addColorStop(1, 'rgba(255,255,255,0.1)');
+                let lightGrd = ctx.createLinearGradient(tlx, tly + topBorderSize.y/2, tlx + topBorderSize.x, tly + topBorderSize.y/2);
+                lightGrd.addColorStop(0, 'rgba(0,0,0,0.3)');
+                lightGrd.addColorStop(0.5, 'rgba(0,0,0,0)');
+                
+
+                draw(ctx, {fillStyle: [grd, matGrd, lightGrd], points: [new V2(tlx, tly+topBorderSize.y/2), new V2(tlx+topBorderSize.y/2, tly), new V2(tlx + topBorderSize.x - topBorderSize.y/2, tly),
                                                       new V2(tlx + topBorderSize.x, tly+topBorderSize.y/2), new V2(tlx + topBorderSize.x, tly + topBorderSize.y), new V2(tlx, tly + topBorderSize.y)]})
                 
                 let middlePartSize = new V2(size.x, size.y/2);
-                tly += topBorderSize.y;
-                ctx.fillStyle = 'green';
+                tly += topBorderSize.y-1;
+                //ctx.fillStyle = 'green';
                 ctx.beginPath();ctx.moveTo(tlx + topBorderSize.y/2, tly);
                 ctx.bezierCurveTo(tlx + middlePartSize.x*1/6, tly + middlePartSize.y*3/6, tlx + middlePartSize.x*2/6, tly + middlePartSize.y*5/6, tlx + middlePartSize.x/2, tly + middlePartSize.y);
                 ctx.bezierCurveTo(tlx + middlePartSize.x*4/6, tly + middlePartSize.y*5/6, tlx + middlePartSize.x*5/6, tly + middlePartSize.y*3/6, tlx + middlePartSize.x - topBorderSize.y/2, tly);
-                ctx.closePath();ctx.fill();
+                ctx.closePath();//ctx.fill();
+                grd = ctx.createLinearGradient(size.x/2, tly, size.x/2, tly + middlePartSize.y);
+                grd.addColorStop(0, '#A49790');
+                grd.addColorStop(1, '#CECAC3');
+                ctx.fillStyle = grd;ctx.fill();
+                matGrd = ctx.createLinearGradient(size.x/2, tly, size.x/2, tly + middlePartSize.y);
+                matGrd.addColorStop(0, 'rgba(0,0,0,0.4)');
+                matGrd.addColorStop(0.7, 'rgba(255,255,255,0.2)');
+                matGrd.addColorStop(0.85, 'rgba(0,0,0,0.3)');
+                ctx.fillStyle = matGrd;ctx.fill();
+                lightGrd = ctx.createLinearGradient(tlx, tly + middlePartSize.y/2, tlx + middlePartSize.x, tly + middlePartSize.y/2);
+                lightGrd.addColorStop(0, 'rgba(0,0,0,0.3)');
+                lightGrd.addColorStop(0.7, 'rgba(0,0,0,0)');
+                ctx.fillStyle = lightGrd;ctx.fill();
 
                 let bottomPartSize = new V2(size.x/4, size.y/3);
                 tly = size.y - bottomPartSize.y;
                 tlx = size.x/2 - bottomPartSize.x/2;
 
-                ctx.fillStyle = 'blue';
+                grd = ctx.createLinearGradient(size.x/2, tly, size.x/2, tly + bottomPartSize.y);
+                grd.addColorStop(0, '#A49790');
+                grd.addColorStop(1, '#CECAC3');
+                ctx.fillStyle = grd;
                 ctx.beginPath(); ctx.moveTo(tlx, tly); ctx.lineTo(tlx, tly + bottomPartSize.y/2);
                 ctx.bezierCurveTo(tlx, tly + bottomPartSize.y, tlx + bottomPartSize.x, tly + bottomPartSize.y, tlx + bottomPartSize.x, tly + bottomPartSize.y/2);
                 ctx.lineTo(tlx + bottomPartSize.x, tly); ctx.closePath(); ctx.fill();
 
-                //ctx.fillRect(tlx,tly, bottomPartSize.x, bottomPartSize.y)
+                matGrd = ctx.createLinearGradient(size.x/2, tly, size.x/2, tly + bottomPartSize.y);
+                matGrd.addColorStop(0, 'rgba(0,0,0,0.3)');
+                matGrd.addColorStop(1, 'rgba(0,0,0,0.1)');
+                matGrd.addColorStop(0.65, 'rgba(255,255,255,0.2)');
+                matGrd.addColorStop(0.9, 'rgba(0,0,0,0.2)');
+                ctx.fillStyle = matGrd;ctx.fill();
+                lightGrd = ctx.createLinearGradient(tlx, tly + bottomPartSize.y/2, tlx + bottomPartSize.x, tly + bottomPartSize.y/2);
+                lightGrd.addColorStop(0, 'rgba(0,0,0,0.3)');
+                lightGrd.addColorStop(0.5, 'rgba(0,0,0,0)');
+                ctx.fillStyle = lightGrd;ctx.fill();
 
-                // ctx.strokeStyle = 'yellow';
-                // ctx.strokeRect(0,0, size.x-1, size.y-1);
+                //ctx.clearRect(topBorderSize.x*1/8, 0, 5,4);
+                ctx.fillStyle= '#CECAC3';
+                ctx.fillRect(topBorderSize.x*1/8, 0, 5,5);
+                ctx.fillStyle= '#A49790';
+                ctx.fillRect(topBorderSize.x*7/8 - 5, 0, 5,5);
+                ctx.clearRect(topBorderSize.x/2 - 2.5, 0, 5,5);
             })
         });
 
         this.addGo(this.cup, 20);
+        this.addGo(new GO({
+            position: new V2(this.cupPosition.x - this.cupSize.x/2, this.cupPosition.y),
+            size: this.cupSize.clone(),
+            img: createCanvas(this.cupSize, function(ctx, size) {
+                let grd = ctx.createLinearGradient(0, size.y, size.x/2, 0);
+                grd.addColorStop(0.7, 'rgba(0,0,0,0)')
+                grd.addColorStop(1, 'rgba(0,0,0,0.5)')
+                // draw(ctx, {fillStyle: grd, points: [new V2(0, 0), new V2(0, size.y*1/4), new V2(size.x/2 - size.x/8, size.y*3/4), new V2(size.x/2 - size.x/8, size.y*0.95), new V2(size.x, size.y*0.95), new V2(size.x, 0)]})
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0,size.x,size.y*0.95)
+            })
+        }), 5)
 
         this.bottomBorderSize = new V2(this.viewport.x, this.viewport.y/20);
         this.addGo(new GO({
@@ -428,88 +482,126 @@ class SandScene extends Scene {
     }
 
     mouthWaterGenerationMethod() {
-        let isMouth = true;
-        let mouthPosition = new V2(this.lionHeadPosition.x + getRandom(-4, 4), this.lionHeadPosition.y + this.lionHeadSize.y*0.23);
-        for(let i = 0; i < 1; i++){
-            let layer = isMouth ? 19 :  23;
-            if(!this.getDropItemFromCache(layer))
-                this.addGo(new Sand({
-                    img: this.dropGenerator2(0),//this.dropGenerator(1),//this.sandImg('white'),
-                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
-                    speedKoef: getRandom(0.9,1),
-                    size: this.sizes[0], 
-                    isMouth: isMouth,
-                    layerIndex: layer
-                }), layer);
-        }
+        let speedKoef, size, img, loopCount = 1;
+        for(let layer = 19; layer > 16; layer--){
+            size =  this.sizes[19 - layer];
+            switch(layer){
+                case 19:loopCount = 2;break;
+                case 18: loopCount = 2;break;
+                case 17:loopCount = 2;break;
+            }
 
-        for(let i = 0; i < 3; i++){
-            let layer = isMouth ? 18 :  22;
-            if(!this.getDropItemFromCache(layer))
-                this.addGo(new Sand({
-                    img: this.dropGenerator2(1),//this.dropGenerator(0.95),//this.sandImg('rgba(255,255,255,0.75)'),
-                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
-                    speedKoef: getRandom(0.6, 0.8),
-                    size: this.sizes[1],
-                    isMouth: isMouth,
-                    layerIndex: layer
-                }), layer);
-        }
-
-        for(let i = 0; i < 6; i++){
-            let layer = isMouth ? 17 :  21;
-            if(!this.getDropItemFromCache(layer))
-                this.addGo(new Sand({
-                    img: this.dropGenerator2(2),//this.dropGenerator(0.85),//this.sandImg('rgba(255,255,255,0.5)'),
-                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
-                    speedKoef: getRandom(0.35,0.55),
-                    size: this.sizes[2],
-                    isMouth: isMouth,
-                    layerIndex: layer
-                }), layer);
+            for(let i = 0; i < loopCount; i++) {
+                switch(layer){
+                    case 19:speedKoef = getRandom(0.9,1);break;
+                    case 18:speedKoef = getRandom(0.6, 0.8);break;
+                    case 17:speedKoef = getRandom(0.35,0.55);break;
+                }
+                let mouthPosition = new V2(1+this.lionHeadPosition.x + getRandom(-4, 4),getRandom(-2, 0) +  this.lionHeadPosition.y + this.lionHeadSize.y*0.23 );
+                img = this.dropGenerator2(19 - layer);
+                if(!this.getDropItemFromCache(layer))
+                    this.addGo(new Sand({
+                        img: img,
+                        position: mouthPosition,
+                        speedKoef: speedKoef,
+                        size: size, 
+                        isMouth: true,
+                        layerIndex: layer
+                    }), layer);
+            }
+            
         }
     }
 
+    cupWaterGenerationMethod() {
+        let maxLayer = 26;
+        let speedKoef, size, img, loopCount = 1;
+        for(let j = -1; j < 2; j++){
+            for(let layer = maxLayer; layer > maxLayer - 3; layer--){
+                size =  this.sizes[maxLayer - layer];
+                switch(layer){
+                    case maxLayer:loopCount = 3;break;
+                    case maxLayer-1:loopCount = 3;break;
+                    case maxLayer-2:loopCount = 3;break;
+                }
+                for(let i = 0; i < loopCount; i++) {
+                    switch(layer){
+                        case maxLayer:speedKoef = getRandom(0.9,1);break;
+                        case maxLayer-1:speedKoef = getRandom(0.6, 0.8);break;
+                        case maxLayer-2:speedKoef = getRandom(0.35,0.55);break;
+                    }
+                    
+                    let cupPosition = new V2(this.viewport.x/2 + j*this.cupSize.x*1/3 + getRandom(-2, 2), this.cupPosition.y - this.cupSize.y/2);
+                    img = this.dropGenerator2(maxLayer - layer);
+                    let direction = j;//j == 0 ? -1 : 1;
+                    let speed = getRandom(2,3);
+                    let angleInRads = degreeToRadians(getRandom(-45,-35));
+                    let speedV2 = new V2(direction*speed*Math.cos(angleInRads), -1*(speed*Math.sin(angleInRads)));
+                    if(!this.getDropItemFromCache(layer))
+                        this.addGo(new Sand({
+                            img: img,
+                            position: cupPosition,
+                            speedKoef: speedKoef,
+                            size: size, 
+                            isCup: true,
+                            layerIndex: layer,
+                            cupDirection: direction,
+                            curvedMovement: direction != 0 ? {
+                                enabled: true,
+                                direction: direction,
+                                angleInRads: angleInRads,
+                                speed: speed
+                            } : {enabled: false},
+                            initialCurvedMovement: direction != 0 ?{
+                                enabled: true,
+                                direction: direction,
+                                angleInRads: angleInRads,
+                                speed: speed
+                            }: undefined,
+                            speedV2: direction != 0 ? speedV2: new V2(0, 0),
+                            initialSpeedV2: direction != 0 ? speedV2.clone() : new V2(0, 0)
+                        }), layer);
+                }
+                
+            }
+        }
+        
+    }
+
     sandGenerationMethod(){
-        let isMouth = false//getRandomInt(1,4) == 4;
-        let multiplier = 3;
-        let mouthPosition = new V2(this.lionHeadPosition.x + getRandom(-4, 4), this.lionHeadPosition.y + this.lionHeadSize.y*0.23);
         //new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035)
         for(let i = 0; i < 1; i++){
-            let layer = isMouth ? 19 :  23;
+            let layer = 23;
             if(!this.getDropItemFromCache(layer))
                 this.addGo(new Sand({
                     img: this.dropGenerator2(0),//this.dropGenerator(1),//this.sandImg('white'),
-                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
+                    position: new V2(this.getXPosition(), -1),
                     speedKoef: getRandom(0.9,1),
                     size: this.sizes[0], 
-                    isMouth: isMouth,
+                    layerIndex: layer
+                }), layer);
+        }
+
+        for(let i = 0; i < 2; i++){
+            let layer = 22;
+            if(!this.getDropItemFromCache(layer))
+                this.addGo(new Sand({
+                    img: this.dropGenerator2(1),//this.dropGenerator(0.95),//this.sandImg('rgba(255,255,255,0.75)'),
+                    position: new V2(this.getXPosition(), -1),
+                    speedKoef: getRandom(0.6, 0.8),
+                    size: this.sizes[1],
                     layerIndex: layer
                 }), layer);
         }
 
         for(let i = 0; i < 3; i++){
-            let layer = isMouth ? 18 :  22;
-            if(!this.getDropItemFromCache(layer))
-                this.addGo(new Sand({
-                    img: this.dropGenerator2(1),//this.dropGenerator(0.95),//this.sandImg('rgba(255,255,255,0.75)'),
-                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
-                    speedKoef: getRandom(0.6, 0.8),
-                    size: this.sizes[1],
-                    isMouth: isMouth,
-                    layerIndex: layer
-                }), layer);
-        }
-
-        for(let i = 0; i < 6; i++){
-            let layer = isMouth ? 17 :  21;
+            let layer = 21;
             if(!this.getDropItemFromCache(layer))
                 this.addGo(new Sand({
                     img: this.dropGenerator2(2),//this.dropGenerator(0.85),//this.sandImg('rgba(255,255,255,0.5)'),
-                    position: isMouth ? mouthPosition.clone() : new V2(this.getXPosition(), -1),
+                    position: new V2(this.getXPosition(), -1),
                     speedKoef: getRandom(0.35,0.55),
                     size: this.sizes[2],
-                    isMouth: isMouth,
                     layerIndex: layer
                 }), layer);
         }
@@ -535,6 +627,9 @@ class SandScene extends Scene {
 
         if(this.mouthWaterGenerationTimer)
             doWorkByTimer(this.mouthWaterGenerationTimer, now);
+
+        if(this.cupWaterGenerationTimer)
+            doWorkByTimer(this.cupWaterGenerationTimer, now);
     }
 
     afterMainWork(now){
@@ -614,7 +709,7 @@ class Sand extends MovingGO {
 
     checkCollisionDetectionEnable() {
         let ps = this.parentScene;
-        if(this.isMouth || this.position.x < (ps.lionHeadPosition.x-(ps.lionHeadSize.x/2)) || this.position.x > (ps.lionHeadPosition.x+(ps.lionHeadSize.x/2)) ){
+        if(this.isMouth || this.isCup || this.position.x < (ps.lionHeadPosition.x-(ps.lionHeadSize.x/2)) || this.position.x > (ps.lionHeadPosition.x+(ps.lionHeadSize.x/2)) ){
             this.collisionDetection.enabled = false;
         }
         
@@ -791,6 +886,9 @@ class Sand extends MovingGO {
 
         if(!this.noSizeChange){
             this.size.y = this.speedV2.y/3;
+            if(this.isMouth){
+                this.size.y = this.speedV2.y;
+            }
             if(this.size.y < this.initialSize.y){
                 this.size.y = this.initialSize.y;
             }
@@ -816,6 +914,9 @@ class Sand extends MovingGO {
         if(this.isMouth){
             check = this.position.y > this.parentScene.cupPosition.y - this.parentScene.cupSize.y/2;
         }
+        else if (this.isCup){
+            check = this.position.y > this.parentScene.viewport.y;
+        }
         else {
             check = this.position.y > this.parentScene.viewport.y;
         }
@@ -825,16 +926,26 @@ class Sand extends MovingGO {
             this.speedV2.y = 0;
             this.position.y = this.initialPosition.y;
             this.position.x = this.initialPosition.x;
-            //this.isMouth ? new V2(this.parentScene.viewport.x/2 + getRandom(-4, 4), this.parentScene.viewport.y/2+this.parentScene.viewport.y*0.035) : new V2(getRandom(0,this.parentScene.viewport.x), 1)
-            this.curvedMovement = {
-                angleInRads: 0,
-                direction: undefined,
-                speed: 0,
-                enabled: false,
-                time: 0,
-                timeMultiplier: 1/60,
-                startPoint: undefined,
-            },
+
+            if(this.initialCurvedMovement){
+                this.curvedMovement.enabled = this.initialCurvedMovement.enabled;
+                this.curvedMovement.direction = this.initialCurvedMovement.direction;
+                this.curvedMovement.angleInRads = this.initialCurvedMovement.angleInRads;
+                this.curvedMovement.speed = this.initialCurvedMovement.speed;
+                this.curvedMovement.time = 0;
+                this.speedV2 = this.initialSpeedV2.clone();
+            }
+            else {
+                this.curvedMovement = {
+                    angleInRads: 0,
+                    direction: undefined,
+                    speed: 0,
+                    enabled: false,
+                    time: 0,
+                    timeMultiplier: 1/60,
+                    startPoint: undefined,
+                }
+            }
             this.next = {
 
             }
