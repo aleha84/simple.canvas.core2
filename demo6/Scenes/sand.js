@@ -517,6 +517,9 @@ class SandScene extends Scene {
         let maxLayer = 26;
         let speedKoef, size, img, loopCount = 1;
         for(let j = -1; j < 2; j++){
+            if(j == 0)
+                continue;
+                
             for(let layer = maxLayer; layer > maxLayer - 3; layer--){
                 size =  this.sizes[maxLayer - layer];
                 switch(layer){
