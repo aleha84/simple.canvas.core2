@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    let scenesNames = ['controls', 'collisions', 'rain', 'tracks', 'sand'];
+    let scenesNames = ['controls', 'collisions', 'rain', 'tracks', 'sand', 'tank'];
 
     function sceneSelectByHashValue(){
         let sceneIndex = location.hash !== '' ? scenesNames.indexOf(location.hash.replace('#','')) : 0;
@@ -41,6 +41,11 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.scenes.cacheScene(new SandScene({
         name:'sand',
         viewport: new V2(300, 500)
+    }));
+
+    SCG.scenes.cacheScene(new TankScene({
+        name:'tank',
+        viewport: defaultViewpot
     }));
 
     sceneSelectByHashValue();

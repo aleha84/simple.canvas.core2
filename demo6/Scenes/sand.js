@@ -50,7 +50,7 @@ class SandScene extends Scene {
             return img;
         } 
 
-        this.sandGenerationTimer = createTimer(10, this.sandGenerationMethod, this, true);
+        this.sandGenerationTimer = createTimer(500, this.sandGenerationMethod, this, true);
         this.mouthWaterGenerationTimer = createTimer(50, this.mouthWaterGenerationMethod, this, true);
         this.cupWaterGenerationTimer = createTimer(100, this.cupWaterGenerationMethod, this, true);
         
@@ -119,7 +119,7 @@ class SandScene extends Scene {
                         ctx.fillRect(tlx,tly, brickSize.x, brickSize.y);
                     }
 
-                    ctx.fillStyle = '#5A5D62';
+                    ctx.fillStyle = '#7A695A';
                     for(let i = 0; i < brickSize.x*brickSize.y*0.005;i++){
                         ctx.fillRect(parseInt(getRandomInt(0, brickSize.x) + tlx),parseInt(getRandomInt(0, brickSize.y)+tly),1,1);
                     }
@@ -247,7 +247,7 @@ class SandScene extends Scene {
         this.cup = new GO({
             position: this.cupPosition,
             size: this.cupSize,
-            img: createCanvas(this.cupSize, function(ctx, size){
+            img: createCanvas(this.cupSize.divide(1.35), function(ctx, size){
                 //ctx.fillStyle = 'red';
                 let topBorderSize = new V2(size.x, size.y/4);
                 let tly = 0;
@@ -313,10 +313,10 @@ class SandScene extends Scene {
 
                 //ctx.clearRect(topBorderSize.x*1/8, 0, 5,4);
                 ctx.fillStyle= '#CECAC3';
-                ctx.fillRect(topBorderSize.x*1/8, 0, 5,5);
+                ctx.fillRect(topBorderSize.x*1/8, 0, topBorderSize.x*0.05,topBorderSize.y*0.4);
                 ctx.fillStyle= '#A49790';
-                ctx.fillRect(topBorderSize.x*7/8 - 5, 0, 5,5);
-                ctx.clearRect(topBorderSize.x/2 - 2.5, 0, 5,5);
+                ctx.fillRect(topBorderSize.x*7/8 - 5, 0, topBorderSize.x*0.05,topBorderSize.y*0.4);
+                // ctx.clearRect(topBorderSize.x/2 - 2.5, 0, 5,5);
             })
         });
 
@@ -473,7 +473,7 @@ class SandScene extends Scene {
     }
 
     getXPosition() {
-        if(getRandomInt(0,5) != 5){
+        if(false){//getRandomInt(0,5) != 5){
             return getRandom(0,this.viewport.x)
         }
         else {
@@ -517,6 +517,9 @@ class SandScene extends Scene {
         let maxLayer = 26;
         let speedKoef, size, img, loopCount = 1;
         for(let j = -1; j < 2; j++){
+            if(j == 0)
+                continue;
+                
             for(let layer = maxLayer; layer > maxLayer - 3; layer--){
                 size =  this.sizes[maxLayer - layer];
                 switch(layer){
@@ -531,11 +534,11 @@ class SandScene extends Scene {
                         case maxLayer-2:speedKoef = getRandom(0.35,0.55);break;
                     }
                     
-                    let cupPosition = new V2(this.viewport.x/2 + j*this.cupSize.x*1/3 + getRandom(-2, 2), this.cupPosition.y - this.cupSize.y/2);
+                    let cupPosition = new V2(this.viewport.x/2 + j*this.cupSize.x*1/3 + getRandom(-2, 0), this.cupPosition.y - this.cupSize.y/2 + getRandom(2,4));
                     img = this.dropGenerator2(maxLayer - layer);
                     let direction = j;//j == 0 ? -1 : 1;
-                    let speed = getRandom(2,3);
-                    let angleInRads = degreeToRadians(getRandom(-45,-35));
+                    let speed = getRandom(0,1);
+                    let angleInRads = degreeToRadians(getRandom(-45,-40));
                     let speedV2 = new V2(direction*speed*Math.cos(angleInRads), -1*(speed*Math.sin(angleInRads)));
                     if(!this.getDropItemFromCache(layer))
                         this.addGo(new Sand({
@@ -569,13 +572,13 @@ class SandScene extends Scene {
     }
 
     sandGenerationMethod(){
-        //new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035)
+        new V2(this.viewport.x/2 + getRandom(-4, 4), this.viewport.y/2+this.viewport.y*0.035)
         for(let i = 0; i < 1; i++){
             let layer = 23;
             if(!this.getDropItemFromCache(layer))
                 this.addGo(new Sand({
                     img: this.dropGenerator2(0),//this.dropGenerator(1),//this.sandImg('white'),
-                    position: new V2(this.getXPosition(), -1),
+                    position:  new V2(this.getXPosition(), -1),
                     speedKoef: getRandom(0.9,1),
                     size: this.sizes[0], 
                     layerIndex: layer
