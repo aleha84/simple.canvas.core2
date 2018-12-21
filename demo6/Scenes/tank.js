@@ -7,6 +7,7 @@ class TankScene extends Scene {
 
         super(options);
 
+        let that = this;
         this.movementSpeed = 0.5;
 
         this.trailImg = createCanvas(new V2(3,1), function(ctx, size){
@@ -25,6 +26,7 @@ class TankScene extends Scene {
             ctx.fill();
         });
 
+        this.tankConturStrokeColor = '#2C3D07';
         this.tankSize = new V2(50, 30);
         this.trailSize = new V2(2, this.tankSize.y/4);
         this.tankPosition = new V2(this.viewport.x/3, this.viewport.y/2);
@@ -32,11 +34,18 @@ class TankScene extends Scene {
             position: this.tankPosition,
             size: this.tankSize,
             bodyImg: createCanvas(this.tankSize, function(ctx, size) {
-                ctx.fillStyle = 'red';
+                ctx.fillStyle = '#5F8710';
                 ctx.fillRect(0,0, size.x, size.y);
+
+                ctx.fillStyle = '#51720D';
+                ctx.fillRect(0, 0, size.x, size.y*1/4);
+                ctx.fillRect(0, size.y*3/4, size.x, size.y*1/4);
+                ctx.strokeStyle = that.tankConturStrokeColor;
+                ctx.strokeRect(0, 0, size.x, size.y*1/4);
+                ctx.strokeRect(0, size.y*3/4, size.x, size.y*1/4);
             }),
             towerImg: createCanvas(this.tankSize, function(ctx, size) {
-                ctx.fillStyle = 'green';
+                ctx.fillStyle = 'red';
                 ctx.fillRect(size.x/4,size.y/4, size.x/4, size.y/2);
             }),
             
@@ -63,7 +72,10 @@ class TankScene extends Scene {
             img: this.cratersGenerator(new V2(50, 50)),
             size: new V2(size,size),
             position: new V2(this.viewport.x + 40,  posY),
-            speed: this.movementSpeed
+            speed: this.movementSpeed,
+            smokeGeneration: {
+                enabled: getRandomBool()
+            }
         }),9)
     }
 
@@ -87,7 +99,7 @@ class TankScene extends Scene {
         return createCanvas(craterSize, function(ctx, size){
             let up = V2.up;
 
-            let degreeStep = 20;
+            let degreeStep = getRandomInt(15,25);
             let currentAngleDegree = 0;
             let maxR = size.x/2;
             let midR = maxR*0.75;
@@ -195,17 +207,36 @@ class Tank extends GO {
 
         super(options);
 
-        this.addChild(new GO({
+        this.body = new GO({
             size: this.size.clone(),
             position: new V2(),
             img: this.bodyImg
-        }));
+        });
 
-        this.addChild(new GO({
+        this.addChild(this.body);
+
+        this.tower = new GO({
             size: this.size.clone(),
             position: new V2(),
             img: this.towerImg
-        }));
+        });
+
+        this.addChild(this.tower);
+
+        this.rearBevel = new GO({
+            size: new V2(this.size.x/8, this.size.y),
+            position: new V2(-this.size.x*7/16),
+            img: createCanvas(new V2(this.size.x/8,this.size.y), function(ctx, size){
+                ctx.fillStyle = '#425B0B';
+                ctx.fillRect(0,0, size.x, size.y);
+            })
+        })
+
+        this.addChild(this.rearBevel);
+    }
+
+    internalRender() {
+        draw(this.context, { strokeStyle: 'white', points: [this.renderBox.topLeft, this.renderBox.topRight, this.renderBox.bottomRight, this.renderBox.bottomLeft] });
     }
 }
 
@@ -228,6 +259,7 @@ class Crater extends MovingGO {
     constructor(options = {}) {
         options = assignDeep({}, {
             smokeGeneration: {
+                enabled: true,
                 maxLayer: 50,
                 minLayer: 40,
                 currentLayer: 50,
@@ -243,7 +275,8 @@ class Crater extends MovingGO {
         super(options);
 
         this.setDestination(new V2(-1, this.position.y));
-        this.smokeGenerationTimer = createTimer(this.smokeGeneration.generationSpeed, this.smokeGenerationTimerMethod, this, true);
+        if(this.smokeGeneration.enabled)
+            this.smokeGenerationTimer = createTimer(this.smokeGeneration.generationSpeed, this.smokeGenerationTimerMethod, this, true);
     }
 
     smokeGenerationTimerMethod() {
@@ -267,7 +300,7 @@ class Crater extends MovingGO {
     }
 
     internalRender() {
-        draw(this.context, { strokeStyle: 'white', points: [this.renderBox.topLeft, this.renderBox.topRight, this.renderBox.bottomRight, this.renderBox.bottomLeft] });
+        //draw(this.context, { strokeStyle: 'white', points: [this.renderBox.topLeft, this.renderBox.topRight, this.renderBox.bottomRight, this.renderBox.bottomLeft] });
     }
 }
 
