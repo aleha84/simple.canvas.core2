@@ -396,8 +396,17 @@ function draw(ctx, props) {
 
   if(props.strokeStyle){
     ctx.lineWidth = props.lineWidth;
-    ctx.strokeStyle = props.strokeStyle;
-    ctx.stroke();
+    if(isArray(props.strokeStyle)){
+      for(let i = 0; i < props.strokeStyle.length;i++){
+        ctx.strokeStyle = props.strokeStyle[i];
+        ctx.stroke();
+      }
+    }
+    else {
+      ctx.strokeStyle = props.strokeStyle;
+      ctx.stroke();
+    }
+    
   }
   
 
