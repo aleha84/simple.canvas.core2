@@ -21,6 +21,13 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new KaambezoneScene({
+        name:'kaambezone',
+        viewport: defaultViewpot
+    }));
+
+    
+
     sceneSelectByHashValue();
     
     SCG.main.start();
