@@ -13,6 +13,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.globals.version = 0.1;
 
+    SCG.src = {
+        person: 'images/person_small.png',
+        personHeadless: 'images/person_small_headless.png',
+        back: 'images/back1.jpg',
+        head: 'images/head.png'
+	}
+
     debugger;
     
     let defaultViewpot = new V2(500,300);

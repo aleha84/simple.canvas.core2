@@ -1,33 +1,42 @@
 class KaambezoneScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
-            
+            debugging: {
+                enabled: true,
+                font: (25*SCG.viewport.scale) + 'px Arial',
+                textAlign: 'left',
+                fillStyle: 'red',
+                position: new V2(20*SCG.viewport.scale, 20*SCG.viewport.scale),
+                
+                createdSf: 0
+            }
         }, options)
 
         super(options);
 
         this.snowflakes = [];
+        this.snowFlakesColors = [ 'EBE2E3', 'D6D1CE', 'C2C0C1', 'C8D9E9', 'B5C7DF', '96AFD8'];
         this.snowFlakesLayers = [
             {
                 layer: 10,
-                count: 1,
+                count: 3,
                 size: new V2(2,2),
                 speedKoef: 1,
-                img: this.snowflakeImgGenerator(1)
+                img:() => this.snowflakeImgGenerator(1)
             },
             {
                 layer: 8,
-                count: 3,
+                count: 6,
                 size: new V2(1.5,1.5),
                 speedKoef: 0.75,
-                img: this.snowflakeImgGenerator(0.75)
+                img:() => this.snowflakeImgGenerator(0.75)
             },
             {
                 layer: 7,
-                count: 6,
+                count: 9,
                 size: new V2(1,1),
                 speedKoef: 0.5,
-                img: this.snowflakeImgGenerator(0.5)
+                img:() => this.snowflakeImgGenerator(0.5)
             }
         ]
         this.snowflakesCache = [];
@@ -57,7 +66,13 @@ class KaambezoneScene extends Scene {
             direction: 1
         }
 
+        
+
         this.windDirection = new V2(0,1).rotate(0);
+
+        this.addGo(new Person({
+            position: new V2(this.viewport.x/2, this.viewport.y*3/5)
+        }), 9)
 
         this.snowflakeGenerationTimer = createTimer(50, this.snowflakeGenerationTimerMethod, this, true);
         //this.snowflakesSpeedIncreaseTimer = createTimer(1000, this.snowflakesSpeedIncreaseTimerMethod, this, false);
@@ -78,8 +93,9 @@ class KaambezoneScene extends Scene {
         }
 
         if(wv.current > wv.max){
-            wv.current = wv.max;
-            wv.direction = -1;
+            this.windIncreaseTimer = undefined;
+            // wv.current = wv.max;
+            // wv.direction = -1;
         }
     }
 
@@ -136,7 +152,13 @@ class KaambezoneScene extends Scene {
                     let isUp =  getRandomInt(0,3) == 3;
         
                     if(!isUp){
-                        position = new V2(getRandom(-this.viewport.x, -1), getRandom(-this.viewport.y*0.9, this.viewport.y*0.7))
+                        if(getRandomInt(0,3) == 3){
+                            position = new V2(getRandom(-this.viewport.x, -1), getRandom(this.viewport.y*0.7, this.viewport.y*0.95))
+                        }
+                        else {
+                            position = new V2(getRandom(-this.viewport.x, -1), getRandom(-this.viewport.y*0.9, this.viewport.y*0.7))
+                        }
+                        
                     }
                     else 
                         position = new V2(getRandom(0, this.viewport.x*0.9),-1);
@@ -144,7 +166,7 @@ class KaambezoneScene extends Scene {
                     this.snowflakes.push(
                         this.addGo(new Snowflake({
                             layer: layerInfo.layer,
-                            img: layerInfo.img,//this.snowflakeImgGenerator(1),
+                            img: layerInfo.img(),//this.snowflakeImgGenerator(1),
                             position: position,
                             destination: position.add(this.windDirection.mul(this.viewport.y*2)), //new V2(this.viewport.x, this.viewport.y),
                             size: layerInfo.size,//this.snowflakeSize.clone(),
@@ -155,7 +177,9 @@ class KaambezoneScene extends Scene {
                                 k2: getRandom(0.9, 1.1),
                                 sin: getRandomBool()
                             }
-                    }), layerInfo.layer))
+                    }), layerInfo.layer));
+
+                    this.debugging.createdSf++;
                 }
             }
         }
@@ -163,9 +187,12 @@ class KaambezoneScene extends Scene {
         
     }
 
+    
+
     snowflakeImgGenerator(opacity) {
+        let color = hexToRgb(this.snowFlakesColors[getRandomInt(0, this.snowFlakesColors.length-1)]);
         return createCanvas(new V2(20, 20), function(innerCtx, size){
-            innerCtx.fillStyle=`rgba(255,255,255,${opacity})`;
+            innerCtx.fillStyle=`rgba(${color},${opacity})`;
             drawFigures(innerCtx, [[new V2(0,5), new V2(5,0), new V2(15,0), new V2(20,5), new V2(20,15), new V2(15,20), new V2(5,20), new V2(0,15), new V2(0,5)]])
             innerCtx.fill();
         });
@@ -180,8 +207,49 @@ class KaambezoneScene extends Scene {
     }
 
     backgroundRender(){
-        SCG.contexts.background.fillStyle = 'black';
-        SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+        // SCG.contexts.background.fillStyle = 'black';
+        // SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+        SCG.contexts.background.drawImage(SCG.images.back, 0,0,SCG.viewport.real.width,SCG.viewport.real.height)
+    }
+
+    afterMainWork(now){
+        if(this.debugging.enabled){
+
+            let ctx = SCG.contexts.main;
+
+            ctx.font = this.debugging.font;
+            ctx.textAlign = this.debugging.textAlign;
+            ctx.fillStyle = this.debugging.fillStyle;
+            
+            ctx.fillText(SCG.main.performance.fps, this.debugging.position.x, this.debugging.position.y);
+
+            ctx.fillText('Created sf: ' + this.debugging.createdSf, this.debugging.position.x, this.debugging.position.y+50);
+            
+        }
+        
+    }
+}
+
+class Person extends GO {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            //imgPropertyName: 'personHeadless',
+            size: new V2(140, 500).divide(2)
+        }, options)
+
+        super(options);
+
+        this.addChild(new GO({
+            size: new V2(92, 88).divide(1.8),
+            position: new V2(-this.size.x*1/20, -this.size.y*8/20),
+            imgPropertyName: 'head'
+        }))
+
+        this.addChild(new GO({
+            size: this.size.clone(),
+            imgPropertyName: 'personHeadless',
+            position: new V2()
+        }))
     }
 }
 
