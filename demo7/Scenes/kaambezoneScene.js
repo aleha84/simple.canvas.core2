@@ -15,25 +15,33 @@ class KaambezoneScene extends Scene {
         super(options);
 
         this.snowflakes = [];
-        this.snowFlakesColors = [ 'EBE2E3', 'D6D1CE', 'C2C0C1', 'C8D9E9', 'B5C7DF', '96AFD8'];
+        this.snowFlakesColors = //[ 'EBE2E3', 'D6D1CE', 'C2C0C1', 'C8D9E9', 'B5C7DF', '96AFD8'];
+        //['BCB7B7', '8E8C8A', '898889', '97A4AF', '8E9BAD', '7B8FAF'];
+        ['2F8DB3', '5BA5C2', '8DC6D9', 'E5F4F9', 'FFFFFF']
         this.snowFlakesLayers = [
             {
                 layer: 10,
-                count: 3,
+                count: 1,
+                countWind: 3,
+                countMax: 10,
                 size: new V2(2,2),
                 speedKoef: 1,
                 img:() => this.snowflakeImgGenerator(1)
             },
             {
                 layer: 8,
-                count: 6,
+                count: 2,
+                countWind: 6,
+                countMax: 12,
                 size: new V2(1.5,1.5),
                 speedKoef: 0.75,
                 img:() => this.snowflakeImgGenerator(0.75)
             },
             {
                 layer: 7,
-                count: 9,
+                count: 3,
+                countWind: 9,
+                countMax: 18,
                 size: new V2(1,1),
                 speedKoef: 0.5,
                 img:() => this.snowflakeImgGenerator(0.5)
@@ -58,25 +66,51 @@ class KaambezoneScene extends Scene {
             direction: 1
         }
 
+        this.windStarted = false;
+        this.windMax = false;
         this.windPower = {
             current: 0,
-            step: 0.01,
+            step: 0.1,
             min: 0,
-            max: 5,
+            max: 3,
             direction: 1
         }
 
-        
+        this.timings = {
+            startWind: 1000,
+            sadFace: 5000,
+            sadFaceHooded: 3000,
+            faceHooded: 6000,
+            glasses: 3000
+        }        
 
         this.windDirection = new V2(0,1).rotate(0);
 
-        this.addGo(new Person({
+        this.person = this.addGo(new Person({
             position: new V2(this.viewport.x/2, this.viewport.y*3/5)
         }), 9)
 
-        this.snowflakeGenerationTimer = createTimer(50, this.snowflakeGenerationTimerMethod, this, true);
+        this.addGo(new GO({
+            position: new V2(this.viewport.x*15/16, this.viewport.y/2),
+            size: new V2(this.viewport.x*1/8, this.viewport.y),
+            //img: createCanvas(new V2(1,1), function(ctx, size) {  ctx.fillStyle = 'red', ctx.fillRect(0,0, size.x, size.y) }),
+            handlers: {
+                click: () => {
+                    this.startWindTimer = createTimer(this.timings.startWind, () => {
+                        this.startWindTimer = undefined;
+                        this.windIncreaseTimer = createTimer(100, this.windIncreaseTimerMethod, this, false);
+                        this.windStarted = true;
+                        this.snowflakeGenerationTimer.originDelay = 50;
+                        this.person.initEffects();
+                    }, this, true);
+                }
+            }
+        }))
+
+        this.snowflakeGenerationTimer = createTimer(150, this.snowflakeGenerationTimerMethod, this, true);
         //this.snowflakesSpeedIncreaseTimer = createTimer(1000, this.snowflakesSpeedIncreaseTimerMethod, this, false);
-        this.windIncreaseTimer = createTimer(100, this.windIncreaseTimerMethod, this, false);
+        
+        
     }
 
     windIncreaseTimerMethod(){
@@ -93,8 +127,8 @@ class KaambezoneScene extends Scene {
         }
 
         if(wv.current > wv.max){
-            this.windIncreaseTimer = undefined;
-            // wv.current = wv.max;
+            //this.windIncreaseTimer = undefined;
+             wv.current = wv.max;
             // wv.direction = -1;
         }
     }
@@ -109,7 +143,6 @@ class KaambezoneScene extends Scene {
             let sf = this.snowflakes[i];
             sf.destination = sf.initialPosition.add(currentWindDirection.mul(this.viewport.y*2))
         }
-
         
         wd.current += wd.direction*wd.step;
         if(wd.current < wd.min){
@@ -137,31 +170,47 @@ class KaambezoneScene extends Scene {
     snowflakeGenerationTimerMethod(){
         for(let i = 0; i < this.snowFlakesLayers.length; i++){
             let layerInfo = this.snowFlakesLayers[i];
+            let count = !this.windStarted ? layerInfo.count : layerInfo.countWind;
+            if(this.windMax){
+                count = layerInfo.countMax;
+            }
+            
+            for(let j = 0; j < count; j++){
+                let position;
 
-            for(let j = 0; j < layerInfo.count; j++){
+                if(!this.windStarted) // no wind
+                {
+                    position = new V2(getRandom(-this.viewport.x*0.2, this.viewport.x*0.9),getRandom(-this.viewport.y*0.3, this.viewport.y*0));
+                }
+                else {
+                    position = new V2(getRandom(-this.viewport.x*0.2, -1), getRandom(-this.viewport.y*0.2, this.viewport.y*0.95))
+                }
+
                 if(this.snowflakesCache[layerInfo.layer] == undefined){
                     this.snowflakesCache[layerInfo.layer] = [];
                 }
 
                 if(this.snowflakesCache[layerInfo.layer].length){
                     let sf = this.snowflakesCache[layerInfo.layer].pop();
+                    sf.position = position;
                     sf.disabled = false;
+
+                    
                 }
                 else {
-                    let position;
-                    let isUp =  getRandomInt(0,3) == 3;
+                    // let isUp =  getRandomInt(0,3) == 3;
         
-                    if(!isUp){
-                        if(getRandomInt(0,3) == 3){
-                            position = new V2(getRandom(-this.viewport.x, -1), getRandom(this.viewport.y*0.7, this.viewport.y*0.95))
-                        }
-                        else {
-                            position = new V2(getRandom(-this.viewport.x, -1), getRandom(-this.viewport.y*0.9, this.viewport.y*0.7))
-                        }
+                    // if(!isUp){
+                    //     if(getRandomInt(0,3) == 3){
+                    //         position = new V2(getRandom(-this.viewport.x, -1), getRandom(this.viewport.y*0.7, this.viewport.y*0.95))
+                    //     }
+                    //     else {
+                    //         position = new V2(getRandom(-this.viewport.x, -1), getRandom(-this.viewport.y*0.9, this.viewport.y*0.7))
+                    //     }
                         
-                    }
-                    else 
-                        position = new V2(getRandom(0, this.viewport.x*0.9),-1);
+                    // }
+                    // else 
+                    //     position = new V2(getRandom(0, this.viewport.x*0.9),-1);
         
                     this.snowflakes.push(
                         this.addGo(new Snowflake({
@@ -187,8 +236,6 @@ class KaambezoneScene extends Scene {
         
     }
 
-    
-
     snowflakeImgGenerator(opacity) {
         let color = hexToRgb(this.snowFlakesColors[getRandomInt(0, this.snowFlakesColors.length-1)]);
         return createCanvas(new V2(20, 20), function(innerCtx, size){
@@ -204,6 +251,10 @@ class KaambezoneScene extends Scene {
 
         if(this.windIncreaseTimer)
             doWorkByTimer(this.windIncreaseTimer, now);
+
+        if(this.startWindTimer){
+            doWorkByTimer(this.startWindTimer, now);
+        }
     }
 
     backgroundRender(){
@@ -239,17 +290,154 @@ class Person extends GO {
 
         super(options);
 
-        this.addChild(new GO({
-            size: new V2(92, 88).divide(1.8),
-            position: new V2(-this.size.x*1/20, -this.size.y*8/20),
-            imgPropertyName: 'head'
+        this.hood = this.addChild(new GO({
+            size: new V2(92, 88).divide(1.75),
+            position: new V2(this.size.x*5/20, -this.size.y*14/40),
+            //position: new V2(100, 100),
+            imgPropertyName: 'hood'
         }))
 
-        this.addChild(new GO({
+        this.head = this.addChild(new GO({
+            size: new V2(92, 88).divide(1.75),
+            position: new V2(-this.size.x*0/20, -this.size.y*16.5/40),
+            imgPropertyName: 'head'
+        }));
+
+        this.headSad = this.addChild(new GO({
+            size: new V2(92, 88).divide(1.75),
+            position: new V2(-this.size.x*0/20, -this.size.y*16.5/40),
+            imgPropertyName: 'headSad',
+            isVisible: false
+        }));
+
+        this.headSadHooded = this.addChild(new GO({
+            size: new V2(92, 88).divide(1.75),
+            position: new V2(-this.size.x*0/20, -this.size.y*16.5/40),
+            imgPropertyName: 'headSadHooded',
+            isVisible: false
+        }));
+
+        this.headHooded = this.addChild(new GO({
+            size: new V2(92, 88).divide(1.75),
+            position: new V2(-this.size.x*0/20, -this.size.y*16.5/40),
+            imgPropertyName: 'headHooded',
+            isVisible: false
+        }));
+
+        this.headHoodedGlasses = this.addChild(new GO({
+            size: new V2(92, 88).divide(1.75),
+            position: new V2(-this.size.x*0/20, -this.size.y*16.5/40),
+            imgPropertyName: 'headHoodedGlasses',
+            isVisible: false
+        }));
+
+        this.body = this.addChild(new GO({
             size: this.size.clone(),
             imgPropertyName: 'personHeadless',
             position: new V2()
         }))
+    }
+
+    initEffects() {
+        let ps = this.parentScene;
+
+        // this.makeSadFaceTimer = createTimer(ps.timings.sadFace, () => {
+        //     this.head.addEffect(new FadeOutEffect({
+        //         updateDelay: 50, effectTime: 500, initOnAdd: true,
+        //         completeCallback: () => {
+        //             this.head.isVisible = false;
+
+        //             this.makeSadFaceHoodedTimer = createTimer(ps.timings.sadFaceHooded, () => {
+        //                 this.hood.addEffect(new FadeOutEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true, completeCallback: () => {
+        //                     this.hood.disabled = true;
+        //                 }}));
+        //                 this.headSad.addEffect(new FadeOutEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true, 
+        //                     completeCallback: () => {
+        //                         this.headSad.disabled = true;
+
+        //                         this.makeHeadHoodedTimer = createTimer(ps.timings.faceHooded, () => {
+        //                             this.makeHeadHoodedTimer = undefined;
+        //                             this.headSadHooded.addEffect(new FadeOutEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true,
+        //                                 completeCallback: () => {
+        //                                     this.headSadHooded.disabled = true;
+
+        //                                     this.glassesTimer = createTimer(ps.timings.glasses, () => {
+        //                                         this.glassesTimer = undefined;
+
+        //                                         this.headHooded.addEffect(new FadeOutEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true,
+        //                                             completeCallback: () => {
+        //                                                 this.headHooded.disabled = true;
+        //                                             }}));
+        //                                         this.headHoodedGlasses.addEffect(new FadeInEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true}));
+        //                                         this.headHoodedGlasses.isVisible = true;
+        //                                     }, this, false);
+        //                                 }}));
+                                    
+        //                             this.headHooded.addEffect(new FadeInEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true}));
+        //                             this.headHooded.isVisible = true;
+        //                         }, this, false);
+        //                     }}));
+                        
+        //                 this.headSadHooded.addEffect(new FadeInEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true}));
+        //                 this.headSadHooded.isVisible = true;
+
+        //                 this.makeSadFaceHoodedTimer = undefined;
+        //             }, this, false)
+        //         }
+        //     }));
+        //     this.headSad.addEffect(new FadeInEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true}));
+        //     this.headSad.isVisible = true;
+
+        //     this.makeSadFaceTimer = undefined;
+        // }, this, false);
+
+        this.makeHeadHoodedTimer = createTimer(ps.timings.faceHooded, () => {
+            this.hood.addEffect(new FadeOutEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true, completeCallback: () => {
+                this.hood.disabled = true;
+            }}));
+            this.head.addEffect(new FadeOutEffect({
+                updateDelay: 50, effectTime: 500, initOnAdd: true,
+                completeCallback: () => {
+                    this.head.isVisible = false;
+                    this.head.disabled = true;
+
+                    ps.windMax = true;
+                    ps.windPower.max = 5;
+                    this.glassesTimer = createTimer(ps.timings.glasses, () => {
+                        this.glassesTimer = undefined;
+
+                        this.headHooded.addEffect(new FadeOutEffect({updateDelay: 50, effectTime: 750, initOnAdd: true, disableEffectOnComplete: true,
+                            completeCallback: () => {
+                                this.headHooded.disabled = true;
+                            }}));
+                        this.headHoodedGlasses.addEffect(new FadeInEffect({updateDelay: 50, effectTime: 250, initOnAdd: true, disableEffectOnComplete: true}));
+                        this.headHoodedGlasses.isVisible = true;
+                    }, this, false);
+                }
+            }));
+            this.headHooded.addEffect(new FadeInEffect({updateDelay: 50, effectTime: 500, initOnAdd: true, disableEffectOnComplete: true}));
+            this.headHooded.isVisible = true;
+
+            this.makeHeadHoodedTimer = undefined;
+        }, this, false);
+    }
+
+    internalUpdate(now){
+        if(this.makeSadFaceTimer){
+            doWorkByTimer(this.makeSadFaceTimer, now);
+        }
+
+        if(this.makeSadFaceHoodedTimer){
+            doWorkByTimer(this.makeSadFaceHoodedTimer, now);
+        }
+
+        if(this.makeHeadHoodedTimer){
+            doWorkByTimer(this.makeHeadHoodedTimer, now);
+        }
+
+        if(this.glassesTimer){
+            doWorkByTimer(this.glassesTimer, now);
+        }
     }
 }
 
@@ -283,6 +471,11 @@ class Snowflake extends MovingGO {
 
     destinationCompleteCheck(){
         return this.position.x > this.parentScene.viewport.x || this.position.y > this.parentScene.viewport.y;
+        // if(completed){
+        //     console.log('sf dest completed')
+        // }
+
+        //return completed;
     }
 
     setDirectionVector(){

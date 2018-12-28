@@ -9,6 +9,7 @@ class EffectBase {
             disableEffectOnComplete: false,
             startImmediately: true,
             mustRemove: false,
+            initOnAdd: false,
             workTimer: undefined,
             delayTimer: undefined
         }, options)

@@ -258,7 +258,10 @@ class GO {
             throw 'Effect must be derived from EffectBase class';
 
         this.effects.push(effect);
-        //effect.init(this);
+
+        if(effect.initOnAdd){
+            effect.init(this);
+        }
     }
 
     addChild(childGo, regEvents = false) {
@@ -277,6 +280,8 @@ class GO {
             let all = this.getAllChildren().filter(function(go){ return go.collisionDetection.enabled });
             all.map((go) => go.collisionDetection.exclude = all);
         }
+
+        return childGo;
     }
 
     removeChild(childGo) {

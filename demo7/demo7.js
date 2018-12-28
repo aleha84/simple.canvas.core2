@@ -17,7 +17,12 @@ document.addEventListener("DOMContentLoaded", function() {
         person: 'images/person_small.png',
         personHeadless: 'images/person_small_headless.png',
         back: 'images/back1.jpg',
-        head: 'images/head.png'
+        head: 'images/head.png',
+        headSad: 'images/head_sad.png',
+        hood: 'images/hood.png',
+        headSadHooded: 'images/head_sad_hooded.png',
+        headHooded: 'images/head_hooded.png',
+        headHoodedGlasses: 'images/head_hooded_glasses.png'
 	}
 
     debugger;
