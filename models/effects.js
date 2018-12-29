@@ -33,6 +33,10 @@ class EffectBase {
                 this.enabled = false;
             }
 
+            if(this.removeVisibilityOnComplete){
+                this.parent.isVisible = false;
+            }
+
             if(this.disableEffectOnComplete){
                 this.enabled = false;
             }
@@ -67,6 +71,74 @@ class EffectBase {
 
     completeCallback() {
 
+    }
+}
+
+class FadeInOutEffect extends EffectBase {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            effectTime: undefined,
+            step: 0.05,
+            current: 1,
+            updateDelay: 100,
+            originalGlobalAlpha: undefined,
+            loop: false,
+            direction: -1,
+            max: 1,
+            min: 0
+        }, options)
+
+        super(options);
+
+        if(this.effectTime) {
+            this.step = (this.max - this.min)/ (this.effectTime/this.updateDelay);
+        }
+
+        this.worksCount = this.loop ? -1 : 2;
+
+        this.workTimer = createTimer(this.updateDelay, () => {
+            if(this.completed)
+                return;
+
+            if(this.worksCount == 0){
+                this.__completeCallback();
+                return;
+            }
+
+            this.current+=this.direction*this.step;
+
+            if(this.current >= this.max){
+                this.current = this.max;
+                this.direction = -1;
+
+                if(this.worksCount != -1)
+                    this.worksCount--;
+            }
+
+            if(this.current <= this.min){
+                this.current = this.min;
+                this.direction = 1;
+
+                if(this.worksCount != -1)
+                    this.worksCount--;
+            }
+
+        }, this, this.startImmediately);
+    }
+
+    beforeRender() {
+        if(!this.enabled)
+            return;
+
+        this.originalGlobalAlpha = this.context.globalAlpha;
+        this.context.globalAlpha = this.current;
+    }
+
+    afterRender(){
+        if(!this.enabled)
+            return;
+
+        this.context.globalAlpha = this.originalGlobalAlpha;
     }
 }
 
@@ -123,13 +195,16 @@ class FadeOutEffect extends EffectBase {
             step: 0.05,
             current: 1,
             updateDelay: 100,
-            originalGlobalAlpha: undefined
+            originalGlobalAlpha: undefined,
+            max: 1
         }, options)
 
         super(options);
 
+        this.current = this.max;
+
         if(this.effectTime) {
-            this.step = 1/ (this.effectTime/this.updateDelay);
+            this.step = this.max/ (this.effectTime/this.updateDelay);
         }
 
         this.workTimer = createTimer(this.updateDelay, () => {
