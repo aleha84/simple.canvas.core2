@@ -526,6 +526,10 @@ function createCanvas(size, contextProcesser) {
 }
 
 function hexToRgb(hex, asArray = false, asObject = false) {
+  if(hex.indexOf('#') != -1){
+    hex = hex.replace('#', '');
+  }
+
   var bigint = parseInt(hex, 16);
   var r = (bigint >> 16) & 255;
   var g = (bigint >> 8) & 255;
@@ -538,6 +542,12 @@ function hexToRgb(hex, asArray = false, asObject = false) {
     return {r,g,b};
   
   return r + "," + g + "," + b;
+}
+
+function rgbToHex(r, g, b) {
+  if (r > 255 || g > 255 || b > 255)
+      throw "Invalid color component";
+    return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
 function flipX(p, xOrigin) {

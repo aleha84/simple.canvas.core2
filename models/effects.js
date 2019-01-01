@@ -7,6 +7,7 @@ class EffectBase {
             removeEffectOnComplete: false,
             setParentDeadOnComplete: false,
             disableEffectOnComplete: false,
+            removeVisibilityOnComplete: false,
             startImmediately: true,
             mustRemove: false,
             initOnAdd: false,
@@ -17,7 +18,7 @@ class EffectBase {
         if(this.startDelay > 0){
             this.enabled = false;
             this.delayTimer = createTimer(this.startDelay, 
-                () => { this.delayTimer = undefined; this.enabled = true; }, 
+                () => { this.delayTimer = undefined; this.enabled = true; this.beforeStartCallback(); }, 
                 this, false);
         }
 
@@ -28,7 +29,7 @@ class EffectBase {
                 this.parent.setDead();
             }
 
-            if(this.removeEffectOnComplete){ //TODO: test
+            if(this.removeEffectOnComplete){ 
                 this.mustRemove = true;
                 this.enabled = false;
             }
@@ -43,11 +44,17 @@ class EffectBase {
 
             this.completeCallback();
         }
+
+        this.__init = (parent) => {
+            this.parent = parent;
+            this.context = this.parent.context;
+
+            this.init();
+        }
     }
 
-    init(parent){
-        this.parent = parent;
-        this.context = this.parent.context;
+    init(){
+       
     }
 
     beforeRender(){}
@@ -72,6 +79,8 @@ class EffectBase {
     completeCallback() {
 
     }
+
+    beforeStartCallback() {}
 }
 
 class FadeInOutEffect extends EffectBase {

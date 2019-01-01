@@ -260,7 +260,7 @@ class GO {
         this.effects.push(effect);
 
         if(effect.initOnAdd){
-            effect.init(this);
+            effect.__init(this);
         }
     }
 
@@ -308,9 +308,23 @@ class GO {
         if(!this.effects.length)
             return;
 
+        let toRemove = [];
         for(let i = 0; i < this.effects.length; i++){
-            action(this.effects[i]);
+            let effect = this.effects[i];
+            action(effect);
+
+            if(effect.mustRemove){
+                toRemove.push(effect);
+            }
         }
+
+        if(toRemove.length){
+            for(let r = 0; r < toRemove.length; r++){
+                this.effects.splice(this.effects.indexOf(toRemove[r], 1));
+            }
+        }
+
+        toRemove = undefined;
     }
 
     childProcesser(action){
@@ -556,7 +570,7 @@ class GO {
             this.init(now);
 
             let that = this;
-            this.effectsProcesser((effect) => effect.init(that));
+            this.effectsProcesser((effect) => effect.__init(that));
         }
 
         this.internalPreUpdate(now);

@@ -33,6 +33,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new EffectsScene2({
+        name:'effects2',
+        viewport: defaultViewpot
+    }));
+
     SCG.scenes.cacheScene(new KaambezoneScene({
         name:'kaambezone',
         viewport: defaultViewpot
