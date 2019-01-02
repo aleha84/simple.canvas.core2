@@ -97,7 +97,7 @@ class EffectsScene2 extends Scene {
         let groundTo = this.vCount;
 
 
-        let upperLayerDelay = 2000;
+        let upperLayerDelay = 10000;
         let lowerLayerDelay = 10000;
         let addEffects = false;
         
@@ -145,6 +145,33 @@ class EffectsScene2 extends Scene {
         let sunShineSize1 = 30;
         let sunShineSize2 = 45;
 
+        let clouds = [{
+            position: new V2(this.itemSize.x*parseInt(this.hCount*1/7) + this.itemSize.x/2, this.itemSize.y*parseInt((skyTo-skyFrom)*9/12) + this.itemSize.y/2),
+            size: new V2(140, 2.5),
+            opacity: 0.5,
+        },
+        {
+            position: new V2(this.itemSize.x*parseInt(this.hCount*1/4) + this.itemSize.x/2, this.itemSize.y*parseInt((skyTo-skyFrom)*4/5) + this.itemSize.y/2),
+            size: new V2(100, 2.5),
+            opacity: 0.4,
+        }, {
+            position: new V2(this.itemSize.x*parseInt(this.hCount*4/12) + this.itemSize.x/2, this.itemSize.y*parseInt((skyTo-skyFrom)*7/8) + this.itemSize.y/2),
+            size: new V2(70, 3),
+            opacity: 0.3,
+        },
+        {
+            position: new V2(this.itemSize.x*parseInt(this.hCount*1/12) + this.itemSize.x/2, this.itemSize.y*parseInt((skyTo-skyFrom)*7/8) + this.itemSize.y/2),
+            size: new V2(10, 3),
+            opacity: 0.3,
+        },
+        {
+            position: new V2(this.itemSize.x*parseInt(this.hCount*5/12) + this.itemSize.x/2, this.itemSize.y*parseInt((skyTo-skyFrom)*9/10) + this.itemSize.y/2),
+            size: new V2(50, 3),
+            opacity: 0.25
+        }]
+
+        let cloudColors = ['CDD8EB', 'DDE0F2', 'D6D9F0', 'E6EDF2', 'CADAE1'];
+
         let randomizeColor = function(value, shift){
             value += getRandomInt(-shift, shift);
             if(value < 0)
@@ -174,6 +201,10 @@ class EffectsScene2 extends Scene {
 
                     lowerColor = darkSkyColors[parseInt(r*(darkSkyColors.length-1)/(skyTo-skyFrom))]
                     lowerColor = '#' + rgbToHex(lowerColor[0], lowerColor[1], lowerColor[2]);
+
+                    if(getRandomInt(0,7) == 7){
+                        additionalLowerColor = `skyrgba(217,247,249, ${1 - (r*1/skyTo)})`;
+                    }
                 }
                 else {
                     let upperColorRGB = dayFieldColors[parseInt((r - (skyTo + 1))*(dayFieldColors.length-1)/(groundTo-groundFrom-1))]//'#235420'
@@ -187,7 +218,7 @@ class EffectsScene2 extends Scene {
                     let lowerColorRGB = darkFieldColors[parseInt((r - (skyTo + 1))*(darkFieldColors.length-1)/(groundTo-groundFrom-1))]
                     lowerColor = '#' + rgbToHex(lowerColorRGB[0],changeG ? randomizeColor(lowerColorRGB[1], 5) : lowerColorRGB[1], lowerColorRGB[2])
                     if(changeG)
-                        additionalLowerColor = '#'+rgbToHex(lowerColorRGB[0], lowerColorRGB[1], lowerColorRGB[2])
+                        additionalLowerColor = 'rgba(76,255,0,1)'; //'#'+rgbToHex(lowerColorRGB[0], lowerColorRGB[1], lowerColorRGB[2])
                 }
 
                 //sun - moon
@@ -219,6 +250,17 @@ class EffectsScene2 extends Scene {
                         upperColor = [upperColor, 'rgba(255,255,255,0.15)']
                         lowerColor = [lowerColor, 'rgba(255,255,255,0.025)']
                     }
+
+                    for(let cloud of clouds){
+                        if(Math.abs(currentPixelPosition.x - cloud.position.x) <= cloud.size.x && Math.abs(currentPixelPosition.y - cloud.position.y) <= cloud.size.y){
+                            let color = [255,255,255];
+                            // if(getRandomInt(0,5) == 5){
+                            //     color = hexToRgb(cloudColors[getRandomInt(0, cloudColors.length-1)], true);
+                            // }
+                            upperColor = [upperColor, `rgba(${color[0]},${color[1]},${color[2]},${cloud.opacity})`];
+                        }
+                    }
+                    
                 }
 
                 pixels[r][c] = { upperColor, lowerColor, additionalUpperColor, additionalLowerColor };
@@ -239,8 +281,12 @@ class EffectsScene2 extends Scene {
                     for(let _c = 0; _c < that.realPixels.hContains; _c++){
                         let pixelColorsData = pixels[r*that.realPixels.vContains+_r][c*that.realPixels.hContains+_c];
                         
-                        if(pixelColorsData.additionalUpperColor){
+                        if(colorType == 'upperColor' && pixelColorsData.additionalUpperColor){
                             additionals.push({c: _c, r: _r, color: pixelColorsData.additionalUpperColor});
+                        }
+
+                        if(colorType == 'lowerColor' && pixelColorsData.additionalLowerColor){
+                            additionals.push({c: _c, r: _r, color: pixelColorsData.additionalLowerColor});
                         }
 
                         let colors = []
@@ -296,24 +342,35 @@ class EffectsScene2 extends Scene {
                 goUpper.addEffect(new FadeOutEffect({updateDelay: 50, effectTime: 750, startDelay: startDelay, beforeStartCallback: function(){
                     this.parent.childProcesser((child) => {child.isVisible = false; child.toggleTimer = undefined; })
                 } }));
-                //this.addGo(goUpper, 10);
+                this.addGo(goUpper, 10);
 
                 additionals = [];
                 let goLower = this.createRealPixel(r,c, realPixelCanvasSize, createImg(r, c,'lowerColor', additionals));
                 if(additionals.length){ 
                     let tl = new V2(-goLower.size.x/2, -goLower.size.y/2);
                     for(let additional of additionals){
+                        let isSky = additional.color.indexOf('sky') != -1;
+                        if(isSky){
+                            additional.color = additional.color.replace('sky', '');
+                        }
+
                         if(getRandomInt(0, 20) == 20){
                             let ch = goLower.addChild(new GO({
                                 position: tl.add(new V2(additional.c*this.itemSize.x, additional.r*this.itemSize.y)).add(this.itemSize.divide(2)),//new V2(),
                                 size: this.itemSize.clone(),
                                 img: createCanvas(new V2(1,1), function(ctx, size){
-                                    ctx.fillStyle = 'rgba(76,255,0,1)';
+                                    ctx.fillStyle = additional.color;
                                     ctx.fillRect(0,0, size.x, size.y);
                                 })
                             }))
 
-                            ch.addEffect(new FadeInOutEffect({updateDelay: 50, effectTime: getRandomInt(500,2000), loop: true, max: 0.8, min: 0.1}))
+                            let max = r* 1/realVCount;
+                            let min = getRandom(0, max/2);
+                            if(isSky){
+                                max = 1;
+                                min = 0.5;
+                            }
+                            ch.addEffect(new FadeInOutEffect({updateDelay: 50, effectTime:isSky ? getRandomInt(2000, 5000) : getRandomInt(500,2000), loop: true, max: max, min: min}))
                         }
                             
                     }
