@@ -345,7 +345,8 @@ function draw(ctx, props) {
     points: [],
     isDeltas: false,
     closePath: true,
-    lineWidth: 1
+    lineWidth: 1,
+    lineCap: undefined
   }, props);
 
   if(props.points.length < 2)
@@ -354,6 +355,7 @@ function draw(ctx, props) {
   let oldLineWidth = ctx.lineWidth;
   let oldStrokeStyle = ctx.strokeStyle;
   let oldFillStyle = ctx.fillStyle;
+  let oldLineCap = ctx.lineCap;
 
   ctx.beginPath();
 
@@ -396,6 +398,7 @@ function draw(ctx, props) {
 
   if(props.strokeStyle){
     ctx.lineWidth = props.lineWidth;
+    ctx.lineCap = props.lineCap;
     if(isArray(props.strokeStyle)){
       for(let i = 0; i < props.strokeStyle.length;i++){
         ctx.strokeStyle = props.strokeStyle[i];
@@ -413,6 +416,7 @@ function draw(ctx, props) {
   ctx.lineWidth = oldLineWidth;
   ctx.strokeStyle = oldStrokeStyle;
   ctx.fillStyle = oldFillStyle;
+  ctx.lineCap = oldLineCap;
 }
 
 function drawFigures(ctx, points, alpha){
