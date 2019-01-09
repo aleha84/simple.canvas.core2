@@ -13,199 +13,202 @@ class InfoScreenScene extends Scene {
             size: new V2(this.viewport.x/3, this.viewport.y*0.7),
             position: new V2(this.viewport.x/2, this.viewport.y/2),
             gridOptions: {
-                enabled: false,
                 linesCount: {
-                    v: 10,
+                    v: 0,
                     h: 3
-                }
+                },
+                linesColor: 'rgba(38,127,0,0.15)'
             }
         }));
 
-        this.textRows = [];
-        this.textRows.push(this.mainScreen.addChild(new AppearingText({
-            repeat: false,
-            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 20) ,
-            size: new V2(50, 15),
-            textValue: ['Low quality text'],
-            cursorOptions: {
-                size: new V2(5,10),
-                startDelay: 1500
-            },
-            letter: {
-                spacing: 0.5,
-                quality: 'low'
-            }
-        })));
+        // text appearance demo
+{
+        // this.textRows = [];
+        // this.textRows.push(this.mainScreen.addChild(new AppearingText({
+        //     repeat: false,
+        //     position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 20) ,
+        //     size: new V2(50, 15),
+        //     textValue: ['Low quality text'],
+        //     cursorOptions: {
+        //         size: new V2(5,10),
+        //         startDelay: 1500
+        //     },
+        //     letter: {
+        //         spacing: 0.5,
+        //         quality: 'low'
+        //     }
+        // })));
 
-        this.textRows.push(this.mainScreen.addChild(new AppearingText({
-            repeat: false,
-            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 40) ,
-            size: new V2(50, 15),
-            textValue: ['Medium quality text'],
-            cursorOptions: {
-                size: new V2(5,10),
-                startDelay: 1500,
-                spacing: 4
-            },
-            letter: {
-                spacing: 0.5,
-                quality: 'medium'
-            }
-        })));
+        // this.textRows.push(this.mainScreen.addChild(new AppearingText({
+        //     repeat: false,
+        //     position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 40) ,
+        //     size: new V2(50, 15),
+        //     textValue: ['Medium quality text'],
+        //     cursorOptions: {
+        //         size: new V2(5,10),
+        //         startDelay: 1500,
+        //         spacing: 4
+        //     },
+        //     letter: {
+        //         spacing: 0.5,
+        //         quality: 'medium'
+        //     }
+        // })));
 
-        this.textRows.push(this.mainScreen.addChild(new AppearingText({
-            repeat: false,
-            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 60) ,
-            size: new V2(50, 15),
-            textValue: ['High quality text'],
-            cursorOptions: {
-                size: new V2(5,10),
-                startDelay: 1500,
-                spacing: 3
-            },
-            letter: {
-                spacing: 0.5, quality: 'high'
-            }
-        })));
+        // this.textRows.push(this.mainScreen.addChild(new AppearingText({
+        //     repeat: false,
+        //     position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 60) ,
+        //     size: new V2(50, 15),
+        //     textValue: ['High quality text'],
+        //     cursorOptions: {
+        //         size: new V2(5,10),
+        //         startDelay: 1500,
+        //         spacing: 3
+        //     },
+        //     letter: {
+        //         spacing: 0.5, quality: 'high'
+        //     }
+        // })));
 
-        this.textRows.push(this.mainScreen.addChild(new AppearingText({
-            repeat: true,
-            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 80) ,
-            size: new V2(50, 15),
-            textValue: ['First part of text', 'Second part of text', 'Third part of text.', 'Repeat...'],
-            cursorOptions: {
-                size: new V2(5,10),
-                startDelay: 1500,
-                spacing: 3,
-                backSpeed: 5
-            },
-            letter: {
-                spacing: 0.5,
-                quality: 'medium'
-            }
-        })));
+        // this.textRows.push(this.mainScreen.addChild(new AppearingText({
+        //     repeat: true,
+        //     position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 80) ,
+        //     size: new V2(50, 15),
+        //     textValue: ['First part of text', 'Second part of text', 'Third part of text.', 'Repeat...'],
+        //     cursorOptions: {
+        //         size: new V2(5,10),
+        //         startDelay: 1500,
+        //         spacing: 3,
+        //         backSpeed: 5
+        //     },
+        //     letter: {
+        //         spacing: 0.5,
+        //         quality: 'medium'
+        //     }
+        // })));
 
-        this.textRows.push(this.mainScreen.addChild(new AppearingText({
-            repeat: true,
-            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 100) ,
-            size: new V2(50, 15),
-            textValue: ['Fade-in effect on letters'],
-            cursorOptions: {
-                size: new V2(5,10),
-                startDelay: 1500,
-                spacing: 3,
-                backSpeed: 5
-            },
-            letter: {
-                spacing: 0.5,
-                quality: 'medium',
-                effects: ['fadein']
-            }
-        })));
+        // this.textRows.push(this.mainScreen.addChild(new AppearingText({
+        //     repeat: true,
+        //     position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 100) ,
+        //     size: new V2(50, 15),
+        //     textValue: ['Fade-in effect on letters'],
+        //     cursorOptions: {
+        //         size: new V2(5,10),
+        //         startDelay: 1500,
+        //         spacing: 3,
+        //         backSpeed: 5
+        //     },
+        //     letter: {
+        //         spacing: 0.5,
+        //         quality: 'medium',
+        //         effects: ['fadein']
+        //     }
+        // })));
 
-        this.textRows.push(this.mainScreen.addChild(new AppearingText({
-            repeat: true,
-            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 120) ,
-            size: new V2(50, 15),
-            textValue: ['Thin and often blinking cursor'],
-            cursorOptions: {
-                size: new V2(1,10),
-                startDelay: 1500,
-                spacing: 3,
-                backSpeed: 5,
-                blink: {
-                    interval: 100
-                }
-            },
-            letter: {
-                spacing: 0.1,
-                quality: 'medium'
-            }
-        })));
+        // this.textRows.push(this.mainScreen.addChild(new AppearingText({
+        //     repeat: true,
+        //     position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 120) ,
+        //     size: new V2(50, 15),
+        //     textValue: ['Thin and often blinking cursor'],
+        //     cursorOptions: {
+        //         size: new V2(1,10),
+        //         startDelay: 1500,
+        //         spacing: 3,
+        //         backSpeed: 5,
+        //         blink: {
+        //             interval: 100
+        //         }
+        //     },
+        //     letter: {
+        //         spacing: 0.1,
+        //         quality: 'medium'
+        //     }
+        // })));
 
-        this.textRows.push(this.mainScreen.addChild(new AppearingText({
-            repeat: true,
-            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 140) ,
-            size: new V2(50, 15),
-            textValue: ['Hurry!', 'Faster!', 'We are late! '],
-            textChangeDelay: 500,
-            cursorOptions: {
-                size: new V2(1,10),
-                startDelay: 500,
-                spacing: 3,
-                speed: 5,
-                backSpeed: 7,
-                blink: {
-                    interval: 100
-                }
-            },
-            letter: {
-                spacing: 0.1,
-                quality: 'medium'
-            }
-        })));
+        // this.textRows.push(this.mainScreen.addChild(new AppearingText({
+        //     repeat: true,
+        //     position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 140) ,
+        //     size: new V2(50, 15),
+        //     textValue: ['Hurry!', 'Faster!', 'We are late! '],
+        //     textChangeDelay: 500,
+        //     cursorOptions: {
+        //         size: new V2(1,10),
+        //         startDelay: 500,
+        //         spacing: 3,
+        //         speed: 5,
+        //         backSpeed: 7,
+        //         blink: {
+        //             interval: 100
+        //         }
+        //     },
+        //     letter: {
+        //         spacing: 0.1,
+        //         quality: 'medium'
+        //     }
+        // })));
 
-        this.textRows.push(this.mainScreen.addChild(new AppearingText({
-            repeat: true,
-            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 170) ,
-            size: new V2(50, 15),
-            textValue: ['I am big', 'Slow', 'And lazy'],
-            textChangeDelay: 5000,
-            cursorOptions: {
-                startDelay: 1500,
-                size: new V2(3,18),
-                spacing: 3,
-                speed: 0.5,
-                backSpeed: 2,
-                blink: {
-                    interval: 500
-                }
-            },
-            letter: {
-                spacing: 0.3,
-                quality: 'medium',
-                fontSize: 20,
-                height: 25,
-                effects: ['fadein']
-            }
-        })));
+        // this.textRows.push(this.mainScreen.addChild(new AppearingText({
+        //     repeat: true,
+        //     position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 170) ,
+        //     size: new V2(50, 15),
+        //     textValue: ['I am big', 'Slow', 'And lazy'],
+        //     textChangeDelay: 5000,
+        //     cursorOptions: {
+        //         startDelay: 1500,
+        //         size: new V2(3,18),
+        //         spacing: 3,
+        //         speed: 0.5,
+        //         backSpeed: 2,
+        //         blink: {
+        //             interval: 500
+        //         }
+        //     },
+        //     letter: {
+        //         spacing: 0.3,
+        //         quality: 'medium',
+        //         fontSize: 20,
+        //         height: 25,
+        //         effects: ['fadein']
+        //     }
+        // })));
 
-        this.addClearText = createTimer(20000, () => {
-            this.addClearText = undefined;
+        // this.addClearText = createTimer(20000, () => {
+        //     this.addClearText = undefined;
 
-            this.textRows.push(this.mainScreen.addChild(new AppearingText({
-                repeat: false,
-                position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 200) ,
-                size: new V2(50, 15),
-                textValue: ['Clear all in', '3', '2', '1', '...'],
-                textChangeDelay: 500,
-                cursorOptions: {
-                    size: new V2(1,10),
-                    startDelay: 500,
-                    spacing: 3,
-                    backSpeed: 5,
-                    blink: {
-                        colors: ['#FF0000']
-                    }
-                },
-                letter: {
-                    spacing: 0.5,
-                    quality: 'high',
-                    colors: ['#FF0000']
-                }
-            })));
-        }, this, false)
+        //     this.textRows.push(this.mainScreen.addChild(new AppearingText({
+        //         repeat: false,
+        //         position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 200) ,
+        //         size: new V2(50, 15),
+        //         textValue: ['Clear all in', '3', '2', '1', '...'],
+        //         textChangeDelay: 500,
+        //         cursorOptions: {
+        //             size: new V2(1,10),
+        //             startDelay: 500,
+        //             spacing: 3,
+        //             backSpeed: 5,
+        //             blink: {
+        //                 colors: ['#FF0000']
+        //             }
+        //         },
+        //         letter: {
+        //             spacing: 0.5,
+        //             quality: 'high',
+        //             colors: ['#FF0000']
+        //         }
+        //     })));
+        // }, this, false)
 
 
-        this.clearTextTimer = createTimer(27500, () => {
-            this.clearTextTimer = undefined;
-            for(let i = 0;i < this.textRows.length;i++){
-                this.textRows[i].clear();
-                this.textRows[i].cursor.addEffect(new SizeInEffect({updateDelay: 40, effectTime: 1000, startDelay: 2000, dimension: 'y', initOnAdd: true}))
-            }
-        }, this, false)
+        // this.clearTextTimer = createTimer(27500, () => {
+        //     this.clearTextTimer = undefined;
+        //     for(let i = 0;i < this.textRows.length;i++){
+        //         this.textRows[i].clear();
+        //         this.textRows[i].cursor.addEffect(new SizeInEffect({updateDelay: 40, effectTime: 1000, startDelay: 2000, dimension: 'y', initOnAdd: true}))
+        //     }
+        // }, this, false)
     }
 
+    }
     backgroundRender(){
         SCG.contexts.background.fillStyle = 'black';
         SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
@@ -551,6 +554,9 @@ class Screen extends GO {
             backlightOptions: {
                 enabled: true,
                 color: 'FFFFFF',
+                size: new V2(0.125, 0.125)
+            },
+            bordersOptions: {
                 size: new V2(0.1, 0.1)
             }
         }, options);
@@ -627,7 +633,102 @@ class Screen extends GO {
                 right: undefined
             };
 
+            let color = hexToRgb(this.backlightOptions.color, true);
+            let setCtx = function(ctx, grd, size){
+                grd.addColorStop(0, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.25)`)
+                grd.addColorStop(0.2, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.15)`)
+                grd.addColorStop(1, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0)`)
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0, size.x, size.y);
+            }
+            this.backlights.left = this.addChild(new GO({
+                position: new V2(-this.size.x/2 + this.size.x*this.backlightOptions.size.x/2, 0),
+                size: new V2(this.size.x*this.backlightOptions.size.x, this.size.y),
+                img: createCanvas(new V2(20, 1), function(ctx, size){
+                    let grd = ctx.createLinearGradient(0, 0, size.x, 0);
+                    setCtx(ctx, grd, size);
+                })
+            }));
 
+            this.backlights.right = this.addChild(new GO({
+                position: new V2(this.size.x/2 - this.size.x*this.backlightOptions.size.x/2, 0),
+                size: new V2(this.size.x*this.backlightOptions.size.x, this.size.y),
+                img: createCanvas(new V2(20, 1), function(ctx, size){
+                    let grd = ctx.createLinearGradient(size.x, 0, 0, 0);
+                    setCtx(ctx, grd, size);
+                })
+            }));
+
+            this.backlights.top = this.addChild(new GO({
+                position: new V2(0, -this.size.y/2 + this.size.y*this.backlightOptions.size.y/2),
+                size: new V2(this.size.x, this.size.y*this.backlightOptions.size.y),
+                img: createCanvas(new V2(1, 20), function(ctx, size){
+                    let grd = ctx.createLinearGradient(0, 0, 0, size.y);
+                    setCtx(ctx, grd, size);
+                })
+            }))
+
+            this.backlights.bottom = this.addChild(new GO({
+                position: new V2(0, this.size.y/2 - this.size.y*this.backlightOptions.size.y/2),
+                size: new V2(this.size.x, this.size.y*this.backlightOptions.size.y),
+                img: createCanvas(new V2(1, 20), function(ctx, size){
+                    let grd = ctx.createLinearGradient(0, size.y, 0, 0);
+                    setCtx(ctx, grd, size);
+                })
+            }))
+        }
+
+        this.borders = {
+            left: this.addChild(new GO({
+                position: new V2(-this.size.x/2, 0),
+                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y*9),
+                img: createCanvas(new V2(20, 1), function(ctx, size){
+                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);
+                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y);
+                    // let grd = ctx.createLinearGradient(0,0, size.x, 0); grd.addColorStop(0, 'rgba(255,255,255, 0.35)');grd.addColorStop(1, 'rgba(0,0,0, 0.35)');
+                    //ctx.fillStyle = grd; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = 'rgba(0,0,255,0.25)'; ctx.fillRect(size.x/2 - 1, 0, 2, 1);
+                })
+            })),
+            right: this.addChild(new GO({
+                position: new V2(this.size.x/2, 0),
+                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y*9),
+                img: createCanvas(new V2(20, 1), function(ctx, size){
+                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);
+                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y);
+                    ctx.fillStyle = 'rgba(0,0,255,0.25)'; ctx.fillRect(size.x/2 - 1, 0, 2, 1);
+                })
+            })),
+            top: this.addChild(new GO({
+                position: new V2(0, -this.size.y/2),
+                size: new V2(this.size.x*this.bordersOptions.size.x*9, this.size.y*this.bordersOptions.size.y),
+                img: createCanvas(new V2(1, 20), function(ctx, size){
+                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x,size.y*0.25);
+                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75,size.x,size.y*0.25);
+                    ctx.fillStyle = 'rgba(0,0,255,0.25)'; ctx.fillRect(0, size.y/2 - 1, 1, 2);
+                })
+            })),
+            bottom: this.addChild(new GO({
+                position: new V2(0, this.size.y/2),
+                size: new V2(this.size.x*this.bordersOptions.size.x*9, this.size.y*this.bordersOptions.size.y),
+                img: createCanvas(new V2(1, 20), function(ctx, size){
+                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x,size.y*0.25);
+                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75,size.x,size.y*0.25);
+                    ctx.fillStyle = 'rgba(0,0,255,0.25)'; ctx.fillRect(0, size.y/2 - 1, 1, 2);
+                })
+            })),
+            topLeft: this.addChild(new GO({
+                position: new V2(-this.size.x/2, -this.size.y/2),
+                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y),
+                img: createCanvas(new V2(20, 20), function(ctx, size){
+                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);ctx.fillRect(size.x*0.25,0, size.x*0.75, size.y*0.25);
+                })
+            }))
         }
     }
 }
