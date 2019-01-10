@@ -214,6 +214,8 @@ class Scene {
         
         if(!props.space)
             this.space = this.viewport;
+
+        this.sceneCenter = new V2(this.viewport.x/2, this.viewport.y/2);
     }
 
     addUIGo(go) {

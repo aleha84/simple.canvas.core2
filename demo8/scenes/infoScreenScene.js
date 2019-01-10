@@ -557,7 +557,12 @@ class Screen extends GO {
                 size: new V2(0.125, 0.125)
             },
             bordersOptions: {
-                size: new V2(0.1, 0.1)
+                width: 0.1,
+                size: new V2(0.1, 0.1),
+                widthSizeDimension: 'x',
+                color: '#6A7334',
+                additionalColor: '#512F24',
+                junctionColor: '#6A7334'
             }
         }, options);
 
@@ -678,55 +683,103 @@ class Screen extends GO {
             }))
         }
 
+        let sideSize = new V2(this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width, this.size.y - this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width);
+        let cornerSize = new V2(this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width, this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width);
         this.borders = {
             left: this.addChild(new GO({
                 position: new V2(-this.size.x/2, 0),
-                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y*9),
-                img: createCanvas(new V2(20, 1), function(ctx, size){
-                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
-                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);
-                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y);
-                    // let grd = ctx.createLinearGradient(0,0, size.x, 0); grd.addColorStop(0, 'rgba(255,255,255, 0.35)');grd.addColorStop(1, 'rgba(0,0,0, 0.35)');
-                    //ctx.fillStyle = grd; ctx.fillRect(0,0, size.x, size.y);
-                    ctx.fillStyle = 'rgba(0,0,255,0.25)'; ctx.fillRect(size.x/2 - 1, 0, 2, 1);
+                size: sideSize,
+                img: createCanvas(sideSize, function(ctx, size){
+                    let img = createCanvas(new V2(20, 1), function(ctx, size){
+                        ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                        ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);
+                        ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y);
+                        ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2 - 1, 0, 2, 1);
+                    });
+
+                    ctx.drawImage(img, 0,0, size.x-1, size.y-1);
                 })
             })),
             right: this.addChild(new GO({
                 position: new V2(this.size.x/2, 0),
                 size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y*9),
                 img: createCanvas(new V2(20, 1), function(ctx, size){
-                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
                     ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);
                     ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y);
-                    ctx.fillStyle = 'rgba(0,0,255,0.25)'; ctx.fillRect(size.x/2 - 1, 0, 2, 1);
+                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2 - 1, 0, 2, 1);
                 })
             })),
             top: this.addChild(new GO({
                 position: new V2(0, -this.size.y/2),
                 size: new V2(this.size.x*this.bordersOptions.size.x*9, this.size.y*this.bordersOptions.size.y),
                 img: createCanvas(new V2(1, 20), function(ctx, size){
-                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
                     ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x,size.y*0.25);
                     ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75,size.x,size.y*0.25);
-                    ctx.fillStyle = 'rgba(0,0,255,0.25)'; ctx.fillRect(0, size.y/2 - 1, 1, 2);
+                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(0, size.y/2 - 1, 1, 2);
                 })
             })),
             bottom: this.addChild(new GO({
                 position: new V2(0, this.size.y/2),
                 size: new V2(this.size.x*this.bordersOptions.size.x*9, this.size.y*this.bordersOptions.size.y),
                 img: createCanvas(new V2(1, 20), function(ctx, size){
-                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
                     ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x,size.y*0.25);
                     ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75,size.x,size.y*0.25);
-                    ctx.fillStyle = 'rgba(0,0,255,0.25)'; ctx.fillRect(0, size.y/2 - 1, 1, 2);
+                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(0, size.y/2 - 1, 1, 2);
                 })
             })),
             topLeft: this.addChild(new GO({
                 position: new V2(-this.size.x/2, -this.size.y/2),
+                size: cornerSize,
+                img: createCanvas(cornerSize, function(ctx, size){
+                    let img = createCanvas(new V2(20, 20), function(ctx, size){
+                        ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                        ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);ctx.fillRect(size.x*0.25,0, size.x*0.75, size.y*0.25);
+                        ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,size.y*0.75,size.x*0.25,size.y*0.25);
+                        ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, size.y/2 - 1, 2, size.y/2 + 1); ctx.fillRect(size.x/2 + 1, size.y/2 - 1, size.x/2, 2);
+                    });
+
+                    ctx.drawImage(img,0,0, size.x-1, size.y-1);
+                })
+            })),
+            topRight: this.addChild(new GO({
+                position: new V2(this.size.x/2, -this.size.y/2),
                 size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y),
                 img: createCanvas(new V2(20, 20), function(ctx, size){
-                    ctx.fillStyle = 'green'; ctx.fillRect(0,0, size.x, size.y);
-                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);ctx.fillRect(size.x*0.25,0, size.x*0.75, size.y*0.25);
+                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,size.y*0.25, size.x*0.25, size.y);
+                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x*0.75,size.y*0.25);
+                    draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x*0.75, 0), new V2(size.x, 0)]})
+                    draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x, 0), new V2(size.x, size.y*0.25)]})
+                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, size.y/2 - 1, 2, size.y/2 + 1); ctx.fillRect(0, size.y/2 - 1, size.x/2-1, 2);
+                    draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(0, size.y), new V2(size.x*0.25, size.y*0.75), new V2(size.x*0.25, size.y)]})
+                    draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(0, size.y), new V2(0, size.y*0.75), new V2(size.x*0.25, size.y*0.75)]})
+                })
+            })),
+            bottomLeft: this.addChild(new GO({
+                position: new V2(-this.size.x/2, this.size.y/2),
+                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y),
+                img: createCanvas(new V2(20, 20), function(ctx, size){
+                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.25,size.y*0.75, size.x*0.75, size.y*0.25);
+                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x*0.25,size.y*0.75);
+                    draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x*0.75, 0), new V2(size.x, 0)]})
+                    draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x, 0), new V2(size.x, size.y*0.25)]})
+                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, 0, 2, size.y/2 + 1); ctx.fillRect(size.x/2+1, size.y/2 - 1, size.x/2-1, 2);
+                    draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(0, size.y), new V2(size.x*0.25, size.y*0.75), new V2(size.x*0.25, size.y)]})
+                    draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(0, size.y), new V2(0, size.y*0.75), new V2(size.x*0.25, size.y*0.75)]})
+                })
+            })),
+            bottomRight: this.addChild(new GO({
+                position: new V2(this.size.x/2, this.size.y/2),
+                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y),
+                img: createCanvas(new V2(20, 20), function(ctx, size){
+                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75, size.x, size.y*0.25);ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y*0.75);
+                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x*0.25,size.y*0.25);
+                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, 0, 2, size.y/2 + 1); ctx.fillRect(0, size.y/2 - 1, size.x/2-1, 2);
                 })
             }))
         }
