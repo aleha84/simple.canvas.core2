@@ -22,7 +22,8 @@ document.addEventListener("DOMContentLoaded", function() {
         hood: 'images/hood.png',
         headSadHooded: 'images/head_sad_hooded.png',
         headHooded: 'images/head_hooded.png',
-        headHoodedGlasses: 'images/head_hooded_glasses.png'
+        headHoodedGlasses: 'images/head_hooded_glasses.png',
+        itemsBg1: 'images/itemsBg.png'
 	}
 
     debugger;
