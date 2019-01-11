@@ -264,7 +264,7 @@ class SizeEffect extends EffectBase {
             throw `Wrong dimension '${options.dimension}' specified for SizeEffect`;
         }
 
-        if(options.dimension == 'both'){
+        if(options.dimension == 'both' && !options.loop){
             options.removeVisibilityOnComplete = true;
             options.min = 0.01;
         }
@@ -344,6 +344,17 @@ class SizeOutEffect extends SizeEffect {
         options = assignDeep({}, {
             direction: 1,
             current: 0
+        }, options)
+
+        super(options);
+    }
+}
+
+class SizeInOutEffect extends SizeEffect {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            direction: -1,
+            loop: true
         }, options)
 
         super(options);

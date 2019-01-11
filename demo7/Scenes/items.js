@@ -31,12 +31,18 @@ class ItemsScene extends Scene {
                 ctx.fillStyle = '#9C9E9A';
                 ctx.fillRect(size.x-1,0, 1, size.y);
 
-                let grd = ctx.createLinearGradient(size.x/2, 0, size.x/2, size.y/10); grd.addColorStop(0, 'rgba(0,0,0,0.5)');grd.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = grd;ctx.fillRect(0,0, size.x, size.y/10);
+                let grd = ctx.createLinearGradient(size.x/2, 0, size.x/2, size.y/15); grd.addColorStop(0, 'rgba(0,0,0,0.5)');grd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grd;ctx.fillRect(0,0, size.x, size.y/15);
 
-                let clearLeftDots = [6,5, 5,5,5,4,4,3,3,3,3,1,1,1];
+                let clearLeftDots = [6,5, 5,5,5,4,4,3,3,3,3,1,1,1, 1,1,0, 0,0];
+                //ctx.fillStyle = '#FCFFF9';
                 for(let i = 0; i < clearLeftDots.length; i++){
-                    ctx.clearRect(0, i, clearLeftDots[i],1);
+                    ctx.clearRect(0, i, clearLeftDots[i]+1,1);
+                    let w = clearLeftDots[i] == 0 ? getRandomInt(1,2) : getRandomInt(3,5);
+                    grd = ctx.createLinearGradient(clearLeftDots[i]+1, i, clearLeftDots[i]+w, i);
+                    grd.addColorStop(0, '#DEE1DA');grd.addColorStop(1, '#FCFFF9');
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(clearLeftDots[i]+1,i, w, 1);
                 }
             })
         }))
@@ -147,6 +153,8 @@ class Player extends GO {
             })
         }));
 
+        this.speaker.addEffect(new SizeInOutEffect({min:0.975, effectTime:100, updateDelay: 50, dimension: 'both'}))
+
         this.screen = this.body.addChild(new GO({
             position: new V2(-this.size.x*1.5/10, -this.size.y/10),
             size: new V2(this.size.x/2*1.1, this.size.y/2),
@@ -163,6 +171,26 @@ class Player extends GO {
                 ctx.stroke();
             })
         }));
+
+        this.screen.equalizer = this.screen.addChild(new GO({
+            position: new V2(),
+            size: new V2(this.screen.size.x, this.screen.size.y*0.8),
+            // img: createCanvas(this.screen.size,(ctx, size) => {
+            //     ctx.strokeStyle = 'red';
+            //     ctx.strokeRect(0,0, size.x-1, size.y-1);
+            // })
+        }));
+
+        this.screen.equalizer.bars = [];
+        this.screen.equalizer.bars.push(this.screen.equalizer.addChild(new EqualizerBar({
+            itemsCount: 8,
+            position: new V2(),
+            size: new V2(this.screen.equalizer.size.x/4, this.screen.equalizer.size.y),
+            // img: createCanvas(new V2(this.screen.equalizer.size.x/4, this.screen.equalizer.size.y),(ctx, size) => {
+            //     ctx.strokeStyle = 'yellow';
+            //     ctx.strokeRect(0,0, size.x-1, size.y-1);
+            // })
+        })))
 
         let drawButton = function(ctx, size){
             ctx.fill();
@@ -259,7 +287,50 @@ class Player extends GO {
                 ctx.fillStyle= grd;ctx.fill();
 
             })
+        }));
+
+        this.antenna = this.addChild(new GO({
+            position: new V2(-this.size.x/3, -this.size.y-5),
+            size: new V2(3, 60),
+            img: createCanvas(new V2(12, 60), (ctx, size) => {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0,size.y-3, 12, 3);
+                ctx.fillRect(1.5,3, 9, size.y-6);
+                //ctx.arc(6,6,6,0,Math.PI*2, false);
+                ctx.beginPath();
+                ctx.moveTo(0,0);ctx.lineTo(size.x,0);ctx.lineTo(size.x*2/3+0.5,3);ctx.lineTo(size.x*1/3,3);
+                ctx.closePath();ctx.fill();
+                let grd = ctx.createLinearGradient(1.5,0,9, 0);grd.addColorStop(0, 'rgba(255,255,255,0.75)');grd.addColorStop(0.75, 'rgba(255,255,255,0)');
+                ctx.fillStyle= grd;ctx.fillRect(1.5,3, 9, size.y-6);
+                grd = ctx.createLinearGradient(0,0,12, 0);grd.addColorStop(0, 'rgba(255,255,255,0.5)');grd.addColorStop(0.75, 'rgba(255,255,255,0)');
+                ctx.fillStyle= grd;ctx.fillRect(0,size.y-3, 12, 3);
+
+                
+            })
         }))
+    }
+}
+
+class EqualizerBar extends GO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            itemsCount: 5
+        }, options);
+
+        super(options);
+
+        this.itemSize = new V2(this.size.x, this.size.y/this.itemsCount);
+        this.items = [];
+        let bottom = this.size.y/2 - this.itemSize.y/2;
+        for(let i = 0;i< this.itemsCount;i++){
+            this.items[i] = this.addChild(new GO({
+                size: new V2(this.itemSize.x, this.itemSize.y*0.9),
+                position: new V2(0,bottom - this.itemSize.y*i),
+                img: createCanvas(new V2(1,1), (ctx, size) => {
+                    ctx.fillStyle = 'green';ctx.fillRect(0,0, size.x, size.y);
+                })
+            }))
+        }
     }
 }
 
