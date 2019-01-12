@@ -64,7 +64,9 @@ class Player extends GO {
     constructor(options = {}){
         options = assignDeep({}, {
             speakerColor: '#FF80AD',
-            buttonsColor: '#FF80AD'
+            buttonsColor: '#FF80AD',
+            eqBarsCount: 10,
+            eqItemsCount: 8
         }, options);
 
         super(options);
@@ -169,12 +171,20 @@ class Player extends GO {
                 ctx.strokeStyle = '#CCE2E0';
                 ctx.lineWidth = 2;
                 ctx.stroke();
+
+                ctx.fillStyle = 'green';
+                ctx.fillRect(size.x*0.25, size.y*4/5, size.x*0.5, 1);
+                ctx.fillStyle = '#4800FF';
+                ctx.fillRect(size.x*0.8, size.y*0.2, 3,1);
+                ctx.fillStyle = '#00FF21';ctx.fillRect(size.x*0.17, size.y*0.3, 2,1);ctx.fillRect(size.x*0.17, size.y*0.4, 2,1);
+                ctx.fillRect(size.x*0.17, size.y*0.5, 2,1);ctx.fillRect(size.x*0.17, size.y*0.6, 2,1);ctx.fillRect(size.x*0.17, size.y*0.7, 2,1);
+                //ctx.fillRect(size.x*0.3, size.y*0.1, 5,2);
             })
         }));
 
         this.screen.equalizer = this.screen.addChild(new GO({
-            position: new V2(),
-            size: new V2(this.screen.size.x, this.screen.size.y*0.8),
+            position: new V2(0,1),
+            size: new V2(this.screen.size.x*0.5, this.screen.size.y*0.5),
             // img: createCanvas(this.screen.size,(ctx, size) => {
             //     ctx.strokeStyle = 'red';
             //     ctx.strokeRect(0,0, size.x-1, size.y-1);
@@ -182,15 +192,24 @@ class Player extends GO {
         }));
 
         this.screen.equalizer.bars = [];
-        this.screen.equalizer.bars.push(this.screen.equalizer.addChild(new EqualizerBar({
-            itemsCount: 8,
-            position: new V2(),
-            size: new V2(this.screen.equalizer.size.x/4, this.screen.equalizer.size.y),
-            // img: createCanvas(new V2(this.screen.equalizer.size.x/4, this.screen.equalizer.size.y),(ctx, size) => {
-            //     ctx.strokeStyle = 'yellow';
-            //     ctx.strokeRect(0,0, size.x-1, size.y-1);
+        let barSize = new V2(this.screen.equalizer.size.x/this.eqBarsCount, this.screen.equalizer.size.y)
+        let left = -this.screen.equalizer.size.x/2 + barSize.x/2;
+
+        for(let i = 0;i < this.eqBarsCount;i++){
+            this.screen.equalizer.bars.push(this.screen.equalizer.addChild(new EqualizerBar({
+                itemsCount: this.eqItemsCount,
+                position: new V2(left + barSize.x*i, 0),
+                size: new V2(barSize.x*0.75, barSize.y),
+            })))
+        }
+        
+        this.screen.runningInfo = this.screen.addChild(new RunningInfo({
+            position: new V2(0, -this.screen.size.y*0.3),
+            size: new V2(this.screen.size.x*0.5, this.screen.size.y*0.15),
+            // img: createCanvas(new V2(1,1), (ctx, size) => {
+            //     ctx.fillStyle = 'red';ctx.fillRect(0,0, size.x, size.y);
             // })
-        })))
+        }));
 
         let drawButton = function(ctx, size){
             ctx.fill();
@@ -311,6 +330,37 @@ class Player extends GO {
     }
 }
 
+class RunningInfo extends GO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            
+        }, options);
+
+        super(options);
+
+        this.infoGeneratorTimer = createTimer(100, () => {
+            let p = new V2(this.size.x/2, -this.size.y/2 + this.size.y/6 + (getRandomInt(0,2)*this.size.y/3));
+            this.addChild(new MovingGO({
+                position: p,
+                size: new V2(this.size.x/20, this.size.y/3),
+                img: createCanvas(new V2(1,1), (ctx, size) => {
+                    ctx.fillStyle = 'green';ctx.fillRect(0,0, size.x, size.y);
+                }),
+                setDestinationOnInit: true,
+                destination: new V2(-this.size.x/2, p.y),
+                speed: 0.125,
+                setDeadOnDestinationComplete: true
+            }))
+    
+        }, this, true)
+    }
+
+    internalUpdate(now){
+        if(this.infoGeneratorTimer)
+            doWorkByTimer(this.infoGeneratorTimer, now);
+    }
+}
+
 class EqualizerBar extends GO {
     constructor(options = {}){
         options = assignDeep({}, {
@@ -319,18 +369,41 @@ class EqualizerBar extends GO {
 
         super(options);
 
+        let itemsColorsCtx = createCanvas(new V2(1, this.itemsCount), (ctx, size) => {
+            let grd = ctx.createLinearGradient(0,0,0, size.y);
+            grd.addColorStop(1, '#FF0000'); grd.addColorStop(0.5, '#FFD800'); grd.addColorStop(0, '#00FF00');
+            ctx.fillStyle = grd;
+            ctx.fillRect(0,0,size.x, size.y);
+        }).getContext('2d');
+
         this.itemSize = new V2(this.size.x, this.size.y/this.itemsCount);
         this.items = [];
         let bottom = this.size.y/2 - this.itemSize.y/2;
+
         for(let i = 0;i< this.itemsCount;i++){
+            let colorData = itemsColorsCtx.getImageData(0,i,1,1).data;
             this.items[i] = this.addChild(new GO({
                 size: new V2(this.itemSize.x, this.itemSize.y*0.9),
                 position: new V2(0,bottom - this.itemSize.y*i),
                 img: createCanvas(new V2(1,1), (ctx, size) => {
-                    ctx.fillStyle = 'green';ctx.fillRect(0,0, size.x, size.y);
+                    ctx.fillStyle = `rgb(${colorData[0]},${colorData[1]},${colorData[2]})`;ctx.fillRect(0,0, size.x, size.y);
                 })
             }))
         }
+
+        this.itemsSwitchTimer = createTimer(100, () => {
+            let visibleCount = getRandomInt(1, this.itemsCount);
+
+            for(let i = 0; i < this.itemsCount;i++){
+                this.items[i].isVisible = (i < visibleCount);
+            }
+
+        }, this, true)
+    }
+
+    internalUpdate(now){
+        if(this.itemsSwitchTimer)
+        doWorkByTimer(this.itemsSwitchTimer, now)
     }
 }
 
