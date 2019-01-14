@@ -23,6 +23,22 @@ class InfoScreenScene extends Scene {
 
         // text appearance demo
 {
+    this.mainScreen.addChild(new AppearingText({
+            repeat: false,
+            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 60) ,
+            size: new V2(50, 15),
+            textValue: ['First line', 'Second line', 'Third line'],
+            multiline: {
+                enabled: true
+            },
+            cursorOptions: {
+                size: new V2(5,10),
+                startDelay: 1500
+            },
+            letter: {
+                spacing: 0.5, quality: 'medium'
+            }
+        }))
         // this.textRows = [];
         // this.textRows.push(this.mainScreen.addChild(new AppearingText({
         //     repeat: false,
@@ -231,6 +247,12 @@ class AppearingText extends GO {
             debug: false,
             textValue: 'Debug',
             textChangeDelay: 2000,
+            letters: [],
+            multiline: {
+                enabled: false, 
+                lines: 3,
+
+            },
             letter: {
                 spacing: 1,
                 imgSizeMultiplier: 1.5,
@@ -315,7 +337,7 @@ class AppearingText extends GO {
                         this.parent.returnCursor();
                     }  
                 }
-                else if(this.state =='hiding'){
+                else if(this.state =='hiding' || this.state =='nothing'){
                     this.state = 'idle';
                     this.parent.showText();
                     this.position = new V2();
@@ -400,13 +422,15 @@ class AppearingText extends GO {
 
         let textValue = this.textValue.shift();
         let that = this;
-        if(this.letters && this.letters.length){
+        if(!this.multiline.enabled &&  this.letters && this.letters.length){
             for(let i = 0; i < this.letters.length;i++){
                 this.removeChild(this.letters[i]);
             }
+
+            this.letters = [];
         }
 
-        this.letters = [];
+        
 
         let fontSizeCtx = createCanvas(new V2(1,1)).getContext('2d');
         fontSizeCtx.font = this.letter.fontSize + 'px ' + this.letter.font;
@@ -479,6 +503,13 @@ class AppearingText extends GO {
             if(this.textValue.length){
                 this.cursor.state = 'hiding';
                 this.cursor.start(new V2());
+                if(this.multiline.enabled){
+                    this.cursor.state = 'nothing';
+                    this.letters.forEach((letter) => {
+                        letter.position.y-=this.letter.height;
+                        letter.needRecalcRenderProperties = true;
+                    })
+                }
             }
 
             this.returnCursorTimer = undefined;
