@@ -23,20 +23,139 @@ class InfoScreenScene extends Scene {
 
         // text appearance demo
 {
+    let obj = new GO({
+        size: new V2(20, 20),
+        position: new V2(40,-40),
+        img: createCanvas(new V2(1,1), (ctx, size) => {
+            ctx.fillStyle = '#A8BBB9'; ctx.fillRect(0,0, size.x, size.y)
+        })
+    })
+    obj.addEffect(new FadeInOutEffect({updateDelay: 50, effectTime: 500, loop: true, min: 0.05, max: 0.1}))
+    this.mainScreen.addChild(obj);
+
+    let obj1 = new GO({
+        size: new V2(15, 15),
+        position: new V2(40,-50),
+        img: createCanvas(new V2(1,1), (ctx, size) => {
+            ctx.fillStyle = '#A8BBB9'; ctx.fillRect(0,0, size.x, size.y)
+        })
+    })
+    obj1.addEffect(new FadeInOutEffect({updateDelay: 50, effectTime: 250, loop: true, min: 0.1, max: 0.2}))
+    this.mainScreen.addChild(obj1);
+
+    let obj2 = new GO({
+        size: new V2(10, 10),
+        position: new V2(40,-60),
+        img: createCanvas(new V2(1,1), (ctx, size) => {
+            ctx.fillStyle = '#A8BBB9'; ctx.fillRect(0,0, size.x, size.y)
+        })
+    })
+    obj2.addEffect(new FadeInOutEffect({updateDelay: 50, effectTime: 125, loop: true, min: 0.2, max: 0.3}))
+    this.mainScreen.addChild(obj2);
+
+    let obj3 = new GO({
+        size: new V2(10, 10),
+        position: new V2(-40,80),
+        img: createCanvas(new V2(1,1), (ctx, size) => {
+            let clr = hexToRgb('#839009', true);
+            ctx.fillStyle =  `rgba(${clr[0]}, ${clr[1]},${clr[2]}, 0.3)`; ctx.fillRect(0,0, size.x, size.y)
+        }),
+        init() {
+            this.originX = this.position.x;
+            this.timer = 0;
+        },
+        internalUpdate(now){
+            this.position.x = this.originX + Math.sin(this.timer)*8;
+            this.timer+=0.1;
+            this.needRecalcRenderProperties = true;
+        }
+    })
+    this.mainScreen.addChild(obj3);
+
+    let obj4 = new GO({
+        size: new V2(15, 15),
+        position: new V2(-40,70),
+        img: createCanvas(new V2(1,1), (ctx, size) => {
+            let clr = hexToRgb('#839009', true);
+            ctx.fillStyle =  `rgba(${clr[0]}, ${clr[1]},${clr[2]}, 0.2)`; ctx.fillRect(0,0, size.x, size.y)
+        }),
+        init() {
+            this.originX = this.position.x;
+            this.timer = 1;
+        },
+        internalUpdate(now){
+            this.position.x = this.originX + Math.sin(this.timer)*8;
+            this.timer+=0.1;
+            this.needRecalcRenderProperties = true;
+        }
+    })
+    this.mainScreen.addChild(obj4);
+
+    let obj5 = new GO({
+        size: new V2(20, 20),
+        position: new V2(-40,60),
+        img: createCanvas(new V2(1,1), (ctx, size) => {
+            let clr = hexToRgb('#839009', true);
+            ctx.fillStyle =  `rgba(${clr[0]}, ${clr[1]},${clr[2]}, 0.1)`; ctx.fillRect(0,0, size.x, size.y)
+        }),
+        init() {
+            this.originX = this.position.x;
+            this.timer = 2;
+        },
+        internalUpdate(now){
+            this.position.x = this.originX + Math.sin(this.timer)*8;
+            this.timer+=0.1;
+            this.needRecalcRenderProperties = true;
+        }
+    })
+    this.mainScreen.addChild(obj5);
+
     this.mainScreen.addChild(new AppearingText({
             repeat: false,
-            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 60) ,
+            position: new V2(-this.mainScreen.size.x/2 + 20, -this.mainScreen.size.y/2 + 20) ,
             size: new V2(50, 15),
-            textValue: ['First line', 'Second line', 'Third line'],
+            textValue: ['Lorem ipsum', 'dolor sit amet,', 'consectetur', 'adipiscing', 'elit, sed do', 'eiusmod tempor', 'incididunt ut', 'labore et dolore', 'magna aliqua.',
+            'Ut enim', 'ad minim', 'veniam, quis'],
+            textChangeDelay: 1000,
             multiline: {
-                enabled: true
+                enabled: true, 
+                lineHeight: 10,
+                maxLinesVisible: -1,
+                behavior: 'cursordown'
             },
             cursorOptions: {
                 size: new V2(5,10),
-                startDelay: 1500
+                startDelay: 500,
+                backSpeed: 3,
+                removeOnComplete: true
             },
             letter: {
-                spacing: 0.5, quality: 'medium'
+                spacing: 0.5, quality: 'high'
+            }
+        }))
+
+        this.mainScreen.addChild(new AppearingText({
+            repeat: false,
+            position: new V2(this.mainScreen.size.x/2 - 50, -this.mainScreen.size.y/2 + 180) ,
+            size: new V2(50, 15),
+            textValue: ['Lorem ipsum', 'dolor sit amet,', 'consectetur', 'adipiscing', 'elit, sed do', 'eiusmod tempor', 'incididunt ut', 'labore et dolore', 'magna aliqua.',
+            'Ut enim', 'ad minim', 'veniam, quis', 'nostrud', 'exercitation', 'ullamco laboris', 'nisi ut aliquip', 'ex ea commodo', 'consequat.'],
+            textChangeDelay: 500,
+            multiline: {
+                enabled: true, 
+                lineHeight: 5,
+                maxLinesVisible: -1,
+                behavior: 'linesup'
+            },
+            cursorOptions: {
+                size: new V2(2,5),
+                startDelay: 500,
+                backSpeed: 3,
+                removeOnComplete: true,
+                colors: ['#A8BBB9', '#688080']
+            },
+            letter: {
+                spacing: 0.25, quality: 'ultrahigh', fontSize: 4, colors: ['#A8BBB9', '#688080']
             }
         }))
         // this.textRows = [];
@@ -202,9 +321,7 @@ class InfoScreenScene extends Scene {
         //             startDelay: 500,
         //             spacing: 3,
         //             backSpeed: 5,
-        //             blink: {
-        //                 colors: ['#FF0000']
-        //             }
+        //              colors: ['#FF0000']
         //         },
         //         letter: {
         //             spacing: 0.5,
@@ -250,8 +367,10 @@ class AppearingText extends GO {
             letters: [],
             multiline: {
                 enabled: false, 
-                lines: 3,
-
+                maxLinesVisible: 3,
+                current: 0,
+                lineHeight: undefined,
+                behavior: 'linesup'
             },
             letter: {
                 spacing: 1,
@@ -269,10 +388,12 @@ class AppearingText extends GO {
                 speed: 2,
                 backSpeed: 2,
                 spacing: 2,
+                removeOnComplete: false,
+                colors: ['#839009', '#557557'],
                 blink: {
                     currentCount: -1,
                     interval: 250,
-                    colors: ['#839009', '#557557']
+                    
                 }
             }       
         }, options)
@@ -289,10 +410,24 @@ class AppearingText extends GO {
         options.size = options.cursorOptions.size;
         options.cursorOptions.forwardSpeed = options.cursorOptions.speed;
 
+        if(options.multiline.enabled){
+            if(options.multiline.lineHeight === undefined)
+                options.multiline.lineHeight = options.letter.height;   
+
+            if(['linesup', 'cursordown'].indexOf(options.multiline.behavior) === -1)
+                throw 'Wrong AppearingText multiline behavior!'
+        }
+
+        
+
         super(options);
 
         if(this.letter.quality){
             switch(this.letter.quality){
+                case 'ultrahigh': 
+                    this.letter.imgSizeMultiplier = 5;
+                    this.cursorOptions.originImgSize = new V2(1, 20);
+                    break;
                 case 'high':
                     this.letter.imgSizeMultiplier = 2.5;
                     this.cursorOptions.originImgSize = new V2(1, 10);
@@ -320,7 +455,7 @@ class AppearingText extends GO {
             isVisible: false,
             size: this.cursorOptions.size.clone(),
             img: createCanvas(this.cursorOptions.originImgSize, function(ctx, size){
-                that.setContextFillStyle(ctx, size, that.cursorOptions.blink.colors);
+                that.setContextFillStyle(ctx, size, that.cursorOptions.colors);
                 ctx.fillRect(0,0, size.x, size.y);
             }),
             speed: this.cursorOptions.speed,
@@ -329,7 +464,7 @@ class AppearingText extends GO {
                     if(this.mustReturn){
                         this.mustReturn = false;
                         this.state = 'hiding';
-                        this.start(new V2());
+                        this.start(new V2(0, this.position.y));
                         return;
                     }
                     else {
@@ -340,7 +475,7 @@ class AppearingText extends GO {
                 else if(this.state =='hiding' || this.state =='nothing'){
                     this.state = 'idle';
                     this.parent.showText();
-                    this.position = new V2();
+                    this.position = new V2(0, this.position.y);
                     //this.positionChangedCallback();
                     this.needRecalcRenderProperties = true;
                 }
@@ -349,14 +484,20 @@ class AppearingText extends GO {
             },
             positionChangedCallback(){
                 if(this.state == 'showing'){
-                    for(let i = 0; i < that.letters.length;i++){
-                        let letter = that.letters[i];
+                    let letters = that.letters;
+                    if(that.multiline.enabled){
+                        letters = that.letters.filter(l => l.line == that.multiline.current)
+                    }
+                    for(let i = 0; i < letters.length;i++){
+                        let letter = letters[i];
                         if(letter.isVisible)
                             continue;
                         
                         if(letter.position.x + letter.size.x/2 > this.position.x)
                             continue;
     
+                        letter.position.y = this.position.y;
+                        letter.needRecalcRenderProperties = true;
                         letter.isVisible = true;
                         if(this.parent.letter.effects.length){
                             for(let i = 0; i < this.parent.letter.effects.length; i++){
@@ -397,7 +538,7 @@ class AppearingText extends GO {
             return(){
                 if(this.state == 'idle'){
                     this.state ='hiding';
-                    this.start(new V2())
+                    this.start(new V2(0, this.position.y))
                 }
 
                 this.mustReturn = true;
@@ -417,8 +558,10 @@ class AppearingText extends GO {
     }
 
     showText(){
-        if(!this.textValue.length)
+        if(!this.textValue.length){
             return;
+        }
+            
 
         let textValue = this.textValue.shift();
         let that = this;
@@ -450,7 +593,7 @@ class AppearingText extends GO {
             let letterWidth = lettersWitdhs[i];
             currentCharX+=letterWidth/2;
             let charSize = new V2(letterWidth, this.letter.height);
-            this.letters.push(this.addChild(new GO({
+            let _letter = this.addChild(new GO({
                 isVisible: false,
                 size: charSize,
                 position: new V2(currentCharX, 0),
@@ -470,14 +613,20 @@ class AppearingText extends GO {
                     this.context.strokeRect(this.renderBox.topLeft.x, this.renderBox.topLeft.y, this.renderBox.width, this.renderBox.height);
                     this.context.strokeStyle = oldStrokeStyle;
                 }
-            })));
+            }));
+
+            if(this.multiline.enabled){
+                _letter.line = this.multiline.current;
+            }
+
+            this.letters.push(_letter);
             currentCharX+=(letterWidth/2 + this.letter.spacing);
         }
 
         this.cursor.isVisible = true;
-        this.cursor.position = tl.clone();
+        this.cursor.position = new V2(tl.clone().x, this.cursor.position.y);
         
-        let cursorDestination = new V2(size.x, 0).add(new V2( (this.cursorOptions.size.x/2) + this.cursorOptions.spacing ,0));
+        let cursorDestination = new V2(size.x, 0).add(new V2( (this.cursorOptions.size.x/2) + this.cursorOptions.spacing ,this.cursor.position.y));
 
         if(this.cursorOptions.startDelay > 0){
             this.cursorStartDelayTimer = createTimer(this.cursorOptions.startDelay, () => {
@@ -502,14 +651,34 @@ class AppearingText extends GO {
 
             if(this.textValue.length){
                 this.cursor.state = 'hiding';
-                this.cursor.start(new V2());
+                this.cursor.start(new V2(0, this.cursor.position.y));
                 if(this.multiline.enabled){
+                    let m = this.multiline;
+                    m.current++;
                     this.cursor.state = 'nothing';
-                    this.letters.forEach((letter) => {
-                        letter.position.y-=this.letter.height;
-                        letter.needRecalcRenderProperties = true;
-                    })
+                    if(m.behavior == 'linesup'){
+                        this.letters.forEach((letter) => {
+                            letter.position.y-=m.lineHeight;
+                            letter.needRecalcRenderProperties = true;
+    
+                            if(m.maxLinesVisible != -1)
+                                letter.isVisible = (letter.line > (m.current - m.maxLinesVisible));
+                        })
+                    }
+                    else if(m.behavior == 'cursordown'){
+                        this.cursor.position.y+=m.lineHeight;
+                        this.cursor.needRecalcRenderProperties = true;
+                        this.cursor.start(new V2(0, this.cursor.position.y));
+                    }
+
                 }
+            }
+            else{
+                if(this.cursorOptions.removeOnComplete)
+                {
+                    this.stopCursorBlinking();
+                    this.cursor.isVisible = false;
+                }   
             }
 
             this.returnCursorTimer = undefined;
@@ -715,7 +884,14 @@ class Screen extends GO {
         }
 
         let sideSize = new V2(this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width, this.size.y - this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width);
+        let topSideSize = new V2(this.size.x - this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width, this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width)
         let cornerSize = new V2(this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width, this.size[this.bordersOptions.widthSizeDimension]*this.bordersOptions.width);
+        let fillWithDots = function(ctx, size) {
+            for(let i = 0; i < size.x*size.y; i++){
+                ctx.fillStyle = `rgba(0,0,255,${getRandom(0,0.05)})`;
+                ctx.fillRect(getRandomInt(0,size.x-2), getRandomInt(0,size.y-2), 1, 1);
+            }
+        }
         this.borders = {
             left: this.addChild(new GO({
                 position: new V2(-this.size.x/2, 0),
@@ -728,37 +904,54 @@ class Screen extends GO {
                         ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2 - 1, 0, 2, 1);
                     });
 
-                    ctx.drawImage(img, 0,0, size.x-1, size.y-1);
+                    ctx.drawImage(img, 0,0, size.x-1, size.y);
+
+                    fillWithDots(ctx, size);
                 })
             })),
             right: this.addChild(new GO({
                 position: new V2(this.size.x/2, 0),
-                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y*9),
-                img: createCanvas(new V2(20, 1), function(ctx, size){
-                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
-                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);
-                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y);
-                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2 - 1, 0, 2, 1);
+                size: sideSize,
+                img: createCanvas(sideSize, function(ctx, size){
+                    let img = createCanvas(new V2(20, 1), function(ctx, size){
+                        ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                        ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0, size.x*0.25, size.y);
+                        ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y);
+                        ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2 - 1, 0, 2, 1);
+                    });
+
+                    ctx.drawImage(img, 0,0, size.x-1, size.y);
+                    fillWithDots(ctx, size);
                 })
             })),
             top: this.addChild(new GO({
                 position: new V2(0, -this.size.y/2),
-                size: new V2(this.size.x*this.bordersOptions.size.x*9, this.size.y*this.bordersOptions.size.y),
-                img: createCanvas(new V2(1, 20), function(ctx, size){
-                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
-                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x,size.y*0.25);
-                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75,size.x,size.y*0.25);
-                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(0, size.y/2 - 1, 1, 2);
+                size: topSideSize,//new V2(this.size.x*this.bordersOptions.size.x*9, this.size.y*this.bordersOptions.size.y),
+                img: createCanvas(topSideSize, function(ctx, size){
+                    let img = createCanvas(new V2(1, 20), function(ctx, size){
+                        ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                        ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x,size.y*0.25);
+                        ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75,size.x,size.y*0.25);
+                        ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(0, size.y/2 - 1, 1, 2);
+                    });
+
+                    ctx.drawImage(img, 0,0, size.x, size.y-1);
+                    fillWithDots(ctx, size);
                 })
             })),
             bottom: this.addChild(new GO({
                 position: new V2(0, this.size.y/2),
-                size: new V2(this.size.x*this.bordersOptions.size.x*9, this.size.y*this.bordersOptions.size.y),
-                img: createCanvas(new V2(1, 20), function(ctx, size){
-                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
-                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x,size.y*0.25);
-                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75,size.x,size.y*0.25);
-                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(0, size.y/2 - 1, 1, 2);
+                size: topSideSize,
+                img: createCanvas(topSideSize, function(ctx, size){
+                    let img = createCanvas(new V2(1, 20), function(ctx, size){
+                        ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                        ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x,size.y*0.25);
+                        ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75,size.x,size.y*0.25);
+                        ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(0, size.y/2 - 1, 1, 2);
+                    })
+
+                    ctx.drawImage(img, 0,0, size.x, size.y-1);
+                    fillWithDots(ctx, size);
                 })
             })),
             topLeft: this.addChild(new GO({
@@ -773,44 +966,60 @@ class Screen extends GO {
                     });
 
                     ctx.drawImage(img,0,0, size.x-1, size.y-1);
+                    fillWithDots(ctx, size);
                 })
             })),
             topRight: this.addChild(new GO({
                 position: new V2(this.size.x/2, -this.size.y/2),
-                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y),
-                img: createCanvas(new V2(20, 20), function(ctx, size){
-                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
-                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,size.y*0.25, size.x*0.25, size.y);
-                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x*0.75,size.y*0.25);
-                    draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x*0.75, 0), new V2(size.x, 0)]})
-                    draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x, 0), new V2(size.x, size.y*0.25)]})
-                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, size.y/2 - 1, 2, size.y/2 + 1); ctx.fillRect(0, size.y/2 - 1, size.x/2-1, 2);
-                    draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(0, size.y), new V2(size.x*0.25, size.y*0.75), new V2(size.x*0.25, size.y)]})
-                    draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(0, size.y), new V2(0, size.y*0.75), new V2(size.x*0.25, size.y*0.75)]})
+                size: cornerSize,
+                img: createCanvas(cornerSize, function(ctx, size){
+                    let img = createCanvas(new V2(20, 20), function(ctx, size){
+                        ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                        ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.75,size.y*0.25, size.x*0.25, size.y);
+                        ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x*0.75,size.y*0.25);
+                        draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x*0.75, 0), new V2(size.x, 0)]})
+                        draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x, 0), new V2(size.x, size.y*0.25)]})
+                        ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, size.y/2 - 1, 2, size.y/2 + 1); ctx.fillRect(0, size.y/2 - 1, size.x/2-1, 2);
+                        draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(0, size.y), new V2(size.x*0.25, size.y*0.75), new V2(size.x*0.25, size.y)]})
+                        draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(0, size.y), new V2(0, size.y*0.75), new V2(size.x*0.25, size.y*0.75)]})
+                    })
+
+                    ctx.drawImage(img,0,0, size.x-1, size.y-1);
+                    fillWithDots(ctx, size);
                 })
             })),
             bottomLeft: this.addChild(new GO({
                 position: new V2(-this.size.x/2, this.size.y/2),
-                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y),
-                img: createCanvas(new V2(20, 20), function(ctx, size){
-                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
-                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.25,size.y*0.75, size.x*0.75, size.y*0.25);
-                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x*0.25,size.y*0.75);
-                    draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x*0.75, 0), new V2(size.x, 0)]})
-                    draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x, 0), new V2(size.x, size.y*0.25)]})
-                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, 0, 2, size.y/2 + 1); ctx.fillRect(size.x/2+1, size.y/2 - 1, size.x/2-1, 2);
-                    draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(0, size.y), new V2(size.x*0.25, size.y*0.75), new V2(size.x*0.25, size.y)]})
-                    draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(0, size.y), new V2(0, size.y*0.75), new V2(size.x*0.25, size.y*0.75)]})
+                size: cornerSize,
+                img: createCanvas(cornerSize, function(ctx, size){
+                    let img = createCanvas(new V2(20, 20), function(ctx, size){
+                        ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                        ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(size.x*0.25,size.y*0.75, size.x*0.75, size.y*0.25);
+                        ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x*0.25,size.y*0.75);
+                        draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x*0.75, 0), new V2(size.x, 0)]})
+                        draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(size.x*0.75, size.y*0.25), new V2(size.x, 0), new V2(size.x, size.y*0.25)]})
+                        ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, 0, 2, size.y/2 + 1); ctx.fillRect(size.x/2+1, size.y/2 - 1, size.x/2-1, 2);
+                        draw(ctx,{fillStyle:'rgba(0,0,0, 0.25)', points: [new V2(0, size.y), new V2(size.x*0.25, size.y*0.75), new V2(size.x*0.25, size.y)]})
+                        draw(ctx,{fillStyle:'rgba(255,255,255, 0.25)', points: [new V2(0, size.y), new V2(0, size.y*0.75), new V2(size.x*0.25, size.y*0.75)]})
+                    })
+
+                    ctx.drawImage(img,0,0, size.x-1, size.y-1);
+                    fillWithDots(ctx, size);
                 })
             })),
             bottomRight: this.addChild(new GO({
                 position: new V2(this.size.x/2, this.size.y/2),
-                size: new V2(this.size.x*this.bordersOptions.size.x, this.size.y*this.bordersOptions.size.y),
-                img: createCanvas(new V2(20, 20), function(ctx, size){
-                    ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
-                    ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75, size.x, size.y*0.25);ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y*0.75);
-                    ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x*0.25,size.y*0.25);
-                    ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, 0, 2, size.y/2 + 1); ctx.fillRect(0, size.y/2 - 1, size.x/2-1, 2);
+                size:cornerSize,
+                img: createCanvas(cornerSize, function(ctx, size){
+                    let img = createCanvas(new V2(20, 20), function(ctx, size){
+                        ctx.fillStyle = that.bordersOptions.color; ctx.fillRect(0,0, size.x, size.y);
+                        ctx.fillStyle = 'rgba(0,0,0, 0.25)'; ctx.fillRect(0,size.y*0.75, size.x, size.y*0.25);ctx.fillRect(size.x*0.75,0, size.x*0.25, size.y*0.75);
+                        ctx.fillStyle = 'rgba(255,255,255, 0.25)'; ctx.fillRect(0,0,size.x*0.25,size.y*0.25);
+                        ctx.fillStyle = that.bordersOptions.additionalColor; ctx.fillRect(size.x/2-1, 0, 2, size.y/2 + 1); ctx.fillRect(0, size.y/2 - 1, size.x/2-1, 2);
+                    })
+
+                    ctx.drawImage(img,0,0, size.x-1, size.y-1);
+                    fillWithDots(ctx, size);
                 })
             }))
         }
