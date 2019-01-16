@@ -25,12 +25,44 @@ class InfoScreenScene extends Scene {
             size: this.viewport,
             backgroundColor: '#6A7334',
             surfaces: [
-                textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(100, 1), density: 0.0005, opacity: [0.05, 0.1], indents: { h: new V2(-100,-100) }}),
-                textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(1, 100), density: 0.0005, opacity: [0.05, 0.1], indents: { v: new V2(-100,-100) }}),
+                // textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(100, 1), density: 0.0005, opacity: [0.05, 0.1], indents: { h: new V2(-100,-100) }}),
+                // textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(1, 100), density: 0.0005, opacity: [0.05, 0.1], indents: { v: new V2(-100,-100) }}),
+
+                //textureGenerator.getSurfaceProperties({type: 'line', colors: ['#A8BBB9'], line: {angleSpread: 5,length: 50}, density: 0.005, opacity: [0.1, 0.2], indents: { h: new V2(-100,-100) }}),
+
                 //textureGenerator.getSurfaceProperties({colors: ['#000000'], fillSize: new V2(20, 20), density: 0.0005, opacity: [0.05, 0.1], indents: { v: new V2(-20,-20) }}),
                 // textureGenerator.getSurfaceProperties({colors: ['#FFFFFF'], fillSize: new V2(2, 2), density: 0.005, opacity: [0.05, 0.1], indents: { v: new V2(-2,-2) }})
             ]
-        })
+        });
+
+        //plates
+        let s = new V2(50, 100);
+        let r = s.x*0.1
+        this.addGo(new GO({
+            position: new V2(30,70),
+            size: s,
+            img: createCanvas(s, (ctx, size) => {
+                ctx.beginPath();
+                ctx.moveTo(0 + r, 0);
+                ctx.lineTo(0 + size.x - r, 0);
+                ctx.quadraticCurveTo(0 + size.x, 0, 0 + size.x, 0 + r);
+                ctx.lineTo(0 + size.x, 0 + size.y - r);
+                ctx.quadraticCurveTo(0 + size.x, 0 + size.y, 0 + size.x - r, 0 + size.y);
+                ctx.lineTo(0 + r, 0 + size.y);
+                ctx.quadraticCurveTo(0, 0 + size.y, 0, 0 + size.y - r);
+                ctx.lineTo(0, 0 + r);
+                ctx.quadraticCurveTo(0, 0, 0 + r, 0);
+                ctx.closePath();
+                ctx.clip();
+                ctx.drawImage(textureGenerator.textureGenerator({
+                    size: size, 
+                    backgroundColor: '#A8BBB9',
+                    surfaces: [
+                        textureGenerator.getSurfaceProperties({colors: ['#000000'], fillSize: new V2(1, 20), density: 0.005, opacity: [0.05, 0.1], indents: { h: new V2(2,2), v: new V2(2,2) }})
+                    ]
+                }), 0,0, size.x, size.y)
+            })
+        }));
 
         // text appearance demo
 {

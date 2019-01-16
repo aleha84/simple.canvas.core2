@@ -4,7 +4,13 @@ var textureGenerator = {
             //type: 'dots',
             colors: ['#000000'],
             opacity: [0.05, 0.1],
+            type: 'rect',
             fillSize: new V2(1,1),
+            line: {
+                directionAngle: 0,
+                angleSpread: 45,
+                length: 25
+            },
             density: 1,
             indents: {
                 h: new V2(),
@@ -38,9 +44,20 @@ var textureGenerator = {
                         opacity =  getRandom(sc.opacity[0], sc.opacity[1]);
 
                     clr = `rgba(${clr[0]},${clr[1]},${clr[2]},${opacity})`
-                    ctx.fillStyle = clr;
+                    if(sc.type == 'rect'){
+                        ctx.fillStyle = clr;
+                        ctx.fillRect(getRandomInt(from.x, to.x), getRandomInt(from.y, to.y), sc.fillSize.x, sc.fillSize.y);
+                    }
+                    else if(sc.type == 'line'){
+                        ctx.strokeStyle = clr;
+                        ctx.beginPath();
+                        let lineFrom = new V2(getRandomInt(from.x, to.x), getRandomInt(from.y, to.y)) 
+                        ctx.moveTo(lineFrom.x, lineFrom.y);
+                        let lineTo = lineFrom.add(V2.up.rotate(sc.line.directionAngle+getRandom(-sc.line.angleSpread,sc.line.angleSpread)).mul(sc.line.length));
+                        ctx.lineTo(lineTo.x, lineTo.y);
+                        ctx.stroke();
+                    }
                     
-                    ctx.fillRect(getRandomInt(from.x, to.x), getRandomInt(from.y, to.y), sc.fillSize.x, sc.fillSize.y);
                 }
             }
         });
