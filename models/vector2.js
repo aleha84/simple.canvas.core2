@@ -62,7 +62,7 @@ class Vector2 {
             return this;
         }
     }
-
+    
     addScalar(summand = 0, inner = false){
         if(!inner)
             return new Vector2(this.x + summand, this.y + summand);

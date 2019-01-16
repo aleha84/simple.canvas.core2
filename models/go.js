@@ -36,6 +36,7 @@ class GO {
             tileOptimization: false,
             initialized: false,
             disabled: false,
+            effects: [],
             collisionDetection: {
                 enabled: false,
                 render: false,
@@ -252,6 +253,17 @@ class GO {
         return result;
     }
 
+    addEffect(effect){
+        if(!(effect instanceof EffectBase))
+            throw 'Effect must be derived from EffectBase class';
+
+        this.effects.push(effect);
+
+        if(effect.initOnAdd){
+            effect.__init(this);
+        }
+    }
+
     addChild(childGo, regEvents = false) {
         if(childGo == undefined || !(childGo instanceof GO)){
             console.warn('Can\'t add to children object isn\'t inherited from GO');
@@ -268,6 +280,8 @@ class GO {
             let all = this.getAllChildren().filter(function(go){ return go.collisionDetection.enabled });
             all.map((go) => go.collisionDetection.exclude = all);
         }
+
+        return childGo;
     }
 
     removeChild(childGo) {
@@ -285,6 +299,32 @@ class GO {
             let all = getAllChildren().filter(function(go){ return go.collisionDetection.enabled });
             all.map((go) => go.collisionDetection.exclude = all);
         }
+    }
+
+    effectsProcesser(action){
+        if(!action)
+            return;
+
+        if(!this.effects.length)
+            return;
+
+        let toRemove = [];
+        for(let i = 0; i < this.effects.length; i++){
+            let effect = this.effects[i];
+            action(effect);
+
+            if(effect.mustRemove){
+                toRemove.push(effect);
+            }
+        }
+
+        if(toRemove.length){
+            for(let r = 0; r < toRemove.length; r++){
+                this.effects.splice(this.effects.indexOf(toRemove[r], 1));
+            }
+        }
+
+        toRemove = undefined;
     }
 
     childProcesser(action){
@@ -371,6 +411,8 @@ class GO {
 
 		this.internalPreRender();
 
+        this.effectsProcesser((effect) => effect.beforeRender());
+
 		if(this.isCustomRender)
 		{
 			this.customRender();
@@ -441,6 +483,8 @@ class GO {
 		}
         
         this.childProcesser((child) => child.render());
+
+        this.effectsProcesser((effect) => effect.afterRender());
 
         this.internalRender();
 
@@ -524,9 +568,14 @@ class GO {
         if(!this.initialized){
             this.initialized = true;
             this.init(now);
+
+            let that = this;
+            this.effectsProcesser((effect) => effect.__init(that));
         }
 
         this.internalPreUpdate(now);
+
+        this.effectsProcesser((effect) => effect.beforeUpdate(now));
 
         if(!this.isStatic && (!this.alive || SCG.logics.isPaused || SCG.logics.gameOver || SCG.logics.wrongDeviceOrientation)){
             this.console('update not completed.');
@@ -608,6 +657,8 @@ class GO {
             this.console('update completed. this.alive = false');
             return false;
         }
+
+        this.effectsProcesser((effect) => effect.afterUpdate(now));
 
         this.childProcesser((child) => child.update(now));
 

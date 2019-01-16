@@ -345,7 +345,8 @@ function draw(ctx, props) {
     points: [],
     isDeltas: false,
     closePath: true,
-    lineWidth: 1
+    lineWidth: 1,
+    lineCap: undefined
   }, props);
 
   if(props.points.length < 2)
@@ -354,6 +355,7 @@ function draw(ctx, props) {
   let oldLineWidth = ctx.lineWidth;
   let oldStrokeStyle = ctx.strokeStyle;
   let oldFillStyle = ctx.fillStyle;
+  let oldLineCap = ctx.lineCap;
 
   ctx.beginPath();
 
@@ -396,14 +398,25 @@ function draw(ctx, props) {
 
   if(props.strokeStyle){
     ctx.lineWidth = props.lineWidth;
-    ctx.strokeStyle = props.strokeStyle;
-    ctx.stroke();
+    ctx.lineCap = props.lineCap;
+    if(isArray(props.strokeStyle)){
+      for(let i = 0; i < props.strokeStyle.length;i++){
+        ctx.strokeStyle = props.strokeStyle[i];
+        ctx.stroke();
+      }
+    }
+    else {
+      ctx.strokeStyle = props.strokeStyle;
+      ctx.stroke();
+    }
+    
   }
   
 
   ctx.lineWidth = oldLineWidth;
   ctx.strokeStyle = oldStrokeStyle;
   ctx.fillStyle = oldFillStyle;
+  ctx.lineCap = oldLineCap;
 }
 
 function drawFigures(ctx, points, alpha){
@@ -517,6 +530,10 @@ function createCanvas(size, contextProcesser) {
 }
 
 function hexToRgb(hex, asArray = false, asObject = false) {
+  if(hex.indexOf('#') != -1){
+    hex = hex.replace('#', '');
+  }
+
   var bigint = parseInt(hex, 16);
   var r = (bigint >> 16) & 255;
   var g = (bigint >> 8) & 255;
@@ -529,6 +546,12 @@ function hexToRgb(hex, asArray = false, asObject = false) {
     return {r,g,b};
   
   return r + "," + g + "," + b;
+}
+
+function rgbToHex(r, g, b) {
+  if (r > 255 || g > 255 || b > 255)
+      throw "Invalid color component";
+    return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
 function flipX(p, xOrigin) {

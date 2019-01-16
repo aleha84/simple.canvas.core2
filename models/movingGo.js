@@ -42,7 +42,7 @@ class MovingGO extends GO {
 		{
             if(
                 (this.destinationCompleteCheck && isFunction(this.destinationCompleteCheck) && this.destinationCompleteCheck()) 
-                || (this.position.distance(this.destination) <= this.speed)){
+                || (!this.destinationCompleteCheck && this.position.distance(this.destination) <= this.speed)){
                 this.setDestination();
             }
 			else{

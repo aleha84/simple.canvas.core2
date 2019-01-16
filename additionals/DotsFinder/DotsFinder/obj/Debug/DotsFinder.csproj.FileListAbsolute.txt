@@ -1,0 +1,10 @@
+C:\development\github\DotsFinder\DotsFinder\obj\Debug\DotsFinder.csprojAssemblyReference.cache
+C:\development\github\DotsFinder\DotsFinder\obj\Debug\DotsFinder.Form1.resources
+C:\development\github\DotsFinder\DotsFinder\obj\Debug\DotsFinder.Properties.Resources.resources
+C:\development\github\DotsFinder\DotsFinder\obj\Debug\DotsFinder.csproj.GenerateResource.cache
+C:\development\github\DotsFinder\DotsFinder\obj\Debug\DotsFinder.csproj.CoreCompileInputs.cache
+C:\development\github\DotsFinder\DotsFinder\bin\Debug\DotsFinder.exe.config
+C:\development\github\DotsFinder\DotsFinder\bin\Debug\DotsFinder.exe
+C:\development\github\DotsFinder\DotsFinder\bin\Debug\DotsFinder.pdb
+C:\development\github\DotsFinder\DotsFinder\obj\Debug\DotsFinder.exe
+C:\development\github\DotsFinder\DotsFinder\obj\Debug\DotsFinder.pdb
