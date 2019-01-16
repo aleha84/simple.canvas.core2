@@ -21,6 +21,17 @@ class InfoScreenScene extends Scene {
             }
         }));
 
+        this.bgImage = textureGenerator.textureGenerator({
+            size: this.viewport,
+            backgroundColor: '#6A7334',
+            surfaces: [
+                textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(100, 1), density: 0.0005, opacity: [0.05, 0.1], indents: { h: new V2(-100,-100) }}),
+                textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(1, 100), density: 0.0005, opacity: [0.05, 0.1], indents: { v: new V2(-100,-100) }}),
+                //textureGenerator.getSurfaceProperties({colors: ['#000000'], fillSize: new V2(20, 20), density: 0.0005, opacity: [0.05, 0.1], indents: { v: new V2(-20,-20) }}),
+                // textureGenerator.getSurfaceProperties({colors: ['#FFFFFF'], fillSize: new V2(2, 2), density: 0.005, opacity: [0.05, 0.1], indents: { v: new V2(-2,-2) }})
+            ]
+        })
+
         // text appearance demo
 {
     let obj = new GO({
@@ -343,8 +354,9 @@ class InfoScreenScene extends Scene {
 
     }
     backgroundRender(){
-        SCG.contexts.background.fillStyle = 'black';
-        SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+        // SCG.contexts.background.fillStyle = 'black';
+        // SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+        SCG.contexts.background.drawImage(this.bgImage, 0,0, SCG.viewport.real.width,SCG.viewport.real.height)
     }
 
     afterMainWork(now){
@@ -774,6 +786,9 @@ class Screen extends GO {
             position: new V2(),
             size: this.size.clone(),
             img: createCanvas(this.size, function(ctx, size){
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0,0, size.x, size.y);
+
                 if(that.backgroundColors.length > 1){
                     let grd = undefined;
                     switch(that.backgroundColorsDirection){

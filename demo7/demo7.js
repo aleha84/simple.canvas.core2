@@ -59,6 +59,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new TextureScene({
+        name:'texture',
+        viewport: defaultViewpot
+    }));
+
     
 
     sceneSelectByHashValue();
