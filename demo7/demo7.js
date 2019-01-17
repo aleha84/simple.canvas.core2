@@ -64,6 +64,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new SphereScene({
+        name:'sphere',
+        viewport: defaultViewpot
+    }));
+
     
 
     sceneSelectByHashValue();
