@@ -8,7 +8,8 @@ var textureGenerator = {
             fillSize: new V2(1,1),
             blot: {
                 ttl: 5,
-                density: 1
+                density: 1,
+                decreaseSize: false
             },
             line: {
                 directionAngle: 0,
@@ -39,22 +40,41 @@ var textureGenerator = {
         let blotGeneration = function(ctx, sc, current){
             if(current.ttl <= 0)
                 return;
+
+            if(current.position.x > sc.imgSize.x-1){
+                current.position.x-=sc.imgSize.x;
+            }
+
+            if(current.position.x < 0){
+                current.position.x+=sc.imgSize.x;
+            }
             
-            ctx.fillStyle = `rgba(${current.clr[0]},${current.clr[1]},${current.clr[2]},${(sc.opacity.length == 1? sc.opacity[0] : getRandom(sc.opacity[0], sc.opacity[1]))})`;
-            ctx.fillRect(current.position.x, current.position.y, sc.fillSize.x, sc.fillSize.y);
+            let clrRGB =  hexToRgb(current.clr == undefined? sc.colors[getRandomInt(0, sc.colors.length-1)] : current.clr, true);
+
+            ctx.fillStyle = `rgba(${clrRGB[0]},${clrRGB[1]},${clrRGB[2]},${(sc.opacity.length == 1? sc.opacity[0] : getRandom(sc.opacity[0], sc.opacity[1]))})`;
+            ctx.fillRect(current.position.x, current.position.y, current.size.x, current.size.y);
             if(getRandomInt(0, current.originTtl) < current.ttl*sc.blot.density){ // create child
-                let p = getRandomDirection();//directions[getRandomInt(0, directions.length-1)].clone();
+                let p = getRandomDirection();
                 blotGeneration(ctx, sc, { 
                     ttl: current.ttl-1, 
                     originTtl: current.ttl-1, 
-                    position: current.position.add(new V2(p.x*sc.fillSize.x, p.y*sc.fillSize.y)),
-                    clr: current.clr    
+                    position: current.position.add(new V2(p.x*current.size.x, p.y*current.size.y)),
+                    clr: current.clr,
+                    size: current.size.clone()  
                 });
             }
 
             current.ttl--;
-            let p = getRandomDirection();//directions[getRandomInt(0, directions.length-1)];
-            current.position.add(new V2(p.x*sc.fillSize.x, p.y*sc.fillSize.y), true);
+            if(sc.blot.decreaseSize){
+                current.size.x-=1;
+                if(current.size.x<=0)
+                    current.size.x=1;
+                current.size.y-=1;
+                if(current.size.y<=0)
+                    current.size.y=1;
+            }
+            let p = getRandomDirection();
+            current.position.add(new V2(p.x*current.size.x, p.y*current.size.y), true);
             blotGeneration(ctx, sc, current);
         }
 
@@ -63,24 +83,26 @@ var textureGenerator = {
             ctx.fillRect(0,0, size.x, size.y);
 
             for(let sc of c.surfaces){
+                sc.imgSize = size;
                 if(sc.type == 'blot'){
                     if(sc.blot.density > 1)
                         sc.blot.density = 1
                 }
                 let from = new V2(sc.indents.h.x, sc.indents.v.x);
                 let to = new V2(c.size.x - sc.indents.h.y - sc.fillSize.x, c.size.y - sc.indents.v.y - sc.fillSize.y);
-                let clr = sc.colors.length == 1? hexToRgb(sc.colors[0], true):  undefined;
+                let clr = sc.colors.length == 1? sc.colors[0]:  undefined;
+                let clrRGB = undefined;
                 let opacity = sc.opacity.length == 1? sc.opacity[0] : undefined;
 
                 let count = sc.preciseCount || size.x*size.y*sc.density;
                 for(let i = 0; i < count;i++){
-                    if(clr == undefined)
-                        clr =  hexToRgb(sc.colors[getRandom(0, sc.colors.length-1)], true);
+                    
+                    clrRGB =  hexToRgb(clr == undefined ? sc.colors[getRandomInt(0, sc.colors.length-1)]: clr, true);
 
                     if(opacity == undefined)
                         opacity =  getRandom(sc.opacity[0], sc.opacity[1]);
 
-                    let clrRGBA = `rgba(${clr[0]},${clr[1]},${clr[2]},${opacity})`
+                    let clrRGBA = `rgba(${clrRGB[0]},${clrRGB[1]},${clrRGB[2]},${opacity})`
                     if(sc.type == 'rect'){
                         ctx.fillStyle = clrRGBA;
                         ctx.fillRect(getRandomInt(from.x, to.x), getRandomInt(from.y, to.y), sc.fillSize.x, sc.fillSize.y);
@@ -99,7 +121,8 @@ var textureGenerator = {
                             ttl: sc.blot.ttl, 
                             originTtl: sc.blot.ttl, 
                             position: new V2(getRandomInt(from.x, to.x), getRandomInt(from.y, to.y)),
-                            clr: clr   
+                            clr: clr,
+                            size: sc.fillSize.clone()
                         })
                     }
                     
