@@ -42,11 +42,11 @@ var textureGenerator = {
                 return;
 
             if(current.position.x > sc.imgSize.x-1){
-                current.position.x-=sc.imgSize.x;
+                current.position.x=0;
             }
 
             if(current.position.x < 0){
-                current.position.x+=sc.imgSize.x;
+                current.position.x=sc.imgSize.x-1;
             }
             
             let clrRGB =  hexToRgb(current.clr == undefined? sc.colors[getRandomInt(0, sc.colors.length-1)] : current.clr, true);
