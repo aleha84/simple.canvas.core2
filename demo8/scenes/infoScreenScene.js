@@ -10,6 +10,7 @@ class InfoScreenScene extends Scene {
         super(options);
 
         this.mainScreen = this.addGo(new Screen({
+            isVisible: true,
             size: new V2(this.viewport.x/3, this.viewport.y*0.7),
             position: new V2(this.viewport.x/2, this.viewport.y/2),
             gridOptions: {
@@ -18,8 +19,44 @@ class InfoScreenScene extends Scene {
                     h: 3
                 },
                 linesColor: 'rgba(38,127,0,0.15)'
+            }, 
+            bordersOptions: {
+                color: '#36413D'
             }
         }));
+
+        this.bgImage = textureGenerator.textureGenerator({
+            size: this.viewport,
+            backgroundColor: '#353938',
+            surfaces: [
+                //blot 1
+                // textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(3, 3), preciseCount: 5, opacity: [0.01, 0.02], type: 'blot', blot: { ttl: 40, density: 0.25} }),
+                // textureGenerator.getSurfaceProperties({colors: ['#FF0000'], fillSize: new V2(3, 3), preciseCount: 5, opacity: [0.01, 0.02], type: 'blot', blot: { ttl: 40, density: 0.25} }),
+
+                //blot 2
+                //textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(10, 10), preciseCount: 1, opacity: [0.05, 0.1], type: 'blot', blot: {ttl: 10, density: 1} }),
+
+                //blot 3
+                //textureGenerator.getSurfaceProperties({colors: ['#0000FF'], fillSize: new V2(3, 3), preciseCount: 100, opacity: [0.1, 0.25], type: 'blot', blot: {ttl: 100, density: 0} }),
+
+                textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(100, 1), density: 0.0005, opacity: [0.05, 0.1], indents: { h: new V2(-100,-100) }}),
+                textureGenerator.getSurfaceProperties({colors: ['#A8BBB9'], fillSize: new V2(1, 100), density: 0.0005, opacity: [0.05, 0.1], indents: { v: new V2(-100,-100) }}),
+
+                //textureGenerator.getSurfaceProperties({type: 'line', colors: ['#A8BBB9'], line: {angleSpread: 5,length: 50}, density: 0.005, opacity: [0.1, 0.2], indents: { h: new V2(-100,-100) }}),
+
+                //textureGenerator.getSurfaceProperties({colors: ['#000000'], fillSize: new V2(20, 20), density: 0.0005, opacity: [0.05, 0.1], indents: { v: new V2(-20,-20) }}),
+                // textureGenerator.getSurfaceProperties({colors: ['#FFFFFF'], fillSize: new V2(2, 2), density: 0.005, opacity: [0.05, 0.1], indents: { v: new V2(-2,-2) }})
+            ]
+        });
+
+        this.plates = [
+            Array.from(Array(3).keys()).map(i => this.platesGenerator(new V2(30 + i*50,70), new V2(45,100))),
+            this.platesGenerator(new V2(80,150), new V2(140,50)),
+            this.platesGenerator(new V2(80,0), new V2(150,30)),
+            this.platesGenerator(new V2(250,0), new V2(180,60), 50),
+            Array.from(Array(2).keys()).map(i => this.platesGenerator(new V2(47 + i*65,210), new V2(60,60), 15)),
+            this.platesGenerator(new V2(0,300), new V2(290,100), 50),
+        ]        
 
         // text appearance demo
 {
@@ -343,8 +380,9 @@ class InfoScreenScene extends Scene {
 
     }
     backgroundRender(){
-        SCG.contexts.background.fillStyle = 'black';
-        SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+        // SCG.contexts.background.fillStyle = 'black';
+        // SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+        SCG.contexts.background.drawImage(this.bgImage, 0,0, SCG.viewport.real.width,SCG.viewport.real.height)
     }
 
     afterMainWork(now){
@@ -355,6 +393,59 @@ class InfoScreenScene extends Scene {
             doWorkByTimer(this.addClearText, now);
     }
 
+    platesGenerator(position, size, blotsCount = 20) {
+        //plates
+        let s = size;
+        let r = 0.1;
+        let fixedValue = 5;
+        let proportion = 0.05;
+        let indent = 2.5;
+        this.addGo(new GO({
+            position: position,
+            size: s,
+            img: createCanvas(s, (ctx, size) => {
+                ctx.save();
+                drawHelper.rectangle(ctx, { size: size, radiusEdges: {enabled: true, fixedValue: fixedValue} });
+                ctx.clip();
+                ctx.fillStyle = '#353938';
+                ctx.fillRect(0,0,size.x, size.y);
+                let intentToSizeY = 0.1;
+                let grd = ctx.createLinearGradient(0,0, 0,size.y);
+                grd.addColorStop(0, 'rgba(255,255,255,0.5'); grd.addColorStop(intentToSizeY, 'rgba(255,255,255,0.1');
+                grd.addColorStop(1-intentToSizeY, 'rgba(255,255,255,0.15');grd.addColorStop(1, 'rgba(0,0,0,0.5');
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0,size.x, size.y);
+                ctx.restore();
+                ctx.save();
+                
+                drawHelper.rectangle(ctx, { size: size.addScalar(-indent*2), topLeft: new V2().addScalar(indent), radiusEdges: {enabled: true, fixedValue: fixedValue} });
+                ctx.clip();
+                
+                ctx.drawImage(textureGenerator.textureGenerator({
+                    size: size, 
+                    backgroundColor: '#353938',
+                    surfaces: [
+                        textureGenerator.getSurfaceProperties({
+                            colors: ['#36413D'], 
+                            fillSize: new V2(4, 4), 
+                            preciseCount: blotsCount, 
+                            opacity: [1], 
+                            type: 'blot', 
+                            blot: { ttl: 4, density: 1},
+                            indents: { v: new V2(-4,-4), h: new V2(-4,-4) }
+                        }),
+                    ]
+                }), 0,0, size.x, size.y)
+                ctx.strokeStyle = 'rgba(255,255,255,0.25)';ctx.lineWidth = 1;ctx.stroke();
+                ctx.restore();
+
+                ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                ctx.fillRect(10, 10,2,2);
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.fillRect(10, 11,2,2);
+            })
+        }));
+    }
 }
 
 class AppearingText extends GO {
@@ -774,6 +865,9 @@ class Screen extends GO {
             position: new V2(),
             size: this.size.clone(),
             img: createCanvas(this.size, function(ctx, size){
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0,0, size.x, size.y);
+
                 if(that.backgroundColors.length > 1){
                     let grd = undefined;
                     switch(that.backgroundColorsDirection){
