@@ -13,10 +13,13 @@ MetroTrain: https://aleha84.github.io/simple.canvas.core2/demo2/#metrotrain
 
 Cyberslav: https://aleha84.github.io/simple.canvas.core2/demo2/#cyberslav
 
-# TODO:
+Controls demo (more work neede) https://aleha84.github.io/simple.canvas.core2/demo6/
 
-Controls demo
+Tilemap demo: https://aleha84.github.io/simple.canvas.core2/demo3/#tilemap
 
-Collision detection demo
+Cyberpunk rain: https://aleha84.github.io/simple.canvas.core2/demo6/#rain
 
-GO effects demo
+Fountain: https://aleha84.github.io/simple.canvas.core2/demo6/#sand
+
+
+
