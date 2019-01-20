@@ -264,9 +264,16 @@ class SizeEffect extends EffectBase {
             throw `Wrong dimension '${options.dimension}' specified for SizeEffect`;
         }
 
-        if(options.dimension == 'both' && !options.loop){
+        if(options.dimension == 'both' && !options.loop && options.direction == -1){
             options.removeVisibilityOnComplete = true;
             options.min = 0.01;
+        }
+
+        if(options.direction == 1){
+            options.current = options.min;
+        }
+        else if(options.direction == -1){
+            options.current = options.max;
         }
 
         super(options);

@@ -14,7 +14,9 @@ class SphereScene extends Scene {
 
         this.textureSize = new V2(800, 400);
         this.sphereSize = new V2(100,100);
+    }
 
+    start(props){
         this.texture = textureGenerator.textureGenerator({
             size: this.textureSize,
             backgroundColor: '#094D74', //water
@@ -60,9 +62,9 @@ class SphereScene extends Scene {
         this.diskSize = 200;
         this.time = 0;
         this.speed =0.5;
-        this.cloudsSpeed = -0.5
-        this.sphereImg = this.createPlanetTexure(this.texture, 'sphere', this.textureSize, this.diskSize, this.speed, false);
-        this.cloudsSphereImg = this.createPlanetTexure(this.cloudsTexture, 'clouds', this.textureSize, this.diskSize, this.cloudsSpeed, true);
+        this.cloudsSpeed = 0.25
+        this.sphereImg = sphereHelper.createPlanetTexure(this.texture, 'sphere', this.textureSize, this.diskSize, this.speed, 0, false);
+        this.cloudsSphereImg = sphereHelper.createPlanetTexure(this.cloudsTexture, 'clouds', this.textureSize, this.diskSize, this.cloudsSpeed, 0, true);
         
 
         this.planet = this.addGo(new GO({
@@ -83,10 +85,10 @@ class SphereScene extends Scene {
         }));
 
         this.rotationTimer = createTimer(35, () => {
-            this.sphereImg = this.createPlanetTexure(this.texture, 'sphere',this.textureSize, this.diskSize, this.speed, false);
+            this.sphereImg = sphereHelper.createPlanetTexure(this.texture, 'sphere',this.textureSize, this.diskSize, this.speed, this.time, false);
             this.planet.sphere.img = this.sphereImg;
 
-            this.cloudsSphereImg = this.createPlanetTexure(this.cloudsTexture, 'clouds',this.textureSize, this.diskSize, this.cloudsSpeed, true)
+            this.cloudsSphereImg = sphereHelper.createPlanetTexure(this.cloudsTexture, 'clouds',this.textureSize, this.diskSize, this.cloudsSpeed, this.time, true)
             this.planet.cloudsSphere.img = this.cloudsSphereImg;
 
             this.time++;
@@ -133,8 +135,6 @@ class SphereScene extends Scene {
                 ]
             }
         }
-        
-        
     }
 
     starsLayerGeneratr(size, density, opacity) {
@@ -179,130 +179,5 @@ class SphereScene extends Scene {
 
         SCG.contexts.background.fillStyle = grd;
         SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
-    }
-
-    setPixel(imageData, x, y, r, g, b, a, width) {
-        let index = (x + y * width) * 4;
-        imageData.data[index+0] = r;
-        imageData.data[index+1] = g;
-        imageData.data[index+2] = b;
-        imageData.data[index+3] = a;
-    }
-
-    getPixel(imageData, x, y, width){
-        let index = (x + y * width) * 4;
-        return [imageData.data[index], imageData.data[index+1], imageData.data[index+2], imageData.data[index+3]];
-    }
-
-    createPlanetTexure(baseTexture, textureName, baseTextureSize, diskSize, speed, addShadows) {
-        return createCanvas(new V2(this.diskSize,this.diskSize), (ctx, size) => {
-            let sphereImg = this.createSphere(baseTexture, textureName, baseTextureSize, diskSize, speed,this.time);
-            ctx.drawImage(sphereImg, 0,0, size.x, size.y);
-            
-            if(addShadows) {
-                ctx.save();
-                ctx.arc(size.x/2,size.x/2, size.x/2 + 1, 0, Math.PI*2, false );
-                ctx.clip();
-                
-                let grd =ctx.createRadialGradient(size.x/4, size.x/4, 0, 0, 0, 1.2*size.x); //main shadow
-                grd.addColorStop(0.5, 'rgba(0,0,0,0)');grd.addColorStop(1, 'rgba(0,0,0,1)');
-                ctx.fillStyle = grd;
-                ctx.fillRect(0,0, size.x, size.y);
-
-                grd =ctx.createRadialGradient(size.x/2, size.y/2, 0.85*size.x/2, size.x/2, size.y/2, size.x/2); // sphere effect
-                grd.addColorStop(0, 'rgba(0,0,0,0)');grd.addColorStop(1, 'rgba(0,0,0,0.75)');
-                ctx.fillStyle = grd;
-                ctx.fillRect(0,0, size.x, size.y);
-
-                ctx.restore();
-            }
-            
-
-            
-        })
-    }
-
-    
-
-    createSphere(originTextureImg, originTextureName, originSize, diskSize, rotationSpeed = 0, time = 0){
-        if(!this.createSphereCalcCache)
-            this.createSphereCalcCache = [];
-
-        if(!this.originTexturesDataCache)
-            this.originTexturesDataCache = {};
-
-        let imgPixelsData 
-        let imgPixelsDataCacheItem = this.originTexturesDataCache[originTextureName];
-        if(imgPixelsDataCacheItem === undefined){
-            imgPixelsData = originTextureImg.getContext('2d').getImageData(0,0,originSize.x, originSize.y);
-            this.originTexturesDataCache[originTextureName] = imgPixelsData;
-        }
-        else {
-            imgPixelsData = imgPixelsDataCacheItem;
-        }
-        
-        let resultImg = createCanvas(new V2(diskSize,diskSize), (ctx, size) => { ctx.fillStyle = 'rgba(255,255,255,0)';ctx.fillRect(0,0,size.x, size.y); });
-        let resultImageData = resultImg.getContext('2d').getImageData(0,0,diskSize, diskSize);
-        for(let x = 0; x < diskSize; x++){
-            if(this.createSphereCalcCache[x] == undefined)
-                this.createSphereCalcCache[x] = [];
-
-            for(let y = 0; y < diskSize; y++){
-
-                //with usage vectors cache
-                let px, py;
-                let cacheItem = this.createSphereCalcCache[x][y];
-                if(cacheItem === undefined){
-                    px = x*2/diskSize - 1;
-                    py = y*2/diskSize - 1;
-    
-                    let magSq = px*px + py*py;
-    
-                    if(magSq > 1){
-                        this.createSphereCalcCache[x][y] = null;
-                        //this.setPixel(resultImageData, x, y, 255,255,255,0);
-                        continue;
-                    }
-    
-                    let widthAtHeight =Math.sqrt(1 - py * py);
-                    px = Math.asin(px / widthAtHeight) * 2/Math.PI
-                    py = Math.asin(py) * 2/Math.PI
-
-                    this.createSphereCalcCache[x][y] = {px, py};
-                }
-                else if(cacheItem === null)
-                    continue;
-                else if(cacheItem){
-                    px = cacheItem.px;
-                    py = cacheItem.py;
-                }
-                //without usage vectors cache
-/* 
-                let px = x*2/diskSize - 1;
-                let py = y*2/diskSize - 1;
-
-                let magSq = px*px + py*py;
-
-                if(magSq > 1){
-                    //this.setPixel(resultImageData, x, y, 255,255,255,0);
-                    continue;
-                }
-
-                let widthAtHeight =Math.sqrt(1 - py * py);
-                px = Math.asin(px / widthAtHeight) * 2/Math.PI
-                py = Math.asin(py) * 2/Math.PI
-*/
-                let u = fastRoundWithPrecision(rotationSpeed*time+(px+1)*(originSize.y/2),0);
-                let v = fastRoundWithPrecision((py + 1)*(originSize.y/2),0);
-                u %= (2*originSize.y);
-
-                let colorData = this.getPixel(imgPixelsData, u, v, originSize.x);
-                this.setPixel(resultImageData, x, y, colorData[0], colorData[1], colorData[2], colorData[3], diskSize);
-            }
-        }
-
-        resultImg.getContext('2d').putImageData(resultImageData, 0,0);
-
-        return resultImg;
     }
 }
