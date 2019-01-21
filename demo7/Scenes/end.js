@@ -17,6 +17,18 @@ class EndScene extends Scene {
         this.textureSize = new V2(800, 400);
         this.sphereSize = new V2(100,100);
         sphereHelper.clearCache();
+        this.lowerTexture = textureGenerator.textureGenerator({
+            size: this.textureSize,
+            backgroundColor: '#4F301C',
+            surfaces: [
+                textureGenerator.getSurfaceProperties({ colors: ['#0A0100', '#0A0000', '#070000', '#110000','#0E0000'],  opacity: [0.05, 0.1], fillSize: new V2(10,10),type:'rect', density: 0.2, indents: {h: new V2(-10,-10)} }),                  
+                textureGenerator.getSurfaceProperties({ colors: ['#7C5039', '#55321E', '#A87456', '#331A0B','#784F36'],  opacity: [0.05, 0.1], fillSize: new V2(5,5),type:'rect', density: 0.005, indents: {h: new V2(-10,-10)} }),                  
+                textureGenerator.getSurfaceProperties({ colors: ['#FF291D', '#8A0502', '#F5120A', '#FF2B11','#FB1C0E'],  opacity: [0.5, 1], fillSize: new V2(1,1),type:'rect', density: 0.01, indents: {h: new V2(-1,-1)} }),                  
+                // textureGenerator.getSurfaceProperties({ 
+                //     colors: ['#FFF977', '#FFE46D','#FFF37A', '#FFE567', '#FFF381'], fillSize: new V2(5,5), opacity: [0.5], 
+                //     type:'blot', blot: { ttl: 40, density: 0, decreaseSize: true }, density: 0.001  }),   
+            ]
+        });
         this.baseTexture = textureGenerator.textureGenerator({
             size: this.textureSize,
             backgroundColor: '#1C2C3B',
@@ -135,14 +147,29 @@ class EndScene extends Scene {
 
     textureProcesser() {
         return createCanvas(this.textureSize, (ctx, size) => {
-            ctx.drawImage(this.baseTexture,0,0,size.x, size.y);
+            ctx.drawImage(this.lowerTexture,0,0,size.x, size.y);
+
+            let middleImg = createCanvas(this.textureSize, (ctx, size) => {
+                ctx.drawImage(this.baseTexture,0,0,size.x, size.y);
+                for(let exp of this.groundExplosions){
+                    let r = exp.currentRadius/exp.skirt;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(exp.position.x, exp.position.y, r, 0, Math.PI*2, false);
+                    ctx.clip();
+                    ctx.clearRect(exp.position.x-r, exp.position.y-r, r*2, r*2);
+                    ctx.restore();
+                }
+            });
+            
+            ctx.drawImage(middleImg,0,0,size.x, size.y);
 
             for(let exp of this.groundExplosions){
                 if(exp.currentRadius == 0)
                     continue;
                 
                     let grd = ctx.createRadialGradient(exp.position.x, exp.position.y, exp.currentRadius/exp.skirt, exp.position.x, exp.position.y, exp.currentRadius);
-                    grd.addColorStop(0, 'rgba(255,255,255,0)');grd.addColorStop(1, 'rgba(255,255,255,1)');grd.addColorStop(1, 'rgba(255,255,255,0)');
+                    grd.addColorStop(0, 'rgba(225,63,38,0)');grd.addColorStop(0.8, 'rgba(255,197,79, 1)');grd.addColorStop(1, 'rgba(255,255,128,1)');grd.addColorStop(1, 'rgba(255,255,255,0)');
                     ctx.fillStyle = grd;
                     ctx.fillRect(exp.position.x - exp.currentRadius, exp.position.y - exp.currentRadius, exp.currentRadius*2, exp.currentRadius*2);
             }
