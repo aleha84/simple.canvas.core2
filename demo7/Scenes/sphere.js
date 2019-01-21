@@ -17,6 +17,7 @@ class SphereScene extends Scene {
     }
 
     start(props){
+        sphereHelper.clearCache();
         this.texture = textureGenerator.textureGenerator({
             size: this.textureSize,
             backgroundColor: '#094D74', //water

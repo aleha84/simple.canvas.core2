@@ -74,7 +74,10 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
-    
+    SCG.scenes.cacheScene(new EndScene({
+        name:'end',
+        viewport: defaultViewpot
+    }));
 
     sceneSelectByHashValue();
     

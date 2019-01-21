@@ -158,6 +158,9 @@ var textureGenerator = {
 
 var sphereHelper = {
     createSphereCalcCache: [],
+    clearCache() {
+        this.createSphereCalcCache = [];
+    },
     setPixel(imageData, x, y, r, g, b, a, width) {
         let index = (x + y * width) * 4;
         imageData.data[index+0] = r;
@@ -184,8 +187,8 @@ var sphereHelper = {
                 ctx.fillStyle = grd;
                 ctx.fillRect(0,0, size.x, size.y);
 
-                grd =ctx.createRadialGradient(size.x/2, size.y/2, 0.85*size.x/2, size.x/2, size.y/2, size.x/2); // sphere effect
-                grd.addColorStop(0, 'rgba(0,0,0,0)');grd.addColorStop(1, 'rgba(0,0,0,0.75)');
+                grd =ctx.createRadialGradient(size.x/2 + 0.5, size.y/2 + 0.5, 0.85*size.x/2, size.x/2 + 0.5, size.y/2 + 0.5, size.x/2); // sphere effect
+                grd.addColorStop(0, 'rgba(0,0,0,0)');grd.addColorStop(1, 'rgba(0,0,0,0.75)');grd.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = grd;
                 ctx.fillRect(0,0, size.x, size.y);
 

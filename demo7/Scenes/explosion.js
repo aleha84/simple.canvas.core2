@@ -31,6 +31,7 @@ class ExplosionsScene extends Scene {
 
         this.textureSize = new V2(800, 400);
         this.sphereSize = new V2(100,100);
+        sphereHelper.clearCache();
         this.texture = textureGenerator.textureGenerator({
             size: this.textureSize,
             backgroundColor: '#1C2C3B',
