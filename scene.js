@@ -9,6 +9,13 @@ class Scene {
             space: new V2(500, 300),
             AI: undefined,
             ui: [],
+            debug: {
+                enabled: false,
+                font: (25*SCG.viewport.scale) + 'px Arial',
+                textAlign: 'left',
+                fillStyle: 'red',
+                position: new V2(20*SCG.viewport.scale, 20*SCG.viewport.scale),
+            },
             collisionDetection: {
                 enabled: false,
                 level: 1,
@@ -323,6 +330,17 @@ class Scene {
         }
         
         this.afterMainWork(now);
+
+        if(this.debug.enabled){
+
+            let ctx = SCG.contexts.main;
+
+            ctx.font = this.debug.font;
+            ctx.textAlign = this.debug.textAlign;
+            ctx.fillStyle = this.debug.fillStyle;
+            
+            ctx.fillText(SCG.main.performance.fps, this.debug.position.x, this.debug.position.y);
+        }
     }
 }
 

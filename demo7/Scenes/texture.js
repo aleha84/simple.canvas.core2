@@ -5,7 +5,9 @@ class TextureScene extends Scene {
         }, options)
 
         super(options);
+    }
 
+    start() {
         let tg = textureGenerator;
         this.addGo(new GO({
             position: this.sceneCenter.clone(),

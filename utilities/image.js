@@ -14,7 +14,10 @@ var textureGenerator = {
             line: {
                 directionAngle: 0,
                 angleSpread: 45,
-                length: 25
+                length: [25],
+                path: {
+                    segments: [3],
+                },
             },
             density: 1,
             preciseCount: undefined,
@@ -92,28 +95,49 @@ var textureGenerator = {
                 let to = new V2(c.size.x - sc.indents.h.y - sc.fillSize.x, c.size.y - sc.indents.v.y - sc.fillSize.y);
                 let clr = sc.colors.length == 1? sc.colors[0]:  undefined;
                 let clrRGB = undefined;
-                let opacity = sc.opacity.length == 1? sc.opacity[0] : undefined;
+                //let opacity = sc.opacity.length == 1? sc.opacity[0] : undefined;
 
                 let count = sc.preciseCount || size.x*size.y*sc.density;
                 for(let i = 0; i < count;i++){
                     
                     clrRGB =  hexToRgb(clr == undefined ? sc.colors[getRandomInt(0, sc.colors.length-1)]: clr, true);
 
-                    if(opacity == undefined)
-                        opacity =  getRandom(sc.opacity[0], sc.opacity[1]);
+                    // if(opacity == undefined)
+                    //     opacity =  getRandom(sc.opacity[0], sc.opacity[1]);
 
-                    let clrRGBA = `rgba(${clrRGB[0]},${clrRGB[1]},${clrRGB[2]},${opacity})`
+                    let clrRGBA = `rgba(${clrRGB[0]},${clrRGB[1]},${clrRGB[2]},${(sc.opacity.length == 1? sc.opacity[0] : getRandom(sc.opacity[0], sc.opacity[1]))})`
                     if(sc.type == 'rect'){
                         ctx.fillStyle = clrRGBA;
                         ctx.fillRect(getRandomInt(from.x, to.x), getRandomInt(from.y, to.y), sc.fillSize.x, sc.fillSize.y);
                     }
-                    else if(sc.type == 'line'){
+                    else if(sc.type == 'line' || sc.type == 'path'){
+                        let count = 1;
+                        if(sc.type == 'path'){
+                            count = sc.line.path.segments.length == 1 ? sc.line.path.segments[0] : getRandomInt(sc.line.path.segments[0], sc.line.path.segments[1])
+                        }
                         ctx.strokeStyle = clrRGBA;
                         ctx.beginPath();
                         let lineFrom = new V2(getRandomInt(from.x, to.x), getRandomInt(from.y, to.y)) 
                         ctx.moveTo(lineFrom.x, lineFrom.y);
-                        let lineTo = lineFrom.add(V2.up.rotate(sc.line.directionAngle+getRandom(-sc.line.angleSpread,sc.line.angleSpread)).mul(sc.line.length));
-                        ctx.lineTo(lineTo.x, lineTo.y);
+                        for(let i =0;i <count;i++){
+                            let len = sc.line.length.length == 1 ? sc.line.length[0] : getRandomInt(sc.line.length[0], sc.line.length[1]);
+                            let lineTo = lineFrom.add(V2.up.rotate(sc.line.directionAngle+getRandom(-sc.line.angleSpread,sc.line.angleSpread)).mul(len));
+                            if(lineTo.x > to.x) {
+                                lineTo.x = to.x;
+                                ctx.lineTo(lineTo.x, lineTo.y);
+                                ctx.stroke();
+                                ctx.beginPath();
+                                lineFrom = new V2(from.x, lineTo.y);
+                                ctx.moveTo(from.x, lineTo.y);
+                                continue;
+                            }//lineTo.x = to.x;
+                            if(lineTo.y > to.y) continue;//lineTo.y = to.y;
+                            if(lineTo.x < from.x) continue;//lineTo.x = from.x;
+                            if(lineTo.y < from.y) continue;//lineTo.y = from.y;
+                            ctx.lineTo(lineTo.x, lineTo.y);
+                            lineFrom = lineTo;
+                        }
+                       
                         ctx.stroke();
                     }
                     else if(sc.type == "blot"){
@@ -129,6 +153,132 @@ var textureGenerator = {
                 }
             }
         });
+    }
+}
+
+var sphereHelper = {
+    createSphereCalcCache: [],
+    clearCache() {
+        this.createSphereCalcCache = [];
+    },
+    setPixel(imageData, x, y, r, g, b, a, width) {
+        let index = (x + y * width) * 4;
+        imageData.data[index+0] = r;
+        imageData.data[index+1] = g;
+        imageData.data[index+2] = b;
+        imageData.data[index+3] = a;
+    },
+    getPixel(imageData, x, y, width){
+        let index = (x + y * width) * 4;
+        return [imageData.data[index], imageData.data[index+1], imageData.data[index+2], imageData.data[index+3]];
+    },
+    createPlanetTexure(baseTexture, textureName, baseTextureSize, diskSize, speed, time, addShadows) {
+        return createCanvas(new V2(diskSize,diskSize), (ctx, size) => {
+            let sphereImg = this.createSphere(baseTexture, textureName, baseTextureSize, diskSize, speed,time);
+            ctx.drawImage(sphereImg, 0,0, size.x, size.y);
+            
+            if(addShadows) {
+                ctx.save();
+                ctx.arc(size.x/2,size.x/2, size.x/2 + 1, 0, Math.PI*2, false );
+                ctx.clip();
+                
+                let grd =ctx.createRadialGradient(size.x/4, size.x/4, 0, 0, 0, 1.2*size.x); //main shadow
+                grd.addColorStop(0.5, 'rgba(0,0,0,0)');grd.addColorStop(1, 'rgba(0,0,0,1)');
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0, size.x, size.y);
+
+                grd =ctx.createRadialGradient(size.x/2 + 0.5, size.y/2 + 0.5, 0.85*size.x/2, size.x/2 + 0.5, size.y/2 + 0.5, size.x/2); // sphere effect
+                grd.addColorStop(0, 'rgba(0,0,0,0)');grd.addColorStop(1, 'rgba(0,0,0,0.75)');grd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0, size.x, size.y);
+
+                ctx.restore();
+            }
+            
+
+            
+        })
+    },
+    createSphere(originTextureImg, originTextureName, originSize, diskSize, rotationSpeed = 0, time = 0){
+        if(!this.createSphereCalcCache[diskSize])
+            this.createSphereCalcCache[diskSize] = [];
+
+        if(!this.originTexturesDataCache)
+            this.originTexturesDataCache = {};
+
+        let imgPixelsData 
+        let imgPixelsDataCacheItem = this.originTexturesDataCache[originTextureName];
+        if(imgPixelsDataCacheItem === undefined){
+            imgPixelsData = originTextureImg.getContext('2d').getImageData(0,0,originSize.x, originSize.y);
+            this.originTexturesDataCache[originTextureName] = imgPixelsData;
+        }
+        else {
+            imgPixelsData = imgPixelsDataCacheItem;
+        }
+        
+        let resultImg = createCanvas(new V2(diskSize,diskSize), (ctx, size) => { ctx.fillStyle = 'rgba(255,255,255,0)';ctx.fillRect(0,0,size.x, size.y); });
+        let resultImageData = resultImg.getContext('2d').getImageData(0,0,diskSize, diskSize);
+        for(let x = 0; x < diskSize; x++){
+            if(this.createSphereCalcCache[diskSize][x] == undefined)
+                this.createSphereCalcCache[diskSize][x] = [];
+
+            for(let y = 0; y < diskSize; y++){
+
+                //with usage vectors cache
+                let px, py;
+                let cacheItem = this.createSphereCalcCache[diskSize][x][y];
+                if(cacheItem === undefined){
+                    px = x*2/diskSize - 1;
+                    py = y*2/diskSize - 1;
+    
+                    let magSq = px*px + py*py;
+    
+                    if(magSq > 1){
+                        this.createSphereCalcCache[diskSize][x][y] = null;
+                        //this.setPixel(resultImageData, x, y, 255,255,255,0);
+                        continue;
+                    }
+    
+                    let widthAtHeight =Math.sqrt(1 - py * py);
+                    px = Math.asin(px / widthAtHeight) * 2/Math.PI
+                    py = Math.asin(py) * 2/Math.PI
+
+                    this.createSphereCalcCache[diskSize][x][y] = {px, py};
+                }
+                else if(cacheItem === null)
+                    continue;
+                else if(cacheItem){
+                    px = cacheItem.px;
+                    py = cacheItem.py;
+                }
+                //without usage vectors cache
+/* 
+                let px = x*2/diskSize - 1;
+                let py = y*2/diskSize - 1;
+
+                let magSq = px*px + py*py;
+
+                if(magSq > 1){
+                    //this.setPixel(resultImageData, x, y, 255,255,255,0);
+                    continue;
+                }
+
+                let widthAtHeight =Math.sqrt(1 - py * py);
+                px = Math.asin(px / widthAtHeight) * 2/Math.PI
+                py = Math.asin(py) * 2/Math.PI
+*/
+                let u = fastRoundWithPrecision(rotationSpeed*time+(px+1)*(originSize.y/2),0);
+                let v = fastRoundWithPrecision((py + 1)*(originSize.y/2),0);
+                u %= (2*originSize.y);
+
+                let colorData = this.getPixel(imgPixelsData, u, v, originSize.x);
+                this.setPixel(resultImageData, x, y, colorData[0], colorData[1], colorData[2], colorData[3], diskSize);
+            }
+        }
+
+        resultImg.getContext('2d').putImageData(resultImageData, 0,0);
+
+        return resultImg;
     }
 }
 
@@ -182,4 +332,15 @@ var drawHelper = {
         if(c.closePath)
             ctx.closePath();
     }
+}
+
+var colors = {
+    rgba: {
+        transparentWhite: 'rgba(255,255,255, 0)',
+        transparentBlack: 'rgba(0,0,0, 0)',
+        white: 'rgba(255,255,255, 1)',
+        black: 'rgba(0,0,0,1)',
+    }
+    
+
 }
