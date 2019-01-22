@@ -172,9 +172,9 @@ var sphereHelper = {
         let index = (x + y * width) * 4;
         return [imageData.data[index], imageData.data[index+1], imageData.data[index+2], imageData.data[index+3]];
     },
-    createPlanetTexure(baseTexture, textureName, baseTextureSize, diskSize, speed, time, addShadows) {
+    createPlanetTexure(baseTexture, textureName, baseTextureSize, diskSize, speed, time, addShadows, setCache = true) {
         return createCanvas(new V2(diskSize,diskSize), (ctx, size) => {
-            let sphereImg = this.createSphere(baseTexture, textureName, baseTextureSize, diskSize, speed,time);
+            let sphereImg = this.createSphere(baseTexture, textureName, baseTextureSize, diskSize, speed,time, setCache);
             ctx.drawImage(sphereImg, 0,0, size.x, size.y);
             
             if(addShadows) {
@@ -199,7 +199,7 @@ var sphereHelper = {
             
         })
     },
-    createSphere(originTextureImg, originTextureName, originSize, diskSize, rotationSpeed = 0, time = 0){
+    createSphere(originTextureImg, originTextureName, originSize, diskSize, rotationSpeed = 0, time = 0,  setCache = true){
         if(!this.createSphereCalcCache[diskSize])
             this.createSphereCalcCache[diskSize] = [];
 
@@ -210,7 +210,8 @@ var sphereHelper = {
         let imgPixelsDataCacheItem = this.originTexturesDataCache[originTextureName];
         if(imgPixelsDataCacheItem === undefined){
             imgPixelsData = originTextureImg.getContext('2d').getImageData(0,0,originSize.x, originSize.y);
-            this.originTexturesDataCache[originTextureName] = imgPixelsData;
+            if(setCache)
+                this.originTexturesDataCache[originTextureName] = imgPixelsData;
         }
         else {
             imgPixelsData = imgPixelsDataCacheItem;

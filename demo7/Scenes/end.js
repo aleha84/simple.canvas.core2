@@ -44,75 +44,85 @@ class EndScene extends Scene {
             ]
         });
 
-        // this.diskSize = 200;
-        // this.time = 0;
-        // this.speed =0.05;
-        //this.sphereImg = sphereHelper.createPlanetTexure(this.texture, 'sphere', this.textureSize, this.diskSize, this.speed, 0, true);
+        this.diskSize = 200;
+        this.time = 0;
+        this.speed =0.5;
 
-        // this.planet = this.addGo(new GO({
-        //     size: this.sphereSize,
-        //     position: this.sceneCenter
-        // }), 10);
+        this.layeredStars = []
 
-        // this.planet.sphere = this.planet.addChild(new GO({
-        //     size: this.sphereSize,
-        //     position: new V2(),
-        //     img: this.sphereImg
-        // }));
-
-        // this.layeredStars = []
-
-        // this.itemsCountPerLayer = 1;
-        // for(let layer = 0; layer < 5; layer++){
-        //     this.layeredStars[layer] = [];
-        //     for(let i = 0;i<this.itemsCountPerLayer;i++){
-        //         this.layeredStars[layer][i] = [
-        //             this.addGo(new GO({
-        //                 size: this.viewport,
-        //                 position: this.sceneCenter.add(new V2(this.viewport.x*i,0)),
-        //                 img: this.starsLayerGeneratr(this.viewport, 0.0075*(Math.pow(0.1,(layer))), 0.05 + (0.05*layer)),
-        //             }), layer),
+        this.itemsCountPerLayer = 1;
+        for(let layer = 0; layer < 5; layer++){
+            this.layeredStars[layer] = [];
+            for(let i = 0;i<this.itemsCountPerLayer;i++){
+                this.layeredStars[layer][i] = [
+                    this.addGo(new GO({
+                        size: this.viewport,
+                        position: this.sceneCenter.add(new V2(this.viewport.x*i,0)),
+                        img: this.starsLayerGeneratr(this.viewport, 0.0075*(Math.pow(0.1,(layer))), 0.05 + (0.05*layer)),
+                    }), layer),
                     
-        //         ]
-        //     }
-        // }
+                ]
+            }
+        }
 
         
 
-        // this.rotationTimer = createTimer(35, () => {
-        //     this.sphereImg = sphereHelper.createPlanetTexure(this.texture, 'sphere',this.textureSize, this.diskSize, this.speed, this.time, true);
-        //     this.planet.sphere.img = this.sphereImg;
+        this.rotationTimer = createTimer(35, () => {
+            this.sphereImg = sphereHelper.createPlanetTexure(this.processedTexture, 'sphere',this.textureSize, this.diskSize, this.speed, this.time, true, false);
+            this.planet.sphere.img = this.sphereImg;
 
-        //     this.time++;
-        // }, this, false);
+            this.time++;
+        }, this, false);
 
-        this.groundExplosions = [{
-            position: this.textureSize.mul(0.5),
-            currentRadius: 0,
-            maxRadius: 50,
-            originSpeed: 0.5,
-            speed: 0.5, 
-            easeOutSpeed: {
-                duration: 200,
-                change: -0.5,
-                time: 0
-            },
-            originSkirt: 3,
-            skirt: 3,
-            easeOutSkirt: {
-                duration: 200,
-                change: -2,
-                time: 0
-            }
-        }]
+        this.groundExplosions = []
+
 
         this.processedTexture = this.textureProcesser();
 
-        this.tr = this.addGo(new GO({
-            position: this.sceneCenter, 
-            size: this.textureSize.mul(0.5),
-            img: this.processedTexture
+        this.sphereImg = sphereHelper.createPlanetTexure(this.processedTexture, 'sphere', this.textureSize, this.diskSize, this.speed, 0, true, false);
+
+        this.planet = this.addGo(new GO({
+            size: this.sphereSize,
+            position: this.sceneCenter
+        }), 10);
+
+        this.planet.sphere = this.planet.addChild(new GO({
+            size: this.sphereSize,
+            position: new V2(),
+            img: this.sphereImg
         }));
+
+        // this.tr = this.addGo(new GO({
+        //     position: this.sceneCenter, 
+        //     size: this.textureSize.mul(0.5),
+        //     img: this.processedTexture
+        // }));
+
+
+        this.ssImg = createCanvas(new V2(1,1), (ctx, size) => {
+            ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,size.x, size.y);
+        })
+
+         this.ss = []
+        // for(let i =0;i <30; i++){
+        //     this.ss.push(this.addGo(new MovingGO({
+        //         img: this.ssImg,
+        //         position: this.getRandomPosition(),
+        //         size: new V2(1,1).mul(getRandom(0.5,1)),
+        //         speed:10,
+        //         init() {
+        //             this.flyTimer = createTimer(getRandomInt(1000, 10000), () => {
+        //                 this.setDestination(new V2((getRandomBool() ? -10: this.parentScene.viewport.x + 10),getRandomInt(50, this.parentScene.viewport.y-50)));
+        //                 this.flyTimer = undefined;
+        //             }, this, false);
+        //         },
+        //         internalUpdate(now){
+        //             if(this.flyTimer)
+        //                 doWorkByTimer(this.flyTimer, now);
+        //         }
+        //     }), 15));
+        // }
+
 
         this.textureModificationTimer = createTimer(50, () => {
             for(let exp of this.groundExplosions){
@@ -136,8 +146,90 @@ class EndScene extends Scene {
             }
 
             this.processedTexture = this.textureProcesser();
-            this.tr.img = this.processedTexture;
-        }, this. true);
+            //this.tr.img = this.processedTexture;
+        }, this, true);
+
+        this.explosionMaxRadius = 50;
+        this.bombardment = {
+            current: this.textureSize.x/4,
+            start: this.explosionMaxRadius,
+            max: this.textureSize.x - this.explosionMaxRadius,
+            lastTime: 0
+            // speed: 0.1,
+            // time: 0
+        }
+        
+        this.bombardmentTimer = createTimer(750, () => {
+            let b= this.bombardment;
+            b.current+= this.speed*(this.time-b.lastTime);
+            b.lastTime = this.time;
+            if(b.current > b.max){
+                b.current = b.start;
+            }
+
+            let duration = getRandomInt(150,300);
+            let speed = getRandom(0.25,0.6);
+            let p = new V2(b.current, getRandom(this.explosionMaxRadius/2, this.textureSize.y-this.explosionMaxRadius/2));
+            // let px = this.sceneCenter.x;
+            // let py = this.sceneCenter.y - this.sphereSize.y/2 + this.sphereSize.y*(p.y/this.textureSize.y);
+
+            // let ss = this.ss[getRandomInt(0, this.ss.length-1)].position;
+            // let isPHigher = py  > ss.y;
+            // let shotSize = new V2(Math.abs(px - ss.x), Math.abs(py - ss.y));
+            // let distance = ss.distance(new V2(px, py));
+            // if(shotSize.x > 1 && shotSize.y > 1){
+            //     this.addGo(new GO({
+            //         position: !isPHigher? new V2(px - shotSize.x/2, py + shotSize.y/2) : new V2(px - shotSize.x/2, py - shotSize.y/2),
+            //         size: shotSize,
+            //         img: createCanvas(shotSize, (ctx, size) => {
+            //             ctx.lineWidth = 0.25;ctx.strokeStyle = '#00FF00';
+            //             if(!isPHigher){
+            //                 ctx.moveTo(0, size.y);ctx.lineTo(size.x, 0);
+            //             }
+            //             else{
+            //                 ctx.moveTo(0, 0);ctx.lineTo(size.x, size.y);
+            //             }
+    
+            //             ctx.stroke();
+            //             // ctx.fillStyle = 'green';
+            //             // ctx.fillRect(0,0, size.x, size.y);
+            //         }),
+            //         init(){
+            //             this.setDeadTimer = createTimer(500, () => this.setDead(), this, false);
+            //         },
+            //         internalUpdate(now) {
+            //             doWorkByTimer(this.setDeadTimer, now);
+            //         }
+            //     }), 20)
+            // }
+            
+
+            this.groundExplosions.push({
+                position: new V2(b.current, getRandom(this.explosionMaxRadius/2, this.textureSize.y-this.explosionMaxRadius/2)),//this.textureSize.mul(0.5),
+                currentRadius: 0,
+                maxRadius: 50,
+                originSpeed: speed,
+                speed: speed, 
+                easeOutSpeed: {
+                    duration: duration,
+                    change: -speed,
+                    time: 0
+                },
+                originSkirt: 3,
+                skirt: 3,
+                easeOutSkirt: {
+                    duration: duration,
+                    change: -2,
+                    time: 0
+                }
+            })
+
+            b.time++;
+        }, this, true);
+    }
+
+    getRandomPosition() {
+        return new V2(this.sceneCenter.x - this.sphereSize.x + getRandom(-20, 20), this.sceneCenter.y + getRandom(-20, 20))
     }
 
     easeOut(time, startValue, change, duration) {
@@ -172,6 +264,11 @@ class EndScene extends Scene {
                     grd.addColorStop(0, 'rgba(225,63,38,0)');grd.addColorStop(0.8, 'rgba(255,197,79, 1)');grd.addColorStop(1, 'rgba(255,255,128,1)');grd.addColorStop(1, 'rgba(255,255,255,0)');
                     ctx.fillStyle = grd;
                     ctx.fillRect(exp.position.x - exp.currentRadius, exp.position.y - exp.currentRadius, exp.currentRadius*2, exp.currentRadius*2);
+
+                    grd = ctx.createRadialGradient(exp.position.x, exp.position.y, 0, exp.position.x, exp.position.y, exp.maxRadius/15);
+                    grd.addColorStop(0.5, 'rgba(255,255,128,1)');grd.addColorStop(1, 'rgba(225,63,38,1)');grd.addColorStop(1, 'rgba(255,255,255,0)');
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(exp.position.x - exp.maxRadius/10, exp.position.y - exp.maxRadius/10, exp.maxRadius/5, exp.maxRadius/5);
             }
             
         })
@@ -190,16 +287,6 @@ class EndScene extends Scene {
         ]})
     }
 
-    getRandomPosition() {
-        if(getRandomInt(0,5) < 4){
-            return this.sceneCenter.add(new V2(getRandom(-100, 100), getRandom(-10, 10)));
-        }
-        else{
-            return this.sceneCenter.add(new V2(getRandom(-50, 50), getRandom(-30, 30)));
-        }
-        
-    }
-
     afterMainWork(now)
     {
         if(this.rotationTimer)
@@ -212,6 +299,9 @@ class EndScene extends Scene {
         if(this.textureModificationTimer){
             doWorkByTimer(this.textureModificationTimer, now);
         }
+
+        if(this.bombardmentTimer)
+            doWorkByTimer(this.bombardmentTimer, now);
     }
 
     backgroundRender(){
