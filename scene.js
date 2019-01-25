@@ -225,6 +225,11 @@ class Scene {
         this.sceneCenter = new V2(this.viewport.x/2, this.viewport.y/2);
     }
 
+    backgroundRenderDefault(color){
+        SCG.contexts.background.fillStyle = color || 'black';
+        SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+    }
+
     addUIGo(go) {
         if(go === undefined)
             throw 'No GO provided';
