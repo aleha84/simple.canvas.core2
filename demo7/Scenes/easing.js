@@ -15,6 +15,7 @@ class EasingScene extends Scene {
             destination: this.sceneCenter.add(new V2(this.viewport.x/4, 0)),
             setDestinationOnInit: true,
             size: new V2(20, 20),
+            debug: true,
             img: createCanvas(new V2(1,1), (ctx, size) => {
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0,0, size.x, size.y);
@@ -34,7 +35,7 @@ class DemoSpaceShip extends MovingGO {
             acceleration: {
                 enabled: false,
                 time: 0, 
-                duration: 60, 
+                duration: 120, 
                 startValue: 0, 
                 change: 0, 
                 type: 'quad',
@@ -43,7 +44,7 @@ class DemoSpaceShip extends MovingGO {
             breaking: {
                 enabled: false,
                 time: 0, 
-                duration: 60, 
+                duration: 120, 
                 startValue: 0, 
                 change: 0,
                 type: 'quad',
@@ -52,7 +53,8 @@ class DemoSpaceShip extends MovingGO {
             idle: undefined,
             speedState: 'idle',
             speed: 0,
-            maxSpeed: 1
+            maxSpeed: 2,
+            debug: false
         }, options);
             
         super(options);
@@ -60,6 +62,16 @@ class DemoSpaceShip extends MovingGO {
 
     init() {
         this.accelerate();
+        if(this.debug){
+            this.addChild(new GO({
+                position: new V2(0, -20),
+                size: new V2(10, 10),
+                text: {...GO.getTextPropertyDefaults('0'), color: 'white', size: 10},
+                internalUpdate() {
+                    this.text.value = this.parent.speed.toFixed(2);
+                }
+            }))
+        }
     }
 
     accelerate() {
@@ -69,7 +81,15 @@ class DemoSpaceShip extends MovingGO {
         this.acceleration.startValue = this.speed;
         this.acceleration.change = this.maxSpeed;
         this.speedState = 'acceleration';
-        console.log('acceleration')
+
+        this.accelerationDistance = 0;
+        this.breakingDistance = 0;
+        for(let i = 0; i < this.acceleration.duration;i++){
+                this.accelerationDistance += easing.process({...this.acceleration, time: i});
+        }
+        for(let i = 0; i < this.breaking.duration;i++){
+            this.breakingDistance += easing.process({...this.breaking, startValue: this.maxSpeed, change: -this.maxSpeed, time: i});
+        }
     }
 
     break() {
@@ -79,16 +99,13 @@ class DemoSpaceShip extends MovingGO {
         this.breaking.startValue = this.speed;
         this.breaking.change = -this.speed;
         this.speedState = 'breaking';
-        console.log('breaking')
     }
 
     destinationCompleteCheck(){
-        console.log(this.speed);
-        
         if(this.speedState == 'breaking' && this.speed < 0.001)
             return true;
 
-        if(this.position.distance(this.destination) <= this.speed && this.speedState != 'breaking')
+        if(this.position.distance(this.destination) <= this.breakingDistance && this.speedState != 'breaking')
             this.break();
 
         return false;
@@ -115,6 +132,10 @@ class DemoSpaceShip extends MovingGO {
 
     internalUpdate(now){
         this.speedChangeProcesser();
+    }
+
+    internalRender(){
+
     }
 }
 

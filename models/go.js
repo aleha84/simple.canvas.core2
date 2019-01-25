@@ -16,6 +16,7 @@ class GO {
 
         assignDeep(this, {
             debug: false,
+            logInDebug: false,
             alive: true,
             id: undefined,
             img: undefined,
@@ -197,8 +198,12 @@ class GO {
     }
 
     console(message) {
-        if(this.debug)
-            console.log(this.id + ' ' + message);
+        if(this.debug){
+            if(this.logInDebug){
+                console.log(this.id + ' ' + message);
+            }
+        }
+            
     }
 
     beforeDead(){}
