@@ -22,6 +22,15 @@ class EasingScene extends Scene {
             // }),
             
         }));
+
+        // this.unit1 = this.addGo(new DemoSpaceShip({
+        //     position: this.sceneCenter.add(new V2(-this.viewport.x/4, 40)),
+        //     destination: this.sceneCenter.add(new V2(this.viewport.x/4, 0)),
+        //     setDestinationOnInit: true,
+        //     size: new V2(30, 25),
+        //     debug: true,
+        //     imgPropertyName: 'ssDemo'
+        // }));
     }
 
     backgroundRender(){
@@ -32,6 +41,26 @@ class EasingScene extends Scene {
 class DemoSpaceShip extends MovingGO {
     constructor(options = {}) {
         options = assignDeep({}, {
+            rotationStart: {
+                enabled: false,
+                time: 0, 
+                duration: 120, 
+                startValue: 0, 
+                change: 0, 
+                type: 'quad',
+                method: 'in',
+                engines: []
+            },
+            rotationEnd: {
+                enabled: false,
+                time: 0, 
+                duration: 120, 
+                startValue: 0, 
+                change: 0, 
+                type: 'quad',
+                method: 'out',
+                engines: []
+            },
             acceleration: {
                 enabled: false,
                 time: 0, 
@@ -53,15 +82,22 @@ class DemoSpaceShip extends MovingGO {
                 method: 'out',
                 engines: ['frontLeftManeurThruster', 'frontRightManeurThruster']
             },
-            renderValuesRound: true,
+            renderValuesRound: false,
             idle: undefined,
             speedState: 'idle',
+            rotationState: 'idle',
             speed: 0,
-            maxSpeed: 2,
+            maxSpeed: 2,//0.005,
+            rotationSpeed: 0,
+            rotationMaxSpeed: 0.25,
+            angle: 0,
             debug: false
         }, options);
             
         super(options);
+
+        // if(this.imgPropertyName)
+        //     return; 
 
         this.originSize = new V2(30, 25);
 
@@ -77,7 +113,12 @@ class DemoSpaceShip extends MovingGO {
     }
 
     init() {
-        this.accelerate();
+        //this.accelerate();
+        this.rotate(90);
+
+        // if(this.imgPropertyName)
+        //     return; 
+
         if(this.debug){
             this.addChild(new GO({
                 position: new V2(0, -20),
@@ -92,7 +133,7 @@ class DemoSpaceShip extends MovingGO {
         this.engine = this.addChild(new GO({
             position: this.componentsPositions.engine,
             size: this.componentsSizes.engine,
-            img: createCanvas(this.componentsSizes.engine, (ctx, size) => {
+            img: createCanvas(this.componentsSizes.engine.mul(2), (ctx, size) => {
                 let xStep = size.x/2;
                 let yStep = size.y/5;
                 draw(ctx, {fillStyle: '#F1EAE0', strokeStyle: '#33383C', closePath: true, isDeltas: true, points: [
@@ -174,7 +215,7 @@ class DemoSpaceShip extends MovingGO {
         }));
 
         let rlSize = new V2(this.componentsSizes.body.x*2/3, this.componentsSizes.body.y/3 - 1);
-        this.rocketLauncherImg = createCanvas(rlSize, (ctx, size) =>{
+        this.rocketLauncherImg = createCanvas(rlSize.mul(2), (ctx, size) =>{
             ctx.fillStyle = '#C1BCB4';
             ctx.fillRect(0,0, size.x, size.y);//ctx.strokeRect(0,0, size.x, size.y);
             //ctx.strokeRect(size.x/2,0, size.x/2,size.y);
@@ -182,12 +223,20 @@ class DemoSpaceShip extends MovingGO {
             ctx.moveTo(size.x/2, 0);ctx.lineTo(size.x/2, size.y);ctx.stroke();
             ctx.moveTo(size.x, 0);ctx.lineTo(size.x, size.y);ctx.stroke();
             ctx.fillStyle = 'red';
-            ctx.fillRect(size.x*5/8-0.5, size.y/4,1,1);
-            ctx.fillRect(size.x*5/8-0.5, size.y*3/4+0.5,1,1);
-            ctx.fillRect(size.x*6/8, size.y/4,1,1);
-            ctx.fillRect(size.x*6/8, size.y*3/4+0.5,1,1);
+            ctx.fillRect(size.x*5/8, size.y/8,2,2);
+            ctx.fillRect(size.x*5/8, size.y*5/8,2,2);
+            ctx.fillRect(size.x*6/8, size.y/8,2,2);
+            ctx.fillRect(size.x*6/8, size.y*5/8,2,2);
         });
 
+        this.smallAutoCanonImg = createCanvas(new V2(1,2), (ctx, size) => {
+            ctx.fillStyle = '#FFBE28';
+            ctx.fillRect(0,0, size.x, 1);
+            ctx.fillStyle = '#DBA023';
+            ctx.fillRect(0,1, size.x, 1);
+        })
+
+        let acSize = new V2(this.componentsSizes.body.x/3, this.componentsSizes.body.y/8);
         this.weapons = [
             this.body.addChild(new GO({
                 position: this.componentsSizes.body.divide(-2).add(rlSize.divide(2)),
@@ -199,8 +248,47 @@ class DemoSpaceShip extends MovingGO {
                 size: rlSize,
                 img: this.rocketLauncherImg
             })),
+            this.body.addChild(new GO({
+                position: new V2().add(new V2(this.componentsSizes.body.x*3/4, this.componentsSizes.body.y/2-1)).add(acSize.divide(-1)),
+                size: acSize,
+                img: this.smallAutoCanonImg
+            })),
             
         ]
+    }
+
+    rotate(angle) {
+        this.destinationAngle = angle;
+        this.startRotation();
+    }
+
+    startRotation() {
+        this.rotationStart.enabled = true;
+        this.rotationEnd.enabled = false;
+        this.rotationStart.time = 0;
+        this.rotationStart.startValue = this.rotationSpeed;
+        this.rotationStart.change = this.rotationMaxSpeed;
+        this.rotationState = 'rotationStart';
+
+        this.rotationStartAmount = 0;
+        this.rotationEndAmount = 0;
+
+        for(let i = 0; i < this.rotationStart.duration;i++){
+            this.rotationStartAmount += easing.process({...this.rotationStart, time: i});
+        }
+
+        for(let i = 0; i < this.rotationEnd.duration;i++){
+            this.rotationEndAmount += easing.process({...this.rotationEnd, startValue: this.rotationMaxSpeed, change: -this.rotationMaxSpeed, time: i});
+        }
+    }
+
+    stopRotation(){
+        this.rotationEnd.enabled = true;
+        this.rotationStart.enabled = false;
+        this.rotationEnd.time = 0;
+        this.rotationEnd.startValue = this.rotationSpeed;
+        this.rotationEnd.change = -this.rotationSpeed;
+        this.rotationState = 'rotationEnd';
     }
 
     accelerate() {
@@ -240,6 +328,31 @@ class DemoSpaceShip extends MovingGO {
         return false;
     }
 
+    rotationSpeedChangeProcesser() {
+        if(!this.rotationStart.enabled && !this.rotationEnd.enabled)
+            return;
+
+        let props = this[this.rotationState];
+        if(props === undefined)
+            return;
+
+        if(props.time > props.duration){
+            props.time = 0;
+            props.enabled = false;
+            this.rotationState = 'idle';
+            // if(this.engine) {
+            //     for(let e of props.engines){
+            //         this.engine[e].toggleIgnition(false);
+            //     }
+            // }
+            
+            return;
+        }
+
+        this.rotationSpeed = easing.process(props);
+        props.time++;
+    }
+
     speedChangeProcesser() {
         if(!this.acceleration.enabled && !this.breaking.enabled)
             return;
@@ -248,9 +361,11 @@ class DemoSpaceShip extends MovingGO {
         if(props === undefined)
             return;
 
-        if(props.engines){
-            for(let e of props.engines){
-                this.engine[e].toggleIgnition(true);
+        if(this.engine) {
+            if(props.engines){
+                for(let e of props.engines){
+                    this.engine[e].toggleIgnition(true);
+                }
             }
         }
 
@@ -258,9 +373,12 @@ class DemoSpaceShip extends MovingGO {
             props.time = 0;
             props.enabled = false;
             this.speedState = 'idle';
-            for(let e of props.engines){
-                this.engine[e].toggleIgnition(false);
+            if(this.engine) {
+                for(let e of props.engines){
+                    this.engine[e].toggleIgnition(false);
+                }
             }
+            
             return;
         }
 
@@ -270,10 +388,35 @@ class DemoSpaceShip extends MovingGO {
 
     internalUpdate(now){
         this.speedChangeProcesser();
+        this.rotationSpeedChangeProcesser();
+        if(this.rotationSpeed != 0){
+            this.angle+=this.rotationSpeed;
+
+            let angleDistance = Math.abs(this.destinationAngle-this.angle);
+            if(this.rotationState == 'rotationEnd' &&  angleDistance<0.1){
+                this.angle = this.destinationAngle;
+                this.rotationEnd.enabled = false;
+            }
+            else if(angleDistance <= this.rotationEndAmount && this.rotationState != 'rotationEnd'){
+                this.stopRotation();
+            }
+        }
+    }
+
+    internalPreRender() {
+        if(this.angle != 0){
+            this.context.translate(this.renderPosition.x, this.renderPosition.y);
+            this.context.rotate(degreeToRadians(this.angle));
+            this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+        }
     }
 
     internalRender(){
-
+        if(this.angle != 0){
+            this.context.translate(this.renderPosition.x, this.renderPosition.y);
+            this.context.rotate(degreeToRadians(-this.angle));
+            this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+        }
     }
 }
 

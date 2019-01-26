@@ -23,7 +23,8 @@ document.addEventListener("DOMContentLoaded", function() {
         headSadHooded: 'images/head_sad_hooded.png',
         headHooded: 'images/head_hooded.png',
         headHoodedGlasses: 'images/head_hooded_glasses.png',
-        itemsBg1: 'images/itemsBg.png'
+        itemsBg1: 'images/itemsBg.png',
+        ssDemo: 'images/ssDemo.png'
 	}
 
     debugger;
