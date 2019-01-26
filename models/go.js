@@ -615,6 +615,13 @@ class GO {
                     this.renderSize.y +=0.5;
                 }
 
+                if(this.renderValuesRound){
+                    this.renderSize.x = fastRoundWithPrecision(this.renderSize.x, 0);
+                    this.renderSize.y = fastRoundWithPrecision(this.renderSize.y,0);
+                    this.renderPosition.x = fastRoundWithPrecision(this.renderPosition.x,0);
+                    this.renderPosition.y = fastRoundWithPrecision(this.renderPosition.y,0);
+                }
+
                 let rtl = new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2);
                 if(!this.renderBox)
                     this.renderBox = new Box(rtl, this.renderSize, this.boxRenderProperties);
