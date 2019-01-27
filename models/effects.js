@@ -49,6 +49,10 @@ class EffectBase {
             this.parent = parent;
             this.context = this.parent.context;
 
+            if(this.startDelay == 0){
+                this.beforeStartCallback();
+            }
+
             this.init();
         }
     }
@@ -122,6 +126,8 @@ class FadeInOutEffect extends EffectBase {
 
                 if(this.worksCount != -1)
                     this.worksCount--;
+                else 
+                    this.loopCallback();
             }
 
             if(this.current <= this.min){
@@ -130,10 +136,15 @@ class FadeInOutEffect extends EffectBase {
 
                 if(this.worksCount != -1)
                     this.worksCount--;
+                else 
+                    this.oddLoopCallback();
             }
 
         }, this, this.startImmediately);
     }
+
+    loopCallback() {}
+    oddLoopCallback() {}
 
     beforeRender() {
         if(!this.enabled)

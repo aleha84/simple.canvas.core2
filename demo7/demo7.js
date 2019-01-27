@@ -40,6 +40,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new EffectsScene3({
+        name:'effects3',
+        viewport: defaultViewpot
+    }));
+
     SCG.scenes.cacheScene(new PointerScene({
         name:'pointer',
         viewport: defaultViewpot

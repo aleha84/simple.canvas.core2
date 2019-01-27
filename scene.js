@@ -15,6 +15,7 @@ class Scene {
                 textAlign: 'left',
                 fillStyle: 'red',
                 position: new V2(20*SCG.viewport.scale, 20*SCG.viewport.scale),
+                additional: []
             },
             collisionDetection: {
                 enabled: false,
@@ -345,6 +346,12 @@ class Scene {
             ctx.fillStyle = this.debug.fillStyle;
             
             ctx.fillText(SCG.main.performance.fps, this.debug.position.x, this.debug.position.y);
+
+            let p = this.debug.position.y;
+            for(let debugData of this.debug.additional){
+                p+=12*SCG.viewport.scale;
+                ctx.fillText(debugData, this.debug.position.x, p);
+            }
         }
     }
 }
