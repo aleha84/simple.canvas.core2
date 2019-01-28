@@ -12,8 +12,8 @@ class EasingScene extends Scene {
     start(props) {
          this.unit = this.addGo(new DemoSpaceShip({
             position: this.sceneCenter.add(new V2(-this.viewport.x/4, 0)),
-            destination: this.sceneCenter.add(new V2(this.viewport.x/4, 0)),
-            setDestinationOnInit: true,
+            // destination: this.sceneCenter.add(new V2(this.viewport.x/4, 0)),
+            // setDestinationOnInit: true,
             size: new V2(30, 25),
             debug: true,
             // img: createCanvas(new V2(1,1), (ctx, size) => {
@@ -49,7 +49,10 @@ class DemoSpaceShip extends MovingGO {
                 change: 0, 
                 type: 'quad',
                 method: 'in',
-                engines: []
+                engines: {
+                    '1': ['frontRightManeurThruster', 'rearLeftManeurThruster'],
+                    '-1': ['frontLeftManeurThruster', 'rearRightManeurThruster']
+                },
             },
             rotationEnd: {
                 enabled: false,
@@ -59,7 +62,10 @@ class DemoSpaceShip extends MovingGO {
                 change: 0, 
                 type: 'quad',
                 method: 'out',
-                engines: []
+                engines: {
+                    '-1': ['frontRightManeurThruster', 'rearLeftManeurThruster'],
+                    '1': ['frontLeftManeurThruster', 'rearRightManeurThruster']
+                },
             },
             acceleration: {
                 enabled: false,
@@ -87,11 +93,14 @@ class DemoSpaceShip extends MovingGO {
             speedState: 'idle',
             rotationState: 'idle',
             speed: 0,
-            maxSpeed: 2,//0.005,
+            maxSpeed: 1,//0.005,
             rotationSpeed: 0,
-            rotationMaxSpeed: 0.25,
+            rotationMaxSpeed: 0.5,
+            rotationDirection: 1,
             angle: 0,
-            debug: false
+            debug: false,
+            direction: V2.right,
+            dumb: true
         }, options);
             
         super(options);
@@ -110,25 +119,28 @@ class DemoSpaceShip extends MovingGO {
             engine: new V2(new V2(-this.originSize.x/2 + this.componentsSizes.engine.x/2, 0)),
             body: new V2(new V2(this.originSize.x/2 - this.componentsSizes.body.x/2, 0))
         }
+
+        this.navigationTimer = createTimer(250, this.navigationProcesser, this, true);
     }
 
     init() {
+        this.moveTo(this.parentScene.sceneCenter.add(new V2(this.parentScene.viewport.x/4, 0)));
         //this.accelerate();
-        this.rotate(90);
+        //this.rotate(-180);
 
         // if(this.imgPropertyName)
         //     return; 
 
-        if(this.debug){
-            this.addChild(new GO({
-                position: new V2(0, -20),
-                size: new V2(10, 10),
-                text: {...GO.getTextPropertyDefaults('0'), color: 'white', size: 10},
-                internalUpdate() {
-                    this.text.value = this.parent.speed.toFixed(2);
-                }
-            }))
-        }
+        // if(this.debug){
+        //     this.addChild(new GO({
+        //         position: new V2(0, -20),
+        //         size: new V2(10, 10),
+        //         text: {...GO.getTextPropertyDefaults('0'), color: 'white', size: 10},
+        //         internalUpdate() {
+        //             this.text.value = this.parent.speed.toFixed(2);
+        //         }
+        //     }))
+        // }
 
         this.engine = this.addChild(new GO({
             position: this.componentsPositions.engine,
@@ -257,8 +269,46 @@ class DemoSpaceShip extends MovingGO {
         ]
     }
 
+    navigationProcesser() {
+        if(this.destination == undefined)
+            return;
+
+        if(this.dumb){
+            if(this.rotationSpeed == 0){
+                let destDirection = this.position.direction(this.destination);
+                let angleToDestination = this.direction.angleTo(this.destDirection)
+    
+                if(angleToDestination > 0.1){
+                    if(angleToDestination > 180){
+                        angleToDestination = angleToDestination - 360;
+                    }
+
+                    this.rotate(angleToDestination);
+                    return;
+                }
+                else if(this.speed == 0){
+                    let distance = this.position.distance(this.destination);
+                    if(distance > 0.5){
+                        this.setDestination(this.destination);
+                        this.accelerate();
+                        return;
+                    }
+                }
+            }
+        }
+        
+    }
+
+    moveTo(destination) {   
+        this.destination = destination;
+    }
+
     rotate(angle) {
         this.destinationAngle = angle;
+        if(this.destinationAngle < this.angle){
+            this.rotationDirection = -1;
+        }
+
         this.startRotation();
     }
 
@@ -336,15 +386,23 @@ class DemoSpaceShip extends MovingGO {
         if(props === undefined)
             return;
 
+        if(this.engine) {
+            if(props.engines){
+                for(let e of props.engines[this.rotationDirection.toString()]){
+                    this.engine[e].toggleIgnition(true);
+                }
+            }
+        }
+
         if(props.time > props.duration){
             props.time = 0;
             props.enabled = false;
             this.rotationState = 'idle';
-            // if(this.engine) {
-            //     for(let e of props.engines){
-            //         this.engine[e].toggleIgnition(false);
-            //     }
-            // }
+            if(this.engine) {
+                for(let e of props.engines[this.rotationDirection.toString()]){
+                    this.engine[e].toggleIgnition(false);
+                }
+            }
             
             return;
         }
@@ -390,17 +448,27 @@ class DemoSpaceShip extends MovingGO {
         this.speedChangeProcesser();
         this.rotationSpeedChangeProcesser();
         if(this.rotationSpeed != 0){
-            this.angle+=this.rotationSpeed;
+            this.angle+= this.rotationDirection * this.rotationSpeed;
 
             let angleDistance = Math.abs(this.destinationAngle-this.angle);
             if(this.rotationState == 'rotationEnd' &&  angleDistance<0.1){
+                if(this.engine) {
+                    for(let e of this[this.rotationState].engines[this.rotationDirection.toString()]){
+                        this.engine[e].toggleIgnition(false);
+                    }
+                }
                 this.angle = this.destinationAngle;
                 this.rotationEnd.enabled = false;
+                this.rotationState = 'idle';
+                this.rotationSpeed = 0;
             }
             else if(angleDistance <= this.rotationEndAmount && this.rotationState != 'rotationEnd'){
                 this.stopRotation();
             }
         }
+
+        if(this.navigationTimer)
+            doWorkByTimer(this.navigationTimer, now);
     }
 
     internalPreRender() {
@@ -417,6 +485,14 @@ class DemoSpaceShip extends MovingGO {
             this.context.rotate(degreeToRadians(-this.angle));
             this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
         }
+
+        if(this.debug){
+            this.context.font = '20px Arial';
+            this.context.fillStyle = 'white';
+            this.context.textAlign = 'center';
+            this.context.fillText(`s: ${this.speed.toFixed(2)}, a: ${this.angle.toFixed(2)}, rs: ${this.rotationSpeed.toFixed(2)}`, this.renderPosition.x, this.renderPosition.y - this.renderSize.y*1.1);
+        }
+        
     }
 }
 
