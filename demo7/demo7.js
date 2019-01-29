@@ -90,6 +90,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new BottlesScene({
+        name:'bottles',
+        viewport: defaultViewpot
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
