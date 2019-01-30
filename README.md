@@ -21,5 +21,10 @@ Cyberpunk rain: https://aleha84.github.io/simple.canvas.core2/demo6/#rain
 
 Fountain: https://aleha84.github.io/simple.canvas.core2/demo6/#sand
 
+TODO: 
+
+Children objects order - logical layers.
+
+new Moving GO class with speed in PX / SECOND
 
 
