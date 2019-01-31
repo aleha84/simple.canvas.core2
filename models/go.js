@@ -441,6 +441,17 @@ class GO {
 				let dsp = this.destSourcePosition;
 				let s = this.size;
 
+                let rtlX = rp.x - rsx/2;
+                let rtlY = rp.y - rsy/2;
+
+                if(this.renderValuesRound){
+                    rtlX = fastRoundWithPrecision(rtlX, 0);
+                    rtlY = fastRoundWithPrecision(rtlY, 0);
+                    rsx = fastRoundWithPrecision(rsx, 0);
+                    rsy = fastRoundWithPrecision(rsy, 0);
+                }
+
+
 				if(this.isAnimated)
 				{
 					let ani = this.animation;
@@ -449,8 +460,8 @@ class GO {
 						ani.currentDestination.y * ani.sourceFrameSize.y,
 						ani.sourceFrameSize.x,
 						ani.sourceFrameSize.y,
-						rp.x - rsx/2,
-						rp.y - rsy/2,
+						rtlX,
+						rtlY,
 						rsx,
 						rsy
 					);
@@ -462,15 +473,15 @@ class GO {
 							dsp.y,
 							this.destSourceSize.x,
 							this.destSourceSize.y,
-							(rp.x - rsx/2), 
-							(rp.y - rsy/2), 
+							rtlX, 
+							rtlY, 
 							rsx, 
 							rsy);		
 					}
 					else { // draw simple img without any modifications
 						ctx.drawImage(this.img, 
-							(rp.x - rsx/2), 
-							(rp.y - rsy/2), 
+							rtlX, 
+							rtlY, 
 							rsx, 
 							rsy);			
 					}
@@ -613,14 +624,6 @@ class GO {
                 if(this.tileOptimization){
                     this.renderSize.x +=0.5;
                     this.renderSize.y +=0.5;
-                }
-
-                if(this.renderValuesRound){
-                    this.renderSize.x = fastRoundWithPrecision(this.renderSize.x, 0);
-                    this.renderSize.y = fastRoundWithPrecision(this.renderSize.y,0);
-                    this.renderPosition.x = fastRoundWithPrecision(this.renderPosition.x,0);
-                    this.renderPosition.y = fastRoundWithPrecision(this.renderPosition.y,0);
-                    //console.log(this.renderPosition);
                 }
 
                 let rtl = new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2);
