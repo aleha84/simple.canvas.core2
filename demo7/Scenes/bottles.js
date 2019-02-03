@@ -34,6 +34,16 @@ class BottlesScene extends Scene {
             ctx.fillRect(2,2,6,1);
         });
 
+        this.bottleContentImg = createCanvas(this.bottleOriginalSize, (ctx, size) => {
+            ctx.fillStyle = '#363140';
+            ctx.fillRect(2,13,7,13);
+        });
+
+        this.streamImg = createCanvas(this.bottleOriginalSize, (ctx, size) => {
+            ctx.fillStyle = '#363140';
+            ctx.fillRect(4,2,2,24);
+        });
+
         this.backImgRight = createCanvas(this.bottleOriginalSize, (ctx, size) => {
             ctx.fillStyle = '#114A48';
             ctx.fillRect(3,3,4,1); ctx.fillRect(3,3,1,9);ctx.fillRect(2,11,2,1);ctx.fillRect(2,11,1,2);ctx.fillRect(1,13,2,1);ctx.fillRect(1,13,1,14);ctx.fillRect(1,26,8,1);ctx.fillRect(8,19,1,8);
@@ -171,9 +181,40 @@ class BottlesScene extends Scene {
             position: new V2(100.5, this.viewport.y/4 - 6),
             size: new V2(30, 90),
             fillBottle() {
-                this.indicators.togglefillBottle(true);
                 this.container.decrease();
+                this.createBubbles();
             },
+            stopBubble() {
+                this.bubblesTimer = undefined;
+            },
+            createBubbles(){
+                this.bubblesTimer = createTimer(75, () => {                    
+                    let x = getRandom(-3,3);
+                    this.addChild(new MovingGO({
+                        position: new V2(x, 12),
+                        size: new V2(1,1),
+                        img: createCanvas(new V2(1,1), (ctx, size) => {
+                            ctx.fillStyle = '#786F8E'; ctx.fillRect(0,0, size.x, size.y);
+                        }),
+                        speed: getRandom(0.25, 0.45),
+                        destination: new V2(x, -10),
+                        setDestinationOnInit: true,
+                        setDeadOnDestinationComplete: true,
+                        destinationCompleteCheck() {
+                            if(this.position.y < -this.parent.size.y/2)
+                                return true;
+
+                            //return false;
+                            let cont = this.parent.container;
+                            return this.position.y < cont.position.y - cont.size.y/2;
+                        }
+                    }));
+                })
+            },
+            internalUpdate(now){
+                if(this.bubblesTimer)
+                    doWorkByTimer(this.bubblesTimer, now);
+            }
         }));
 
         this.pourer.addChild(new GO({ // body
@@ -215,9 +256,11 @@ class BottlesScene extends Scene {
 
                 if(this.size.y <= this.fullSize.y/2){
                     this.parent.indicators.toggleNeedRefill(true);
+                    this.increase();
                     return;
                 }
 
+                this.parent.indicators.togglefillBottle(true);
                 this.smoothChangeProps = {
                     currentSize: this.size.y,
                     currentPosition: this.position.y,
@@ -231,7 +274,18 @@ class BottlesScene extends Scene {
                 this.smoothChangeTimer = createTimer(50, this.smoothChange, this, true);
             },
             increase() {
-
+                this.smoothChangeProps = {
+                    currentSize: this.size.y,
+                    currentPosition: this.position.y,
+                    targetSize: this.fullSize.y,
+                    targetPosition: this.fullPosition.y,
+                    stepSize: (this.fullSize.y - this.size.y)/(this.changeTime/50),
+                    stepPosition: ((this.fullSize.y - this.size.y)/2)/(this.changeTime/50),
+                    sizeDirection: 1,
+                    positionDirection: -1
+                }
+                this.smoothChangeTimer = createTimer(50, this.smoothChange, this, true);
+                this.parent.communications.toggleShaking(true);
             },
 
             smoothChange() {
@@ -245,6 +299,13 @@ class BottlesScene extends Scene {
 
                     if(p.sizeDirection == -1){
                         this.parent.indicators.togglefillBottle(false);
+                        this.parent.stopBubble();
+                    }
+
+                    if(p.sizeDirection == 1){
+                        this.parent.stopBubble();
+                        this.parent.indicators.toggleNeedRefill(false);
+                        this.parent.communications.toggleShaking(false);
                     }
                 }
 
@@ -348,6 +409,7 @@ class BottlesScene extends Scene {
          }));
 
          this.pourer.communications = this.pourer.addChild(new GO({
+            shaking: false,
             position: new V2(this.pourer.size.x/2 + 15, -25),
             size: new V2(30, this.pourer.size.y+10),
             img: createCanvas(new V2(30, this.pourer.size.y+10), (ctx, size) => { 
@@ -369,11 +431,41 @@ class BottlesScene extends Scene {
                 ctx.fillRect(0,88,3, 1);
                 ctx.fillStyle = '#3570A8';
                 ctx.fillRect(0,92,3, 1);
-             })
+             }),
+             toggleShaking(enabled) {
+                this.shaking = enabled;
+                if(!this.shaking){
+                    this.size.x = this.originSize.x;
+                    this.size.y = this.originSize.y;
+                    this.needRecalcRenderProperties = true;
+                    this.shakingTimer = undefined;
+                }
+                else {
+                    this.shakingTimer = createTimer(50, () => { 
+                        if(getRandomBool()){
+                           this.size.x = this.originSize.x + 0.5;
+                           this.size.y = this.originSize.y + 0.5;
+                        }
+                        else {
+                           this.size.x = this.originSize.x;
+                           this.size.y = this.originSize.y;
+                        }
+   
+                        this.needRecalcRenderProperties = true;
+                     }, this, true);
+                }
+             },
+             init() {
+                 this.originSize = this.size.clone();
+             },
+             internalUpdate(now){
+                 if(this.shaking && this.shakingTimer)
+                    doWorkByTimer(this.shakingTimer, now);
+             }
          }));
-        
     }
 
+    // bottle creation method //////////////////////////////////////////////////////
     createBottle(posX) {
         let posY = this.viewport.y/2-this.bottleOriginalSize.y*6/7;
         return this.addGo(new Bottle({
@@ -390,6 +482,8 @@ class BottlesScene extends Scene {
                 center: this.backImgCenter,
                 right: this.backImgRight
             },
+            bottleContentImg: this.bottleContentImg,
+            streamImg: this.streamImg,
             setDestinationOnInit: true,
             destination: new V2(this.viewport.x+ 100,posY)
         }),2);
@@ -408,6 +502,7 @@ class BottlesScene extends Scene {
     }
 }
 
+////////////////////////////////////////////////// bottle class //////////////////////////////////////////
 class Bottle extends MovingGO {
     constructor(options = {}){
         options = assignDeep({}, {
@@ -432,6 +527,90 @@ class Bottle extends MovingGO {
             renderValuesRound: true
         }));
 
+        this.contentStream = this.addChild(new GO({
+            position: new V2(0,0),
+            size: this.size.clone(),
+            img: this.streamImg,
+            isVisible: false
+        }))
+        
+        this.container = this.addChild(new GO({
+            smoothChangeProps: {
+                currentSize: this.size.y,
+                currentPosition: this.position.y,
+                targetSize: this.size.y,
+                targetPosition: 0,
+                stepSize: (this.size.y)/(1500/50),
+                stepPosition: ((12))/(1500/50),
+                sizeDirection: 1,
+                positionDirection: -1
+            },
+            position: new V2(0,11.5),
+            size: new V2(this.size.x, 1),
+            img: this.bottleContentImg,
+            renderValuesRound: true,
+            isVisible: false,
+            smoothChange() {
+                let p = this.smoothChangeProps;
+                this.size.y+=p.sizeDirection*p.stepSize;
+                this.position.y+=p.positionDirection*p.stepPosition;
+                
+                this.createBubbles()
+
+                if((p.sizeDirection == -1 && this.size.y <= p.targetSize) || (p.sizeDirection == 1 && this.size.y >= p.targetSize)){
+                    this.size.y = p.targetSize;
+                    this.position.y = p.targetPosition;
+                    this.smoothChangeTimer = undefined;
+                    this.renderValuesRound = true;
+                    this.parent.contentStream.isVisible = false;
+
+                    this.bubbleGeneratorTimer = createTimer(1000, () => this.createBubbles(true), this, false);
+                }
+
+                this.parent.needRecalcRenderProperties = true;
+            },
+            createBubbles(single) {
+                if(single){
+                    let x = getRandomInt(-3,3);
+                    this.addChild(new MovingGO({
+                        position: new V2(x, 12),
+                        size: new V2(1,1),
+                        img: createCanvas(new V2(1,1), (ctx, size) => {
+                            ctx.fillStyle = '#786F8E'; ctx.fillRect(0,0, size.x, size.y);
+                        }),
+                        setDeadOnDestinationComplete: true,
+                        setDestinationOnInit: true,
+                        destination: new V2(x, 0),
+                        speed: 0.1
+                    }));
+                }
+                else 
+                    this.parent.addChild(new GO({
+                        position: new V2(getRandom(-1,1), this.position.y),
+                        size: new V2(1,1),
+                        img: createCanvas(new V2(1,1), (ctx, size) => {
+                            ctx.fillStyle = '#786F8E'; ctx.fillRect(0,0, size.x, size.y);
+                        }),
+                        init(){
+                            this.addEffect(new FadeOutEffect({effectTime: 1000, updateDelay: 50,setParentDeadOnComplete: true,initOnAdd:true}))
+                        },
+                    }));
+            },
+            internalUpdate(now){
+                if(this.smoothChangeTimer)
+                    doWorkByTimer(this.smoothChangeTimer, now)
+
+                if(this.bubbleGeneratorTimer)
+                    doWorkByTimer(this.bubbleGeneratorTimer, now);
+            },
+            fill() {
+                this.isVisible = true;
+                this.parent.contentStream.isVisible = true;
+                this.renderValuesRound = false;
+                this.smoothChangeTimer = createTimer(50, this.smoothChange, this, true);
+            }
+        }));
+
         this.reflection = this.addChild(new GO({
             position: new V2(),
             size: this.size.clone(),
@@ -440,17 +619,6 @@ class Bottle extends MovingGO {
         }));
 
         this.originY = this.position.y;
-
-        // this.shakingTimer = createTimer(50, () => {
-        //     if(getRandomBool()){
-        //         this.position.y = this.originY + 0.5;
-        //     }
-        //     else {
-        //         this.position.y = this.originY;
-        //     }
-
-        //     this.needRecalcRenderProperties = true;
-        // }, this, true)
     }
 
     destinationCompleteCheck() {
@@ -464,7 +632,12 @@ class Bottle extends MovingGO {
             this.parentScene.lineStartTimer = createTimer(2000, function(){ this.lineStop = false; }, this.parentScene, false)
             this.lineStopped = true;
 
-            this.parentScene.pourer.fillBottle();
+            this.fillDelayTimer = createTimer(200, () => {
+                this.parentScene.pourer.fillBottle();
+                this.container.fill();
+                this.fillDelayTimer = undefined;
+            }, this, false)
+            
         }
 
         if(this.parentScene.lineStop){
@@ -474,32 +647,10 @@ class Bottle extends MovingGO {
         if(this.position.x - this.size.x/2 > this.parentScene.viewport.x){
             this.setDead();
         }
-
-        // let distanceToLamps = this.parentScene.lampsPosX.map(x => x - this.position.x);
-        // if(distanceToLamps.filter(x => Math.abs(x) <= this.size.x*2).length > 0){
-        //     this.back.img = this.backImages.center;
-        //     this.reflection.img = this.reflectionImages.center;
-        // }
-        // else {
-        //     let maxNegative = Math.max.apply(null, distanceToLamps.filter(x => x < 0));
-        //     let minPositive = Math.min.apply(null, distanceToLamps.filter(x => x > 0));
-            
-        //     if(Math.abs(maxNegative) < minPositive){
-        //         this.back.img = this.backImages.left;
-        //         this.reflection.img = this.reflectionImages.left;
-                
-        //     }
-        //     else {
-        //         this.back.img = this.backImages.right;
-        //         this.reflection.img = this.reflectionImages.right;
-        //     }
-            
-        // }
-        
     }
 
     internalUpdate(now){
-        if(this.shakingTimer)
-            doWorkByTimer(this.shakingTimer, now);
+        if(this.fillDelayTimer)
+            doWorkByTimer(this.fillDelayTimer, now);
     }
 }
