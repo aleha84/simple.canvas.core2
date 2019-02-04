@@ -10,6 +10,7 @@ class EndScene extends Scene {
 
         this.frameSize = new V2(36,36);
         this.framesCount = 10;
+        this.textureCacheName = 'sphereEnd';
     }
 
     start() {
@@ -68,7 +69,7 @@ class EndScene extends Scene {
         
 
         this.rotationTimer = createTimer(35, () => {
-            this.sphereImg = sphereHelper.createPlanetTexure(this.processedTexture, 'sphere',this.textureSize, this.diskSize, this.speed, this.time, true, false);
+            this.sphereImg = sphereHelper.createPlanetTexure(this.processedTexture, this.textureCacheName,this.textureSize, this.diskSize, this.speed, this.time, true, false);
             this.planet.sphere.img = this.sphereImg;
 
             this.time++;
@@ -79,7 +80,7 @@ class EndScene extends Scene {
 
         this.processedTexture = this.textureProcesser();
 
-        this.sphereImg = sphereHelper.createPlanetTexure(this.processedTexture, 'sphere', this.textureSize, this.diskSize, this.speed, 0, true, false);
+        this.sphereImg = sphereHelper.createPlanetTexure(this.processedTexture, this.textureCacheName, this.textureSize, this.diskSize, this.speed, 0, true, false);
 
         this.planet = this.addGo(new GO({
             size: this.sphereSize,

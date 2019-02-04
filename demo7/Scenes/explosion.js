@@ -10,6 +10,7 @@ class ExplosionsScene extends Scene {
 
         this.frameSize = new V2(36,36);
         this.framesCount = 10;
+        this.textureCacheName = 'sphereExplosions';
     }
 
     start() {
@@ -53,7 +54,7 @@ class ExplosionsScene extends Scene {
         this.diskSize = 200;
         this.time = 0;
         this.speed =0.05;
-        this.sphereImg = sphereHelper.createPlanetTexure(this.texture, 'sphere', this.textureSize, this.diskSize, this.speed, 0, true);
+        this.sphereImg = sphereHelper.createPlanetTexure(this.texture, this.textureCacheName, this.textureSize, this.diskSize, this.speed, 0, true);
 
         this.planet = this.addGo(new GO({
             size: this.sphereSize,
@@ -103,7 +104,7 @@ class ExplosionsScene extends Scene {
         }
 
         this.rotationTimer = createTimer(35, () => {
-            this.sphereImg = sphereHelper.createPlanetTexure(this.texture, 'sphere',this.textureSize, this.diskSize, this.speed, this.time, true);
+            this.sphereImg = sphereHelper.createPlanetTexure(this.texture, this.textureCacheName,this.textureSize, this.diskSize, this.speed, this.time, true);
             this.planet.sphere.img = this.sphereImg;
 
             this.time++;

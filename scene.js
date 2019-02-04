@@ -9,6 +9,7 @@ class Scene {
             space: new V2(500, 300),
             AI: undefined,
             ui: [],
+            clearGOOnDispose: true,
             debug: {
                 enabled: false,
                 font: (25*SCG.viewport.scale) + 'px Arial',
@@ -246,6 +247,10 @@ class Scene {
         return go;
     }
 
+    clearGo() {
+        this.goLayers = [];
+    }
+
     addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly
         if(go === undefined)
             throw 'No GO provided';
@@ -295,6 +300,9 @@ class Scene {
     
     innerDispose(){
         SCG.controls.clearEventsHandlers(); //reset event hadlers
+
+        if(this.clearGOOnDispose)
+            this.clearGo();
 
         this.dispose();
     }

@@ -1,6 +1,16 @@
 class FaceScene extends Scene {
     constructor(options = {}){
         super(options);
+
+        this.bgImg = textureGenerator.textureGenerator({
+            size: this.viewport,
+            backgroundColor: '#000000',
+            surfaces: [
+                textureGenerator.getSurfaceProperties({
+                    colors: ['#034B7B', '#E9F4FA'], opacity: [0.75],  type: 'line', line: { length: [2,8], directionAngle: 90, angleSpread: 0 }, density: 0.005
+                }),
+            ]
+        })
     }
 
     start() {
@@ -192,16 +202,6 @@ class FaceScene extends Scene {
             size: new V2(this.viewport.x, borderSizeY ),
             img: createCanvas(new V2(1,1), (ctx, size) => {ctx.fillStyle = 'white'; ctx.fillRect(0,0, size.x, size.y)})
         }))
-
-        this.bgImg = textureGenerator.textureGenerator({
-            size: this.viewport,
-            backgroundColor: '#000000',
-            surfaces: [
-                textureGenerator.getSurfaceProperties({
-                    colors: ['#034B7B', '#E9F4FA'], opacity: [0.75],  type: 'line', line: { length: [2,8], directionAngle: 90, angleSpread: 0 }, density: 0.005
-                }),
-            ]
-        })
     }
 
     backgroundRender() {
