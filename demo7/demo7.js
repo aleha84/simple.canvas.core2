@@ -100,6 +100,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new Face2Scene({
+        name:'face2',
+        viewport: defaultViewpot
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
