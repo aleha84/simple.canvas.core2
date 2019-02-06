@@ -334,7 +334,7 @@ class Face2Scene extends Scene {
             //lips
             draw(ctx, {
                 fillStyle: '#A4352F', points: [
-                    new V2(58,57),new V2(58.5,59), new V2(58.5,61), new V2(60,62), new V2(63,62),new V2(65,61),new V2(69,58),new V2(66,58),new V2(62,57)
+                    new V2(58,57),new V2(58.5,59), new V2(59,61), new V2(60,62), new V2(63,62),new V2(65,61),new V2(69,58),new V2(66,58),new V2(62,57)
                 ].map(p => p.add(new V2(-.5,0)).mul(this.multiplier))  
             })
 
