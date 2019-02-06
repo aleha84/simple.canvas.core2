@@ -223,6 +223,91 @@ class Face2Scene extends Scene {
                 ].map(p => p.mul(this.multiplier))  
             })
 
+            //face-right-shadow
+            draw(ctx, {
+                fillStyle: '#77452E', points: [
+                    new V2(62,10), new V2(63,19), new V2(62,24),  new V2(63,29),new V2(67,27), new V2(78,27),
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //<left eye>
+            draw(ctx, {
+                fillStyle: '#876D5C', strokeStyle: '#2F201B', points: [
+                    new V2(50.5,33), new V2(53,32.5), new V2(56,35), new V2(56,35.5), new V2(55,35), new V2(51.5,35.5)
+                ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
+            })
+
+            // eyebrow
+            draw(ctx, {
+                strokeStyle: '#392116', points: [
+                    new V2(47.5,30.5), new V2(50,30.5), new V2(53,31.5)
+                ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
+            })
+
+            //upper-lashe
+            draw(ctx, {
+                strokeStyle: '#09090B', closePath: false, lineWidth: 2, points: [
+                    new V2(49.5,34), new V2(51,33.5), new V2(53,34)
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //apple
+            draw(ctx, {
+                fillStyle: '#070602', points: [
+                    new V2(51.5,33), new V2(54,33.5),new V2(54.5,35),new V2(53,36),new V2(52,34.5)
+                ].map(p => p.mul(this.multiplier))  
+            })
+            //blik
+            draw(ctx, {
+                fillStyle: 'white', points: [//'#444645'
+                    new V2(53,34), new V2(53.5,34),new V2(53.5,35)
+                ].map(p => p.mul(this.multiplier))  
+            })
+            //</left eye>
+
+            //<right eye>
+            draw(ctx, {
+                fillStyle: '#A88C80', strokeStyle: '#2F201B', points: [
+                    new V2(64.5,35),new V2(67,31.75),new V2(75,32.5),
+                    new V2(75,34),new V2(69,35.5),new V2(67,35.5)
+                    
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            // eyebrow
+            draw(ctx, {
+                strokeStyle: '#392116', lineWidth:3, closePath: false, points: [
+                    new V2(61,31.5), new V2(63,29.5), new V2(67,27.5)
+                ].map(p => p.mul(this.multiplier))  
+            })
+            draw(ctx, {
+                strokeStyle: '#392116', lineWidth:2, closePath: false, points: [
+                    new V2(63,29.5), new V2(67,27.5), new V2(73,27.5)
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //upper-lashe
+            draw(ctx, {
+                strokeStyle: '#09090B', closePath: false, lineWidth: 2, points: [
+                    new V2(65.25,34),new V2(67,32),new V2(75,33),
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //apple
+            draw(ctx, {
+                fillStyle: '#070602', points: [
+                    new V2(67,32.55),new V2(69,31.55),new V2(71,32.5),new V2(71,34.5),new V2(69,35.5),new V2(67,34.5)
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //blik
+            draw(ctx, {
+                fillStyle: 'white', points: [//'#444645'
+                new V2(67.75,32.55),new V2(67.75,34),new V2(69,34.5),
+                ].map(p => p.mul(this.multiplier))  
+            })
+            //</right eye>
+
             //nose-right-stroke
             draw(ctx, {
                 strokeStyle: '#895640', closePath:false, points: [
@@ -250,7 +335,7 @@ class Face2Scene extends Scene {
             draw(ctx, {
                 fillStyle: '#A4352F', points: [
                     new V2(58,57),new V2(58.5,59), new V2(58.5,61), new V2(60,62), new V2(63,62),new V2(65,61),new V2(69,58),new V2(66,58),new V2(62,57)
-                ].map(p => p.mul(this.multiplier))  
+                ].map(p => p.add(new V2(-.5,0)).mul(this.multiplier))  
             })
 
             //lips-line
@@ -258,6 +343,13 @@ class Face2Scene extends Scene {
                 fillStyle: '#6B221F', lineWidth: 0.25, closePath: false, points: [
                     //new V2(58,58.5), new V2(59,59.5), new V2(63,59.5)//,new V2(69,58.5)
                     new V2(59,59.5), new V2(63,59.5),new V2(69,58.5)
+                ].map(p => p.add(new V2(-.5,0)).mul(this.multiplier))  
+            })
+
+            //lips-upper stroke
+            draw(ctx, {
+                strokeStyle: '#895640', closePath:false, points: [
+                    new V2(58.5,53),new V2(58.5,55),new V2(58,57)
                 ].map(p => p.mul(this.multiplier))  
             })
 
