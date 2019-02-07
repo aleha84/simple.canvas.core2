@@ -168,7 +168,7 @@ class Face2Scene extends Scene {
 
             draw(ctx, {
                 fillStyle: '#80482B', points: [
-                    new V2(95,59), new V2(83,62), new V2(83,64), new V2(88,68), new V2(89,70), new V2(92,79)      
+                    new V2(95,55), new V2(83,62), new V2(83,64), new V2(88,68), new V2(89,70), new V2(92,79)      
                 ].map(p => p.mul(this.multiplier))  
             })
             //</neck>
@@ -210,8 +210,8 @@ class Face2Scene extends Scene {
             //<face>
             draw(ctx, {
                 fillStyle: '#D89771', points: [
-                    new V2(68,1), new V2(61,3), new V2(55,7), new V2(52,11), new V2(50,15), new V2(49,24), new V2(48,32), new V2(51,34), new V2(52,45), new V2(54,51), new V2(57,57), new V2(58,59), new V2(59,61), new V2(60.5,63), new V2(61,65), new V2(63,68), new V2(65,69),
-                    new V2(70,69), new V2(76,67), new V2(82,64), new V2(89,60), new V2(95,56)
+                    new V2(68,1), new V2(61,3), new V2(55,7), new V2(52,11), new V2(50,15), new V2(49,24), new V2(48,32), new V2(51,34), new V2(52,45), new V2(54,51), new V2(57,57), new V2(58,59), new V2(59,61), new V2(60.5,63), new V2(61,65), new V2(63,67.5), new V2(65,68.5),
+                    new V2(68,69), new V2(76,67), new V2(82,64), new V2(89,58), new V2(95,56)
                 ].map(p => p.mul(this.multiplier))  
             })
 
@@ -229,6 +229,21 @@ class Face2Scene extends Scene {
                     new V2(62,10), new V2(63,19), new V2(62,24),  new V2(63,29),new V2(67,27), new V2(78,27),
                 ].map(p => p.mul(this.multiplier))  
             })
+
+            //face-right-bottom-shadow
+            draw(ctx, {
+                fillStyle: '#84503A', points: [
+                    new V2(79,43), new V2(75,49), new V2(71,53), new V2(72,58), new V2(72,61), new V2(69,65), new V2(70,68.5),
+                    new V2(74,67.5), new V2(78,66),new V2(82,64), new V2(86,62), new V2(89,60), new V2(93,54)
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //face-right-bottom-stroke
+            draw(ctx, {
+                strokeStyle: '#23130F', closePath: false, points: [ 
+                    new V2(82,64.5), new V2(86,62.5), new V2(89,60.5), new V2(93,54.5)
+                ].map(p => p.mul(this.multiplier))  
+            })//
 
             //<left eye>
             draw(ctx, {
@@ -277,7 +292,7 @@ class Face2Scene extends Scene {
             // eyebrow
             draw(ctx, {
                 strokeStyle: '#392116', lineWidth:3, closePath: false, points: [
-                    new V2(61,31.5), new V2(63,29.5), new V2(67,27.5)
+                    new V2(60,32), new V2(63,29.5), new V2(67,27.5)
                 ].map(p => p.mul(this.multiplier))  
             })
             draw(ctx, {
@@ -306,7 +321,21 @@ class Face2Scene extends Scene {
                 new V2(67.75,32.55),new V2(67.75,34),new V2(69,34.5),
                 ].map(p => p.mul(this.multiplier))  
             })
+
+            //nose-up-stroke
+            draw(ctx, {
+                strokeStyle: '#895640', closePath:false, points: [
+                    new V2(68,37),new V2(71,37.5), new V2(75,36.5)
+                ].map(p => p.mul(this.multiplier))  
+            })
             //</right eye>
+
+            //nose-up-stroke
+            draw(ctx, {
+                strokeStyle: '#895640', closePath:false, points: [
+                    new V2(62,32),new V2(63,35),new V2(65,37),
+                ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
+            })
 
             //nose-right-stroke
             draw(ctx, {
@@ -317,17 +346,24 @@ class Face2Scene extends Scene {
             })
 
             //nose-right-shadow
-            draw(ctx, {
-                fillStyle: '#895640',  points: [
-                    new V2(60,50),new V2(62,51),new V2(64,51.5),
-                    new V2(66,49), new V2(64,46),new V2(61,45),
-                ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
-            })
+            // draw(ctx, {
+            //     fillStyle: '#895640',  points: [
+            //         new V2(60,50),new V2(62,51),new V2(64,51.5),
+            //         new V2(66,49), new V2(64,46),new V2(61,45),
+            //     ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
+            // })
 
             //nosetrill
             draw(ctx, {
                 fillStyle: 'black',  points: [
                     new V2(58,52.5),new V2(61,52),new V2(59,51.5)
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            // nose-blink
+            draw(ctx, {
+                fillStyle: '#EAC0A8', points: [//'#444645'
+                    new V2(54.5,49.5), new V2(54.5,51),new V2(56,51)
                 ].map(p => p.mul(this.multiplier))  
             })
             
