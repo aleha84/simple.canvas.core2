@@ -38,6 +38,7 @@ class GO {
             initialized: false,
             disabled: false,
             effects: [],
+            renderValuesRound: false,
             collisionDetection: {
                 enabled: false,
                 render: false,
