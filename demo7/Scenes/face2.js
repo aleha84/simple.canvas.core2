@@ -2,18 +2,25 @@ class Face2Scene extends Scene {
     constructor(options = {}){
         super(options);
 
-        this.bgImgs = [];
-        for(let i = 0; i < 3; i++){
-            this.bgImgs[i] = textureGenerator.textureGenerator({
-                size: this.viewport,
-                backgroundColor: '#000000',
-                surfaces: [
-                    textureGenerator.getSurfaceProperties({
-                        colors: ['#034B7B', '#E9F4FA'], opacity: [0.25,0.75],   line: { length: [1,1], directionAngle: 90, angleSpread: 0 }, density: 0.005
-                    }),
-                ]
-            })
+        this.bgLayersCount = 5;
+        this.bgLayers = [];
+        for(let l = 0; l<this.bgLayersCount;l++){
+            let opacityBase = 0.1 + 0.8*l/(this.bgLayersCount-1);
+            this.bgLayers[l] = [];
+            for(let i = 0; i < 3; i++){
+                this.bgLayers[l][i] = textureGenerator.textureGenerator({
+                    size: this.viewport,
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    surfaces: [
+                        textureGenerator.getSurfaceProperties({
+                            colors: ['#E28B00','#034B7B', '#E9F4FA'], opacity: [opacityBase,opacityBase+0.1],   line: { length: [1,1], directionAngle: 90, angleSpread: 0 }, 
+                            density: 0.005 - 0.004*l/(this.bgLayersCount-1)
+                        }),
+                    ]
+                })
+            }
         }
+        
     }
 
     start() {
@@ -483,11 +490,11 @@ class Face2Scene extends Scene {
 
         let faceSize = this.faceSize.mul(1.70);
         let borderSizeY = (this.viewport.y - faceSize.y)/2;
-        this.addGo(new GO({
-            position: this.sceneCenter,
-            size: faceSize,
-            img: this.faceImg
-        }),10);
+        // this.addGo(new GO({
+        //     position: this.sceneCenter,
+        //     size: faceSize,
+        //     img: this.faceImg
+        // }),10);
 
         this.cockpit = this.addGo(new GO({
             position: this.sceneCenter,
@@ -495,27 +502,90 @@ class Face2Scene extends Scene {
             img: createCanvas(new V2(this.viewport), (ctx, size) => {
                 
                 draw(ctx, { fillStyle: 'gray', points: [new V2(), new V2(size.x, 0), new V2(size.x, 30), new V2(0, 50)]})
-                draw(ctx, { fillStyle: 'gray', points: [new V2(0, 150),new V2(size.x, 100),new V2(size.x, size.y),new V2(0, size.y),]})
+                //draw(ctx, { fillStyle: 'darkgray', points: [new V2(0, 40), new V2(size.x, 20), new V2(size.x, 30), new V2(0, 50)]})
+                draw(ctx, { fillStyle: 'gray', points: [new V2(0, 250),new V2(size.x, 200),new V2(size.x, size.y),new V2(0, size.y),]})
+                draw(ctx, { fillStyle: 'lightgray', points: [new V2(0, 250),new V2(size.x, 200),new V2(size.x, 210),new V2(0, 270),]})
             })
-        }));
+        }), 9);
 
-        for(let i = 0; i < 3; i++){
-            this.addGo(new MovingGO({
-                position: new V2(this.viewport.x/2  -  this.viewport.x*i + 5*i, this.viewport.y/2),
-                size: this.viewport,
-                img: this.bgImgs[i],
-                setDestinationOnInit: true,
-                renderValuesRound: true,
-                speed: 0.1,
-                destination: new V2(this.viewport.x*3/2, this.viewport.y/2),
-                destinationCompleteCheck() {
-                    let p = this.parentScene;
-                    if(this.position.x >= p.viewport.x*3/2){
-                        this.position.x = p.sceneCenter.x - p.viewport.x*(2) + 5*(3)
+        this.infoScreenSize = new V2(80, 100);
+
+        this.infoScreen = this.addGo(new GO({
+            position: new V2(this.viewport.x/4, this.viewport.y/3),
+            size: this.infoScreenSize,
+            textLines: [],
+            img: createCanvas(this.infoScreenSize,  (ctx, size) => {
+                // ctx.fillStyle = 'rgba(0,255,0, 0.5)';
+                // ctx.fillRect(0,0,size.x, size.y);
+                draw(ctx, {
+                    fillStyle: 'rgba(0,255,0, 0.5)', points: [new V2(0,0), new V2(size.x*9/10, size.y*1/10), new V2(size.x, size.y), new V2(size.x*1/10, size.y*9/10)]
+                })
+            }),
+            init() {
+                let scene = this.parentScene;
+                this.textChangeTimer = createTimer(5000, () => {
+                    for(let i = 0; i < this.textLines.length; i++){
+                        this.textLines[i].addEffect(new FadeOutEffect({effectTime: 500, startDelay: 100*i, removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true,
+                            completeCallback: function() {
+                                this.parent.isVisible = false;
+                                this.parent.img = scene.textLineImgGenerator();
+                                this.parent.addEffect(new FadeInEffect({beforeStartCallback: function(){ this.parent.isVisible = true; },
+                                    effectTime: 150, startDelay: 25*i, removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true}))
+                            }}))
                     }
-                }
-            }))
+                }, this, false);
+            },
+            internalUpdate(now) {
+                if(this.textChangeTimer)
+                    doWorkByTimer(this.textChangeTimer, now);
+            }
+        }),20)
+
+        this.infoScreenLineSize = new V2(this.infoScreenSize.x, this.infoScreenSize.y/10)
+
+        for(let i = 0; i < 20; i++){
+            this.infoScreen.textLines.push(this.infoScreen.addChild(new GO({
+                position: new V2(-this.infoScreenLineSize.x*0.05 + this.infoScreenLineSize.x*0.0045*i, -this.infoScreenSize.y/2 + this.infoScreenSize.y/10 + this.infoScreenSize.y*i/24),
+                size: new V2(this.infoScreenLineSize.x*0.8, this.infoScreenLineSize.y),
+                img: this.textLineImgGenerator()
+            })));
         }
+        
+        for(let l = 0; l < this.bgLayersCount; l++){
+            for(let i = 0; i < 3; i++){
+                this.addGo(new MovingGO({
+                    position: new V2(this.viewport.x/2  -  this.viewport.x*i + 5*i, this.viewport.y/2),
+                    size: this.viewport,
+                    img: this.bgLayers[l][i],//this.bgImgs[i],
+                    setDestinationOnInit: true,
+                    renderValuesRound: true,
+                    speed: 0.01 + 0.09*l/(this.bgLayersCount-1),//0.01 + 0.035*l,//0.1,
+                    destination: new V2(this.viewport.x*3/2, this.viewport.y/2),
+                    destinationCompleteCheck() {
+                        let p = this.parentScene;
+                        if(this.position.x >= p.viewport.x*3/2){
+                            this.position.x = p.sceneCenter.x - p.viewport.x*(2) + 5*(3)
+                        }
+                    }
+                }),l)
+            }
+        }
+        
+    }
+
+    textLineImgGenerator(){
+       return createCanvas(this.infoScreenLineSize, (ctx, size) => {
+
+            ctx.strokeStyle = 'rgba(255,255,255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.moveTo(0,0);
+            ctx.lineTo(size.x, size.y);
+            ctx.stroke();
+
+            for(let i = 0; i < getRandomInt(10, 20); i++){
+                ctx.clearRect(getRandomInt(1, size.x-2), 0, getRandomBool() ? 1: 2,size.y);
+            }
+        }); 
     }
 
     backgroundRender() {

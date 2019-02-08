@@ -326,7 +326,7 @@ class GO {
 
         if(toRemove.length){
             for(let r = 0; r < toRemove.length; r++){
-                this.effects.splice(this.effects.indexOf(toRemove[r], 1));
+                this.effects = this.effects.splice(this.effects.indexOf(toRemove[r], 1));
             }
         }
 
