@@ -2,15 +2,18 @@ class Face2Scene extends Scene {
     constructor(options = {}){
         super(options);
 
-        // this.bgImg = textureGenerator.textureGenerator({
-        //     size: this.viewport,
-        //     backgroundColor: '#000000',
-        //     surfaces: [
-        //         textureGenerator.getSurfaceProperties({
-        //             colors: ['#034B7B', '#E9F4FA'], opacity: [0.75],  type: 'line', line: { length: [2,8], directionAngle: 90, angleSpread: 0 }, density: 0.005
-        //         }),
-        //     ]
-        // })
+        this.bgImgs = [];
+        for(let i = 0; i < 3; i++){
+            this.bgImgs[i] = textureGenerator.textureGenerator({
+                size: this.viewport,
+                backgroundColor: '#000000',
+                surfaces: [
+                    textureGenerator.getSurfaceProperties({
+                        colors: ['#034B7B', '#E9F4FA'], opacity: [0.25,0.75],   line: { length: [1,1], directionAngle: 90, angleSpread: 0 }, density: 0.005
+                    }),
+                ]
+            })
+        }
     }
 
     start() {
@@ -205,6 +208,32 @@ class Face2Scene extends Scene {
                 ].map(p => p.mul(this.multiplier))  
             })
 
+            //left-shadow-middle
+            draw(ctx, {
+                fillStyle: '#4C311C', points: [
+                    new V2(52,28), new V2(54,37), new V2(56,50), new V2(55,60), new V2(52,63),
+                    new V2(48,68), new V2(47,65), new V2(43,62), new V2(41,57), new V2(43,50), new V2(45,45), new V2(47,36), new V2(49,30), 
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //left-shadow-bottom
+            draw(ctx, {
+                fillStyle: '#4C311C', points: [
+                    new V2(49,80), new V2(56,85), new V2(58,93), new V2(54,100),
+                    new V2(61,94), new V2(69,90), new V2(73,84),  new V2(70,78),new V2(69,73),  new V2(70,69),
+                    new V2(62,68),new V2(58,74)
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //left-shadow
+            draw(ctx, {
+                fillStyle: '#684326', points: [
+                    new V2(60,0),new V2(53,0), new V2(47,6), new V2(45,10), new V2(43,16), new V2(43,22), new V2(44,26), new V2(45,29), new V2(45,38), new V2(45,45),
+                    new V2(47,41), new V2(47,36),  new V2(49,27), new V2(49,26),new V2(50,15), new V2(55,11)
+                ].map(p => p.mul(this.multiplier))  
+            })
+ 
+
             //</hairBack>
 
             //<face>
@@ -241,7 +270,7 @@ class Face2Scene extends Scene {
             //face-right-bottom-stroke
             draw(ctx, {
                 strokeStyle: '#23130F', closePath: false, points: [ 
-                    new V2(82,64.5), new V2(86,62.5), new V2(89,60.5), new V2(93,54.5)
+                    new V2(82,64), new V2(86,62), new V2(89,60), new V2(93,54)
                 ].map(p => p.mul(this.multiplier))  
             })//
 
@@ -278,6 +307,13 @@ class Face2Scene extends Scene {
                     new V2(53,34), new V2(53.5,34),new V2(53.5,35)
                 ].map(p => p.mul(this.multiplier))  
             })
+
+            //lower-stroke
+            draw(ctx, {
+                strokeStyle: '#895640', closePath:false, points: [
+                    new V2(51,37.5),new V2(53,38), new V2(53,38)
+                ].map(p => p.mul(this.multiplier))  
+            })
             //</left eye>
 
             //<right eye>
@@ -292,7 +328,7 @@ class Face2Scene extends Scene {
             // eyebrow
             draw(ctx, {
                 strokeStyle: '#392116', lineWidth:3, closePath: false, points: [
-                    new V2(60,32), new V2(63,29.5), new V2(67,27.5)
+                    new V2(60,31), new V2(63,29.5), new V2(67,27.5)
                 ].map(p => p.mul(this.multiplier))  
             })
             draw(ctx, {
@@ -322,7 +358,7 @@ class Face2Scene extends Scene {
                 ].map(p => p.mul(this.multiplier))  
             })
 
-            //nose-up-stroke
+            //lower-stroke
             draw(ctx, {
                 strokeStyle: '#895640', closePath:false, points: [
                     new V2(68,37),new V2(71,37.5), new V2(75,36.5)
@@ -337,21 +373,32 @@ class Face2Scene extends Scene {
                 ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
             })
 
+
+            //nose-right-shadow
+            // draw(ctx, {
+            //     fillStyle: '#A86950'/*'#895640'*/,  points: [
+            //         // new V2(60,50),new V2(62,51),new V2(64,51.5),
+            //         // new V2(66,49), new V2(64,46),new V2(61,45),
+            //         new V2(62,32),new V2(63,35),new V2(65,37), new V2(63,41),new V2(63.5,44), new V2(64,46), new V2(66,49),new V2(64,51.5), new V2(62,51),new V2(57,51),new V2(56,49)
+            //         ,new V2(58,43),new V2(58,37),new V2(57,34)
+            //     ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
+            // })
+
+            draw(ctx, {
+                    fillStyle: '#A86950'/*'#895640'*/,  points: [
+                        new V2(62,32),new V2(63,35),new V2(65,37), new V2(61,39), new V2(61,37)
+                    ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
+                })
+
             //nose-right-stroke
             draw(ctx, {
                 strokeStyle: '#895640', closePath:false, points: [
-                    new V2(56,34),new V2(56,38),new V2(55,43),new V2(54,47),new V2(53,51),new V2(58,52),new V2(62,51),new V2(64,51.5),
+                    new V2(56,34),new V2(56,38),new V2(55,43),new V2(54,47),new V2(53.5,50.5),new V2(58,52),new V2(62,51),new V2(64,51.5),
                     new V2(66,49), new V2(64,46)
                 ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
             })
 
-            //nose-right-shadow
-            // draw(ctx, {
-            //     fillStyle: '#895640',  points: [
-            //         new V2(60,50),new V2(62,51),new V2(64,51.5),
-            //         new V2(66,49), new V2(64,46),new V2(61,45),
-            //     ].map(p => p.add(new V2(0,0.5)).mul(this.multiplier))  
-            // })
+            
 
             //nosetrill
             draw(ctx, {
@@ -373,12 +420,18 @@ class Face2Scene extends Scene {
                     new V2(58,57),new V2(58.5,59), new V2(59,61), new V2(60,62), new V2(63,62),new V2(65,61),new V2(69,58),new V2(66,58),new V2(62,57)
                 ].map(p => p.add(new V2(-.5,0)).mul(this.multiplier))  
             })
+            //lips-lower-stroke
+            draw(ctx, {
+                strokeStyle: '#7A2723', closePath: false, lineWidth:0.5, points: [
+                    new V2(59,61), new V2(60,62), new V2(63,62),new V2(65,61),new V2(69,58.5)
+                ].map(p => p.add(new V2(-.5,0)).mul(this.multiplier))  
+            })
 
             //lips-line
             draw(ctx, {
-                fillStyle: '#6B221F', lineWidth: 0.25, closePath: false, points: [
+                strokeStyle: '#45140F', lineWidth: 0.25, closePath: false, points: [
                     //new V2(58,58.5), new V2(59,59.5), new V2(63,59.5)//,new V2(69,58.5)
-                    new V2(59,59.5), new V2(63,59.5),new V2(69,58.5)
+                    new V2(58,58),new V2(60,59), new V2(63,59),new V2(69,58.5)
                 ].map(p => p.add(new V2(-.5,0)).mul(this.multiplier))  
             })
 
@@ -398,24 +451,75 @@ class Face2Scene extends Scene {
                     new V2(103,97),new V2(107,93),new V2(113,91),new V2(118,89),new V2(122,83),new V2(123,79),new V2(121,73),new V2(120,65),new V2(117,59),new V2(115,53),new V2(118,46),new V2(117,33),new V2(115,21),new V2(111,11),new V2(107,4),new V2(104,0)
                 ].map(p => p.mul(this.multiplier))  
             })
-            
+
+            //left-light
+            draw(ctx, {
+                fillStyle: '#9B6642', points: [
+                    ...[new V2(59,9), new V2(64,12), new V2(67,18), new V2(69,25), new V2(71,32), new V2(75,42), new V2(81,48), new V2(88,52), new V2(91,55), new V2(98,58)].map(p => p.add(new V2(-0.5,0))),
+                    new V2(91,46), new V2(83,38), new V2(76,32), new V2(72,23),new V2(69,16),new V2(64,9)
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //right-light
+            draw(ctx, {
+                fillStyle: '#382C23', points: [
+                    new V2(102,3), new V2(104,13), new V2(104,24), new V2(107,34), new V2(112,42), new V2(110,53), new V2(114,64),
+                    new V2(116,49), new V2(114,27), new V2(107,9),  
+                ].map(p => p.mul(this.multiplier))  
+            })
+
+            //bottom-light
+            draw(ctx, {
+                fillStyle: '#9B6642', points: [
+                    new V2(95,64), new V2(92,69), new V2(90,74), new V2(89,82), new V2(90,90), new V2(96,98), new V2(102,103),
+                    new V2(103,97),new V2(100,87),new V2(99,78),new V2(108,81),new V2(104,69),
+                ].map(p => p.mul(this.multiplier))  
+            })
 
             //</hairFront>
             //
             
         });
 
-        let faceSize = this.faceSize.mul(1.5);
+        let faceSize = this.faceSize.mul(1.70);
         let borderSizeY = (this.viewport.y - faceSize.y)/2;
         this.addGo(new GO({
             position: this.sceneCenter,
             size: faceSize,
             img: this.faceImg
+        }),10);
+
+        this.cockpit = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            img: createCanvas(new V2(this.viewport), (ctx, size) => {
+                
+                draw(ctx, { fillStyle: 'gray', points: [new V2(), new V2(size.x, 0), new V2(size.x, 30), new V2(0, 50)]})
+                draw(ctx, { fillStyle: 'gray', points: [new V2(0, 150),new V2(size.x, 100),new V2(size.x, size.y),new V2(0, size.y),]})
+            })
         }));
+
+        for(let i = 0; i < 3; i++){
+            this.addGo(new MovingGO({
+                position: new V2(this.viewport.x/2  -  this.viewport.x*i + 5*i, this.viewport.y/2),
+                size: this.viewport,
+                img: this.bgImgs[i],
+                setDestinationOnInit: true,
+                renderValuesRound: true,
+                speed: 0.1,
+                destination: new V2(this.viewport.x*3/2, this.viewport.y/2),
+                destinationCompleteCheck() {
+                    let p = this.parentScene;
+                    if(this.position.x >= p.viewport.x*3/2){
+                        this.position.x = p.sceneCenter.x - p.viewport.x*(2) + 5*(3)
+                    }
+                }
+            }))
+        }
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault('lightgray');
+        this.backgroundRenderDefault();
         //SCG.contexts.background.drawImage(this.bgImg, 0,0, SCG.viewport.real.width,SCG.viewport.real.height);
     }
 }
