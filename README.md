@@ -27,4 +27,10 @@ Children objects order - logical layers.
 
 new Moving GO class with speed in PX / SECOND
 
+scripted events - create scene ability to describe time intervals with event
+
+register timers - create scene ability to register timers. One-time, with intervals.
+
+
+
 
