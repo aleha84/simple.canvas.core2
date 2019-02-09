@@ -1,5 +1,6 @@
 class Face2Scene extends Scene {
     constructor(options = {}){
+        options.debug = {enabled: true};
         super(options);
 
         this.bgLayersCount = 5;
@@ -309,11 +310,11 @@ class Face2Scene extends Scene {
                 ].map(p => p.mul(this.multiplier))  
             })
             //blik
-            draw(ctx, {
-                fillStyle: 'white', points: [//'#444645'
-                    new V2(53,34), new V2(53.5,34),new V2(53.5,35)
-                ].map(p => p.mul(this.multiplier))  
-            })
+            // draw(ctx, {
+            //     fillStyle: 'white', points: [//'#444645'
+            //         new V2(53,34), new V2(53.5,34),new V2(53.5,35)
+            //     ].map(p => p.mul(this.multiplier))  
+            // })
 
             //lower-stroke
             draw(ctx, {
@@ -359,11 +360,11 @@ class Face2Scene extends Scene {
             })
 
             //blik
-            draw(ctx, {
-                fillStyle: 'white', points: [//'#444645'
-                new V2(67.75,32.55),new V2(67.75,34),new V2(69,34.5),
-                ].map(p => p.mul(this.multiplier))  
-            })
+            // draw(ctx, {
+            //     fillStyle: 'white', points: [//'#444645'
+            //     new V2(67.75,32.55),new V2(67.75,34),new V2(69,34.5),
+            //     ].map(p => p.mul(this.multiplier))  
+            // })
 
             //lower-stroke
             draw(ctx, {
@@ -495,65 +496,151 @@ class Face2Scene extends Scene {
             size: faceSize,
             img: this.faceImg,
             isVisible: true,
+            blinkingCounter: 0,
             init() {
-                this.blinkingTImer = createTimer(6000, () => {
-                    this.leftEyeClosed.isVisible = !this.leftEyeClosed.isVisible;
-                    this.rightEyeClosed.isVisible = !this.rightEyeClosed.isVisible;
+                this.leftEyeShine = this.addChild(new GO({
+                    position: new V2(-68,-90),
+                    size: new V2(12,10),
+                    img:createCanvas(new V2(12,12), (ctx, size) => { 
+                        draw(ctx, {
+                            fillStyle: 'white', points: [new V2(5,4), new V2(6.5,4),new V2(5.5,5)]
+                        })
+                    }),
+                    init() {
+                        this.originPosition = this.position.clone();
+                    }
+                }));
+        
+                this.rightEyeShine = this.addChild(new GO({
+                    position: new V2(-43,-93),
+                    size: new V2(12,10),
+                    img:createCanvas(new V2(12,12), (ctx, size) => { 
+                        draw(ctx, {
+                            fillStyle: 'white', points: [new V2(6,4),new V2(7,9),new V2(8,7.5)] 
+                        })
+                    }),
+                    init() {
+                        this.originPosition = this.position.clone();
+                    }
+                }));
+
+                this.leftEyeClosed = this.addChild(new GO({
+                    position: new V2(-68,-90),
+                    size: new V2(12,10),
+                    isVisible: false,
+                    images: [createCanvas(new V2(12,12), (ctx, size) => { 
+                        draw(ctx, {
+                            fillStyle: '#B78061',   points:  
+                                [new V2(0, 2.5), new V2(6, 1.5), new V2(12, 6), 
+                                    new V2(5, 4.5), new V2(3.5, 4.5)]
+                        })
+        
+                        draw(ctx, {
+                            strokeStyle: '#2F201B',   points:  //
+                                [new V2(12, 6), new V2(5, 4.5), new V2(3.5, 4.5)]
+                        })
+                     }),
+                    createCanvas(new V2(12,12), (ctx, size) => { 
+                        draw(ctx, {
+                            fillStyle: '#B78061',   points:  
+                                [new V2(0, 2.5), new V2(6, 1.5), new V2(12, 7), 
+                                    new V2(5, 9), new V2(3.5, 8)]
+                        })
+        
+                        draw(ctx, {
+                            strokeStyle: '#2F201B',   points:  //
+                                [new V2(12, 7), new V2(5, 9), new V2(3.5, 8)]
+                        })
+                     })]
+                }))
+        
+                this.rightEyeClosed = this.addChild(new GO({
+                    position: new V2(-43,-93),
+                    size: new V2(12,10),
+                    isVisible: true,
+                    images: [createCanvas(new V2(12,12), (ctx, size) => { 
+        
+                        draw(ctx, {
+                            fillStyle: '#B78061',   points:  //strokeStyle: '#2F201B',
+                                [
+                                    new V2(0, 9), new V2(3.5, 2.5), new V2(11.5, 2), 
+                                    new V2(12, 6), new V2(6, 6.5), new V2(2, 6)
+                                ]
+                        })
+        
+                        draw(ctx, {
+                            strokeStyle: '#2F201B',   points:  //
+                                [
+                                    new V2(12, 6.5), new V2(6, 6.5), new V2(2, 6), new V2(0, 8),
+                                ]    
+                        })
+                     }),
+                    createCanvas(new V2(12,12), (ctx, size) => { 
+                        //ctx.fillStyle = 'rgba(255,255,255, 0.5)'; ctx.fillRect(0,0,size.x,size.y);
+                        draw(ctx, {
+                            fillStyle: '#B78061',   points:  //strokeStyle: '#2F201B',
+                                [
+                                    new V2(0, 9), new V2(3.5, 2.5), new V2(11.5, 2), 
+                                    new V2(12, 10), new V2(6, 10.5), new V2(2, 10)
+                                ]
+                        })
+        
+                        draw(ctx, {
+                            strokeStyle: '#2F201B',   points:  //
+                                [
+                                    new V2(12, 10), new V2(6, 10.5), new V2(2, 10), new V2(0, 9),
+                                ]    
+                        })
+                     })]
+                }))
+
+                this.shineTiltTimer = createTimer(150, () => {
+                    let d = getRandom(-0.25, 0.25);
+                    this.rightEyeShine.position.x = this.rightEyeShine.originPosition.x + d;
+                    this.leftEyeShine.position.x = this.leftEyeShine.originPosition.x + d;
+                    this.rightEyeShine.needRecalcRenderProperties = true;
+                    this.leftEyeShine.needRecalcRenderProperties = true;
+                }, this, true)
+
+                this.blinkingInitTimer = createTimer(6000, () => {
+                    this.blinkingTimer = createTimer(100, () => {
+                        this.leftEyeClosed.isVisible = true;
+                        this.rightEyeClosed.isVisible = true;
+                        if(this.blinkingCounter == 0 || this.blinkingCounter == 2){
+                            this.leftEyeClosed.img = this.leftEyeClosed.images[0];
+                            this.rightEyeClosed.img = this.rightEyeClosed.images[0];
+                        }
+                        else if(this.blinkingCounter == 1){
+                            this.leftEyeClosed.img = this.leftEyeClosed.images[1];
+                            this.rightEyeClosed.img = this.rightEyeClosed.images[1];
+                        }
+                        else if(this.blinkingCounter == 3){
+                            this.blinkingCounter = 0
+                            this.blinkingTimer = undefined;
+                            this.leftEyeClosed.isVisible = false;
+                            this.rightEyeClosed.isVisible = false;
+                            this.leftEyeClosed.img = undefined;
+                            this.rightEyeClosed.img = undefined;
+                        }
+
+                        this.blinkingCounter++;
+                            
+                    }, this, true);
+                    
                 }, this, false);
             },
             internalUpdate(now){
-                if(this.blinkingTImer)
-                    doWorkByTimer(this.blinkingTImer, now);
+                if(this.blinkingInitTimer)
+                    doWorkByTimer(this.blinkingInitTimer, now);
+                
+                if(this.blinkingTimer)
+                    doWorkByTimer(this.blinkingTimer, now);
+
+                if(this.shineTiltTimer)
+                    doWorkByTimer(this.shineTiltTimer, now);
             }
         }),10);
 
-        this.person.leftEyeClosed = this.person.addChild(new GO({
-            position: new V2(-68,-90),
-            size: new V2(12,10),
-            isVisible: false,
-            img: createCanvas(new V2(12,12), (ctx, size) => { 
-                //ctx.fillStyle = 'rgba(255,255,255, 0.5)'; ctx.fillRect(0,0,size.x,size.y);
-                draw(ctx, {
-                    fillStyle: '#B78061',   points:  //strokeStyle: '#2F201B',
-                        [
-                            new V2(0, 2.5), new V2(6, 1.5), new V2(12, 7), 
-                            new V2(5, 9), new V2(3.5, 8)
-                        ]
-                    
-                })
-
-                draw(ctx, {
-                    strokeStyle: '#2F201B',   points:  //
-                        [
-                             new V2(12, 7), new V2(5, 9), new V2(3.5, 8)
-                        ]
-                    
-                })
-             })
-        }))
-
-        this.person.rightEyeClosed = this.person.addChild(new GO({
-            position: new V2(-43,-93),
-            size: new V2(12,10),
-            isVisible: false,
-            img: createCanvas(new V2(12,12), (ctx, size) => { 
-                //ctx.fillStyle = 'rgba(255,255,255, 0.5)'; ctx.fillRect(0,0,size.x,size.y);
-                draw(ctx, {
-                    fillStyle: '#B78061',   points:  //strokeStyle: '#2F201B',
-                        [
-                            new V2(0, 9), new V2(3.5, 2.5), new V2(11.5, 2), 
-                            new V2(12, 10), new V2(6, 10.5), new V2(2, 10)
-                        ]
-                })
-
-                draw(ctx, {
-                    strokeStyle: '#2F201B',   points:  //
-                        [
-                            new V2(12, 10), new V2(6, 10.5), new V2(2, 10), new V2(0, 9),
-                        ]    
-                })
-             })
-        }))
 
         this.cockpit = this.addGo(new GO({
             position: this.sceneCenter,
@@ -596,7 +683,7 @@ class Face2Scene extends Scene {
                 type: 'quad',
                 method: 'inOut',
             },
-            position: new V2(this.viewport.x/4, this.viewport.y/3),
+            position: new V2(this.viewport.x/5, this.viewport.y/4),
             size: this.infoScreenSize,
             textLines: [],
             renderValuesRound: true,
