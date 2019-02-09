@@ -490,20 +490,94 @@ class Face2Scene extends Scene {
 
         let faceSize = this.faceSize.mul(1.70);
         let borderSizeY = (this.viewport.y - faceSize.y)/2;
-        // this.addGo(new GO({
-        //     position: this.sceneCenter,
-        //     size: faceSize,
-        //     img: this.faceImg
-        // }),10);
+        this.person = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: faceSize,
+            img: this.faceImg,
+            isVisible: true,
+            init() {
+                this.blinkingTImer = createTimer(6000, () => {
+                    this.leftEyeClosed.isVisible = !this.leftEyeClosed.isVisible;
+                    this.rightEyeClosed.isVisible = !this.rightEyeClosed.isVisible;
+                }, this, false);
+            },
+            internalUpdate(now){
+                if(this.blinkingTImer)
+                    doWorkByTimer(this.blinkingTImer, now);
+            }
+        }),10);
+
+        this.person.leftEyeClosed = this.person.addChild(new GO({
+            position: new V2(-68,-90),
+            size: new V2(12,10),
+            isVisible: false,
+            img: createCanvas(new V2(12,12), (ctx, size) => { 
+                //ctx.fillStyle = 'rgba(255,255,255, 0.5)'; ctx.fillRect(0,0,size.x,size.y);
+                draw(ctx, {
+                    fillStyle: '#B78061',   points:  //strokeStyle: '#2F201B',
+                        [
+                            new V2(0, 2.5), new V2(6, 1.5), new V2(12, 7), 
+                            new V2(5, 9), new V2(3.5, 8)
+                        ]
+                    
+                })
+
+                draw(ctx, {
+                    strokeStyle: '#2F201B',   points:  //
+                        [
+                             new V2(12, 7), new V2(5, 9), new V2(3.5, 8)
+                        ]
+                    
+                })
+             })
+        }))
+
+        this.person.rightEyeClosed = this.person.addChild(new GO({
+            position: new V2(-43,-93),
+            size: new V2(12,10),
+            isVisible: false,
+            img: createCanvas(new V2(12,12), (ctx, size) => { 
+                //ctx.fillStyle = 'rgba(255,255,255, 0.5)'; ctx.fillRect(0,0,size.x,size.y);
+                draw(ctx, {
+                    fillStyle: '#B78061',   points:  //strokeStyle: '#2F201B',
+                        [
+                            new V2(0, 9), new V2(3.5, 2.5), new V2(11.5, 2), 
+                            new V2(12, 10), new V2(6, 10.5), new V2(2, 10)
+                        ]
+                })
+
+                draw(ctx, {
+                    strokeStyle: '#2F201B',   points:  //
+                        [
+                            new V2(12, 10), new V2(6, 10.5), new V2(2, 10), new V2(0, 9),
+                        ]    
+                })
+             })
+        }))
 
         this.cockpit = this.addGo(new GO({
             position: this.sceneCenter,
             size: this.viewport,
-            img: createCanvas(new V2(this.viewport), (ctx, size) => {
+            img: createCanvas(this.viewport, (ctx, size) => {
                 
                 draw(ctx, { fillStyle: 'gray', points: [new V2(), new V2(size.x, 0), new V2(size.x, 30), new V2(0, 50)]})
                 //draw(ctx, { fillStyle: 'darkgray', points: [new V2(0, 40), new V2(size.x, 20), new V2(size.x, 30), new V2(0, 50)]})
                 draw(ctx, { fillStyle: 'gray', points: [new V2(0, 250),new V2(size.x, 200),new V2(size.x, size.y),new V2(0, size.y),]})
+                
+
+                ctx.drawImage(createCanvas(this.viewport, (ctx, size) => {
+                    draw(ctx, { fillStyle: '#727272', points: [new V2(0, 290),new V2(size.x, 220),new V2(size.x, size.y),new V2(0, size.y)]})
+                    // ctx.strokeStyle = '#3D3D3D';
+                    // ctx.beginPath();
+                    // ctx.lineWidth = 2;
+                    // ctx.moveTo(0, 290);ctx.lineTo(size.x, 220);
+                    // ctx.stroke();
+
+                    ctx.clearRect(100, 0, 10, size.y);
+                    ctx.clearRect(300, 0, 10, size.y);
+                    ctx.clearRect(450, 0, 8, size.y);
+                }), 0, 0, size.x, size.y);
+
                 draw(ctx, { fillStyle: 'lightgray', points: [new V2(0, 250),new V2(size.x, 200),new V2(size.x, 210),new V2(0, 270),]})
             })
         }), 9);
@@ -511,33 +585,79 @@ class Face2Scene extends Scene {
         this.infoScreenSize = new V2(80, 100);
 
         this.infoScreen = this.addGo(new GO({
+            levitation: {
+                time: 0, 
+                duration: 40, 
+                startValue: 0, 
+                change: 5, 
+                min: 0,
+                max: 5,
+                direction: 1,
+                type: 'quad',
+                method: 'inOut',
+            },
             position: new V2(this.viewport.x/4, this.viewport.y/3),
             size: this.infoScreenSize,
             textLines: [],
-            img: createCanvas(this.infoScreenSize,  (ctx, size) => {
+            renderValuesRound: true,
+            img: createCanvas(this.infoScreenSize.mul(2),  (ctx, size) => {
                 // ctx.fillStyle = 'rgba(0,255,0, 0.5)';
                 // ctx.fillRect(0,0,size.x, size.y);
                 draw(ctx, {
                     fillStyle: 'rgba(0,255,0, 0.5)', points: [new V2(0,0), new V2(size.x*9/10, size.y*1/10), new V2(size.x, size.y), new V2(size.x*1/10, size.y*9/10)]
                 })
+
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = 'rgba(0,50,0, 0.75)';
+                ctx.beginPath();ctx.moveTo(0,1); ctx.lineTo(size.x*9/10, size.y*1/10);ctx.stroke();
+                ctx.beginPath();ctx.moveTo(size.x, size.y-1); ctx.lineTo(size.x*1/10, size.y*9/10);ctx.stroke();
             }),
             init() {
+                this.originalY = this.position.y;
                 let scene = this.parentScene;
                 this.textChangeTimer = createTimer(5000, () => {
                     for(let i = 0; i < this.textLines.length; i++){
-                        this.textLines[i].addEffect(new FadeOutEffect({effectTime: 500, startDelay: 100*i, removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true,
+                        this.textLines[i].addEffect(new FadeOutEffect({effectTime: 150, startDelay: 25*i, removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true,
                             completeCallback: function() {
                                 this.parent.isVisible = false;
                                 this.parent.img = scene.textLineImgGenerator();
                                 this.parent.addEffect(new FadeInEffect({beforeStartCallback: function(){ this.parent.isVisible = true; },
-                                    effectTime: 150, startDelay: 25*i, removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true}))
+                                    effectTime: 250, startDelay: 50*i, removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true}))
                             }}))
                     }
                 }, this, false);
+
+                this.levitationTimer = createTimer(50, () => {
+                    let l = this.levitation;
+
+                    if(l.time > l.duration){
+                        l.direction*=-1;
+                        l.time = 0;
+
+                        if(l.direction < 0){
+                            l.startValue = l.max;
+                            l.change = -l.max;
+                        }
+                        else if(l.direction > 0){
+                            l.startValue = l.min;
+                            l.change = l.max;
+                        }
+                        
+                    }
+
+                    let delta = easing.process(l);
+                    this.position.y = this.originalY + delta;
+
+                    this.needRecalcRenderProperties = true;
+                    l.time++;
+                }, this, true);
             },
             internalUpdate(now) {
                 if(this.textChangeTimer)
                     doWorkByTimer(this.textChangeTimer, now);
+
+                if(this.levitationTimer)
+                    doWorkByTimer(this.levitationTimer, now);
             }
         }),20)
 
@@ -547,7 +667,8 @@ class Face2Scene extends Scene {
             this.infoScreen.textLines.push(this.infoScreen.addChild(new GO({
                 position: new V2(-this.infoScreenLineSize.x*0.05 + this.infoScreenLineSize.x*0.0045*i, -this.infoScreenSize.y/2 + this.infoScreenSize.y/10 + this.infoScreenSize.y*i/24),
                 size: new V2(this.infoScreenLineSize.x*0.8, this.infoScreenLineSize.y),
-                img: this.textLineImgGenerator()
+                img: this.textLineImgGenerator(),
+                //renderValuesRound: true,
             })));
         }
         
@@ -574,16 +695,16 @@ class Face2Scene extends Scene {
     }
 
     textLineImgGenerator(){
-       return createCanvas(this.infoScreenLineSize, (ctx, size) => {
+       return createCanvas(this.infoScreenLineSize.mul(2), (ctx, size) => {
 
             ctx.strokeStyle = 'rgba(255,255,255, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.moveTo(0,0);
-            ctx.lineTo(size.x, size.y);
+            ctx.lineWidth = 3;
+            ctx.moveTo(0,1);
+            ctx.lineTo(size.x, size.y-1);
             ctx.stroke();
 
             for(let i = 0; i < getRandomInt(10, 20); i++){
-                ctx.clearRect(getRandomInt(1, size.x-2), 0, getRandomBool() ? 1: 2,size.y);
+                ctx.clearRect(getRandomInt(1, size.x-2), 0, getRandomBool() ? 2: 4,size.y);
             }
         }); 
     }
