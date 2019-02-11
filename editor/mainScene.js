@@ -1,7 +1,12 @@
 class EditorScene extends Scene {
     constructor(options = {}){
         options = assignDeep({}, {
-
+            image: {
+                general: {
+                    originalSize: new V2(10, 10),
+                    zoom: 1,
+                }
+            }
         }, options);
 
         super(options)
@@ -16,7 +21,11 @@ class EditorScene extends Scene {
                 ctx.fillStyle = '#00FF00';
                 pp.line(0, size.y/2, size.x, 0)
             })
-        }))
+        }));
+
+        this.editor = new Editor({
+            parentElementSelector: '.controlsWrapper'
+        })
     }
 
     backgroundRender(){
