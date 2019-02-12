@@ -4,7 +4,7 @@ class Editor {
             image: {
                 general: {
                     originalSize: new V2(10, 10),
-                    zoom: 1,
+                    zoom: {current: 1, max: 10, min: 1, step: 1},
                     element: undefined
                 }
             },
@@ -53,7 +53,8 @@ class Editor {
 
         
         let generalEl = htmlUtils.createElement('div', { className: 'general' });
-        generalEl.appendChild(this.createV2(general.originalSize, 'Size', this.updateEditor));
+        generalEl.appendChild(this.createV2(general.originalSize, 'Size', this.updateEditor.bind(this)));
+        generalEl.appendChild(this.createRange(general.zoom, 'Zoom', this.updateEditor.bind(this)));
 
         general.element = generalEl;
         
@@ -65,13 +66,41 @@ class Editor {
         return {
             general: {
                 size: i.general.originalSize,
-                zoom: i.general.zoom
+                zoom: i.general.zoom.current
             }
         }
     }
 
     appendList(parent, listProps) {
         parent.appendChild(this.createList(listProps));
+    }
+
+    createRange(value, title, changeCallback) {
+        let el = htmlUtils.createElement('div', { className: 'range' });
+        if(title){    
+            el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
+        }
+
+        el.appendChild((() => {
+            let divValue = htmlUtils.createElement('div', { className: 'value' })
+            let currentValueElement = htmlUtils.createElement('span', { className: 'current', text: value.current })
+            divValue.appendChild(htmlUtils.createElement('input', { 
+                attributes: { type: 'range', min: value.min, max: value.max, step: value.step }, value: value.current,
+                events: {
+                    change: (event) => {
+                        currentValueElement.innerText = event.target.value;
+                        value.current = parseInt(event.target.value);
+                        changeCallback();
+                    }
+                }
+             }))
+
+             divValue.appendChild(currentValueElement);
+
+             return divValue;
+        })());
+
+        return el;
     }
 
     createV2(value, title, changeCallback) {
@@ -94,14 +123,29 @@ class Editor {
                 this.classList.add('edit');
 
                 let editBlock = this.querySelector('.edit');
+                let readBlock = this.querySelector('.read');
                 htmlUtils.removeChilds(editBlock);
 
                 editBlock.appendChild(htmlUtils.createElement('span', { text: 'x' }));
-                editBlock.appendChild(htmlUtils.createElement('input', { value: value.x }));
+                editBlock.appendChild(htmlUtils.createElement('input', { className: 'x', value: value.x }));
                 editBlock.appendChild(htmlUtils.createElement('span', { text: 'y' }));
-                editBlock.appendChild(htmlUtils.createElement('input', { value: value.y }));
+                editBlock.appendChild(htmlUtils.createElement('input', { className: 'y', value: value.y }));
 
-                editBlock.appendChild(htmlUtils.createElement('input', { , value: value.y }));
+                editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
+                events: { click: (event) => {
+                    value.x = parseInt(editBlock.querySelector('.x').value);
+                    value.y = parseInt(editBlock.querySelector('.y').value);
+                    readBlock.innerText = value.toString();
+                    this.classList.remove('edit');
+                    event.stopPropagation();
+                    changeCallback();
+                }},
+                value: 'U' }));
+                editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
+                    events: { click: (event) => {
+                        this.classList.remove('edit');
+                        event.stopPropagation();
+                    } }, value: 'C' }));
             })
 
             return divValue;

@@ -33,6 +33,12 @@ var htmlUtils = {
             if(props.attributes){
                 this.setAttributes(el, props.attributes)
             }
+
+            if(props.events) {
+                Object.keys(props.events).forEach((k) => {
+                    el.addEventListener(k, props.events[k]);
+                })
+            }
         }
 
         return el;

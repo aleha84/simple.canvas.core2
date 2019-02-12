@@ -8,6 +8,10 @@ html,
         min-height: 100%;
       }
 
+      input[type='button'] {
+          cursor: pointer;
+      }
+
       .container {
         width: 100%;
         height: 100%;
@@ -28,7 +32,7 @@ html,
       .controlsWrapper {
         /* width: 20%; */
         width:400px;
-        background:red;
+        background:#CCCCCC;
         float:right;   
         overflow-y: scroll;
       }
@@ -85,6 +89,15 @@ html,
         display: block;
     }
 
-    .V2>.value {
+    .V2>.value:not(.edit) {
         cursor: pointer;
+    }
+
+    .range>.title {
+        float: left;
+        width: 20%;
+    }
+    .range>.title + .value {
+        float: right;
+        width: 80%;
     }
