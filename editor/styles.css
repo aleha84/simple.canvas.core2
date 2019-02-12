@@ -58,3 +58,33 @@ html,
       .listbox select>option {
         border-bottom: 1px solid gray;
     }
+
+    .V2>.title {
+        float: left;
+        width: 20%;
+    }
+    .V2>.title + .value {
+        float: right;
+        width: 80%;
+    }
+
+    .V2>.value.edit > .read {
+        display: none;
+    }
+
+    .V2>.value > .edit {
+        display: none;
+    }
+
+    .V2>.value > .edit > input {
+        display: inline-block;
+        width: 30px;
+    }
+
+    .V2>.value.edit > .edit {
+        display: block;
+    }
+
+    .V2>.value {
+        cursor: pointer;
+    }
