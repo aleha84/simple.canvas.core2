@@ -63,14 +63,20 @@ html,
         border-bottom: 1px solid gray;
     }
 
-    .V2>.title {
+    .row>.title {
         float: left;
         width: 20%;
     }
-    .V2>.title + .value {
+    .row>.title + .value {
         float: right;
         width: 80%;
     }
+
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+      }
 
     .V2>.value.edit > .read {
         display: none;
@@ -92,7 +98,7 @@ html,
     .V2>.value:not(.edit) {
         cursor: pointer;
     }
-
+/* 
     .range>.title {
         float: left;
         width: 20%;
@@ -100,4 +106,4 @@ html,
     .range>.title + .value {
         float: right;
         width: 80%;
-    }
+    } */

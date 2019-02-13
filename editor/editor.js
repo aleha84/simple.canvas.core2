@@ -5,6 +5,7 @@ class Editor {
                 general: {
                     originalSize: new V2(10, 10),
                     zoom: {current: 1, max: 10, min: 1, step: 1},
+                    showGrid: false,
                     element: undefined
                 }
             },
@@ -55,6 +56,10 @@ class Editor {
         let generalEl = htmlUtils.createElement('div', { className: 'general' });
         generalEl.appendChild(this.createV2(general.originalSize, 'Size', this.updateEditor.bind(this)));
         generalEl.appendChild(this.createRange(general.zoom, 'Zoom', this.updateEditor.bind(this)));
+        generalEl.appendChild(this.createCheckBox(general.showGrid, 'Show grid', function(value) {
+            general.showGrid = value;
+            this.updateEditor();
+        }.bind(this)));
 
         general.element = generalEl;
         
@@ -66,7 +71,8 @@ class Editor {
         return {
             general: {
                 size: i.general.originalSize,
-                zoom: i.general.zoom.current
+                zoom: i.general.zoom.current,
+                showGrid: i.general.showGrid
             }
         }
     }
@@ -76,7 +82,7 @@ class Editor {
     }
 
     createRange(value, title, changeCallback) {
-        let el = htmlUtils.createElement('div', { className: 'range' });
+        let el = htmlUtils.createElement('div', { classNames: ['range', 'row'] });
         if(title){    
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
         }
@@ -103,8 +109,22 @@ class Editor {
         return el;
     }
 
+    createCheckBox(value, title, changeCallback){
+        let el = htmlUtils.createElement('div', { classNames: ['checkbox', 'row'] });
+        if(title){    
+            el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
+        }
+        el.appendChild(htmlUtils.createElement('input', {attributes: { type: 'checkbox', checked: value}, events: {
+            change: (event) => {
+                changeCallback(event.target.checked);
+            }
+        } }))
+
+        return el;
+    }
+
     createV2(value, title, changeCallback) {
-        let el = htmlUtils.createElement('div', { className: 'V2' });
+        let el = htmlUtils.createElement('div', { classNames: ['V2', 'row'] });
 
         if(title){    
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
