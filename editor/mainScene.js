@@ -19,7 +19,7 @@ class EditorScene extends Scene {
 
         this.mainGo = this.addGo(new EditorGO({
             position: this.sceneCenter
-        }));
+        }),0, true);
 
         this.editor = new Editor({
             parentElementSelector: '.controlsWrapper',
@@ -31,15 +31,19 @@ class EditorScene extends Scene {
 
     renderModel(model){
         console.log(model);
-
+        let mg = this.mainGo;
         let {general} = model;
 
-        this.mainGo.img = createCanvas(general.size, (ctx, size) => {
+        mg.img = createCanvas(general.size, (ctx, size) => {
 
         });
 
-        this.mainGo.size = general.size.mul(general.zoom);
-        this.mainGo.needRecalcRenderProperties = true;
+        mg.originalSize = general.originalSize;
+        mg.size = general.size.mul(general.zoom);
+        mg.showGrid = general.showGrid;
+        mg.invalidate();
+
+        mg.needRecalcRenderProperties = true;
     }
 
     backgroundRender(){

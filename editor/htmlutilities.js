@@ -39,6 +39,10 @@ var htmlUtils = {
                     el.addEventListener(k, props.events[k]);
                 })
             }
+
+            if(props.props){
+                this.setAttributes(el, props.props)
+            }
         }
 
         return el;
@@ -50,7 +54,13 @@ var htmlUtils = {
     },
     setAttributes(el, attrs) {
         for(var key in attrs) {
-          el.setAttribute(key, attrs[key]);
+            el.setAttribute(key, attrs[key]);
         }
-      }
+    },
+
+    setProps(el, props){
+        for(var key in props) {
+            el.setAttribute(key, '');
+        }
+    }
 }

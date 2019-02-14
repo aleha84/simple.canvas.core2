@@ -7,6 +7,24 @@ class Editor {
                     zoom: {current: 1, max: 10, min: 1, step: 1},
                     showGrid: false,
                     element: undefined
+                },
+                main: {
+                    element: undefined,
+                    layers: [
+/* layer props
+order: int,
+id: string,
+strokeColor: string (rgb,rgba,#),
+fillColor: string (rgb,rgba,#),
+closePath: boolean,
+points: [{
+    point: V2,
+    color: string (rgb,rgba,#),
+    opacity: float 0 - 1
+}] 
+ 
+*/
+                    ]
                 }
             },
             parentElementSelector: '',
@@ -30,6 +48,7 @@ class Editor {
     init() {
 
         this.createGeneral();
+        this.createMain();
         // this.appendList(this.parentElement, {
         //     title: 'test list box',
         //     items: [
@@ -44,6 +63,23 @@ class Editor {
 
     updateEditor() {
         this.renderCallback(this.prepareModel());
+    }
+
+    prepareModel() {
+        let i = this.image;
+        return {
+            general: {
+                originalSize: i.general.originalSize,
+                size: i.general.originalSize,
+                zoom: i.general.zoom.current,
+                showGrid: i.general.showGrid
+            },
+            main: {
+                layers: i.main.layers.map(l => {
+                    return l
+                })
+            }
+        }
     }
 
     createGeneral() {
@@ -66,15 +102,26 @@ class Editor {
         this.parentElement.appendChild(general.element);
     }
 
-    prepareModel() {
-        let i = this.image;
-        return {
-            general: {
-                size: i.general.originalSize,
-                zoom: i.general.zoom.current,
-                showGrid: i.general.showGrid
-            }
+    createMain() {
+        let { main } = this.image;
+        if(main.element){
+            main.element.remove();
         }
+
+        let mainEl = htmlUtils.createElement('div', { className: 'main' });
+        mainEl.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Main image properties' }))
+        mainEl.appendChild(this.createList({
+            title: 'Layers',
+            items: main.layers
+        }))
+
+        main.element = mainEl;
+        
+        this.parentElement.appendChild(main.element);
+    }
+
+    createLayer() {
+
     }
 
     appendList(parent, listProps) {
@@ -114,7 +161,12 @@ class Editor {
         if(title){    
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
         }
-        el.appendChild(htmlUtils.createElement('input', {attributes: { type: 'checkbox', checked: value}, events: {
+        let props = {}
+        if(value){
+            props.checked = true;
+        }
+
+        el.appendChild(htmlUtils.createElement('input', {attributes: { type: 'checkbox'}, props, events: {
             change: (event) => {
                 changeCallback(event.target.checked);
             }
@@ -175,12 +227,14 @@ class Editor {
     }
 
     createList(listProps) {
-        let lb = document.createElement('div');
-        lb.classList.add('listbox');
+        
+        let lb = htmlUtils.createElement('div', { className: 'listbox' });
+        lb.appendChild(htmlUtils.createElement('p', { className: 'title', text: listProps.title }));
+        
+        let select = htmlUtils.createElement('select', { attributes: { size: listProps.maxSize || 10 }, events: {
+            change: listProps.callback || function(e){ console.log(this.value)}
+        } });
 
-        lb.appendChild((() => { let p = document.createElement('p'); p.classList.add('title'); p.innerText = listProps.title; return p; })());
-        let select = document.createElement('select');
-        select.setAttribute('size', listProps.maxSize || 10);
         for(let item of listProps.items){
             select.options[select.options.length] = new Option(item.title || item.text, item.value);
             // select.appendChild((() => {
@@ -188,7 +242,7 @@ class Editor {
             // })())
         }
 
-        select.addEventListener('change', listProps.callback || function(e){ console.log(this.value)});
+        //select.addEventListener('change', listProps.callback || function(e){ console.log(this.value)});
 
         lb.append(select);
 

@@ -93,7 +93,8 @@ SCG.controls = {
                     return false;
                 }
 
-                if(
+                if( //чтобы этот ивент сработал в случае наличия дочерних сущнеостей, нужно чтобы child элемент возвращал eventResult.preventDiving = false; А родительский элемент на move проставлял moveEventTriggered = true
+                    // а на out moveEventTriggered = false
                     eventType === 'move' 
                     && go.moveEventTriggered
                     && go.handlers != undefined
