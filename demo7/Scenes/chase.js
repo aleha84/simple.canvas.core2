@@ -188,14 +188,14 @@ class ChaseScene extends Scene {
             img: createCanvas(new V2(5, 10), (ctx, size) => {
                 let pp = new PerfectPixel({context: ctx});
 
-                for(let i = 1; i < size.x;i++){
-                    ctx.fillStyle = `rgba(255,255,255,${0.2+i*0.3/4})`;
-                    pp.line(i, 4, i, 5);
-                }
-
                 for(let i = 0; i < size.x;i++){
                     ctx.fillStyle = `rgba(255,255,0,${0.5+i*0.5/4})`;
                     pp.line(i, i== 0 ? 4: 3, i, i == 0? 5 :6);
+                }
+
+                for(let i = 1; i < size.x;i++){
+                    ctx.fillStyle = `rgba(255,255,255,${0.2+i*0.3/4})`;
+                    pp.line(i, 4, i, 5);
                 }
                 
             })
