@@ -7,12 +7,13 @@ class ChaseScene extends Scene {
         this.bgLayersCount = 4;
         this.bgOpacityMin = 0.2;
         this.bgOpacityMax = 0.5;
-        this.bgLayerFramesCount = 3;
+        this.bgLayerFramesCount = 10;
         this.bgSpeedMin = 0.1;
         this.bgSpeedMax = 0.4;
         this.bgImages = [];
         this.inititalLineLenth = 40;
-        this.dencity = [0.0025, 0.0006, 0.00035, 0.0001]
+        this.dencity = //[0.0025, 0.0006, 0.00035, 0.0001]
+            [0.001, 0.0005, 0.00025, 0.0001]
 
 
         for(let i = 0; i < this.bgLayersCount; i++){
@@ -22,10 +23,11 @@ class ChaseScene extends Scene {
                 this.bgImages[i][j] = textureGenerator.textureGenerator({
                     size: this.viewport,
                     backgroundColor: 'rgba(255,255,255,0)',
+                    renderValuesRound: true,
                     surfaces: [
                         textureGenerator.getSurfaceProperties({
                             colors: ['FFFFFF'], opacity: [this.bgOpacityMin + i*(this.bgOpacityMax - this.bgOpacityMin)/(this.bgLayersCount-1)], 
-                            fillSize: new V2(this.inititalLineLenth + 40*i, 1+ 1*i),
+                            fillSize: new V2(this.inititalLineLenth + 40*i, 0.5+ 0.5*i),
                             density: this.dencity[i]//0.01/(Math.pow(10,i)), 
                         })
                     ],
@@ -53,7 +55,7 @@ class ChaseScene extends Scene {
             position: this.sceneCenter.clone(),
             size: new V2(100, 50),
             renderValuesRound: true,
-            speed: 0.05,
+            speed: 0.1,
             // img: createCanvas(new V2(1,1), (ctx) => {
             //     ctx.fillStyle = 'green'; ctx.fillRect(0,0,1,1);
             // })
@@ -88,11 +90,11 @@ class ChaseScene extends Scene {
                 this.getRandomPosition();
             },
             getRandomPosition() {
-                this.setDestination(this.parentScene.sceneCenter.add(new V2(getRandomInt(-20, 20), getRandomInt(-20, 20))));
+                this.setDestination(this.parentScene.sceneCenter.add(new V2(getRandomInt(-100, 100), getRandomInt(-100, 100))));
             },
             internalUpdate(now) {
-                if(this.ignitionTimer)
-                    doWorkByTimer(this.ignitionTimer, now);
+                // if(this.ignitionTimer)
+                //     doWorkByTimer(this.ignitionTimer, now);
             }
         }), 10)
 
@@ -174,6 +176,28 @@ class ChaseScene extends Scene {
             
                 ctx.fillStyle = 'black';pp.setPixel(4,1);
                 ctx.fillStyle = '#262626';pp.setPixel(3,1);
+            })
+        }))
+
+
+        this.ss.ignitionSize = new V2(25,50);
+        this.ss.ignition = this.ss.addChild(new GO({
+            position: new V2(-this.ss.body.size.x/2 - this.ss.ignitionSize.x/2, 0),
+            size: this.ss.ignitionSize,
+            renderValuesRound: true,
+            img: createCanvas(new V2(5, 10), (ctx, size) => {
+                let pp = new PerfectPixel({context: ctx});
+
+                for(let i = 1; i < size.x;i++){
+                    ctx.fillStyle = `rgba(255,255,255,${0.2+i*0.3/4})`;
+                    pp.line(i, 4, i, 5);
+                }
+
+                for(let i = 0; i < size.x;i++){
+                    ctx.fillStyle = `rgba(255,255,0,${0.5+i*0.5/4})`;
+                    pp.line(i, i== 0 ? 4: 3, i, i == 0? 5 :6);
+                }
+                
             })
         }))
 
