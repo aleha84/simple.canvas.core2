@@ -1,5 +1,10 @@
 class ChaseScene extends Scene {
     constructor(options = {}) {
+        options = assignDeep({}, {
+            debug: {
+                enabled: true
+            }
+        }, options)
         super(options);
     }
 
@@ -190,7 +195,7 @@ class ChaseScene extends Scene {
                 ctx.fillStyle = '#262626';pp.setPixel(7,8);
                 ctx.fillStyle = '#333333';pp.setPixel(6,8);
             
-                ctx.fillStyle = 'red';pp.setPixel(5,1);
+                ctx.fillStyle = '#FFA000';pp.setPixel(5,1);
                 ctx.fillStyle = 'black';pp.setPixel(4,1);
                 ctx.fillStyle = '#262626';pp.setPixel(3,1);
             })
@@ -350,6 +355,18 @@ class ChaseScene extends Scene {
             this.enableHit = true
         }, this, false);
 
+        this.laserImages = [createCanvas(new V2(1, 8), (ctx, size) => {
+            ctx.fillStyle = '#880015'; ctx.fillRect(0,0,1,size.y);
+            ctx.fillStyle = '#ED1C24'; ctx.fillRect(0,1,1,size.y-2);
+            ctx.fillStyle = '#FF7F27'; ctx.fillRect(0,2,1,size.y - 4);
+            ctx.fillStyle = '#FFF200'; ctx.fillRect(0,3,1,2);
+        }),
+        createCanvas(new V2(1, 8), (ctx, size) => {
+            ctx.fillStyle = '#00CCCC'; ctx.fillRect(0,0,1,size.y);
+            ctx.fillStyle = '#00F2F2'; ctx.fillRect(0,1,1,size.y-2);
+            ctx.fillStyle = '#00FFFF'; ctx.fillRect(0,2,1,size.y - 4);
+            ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,3,1,2);
+        })]
         this.lasersTimer = createTimer(500, () => {
             let y =  this.ss.position.y + getRandomInt(-80, 80);
             let x = this.sceneCenter.x;
@@ -357,28 +374,29 @@ class ChaseScene extends Scene {
             let hitY = undefined;
             if(this.enableHit){
                 hitY = getRandomInt(2,18);
-                y = this.ss.position.y + hitY*this.defaultPixelSize;
+                y = this.ss.position.y-this.ss.size.y/2-20 + hitY*this.defaultPixelSize;
                 x = -this.sceneCenter.x + this.ss.position.x;
             }
+            
 
             let laser = this.addGo(new MovingGO({
                 position: new V2(-this.sceneCenter.x, y),
                 size: new V2(this.viewport.x, getRandomInt(5,10)),
-                img: createCanvas(new V2(1, 8), (ctx, size) => {
-                    ctx.fillStyle = '#880015'; ctx.fillRect(0,0,1,size.y);
-                    ctx.fillStyle = '#ED1C24'; ctx.fillRect(0,1,1,size.y-2);
-                    ctx.fillStyle = '#FF7F27'; ctx.fillRect(0,2,1,size.y - 4);
-                    ctx.fillStyle = '#FFF200'; ctx.fillRect(0,3,1,2);
-                }),
+                img: this.laserImages[getRandomInt(0, this.laserImages.length-1)],
                 destination: new V2(x, y),
                 speed: 150,
                 setDestinationOnInit: true,
                 enableHit: hitY,
                 destinationCompleteCallBack() {
+                    let ps = this.parentScene;
                     if(this.enableHit){
-                        this.parentScene.ss.shield.hit(this.enableHit);
+                        ps.ss.shield.hit(this.enableHit);
+                        this.position.x = -ps.sceneCenter.x + ps.ss.position.x - ps.ss.size.x/2;
                     }
-                    this.position.x = this.parentScene.sceneCenter.x;
+                    else {
+                        this.position.x = ps.sceneCenter.x;
+                    }
+                    
                     this.needRecalcRenderProperties = true;
                     this.addEffect(new FadeOutEffect({effectTime: 250, updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true}))
                 }
