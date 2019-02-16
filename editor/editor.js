@@ -3,14 +3,33 @@ class Editor {
         assignDeep(this, {
             image: {
                 general: {
-                    originalSize: new V2(10, 10),
-                    zoom: {current: 1, max: 10, min: 1, step: 1},
+                    originalSize: {x: 10, y: 10},//new V2(10, 10),
+                    zoom: {current: 10, max: 10, min: 1, step: 1},
                     showGrid: false,
                     element: undefined
                 },
                 main: {
                     element: undefined,
                     layers: [
+                        {
+                            order: 0,
+                            id: 'main_0',
+                            strokeColor: '#FF0000',
+                            fillColor: '#FF0000',
+                            closePath: true,
+                            type: 'lines',
+                            points: [
+                                {
+                                    point: {x: 1, y: 1},
+                                },
+                                {
+                                    point: {x: 9, y: 4},
+                                },
+                                {
+                                    point: {x: 3, y: 8},
+                                }
+                            ]
+                        }
 /* layer props
 order: int,
 id: string,
@@ -67,17 +86,27 @@ points: [{
 
     prepareModel() {
         let i = this.image;
+        let layerMapper = (l) => {
+            return {
+                order: l.order,
+                type: l.type,
+                strokeColor: l.strokeColor,
+                points: l.points.map((p) => {
+                    return {
+                        point: new V2(p.point)
+                    }
+                })
+            }
+        }
         return {
             general: {
-                originalSize: i.general.originalSize,
-                size: i.general.originalSize,
+                originalSize: new V2(i.general.originalSize),
+                size: new V2(i.general.originalSize),
                 zoom: i.general.zoom.current,
                 showGrid: i.general.showGrid
             },
             main: {
-                layers: i.main.layers.map(l => {
-                    return l
-                })
+                layers: i.main.layers.map(layerMapper)
             }
         }
     }
@@ -112,7 +141,7 @@ points: [{
         mainEl.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Main image properties' }))
         mainEl.appendChild(this.createList({
             title: 'Layers',
-            items: main.layers
+            items: main.layers.map(l => {return { title: l.id, value: l.id }})
         }))
 
         main.element = mainEl;
@@ -185,7 +214,7 @@ points: [{
         el.appendChild((() => {
             
             let divValue = htmlUtils.createElement('div', { className: 'value' })
-            divValue.appendChild(htmlUtils.createElement('span', { className: 'read', text: value.toString() }));
+            divValue.appendChild(htmlUtils.createElement('span', { className: 'read', text: `x: ${value.x}, y: ${value.y}` }));
             divValue.appendChild(htmlUtils.createElement('div', { className: 'edit' }));
 
             divValue.addEventListener('click', function(e) {
@@ -207,7 +236,7 @@ points: [{
                 events: { click: (event) => {
                     value.x = parseInt(editBlock.querySelector('.x').value);
                     value.y = parseInt(editBlock.querySelector('.y').value);
-                    readBlock.innerText = value.toString();
+                    readBlock.innerText = `x: ${value.x}, y: ${value.y}`;
                     this.classList.remove('edit');
                     event.stopPropagation();
                     changeCallback();
