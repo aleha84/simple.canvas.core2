@@ -119,9 +119,9 @@ points: [{
 
         
         let generalEl = htmlUtils.createElement('div', { className: 'general' });
-        generalEl.appendChild(this.createV2(general.originalSize, 'Size', this.updateEditor.bind(this)));
-        generalEl.appendChild(this.createRange(general.zoom, 'Zoom', this.updateEditor.bind(this)));
-        generalEl.appendChild(this.createCheckBox(general.showGrid, 'Show grid', function(value) {
+        generalEl.appendChild(components.createV2(general.originalSize, 'Size', this.updateEditor.bind(this)));
+        generalEl.appendChild(components.createRange(general.zoom, 'Zoom', this.updateEditor.bind(this)));
+        generalEl.appendChild(components.createCheckBox(general.showGrid, 'Show grid', function(value) {
             general.showGrid = value;
             this.updateEditor();
         }.bind(this)));
@@ -133,148 +133,42 @@ points: [{
 
     createMain() {
         let { main } = this.image;
+        let that = this;
         if(main.element){
             main.element.remove();
         }
 
         let mainEl = htmlUtils.createElement('div', { className: 'main' });
         mainEl.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Main image properties' }))
-        mainEl.appendChild(this.createList({
+        mainEl.appendChild(components.createList({
             title: 'Layers',
-            items: main.layers.map(l => {return { title: l.id, value: l.id }})
+            items: main.layers.map(l => {return { title: l.id, value: l.id }}),
+            callback: function(e){ that.createLayer(layerEl, main.layers.find(l => l.id == this.value)); }
         }))
+        let layerEl = htmlUtils.createElement('div', {className: 'layer'});
+        mainEl.appendChild(layerEl)
 
         main.element = mainEl;
         
         this.parentElement.appendChild(main.element);
     }
 
-    createLayer() {
+    createLayer(layerEl, layerProps) {
+        htmlUtils.removeChilds(layerEl);
 
+        if(layerProps == undefined)
+            return;
+
+        layerEl.appendChild(htmlUtils.createElement('div', { text: layerProps.id }))
     }
 
-    appendList(parent, listProps) {
-        parent.appendChild(this.createList(listProps));
-    }
+    // appendList(parent, listProps) {
+    //     parent.appendChild(this.createList(listProps));
+    // }
 
-    createRange(value, title, changeCallback) {
-        let el = htmlUtils.createElement('div', { classNames: ['range', 'row'] });
-        if(title){    
-            el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
-        }
+    
 
-        el.appendChild((() => {
-            let divValue = htmlUtils.createElement('div', { className: 'value' })
-            let currentValueElement = htmlUtils.createElement('span', { className: 'current', text: value.current })
-            divValue.appendChild(htmlUtils.createElement('input', { 
-                attributes: { type: 'range', min: value.min, max: value.max, step: value.step }, value: value.current,
-                events: {
-                    change: (event) => {
-                        currentValueElement.innerText = event.target.value;
-                        value.current = parseInt(event.target.value);
-                        changeCallback();
-                    }
-                }
-             }))
+    
 
-             divValue.appendChild(currentValueElement);
-
-             return divValue;
-        })());
-
-        return el;
-    }
-
-    createCheckBox(value, title, changeCallback){
-        let el = htmlUtils.createElement('div', { classNames: ['checkbox', 'row'] });
-        if(title){    
-            el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
-        }
-        let props = {}
-        if(value){
-            props.checked = true;
-        }
-
-        el.appendChild(htmlUtils.createElement('input', {attributes: { type: 'checkbox'}, props, events: {
-            change: (event) => {
-                changeCallback(event.target.checked);
-            }
-        } }))
-
-        return el;
-    }
-
-    createV2(value, title, changeCallback) {
-        let el = htmlUtils.createElement('div', { classNames: ['V2', 'row'] });
-
-        if(title){    
-            el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
-        }
-
-        el.appendChild((() => {
-            
-            let divValue = htmlUtils.createElement('div', { className: 'value' })
-            divValue.appendChild(htmlUtils.createElement('span', { className: 'read', text: `x: ${value.x}, y: ${value.y}` }));
-            divValue.appendChild(htmlUtils.createElement('div', { className: 'edit' }));
-
-            divValue.addEventListener('click', function(e) {
-                if(this.classList.contains('edit'))
-                    return;
-
-                this.classList.add('edit');
-
-                let editBlock = this.querySelector('.edit');
-                let readBlock = this.querySelector('.read');
-                htmlUtils.removeChilds(editBlock);
-
-                editBlock.appendChild(htmlUtils.createElement('span', { text: 'x' }));
-                editBlock.appendChild(htmlUtils.createElement('input', { className: 'x', value: value.x }));
-                editBlock.appendChild(htmlUtils.createElement('span', { text: 'y' }));
-                editBlock.appendChild(htmlUtils.createElement('input', { className: 'y', value: value.y }));
-
-                editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
-                events: { click: (event) => {
-                    value.x = parseInt(editBlock.querySelector('.x').value);
-                    value.y = parseInt(editBlock.querySelector('.y').value);
-                    readBlock.innerText = `x: ${value.x}, y: ${value.y}`;
-                    this.classList.remove('edit');
-                    event.stopPropagation();
-                    changeCallback();
-                }},
-                value: 'U' }));
-                editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
-                    events: { click: (event) => {
-                        this.classList.remove('edit');
-                        event.stopPropagation();
-                    } }, value: 'C' }));
-            })
-
-            return divValue;
-        })())
-        
-        return el;
-    }
-
-    createList(listProps) {
-        
-        let lb = htmlUtils.createElement('div', { className: 'listbox' });
-        lb.appendChild(htmlUtils.createElement('p', { className: 'title', text: listProps.title }));
-        
-        let select = htmlUtils.createElement('select', { attributes: { size: listProps.maxSize || 10 }, events: {
-            change: listProps.callback || function(e){ console.log(this.value)}
-        } });
-
-        for(let item of listProps.items){
-            select.options[select.options.length] = new Option(item.title || item.text, item.value);
-            // select.appendChild((() => {
-
-            // })())
-        }
-
-        //select.addEventListener('change', listProps.callback || function(e){ console.log(this.value)});
-
-        lb.append(select);
-
-        return lb;
-    }
+    
 }
