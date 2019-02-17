@@ -81,7 +81,8 @@ SCG.controls = {
                         }
                     }
 
-                    var eventResult = go.handlers[eventType].call(go);
+                    //return to all event handles logical relative to top left corner position as first argument
+                    var eventResult = go.handlers[eventType].call(go, this.logicalPosition.substract(go.box.topLeft)); 
                     if(eventResult){
                         if(eventResult.preventDiving)
                             return false;

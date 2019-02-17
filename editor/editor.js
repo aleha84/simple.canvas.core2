@@ -13,19 +13,28 @@ class Editor {
                     layers: [
                         {
                             order: 0,
+                            selected: false,
                             id: 'main_0',
                             strokeColor: '#FF0000',
                             fillColor: '#FF0000',
                             closePath: true,
                             type: 'lines',
+                            pointsEl: undefined,
+                            pointEl: undefined,
                             points: [
                                 {
+                                    id: 'main_0_point_0',
+                                    order: 0,
                                     point: {x: 1, y: 1},
                                 },
                                 {
+                                    id: 'main_0_point_1',
+                                    order: 1,
                                     point: {x: 9, y: 4},
                                 },
                                 {
+                                    id: 'main_0_point_2',
+                                    order: 2,
                                     point: {x: 3, y: 8},
                                 }
                             ]
@@ -85,15 +94,26 @@ points: [{
     }
 
     prepareModel() {
+        let that = this;
         let i = this.image;
         let layerMapper = (l) => {
             return {
                 order: l.order,
+                selected: l.selected,
                 type: l.type,
                 strokeColor: l.strokeColor,
+                closePath: l.closePath,
                 points: l.points.map((p) => {
                     return {
-                        point: new V2(p.point)
+                        point: new V2(p.point),
+                        selected: p.selected,
+                        changeCallback(value) {
+                            p.point.x = value.x;
+                            p.point.y = value.y;
+                            //console.log(this, value)
+                            that.updateEditor();
+                            components.fillPoints(l.pointsEl, l.pointEl, l.points, that.updateEditor);
+                        } 
                     }
                 })
             }
@@ -143,7 +163,20 @@ points: [{
         mainEl.appendChild(components.createList({
             title: 'Layers',
             items: main.layers.map(l => {return { title: l.id, value: l.id }}),
-            callback: function(e){ that.createLayer(layerEl, main.layers.find(l => l.id == this.value)); }
+            callbacks: {
+                
+                select: function(e){ 
+                    main.layers.forEach(l => l.selected = false);
+                    let layer = main.layers.find(l => l.id == e.target.value);
+                    layer.selected = true;
+                    components.createLayer(layerEl, layer, that.updateEditor.bind(that));  
+                },
+                reset: function(e) { 
+                    main.layers.forEach(l => l.selected = false);
+                    components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
+                },
+                changeCallback: that.updateEditor.bind(that)
+            }
         }))
         let layerEl = htmlUtils.createElement('div', {className: 'layer'});
         mainEl.appendChild(layerEl)
@@ -153,14 +186,7 @@ points: [{
         this.parentElement.appendChild(main.element);
     }
 
-    createLayer(layerEl, layerProps) {
-        htmlUtils.removeChilds(layerEl);
-
-        if(layerProps == undefined)
-            return;
-
-        layerEl.appendChild(htmlUtils.createElement('div', { text: layerProps.id }))
-    }
+    
 
     // appendList(parent, listProps) {
     //     parent.appendChild(this.createList(listProps));

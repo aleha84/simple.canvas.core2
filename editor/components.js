@@ -94,26 +94,163 @@ var components = {
 
         return el;
     },
+    createSelect(value, options, title, changeCallback){
+        let el = htmlUtils.createElement('div', { classNames: ['select', 'row'] });
+        if(title){    
+            el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
+        }
+
+        let select = htmlUtils.createElement('select', { events: {
+            change: (event) => {
+                changeCallback(event.target.value);
+            }
+        } });
+
+        for(let item of options){
+            let option = undefined;
+            if(isString(item)){
+                option = new Option(item, item); 
+            }
+            else {
+                option = new Option(item.title || item.text, item.value);
+            }
+
+            option.selected = option.value == value;
+
+            select.options[select.options.length] = option;
+            //select.options[select.options.length] = new Option(item.title || item.text, item.value, false, item.value == value);
+        }
+
+        el.appendChild(select);
+
+        return el;
+    },
+    createColorPicker(value, title, changeCallback){
+        let el = htmlUtils.createElement('div', { classNames: ['colorPicker', 'row'] });
+        if(title){    
+            el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
+        }
+
+        el.appendChild(htmlUtils.createElement('input', {attributes: { type: 'color'}, props: { value }, events: {
+            change: (event) => {
+                changeCallback(event.target.value);
+            }
+        } }))
+
+        return el;
+    },
     createList(listProps) {
         
         let lb = htmlUtils.createElement('div', { className: 'listbox' });
         lb.appendChild(htmlUtils.createElement('p', { className: 'title', text: listProps.title }));
-        
+        let selectHolder = htmlUtils.createElement('div', { className: 'selectHolder'});
         let select = htmlUtils.createElement('select', { attributes: { size: listProps.maxSize || 10 }, events: {
-            change: listProps.callback || function(e){ console.log(this.value)}
+            change: function(e) { 
+                if(listProps.callbacks.select)
+                    listProps.callbacks.select(e)
+                else 
+                    console.log(e.target.value)
+         }
         } });
 
         for(let item of listProps.items){
             select.options[select.options.length] = new Option(item.title || item.text, item.value);
-            // select.appendChild((() => {
-
-            // })())
         }
 
-        //select.addEventListener('change', listProps.callback || function(e){ console.log(this.value)});
+        selectHolder.append(select);
 
-        lb.append(select);
+        let sControls = htmlUtils.createElement('div', { className: 'selectControls'});
+        sControls.append(
+            htmlUtils.createElement('input', 
+                { 
+                    attributes: { 
+                        type: 'button', 
+                        value: 'reset' 
+                    }, 
+                    events: { 
+                        click: function(e) { 
+                            select.options.selectedIndex = -1;
+                            listProps.callbacks.reset(e);
+                        } } }))
+
+        selectHolder.append(sControls)
+        lb.append(selectHolder);
 
         return lb;
+    },
+
+    createLayer(layerEl, layerProps, changeCallback) {
+        htmlUtils.removeChilds(layerEl);
+
+        if(layerProps == undefined) {
+            changeCallback();
+            return;
+        }
+
+        layerEl.appendChild(htmlUtils.createElement('div', { text: layerProps.id }))
+        layerEl.appendChild(this.createColorPicker(layerProps.strokeColor, 'Stroke color', (color) => {
+            layerProps.strokeColor = color;
+            changeCallback();
+        }));
+
+        layerEl.appendChild(components.createCheckBox(layerProps.closePath, 'Close path', function(value) {
+            layerProps.closePath = value;
+            changeCallback();
+        }));
+
+        layerEl.appendChild(components.createSelect(layerProps.type, ['dots','lines'],'Type', function(value){
+            layerProps.type = value;
+            changeCallback();
+        } ))
+
+        layerProps.pointsEl = htmlUtils.createElement('div', { className: 'pointsListWrapper' });
+        layerProps.pointEl = htmlUtils.createElement('div', { className: 'point'});
+        layerEl.appendChild(layerProps.pointsEl);
+        layerEl.appendChild(layerProps.pointEl);
+
+        this.fillPoints(layerProps.pointsEl, layerProps.pointEl, layerProps.points, changeCallback)
+
+        changeCallback();
+    },
+
+    fillPoints(pointsEl,pointEl, points, changeCallback) {
+        let fillPoint = (point, changeCallback) => {
+            htmlUtils.removeChilds(pointEl);
+
+            if(point == undefined){
+                changeCallback();
+                return;
+            }
+            
+            pointEl.appendChild(components.createV2(point.point, point.id, function() {
+                console.log('need update list and update view');
+                changeCallback();
+            }))
+            
+            changeCallback();
+        }
+
+        htmlUtils.removeChilds(pointsEl);
+
+        pointsEl.appendChild(components.createList({
+            title: 'Points',
+            items: points.map(p => {return { title: `x: ${p.point.x}, y: ${p.point.y}`, value: p.id }}),
+            callbacks: {
+                select: function(e){ 
+                    points.forEach(p => p.selected = false);
+                    let selectedPoint = points.find(l => l.id == e.target.value);
+                    if(selectedPoint){
+                        selectedPoint.selected = true;
+                    }
+
+                    fillPoint(selectedPoint, changeCallback);  
+                },
+                reset: function(e) { 
+                    points.forEach(p => p.selected = false);
+                    fillPoint(undefined, changeCallback) 
+                },
+                changeCallback: changeCallback
+            }
+        }))
     }
 }

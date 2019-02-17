@@ -33,6 +33,7 @@ class EditorScene extends Scene {
         console.log(model);
         let mg = this.mainGo;
         let {general, main} = model;
+        mg.model = model;
 
         mg.img = createCanvas(general.size, (ctx, size) => {
             let pp = new PerfectPixel({context: ctx});
@@ -52,7 +53,7 @@ class EditorScene extends Scene {
                             let p = layer.points;
                             if(i < p.length-1)
                                 pp.lineV2(p[i].point, p[i+1].point);
-                            else 
+                            else if(layer.closePath)
                                 pp.lineV2(p[i].point, p[0].point);
                         }
                     }
@@ -60,6 +61,8 @@ class EditorScene extends Scene {
                 }
             }
         });
+
+
 
         mg.originalSize = general.originalSize;
         mg.size = general.size.mul(general.zoom);
