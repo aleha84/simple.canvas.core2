@@ -49,13 +49,21 @@ class EditorScene extends Scene {
                         pp.setPixel(layer.points[0].point.x, layer.points[0].point.y);
                     }
                     else{
+                        let filledPixels = [];
                         for(let i = 0; i < layer.points.length;i++){
                             let p = layer.points;
                             if(i < p.length-1)
-                                pp.lineV2(p[i].point, p[i+1].point);
-                            else if(layer.closePath)
-                                pp.lineV2(p[i].point, p[0].point);
+                                filledPixels= [...filledPixels, ...pp.lineV2(p[i].point, p[i+1].point)];
+                            else if(layer.closePath){
+                                filledPixels = [...filledPixels, ...pp.lineV2(p[i].point, p[0].point)];
+
+                                let uniquePoints = distinct(filledPixels);
+                                this.fill(ctx, pp, uniquePoints, layer, size);
+                            }
+                                
                         }
+
+
                     }
                     
                 }
@@ -70,6 +78,94 @@ class EditorScene extends Scene {
         mg.invalidate();
 
         mg.needRecalcRenderProperties = true;
+    }
+
+    fill(ctx, pp, filledPoints, layer, size) {
+        
+
+        let allLeftPoints = [];
+        for(let i = 0; i < filledPoints.length; i++){
+            let fp = filledPoints[i];
+            if(allLeftPoints[fp.y] == undefined || allLeftPoints[fp.y].x > fp.x){
+                allLeftPoints[fp.y] = fp;
+            }
+        }
+
+        ctx.fillStyle = 'green';
+
+        for(let i = 0; i < allLeftPoints.length; i++){
+            let lp = allLeftPoints[i];
+            if(lp == undefined)
+                continue;
+
+            fillNextPoint({ x: lp.x+1, y: lp.y });
+        }
+
+        
+        let fillNextPoint = function(p){
+            if(filledPoints.filter(fp => fp.x == p.x && fp.y == p.y).length)
+                return;
+            
+            if(!checkBoundaries(p))
+                return;
+
+            
+        }
+
+        let checkBoundaries = function(p){
+            let hasBoundary = false;
+            if(p.x < size.x){
+                for(let i = p.x; i < size.x;i++){
+                    if(filledPoints.filter(fp => fp.x == i && fp.y == p.y).length){
+                        hasBoundary = true;
+                        break;
+                    }
+                }
+            
+
+                if(!hasBoundary)
+                    return false;
+            }
+
+            if(p.x > 0){
+                hasBoundary = false;
+                for(let i = p.x; i >= 0;i--){
+                    if(filledPoints.filter(fp => fp.x == i && fp.y == p.y).length){
+                        hasBoundary = true;
+                        break;
+                    }
+                }
+
+                if(!hasBoundary)
+                    return false;
+            }
+
+            if(p.y < size.y){
+                hasBoundary = false;
+                for(let i = p.y; i < size.y;i++){
+                    if(filledPoints.filter(fp => fp.x == p.x && fp.y == i).length){
+                        hasBoundary = true;
+                        break;
+                    }
+                }
+
+                if(!hasBoundary)
+                    return false;
+            }
+
+
+            if(p.y > 0){
+                hasBoundary = false;
+                for(let i = p.y; i >= 0;i--){
+                    if(filledPoints.filter(fp => fp.x == p.x && fp.y == i).length){
+                        hasBoundary = true;
+                        break;
+                    }
+                }
+            
+            }
+            return hasBoundary;
+        }
     }
 
     backgroundRender(){

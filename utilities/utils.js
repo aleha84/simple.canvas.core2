@@ -565,3 +565,15 @@ function flipX(p, xOrigin) {
 
   return new V2(reverted+xOrigin, p.y)
 }
+
+function distinct(array){
+  var keys = new Set()
+  return arr.filter(p => {
+    let key = p.x+'_'+p.y;
+    if(keys.has(key)){
+      return false;
+    }
+    keys.add(key);
+    return true;
+  })
+}

@@ -24,7 +24,7 @@ class PerfectPixel {
             throw 'PerfectPixel.lineV2 -> p2 must be V2 instance';
         }
         
-        this.line(p1.x, p1.y, p2.x, p2.y);
+        return this.line(p1.x, p1.y, p2.x, p2.y);
     }
 
     line(x0, y0, x1, y1){
@@ -38,14 +38,18 @@ class PerfectPixel {
         var sy = (y0 < y1) ? 1 : -1;
         var err = dx-dy;
      
+        let filledPoints = [];
         while(true){
           this.setPixel(x0,y0);  // Do what you need to for this
-     
+          filledPoints.push({x: x0, y: y0});
+
           if ((x0==x1) && (y0==y1)) break;
           var e2 = 2*err;
           if (e2 >-dy){ err -= dy; x0  += sx; }
           if (e2 < dx){ err += dx; y0  += sy; }
         }
+
+        return filledPoints;
      }
 
 }

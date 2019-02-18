@@ -17,6 +17,7 @@ class Editor {
                             id: 'main_0',
                             strokeColor: '#FF0000',
                             fillColor: '#FF0000',
+                            fill: false,
                             closePath: true,
                             type: 'lines',
                             pointsEl: undefined,
@@ -111,9 +112,34 @@ points: [{
                             p.point.x = value.x;
                             p.point.y = value.y;
                             //console.log(this, value)
-                            that.updateEditor();
-                            components.fillPoints(l.pointsEl, l.pointEl, l.points, that.updateEditor);
-                        } 
+                            //that.updateEditor();
+                            //components.fillPoints(l.pointsEl, l.pointEl, l.points, that.updateEditor.bind(that));
+
+                            let select = l.pointsEl.querySelector('select');
+                            if(select){
+                                for(let i = 0; i < select.options.length;i++){
+                                    select.options[i].selected = select.options[i].value == p.id;
+                                }
+
+                                select.dispatchEvent(new Event('change'));
+                            }
+                            
+                            l.points.forEach(_p => p.selected = false);
+                            p.selected = true;
+                        },
+                        selectCallback() {
+                            let select = l.pointsEl.querySelector('select');
+                            if(select){
+                                for(let i = 0; i < select.options.length;i++){
+                                    select.options[i].selected = select.options[i].value == p.id;
+                                }
+
+                                select.dispatchEvent(new CustomEvent('change', { detail: 'skipSelectChangeCallback' }));
+                            }
+                            
+                            l.points.forEach(_p => p.selected = false);
+                            p.selected = true;
+                        }
                     }
                 })
             }

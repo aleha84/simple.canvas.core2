@@ -22,8 +22,9 @@ class EditorGO extends GO {
                         let index = new V2(
                             fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
                             fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0));
-                        console.log(index);
+                        //console.log(index);
                         if(!d.downOn.index.equal(index)){
+                            d.downOn.indexChanged = true;
                             d.downOn.index = index;
                             d.downOn.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*index.y);
                             d.downOn.needRecalcRenderProperties = true;
@@ -38,11 +39,11 @@ class EditorGO extends GO {
                 },
                 up: function(){
                     let d = this.drag;
-                    if(d.started){
+                    if(d.started && d.downOn.indexChanged){
+                        //console.log('changeCallback');
                         d.downOn.pointModel.changeCallback(d.downOn.index);
-                        d.disable();
                     }
-                    
+                    d.disable();
                 },
                 out: function(e) {
                     this.moveEventTriggered = false; 
@@ -82,7 +83,7 @@ class EditorGO extends GO {
                         index: new V2(c, r),
                         isGrid: true,
                         highlight: false,
-                        position: new V2(this.tl.x + itethis.itemSizemSize.x/2 + this.itemSize.x*c, this.tl.y + this.itemSize.y/2 + this.itemSize.y*r),
+                        position: new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*c, this.tl.y + this.itemSize.y/2 + this.itemSize.y*r),
                         size: this.itemSize,
                         preventDiving: false,
                         internalRender() {
@@ -149,6 +150,7 @@ class Dot extends GO {
             handlers: {
                 down: function(){
                     this.parent.drag.downOn = this;
+                    this.parent.drag.downOn.pointModel.selectCallback();
                 }
             }
         }, options);

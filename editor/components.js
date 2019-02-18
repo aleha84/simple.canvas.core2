@@ -50,9 +50,9 @@ var components = {
                 htmlUtils.removeChilds(editBlock);
 
                 editBlock.appendChild(htmlUtils.createElement('span', { text: 'x' }));
-                editBlock.appendChild(htmlUtils.createElement('input', { className: 'x', value: value.x }));
+                editBlock.appendChild(htmlUtils.createElement('input', { className: 'x', value: value.x.toString() }));
                 editBlock.appendChild(htmlUtils.createElement('span', { text: 'y' }));
-                editBlock.appendChild(htmlUtils.createElement('input', { className: 'y', value: value.y }));
+                editBlock.appendChild(htmlUtils.createElement('input', { className: 'y', value: value.y.toString() }));
 
                 editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
                 events: { click: (event) => {
@@ -198,6 +198,11 @@ var components = {
             changeCallback();
         }));
 
+        layerEl.appendChild(components.createCheckBox(layerProps.fill, 'Fill', function(value) {
+            layerProps.fill = value;
+            changeCallback();
+        }));
+
         layerEl.appendChild(components.createSelect(layerProps.type, ['dots','lines'],'Type', function(value){
             layerProps.type = value;
             changeCallback();
@@ -214,20 +219,23 @@ var components = {
     },
 
     fillPoints(pointsEl,pointEl, points, changeCallback) {
-        let fillPoint = (point, changeCallback) => {
+        let fillPoint = (point, selectedOptionEl,changeCallback, eventDetails) => {
             htmlUtils.removeChilds(pointEl);
 
             if(point == undefined){
                 changeCallback();
                 return;
             }
-            
-            pointEl.appendChild(components.createV2(point.point, point.id, function() {
-                console.log('need update list and update view');
+
+            pointEl.appendChild(components.createV2(point.point, 'Point', function() {
+                if(selectedOptionEl)
+                    selectedOptionEl.text =  `x: ${point.point.x}, y: ${point.point.y}`
+
                 changeCallback();
             }))
             
-            changeCallback();
+            if(eventDetails!= 'skipSelectChangeCallback')
+                changeCallback();
         }
 
         htmlUtils.removeChilds(pointsEl);
@@ -243,11 +251,19 @@ var components = {
                         selectedPoint.selected = true;
                     }
 
-                    fillPoint(selectedPoint, changeCallback);  
+                    let selectedOption = undefined;
+                    for(let i = 0; i < e.target.options.length;i++){
+                        if(e.target.options[i].value == e.target.value){
+                            selectedOption = e.target.options[i];
+                            break;
+                        }
+                    }
+
+                    fillPoint(selectedPoint,selectedOption, changeCallback, e.detail);  
                 },
                 reset: function(e) { 
                     points.forEach(p => p.selected = false);
-                    fillPoint(undefined, changeCallback) 
+                    fillPoint(undefined, undefined, changeCallback, '') 
                 },
                 changeCallback: changeCallback
             }
