@@ -57,8 +57,12 @@ class EditorScene extends Scene {
                             else if(layer.closePath){
                                 filledPixels = [...filledPixels, ...pp.lineV2(p[i].point, p[0].point)];
 
-                                let uniquePoints = distinct(filledPixels);
-                                this.fill(ctx, pp, uniquePoints, layer, size);
+                                if(layer.fill){
+                                    ctx.fillStyle = layer.fillColor;
+                                    let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
+                                    this.fill(pp, uniquePoints);
+                                }
+                                
                             }
                                 
                         }
@@ -70,8 +74,6 @@ class EditorScene extends Scene {
             }
         });
 
-
-
         mg.originalSize = general.originalSize;
         mg.size = general.size.mul(general.zoom);
         mg.showGrid = general.showGrid;
@@ -80,91 +82,112 @@ class EditorScene extends Scene {
         mg.needRecalcRenderProperties = true;
     }
 
-    fill(ctx, pp, filledPoints, layer, size) {
-        
+    fill(pp, filledPoints) {
+        let checkBoundaries = function(p) {
+            let checkedPoints = [];
+            //check left
+            let boundaryFound = false;
+            for(let i = p.x-1; i >= extrX.min;i--){
+                if(matrix[p.y][i] != undefined && matrix[p.y][i].filled){
+                    boundaryFound = true;
+                    break;
+                }
 
-        let allLeftPoints = [];
-        for(let i = 0; i < filledPoints.length; i++){
-            let fp = filledPoints[i];
-            if(allLeftPoints[fp.y] == undefined || allLeftPoints[fp.y].x > fp.x){
-                allLeftPoints[fp.y] = fp;
+                checkedPoints.push({x: i, y: p.y});
             }
+
+            if(!boundaryFound)
+                return false;
+
+            // check right
+            boundaryFound = false;
+            for(let i = p.x+1; i <= extrX.max;i++){
+                if(matrix[p.y][i] != undefined && matrix[p.y][i].filled){
+                    boundaryFound = true;
+                    break;
+                }
+
+                checkedPoints.push({x: i, y: p.y});
+            }
+
+            if(!boundaryFound)
+                return false;
+
+            // check above
+            boundaryFound = false;
+            for(let i = p.y-1; i >= extrY.min;i--){
+                if(matrix[i][p.x] != undefined && matrix[i][p.x].filled){
+                    boundaryFound = true;
+                    break;
+                }
+
+                checkedPoints.push({x: p.x, y: i});
+            }
+
+            if(!boundaryFound)
+                return false;
+
+             // check below
+             boundaryFound = false;
+             for(let i = p.y+1; i <= extrY.max;i++){
+                 if(matrix[i][p.x] != undefined && matrix[i][p.x].filled){
+                     boundaryFound = true;
+                     break;
+                 }
+ 
+                 checkedPoints.push({x: p.x, y: i});
+             }
+
+             if(!boundaryFound)
+                return false;
+
+            return checkedPoints;
         }
 
-        ctx.fillStyle = 'green';
+        // 1. create matrix
+        let matrix = [];
+        let extrX = {min: filledPoints[0].x, max: filledPoints[0].x};
+        let extrY = {min: filledPoints[0].y, max: filledPoints[0].y};
+        for(let fp of filledPoints){
+            if(matrix[fp.y] == undefined){
+                matrix[fp.y] = [];
+            }
 
-        for(let i = 0; i < allLeftPoints.length; i++){
-            let lp = allLeftPoints[i];
-            if(lp == undefined)
-                continue;
-
-            fillNextPoint({ x: lp.x+1, y: lp.y });
+            matrix[fp.y][fp.x] = { filled: true };
+            // 2. find extremums
+            if(fp.x < extrX.min) extrX.min = fp.x;
+            if(fp.x > extrX.max) extrX.max = fp.x;
+            if(fp.y < extrY.min) extrY.min = fp.y;
+            if(fp.y > extrY.max) extrY.max = fp.y;
         }
 
-        
-        let fillNextPoint = function(p){
-            if(filledPoints.filter(fp => fp.x == p.x && fp.y == p.y).length)
-                return;
-            
-            if(!checkBoundaries(p))
-                return;
+        if(extrX.max - extrX.min < 2 || extrY.max - extrY.min < 2) 
+            return;
 
-            
-        }
+        // 3. Check all points
+        for(let r = extrY.min+1; r  < extrY.max; r++){
+            for(let c = extrX.min+1;c < extrX.max; c++){
+                let p = {x: c, y: r};
+                // 3.0 Check fill
+                if(matrix[p.y][p.x] != undefined && matrix[p.y][p.x].filled)
+                    continue;
 
-        let checkBoundaries = function(p){
-            let hasBoundary = false;
-            if(p.x < size.x){
-                for(let i = p.x; i < size.x;i++){
-                    if(filledPoints.filter(fp => fp.x == i && fp.y == p.y).length){
-                        hasBoundary = true;
-                        break;
-                    }
+                // 3.1 Check boundaries
+                let checkedPoints = checkBoundaries(p);
+
+                // 3.2 no boundaries
+                if(isBoolean(checkedPoints) && checkedPoints === false)
+                    continue;
+
+                // 3.3 Fill point and checked points
+                matrix[p.y][p.x] = { filled: true };
+                pp.setPixel(p.x, p.y);
+                for(let cp of checkedPoints){
+                    matrix[cp.y][cp.x] = { filled: true };
+                    pp.setPixel(cp.x, cp.y);
                 }
-            
-
-                if(!hasBoundary)
-                    return false;
+                
             }
-
-            if(p.x > 0){
-                hasBoundary = false;
-                for(let i = p.x; i >= 0;i--){
-                    if(filledPoints.filter(fp => fp.x == i && fp.y == p.y).length){
-                        hasBoundary = true;
-                        break;
-                    }
-                }
-
-                if(!hasBoundary)
-                    return false;
-            }
-
-            if(p.y < size.y){
-                hasBoundary = false;
-                for(let i = p.y; i < size.y;i++){
-                    if(filledPoints.filter(fp => fp.x == p.x && fp.y == i).length){
-                        hasBoundary = true;
-                        break;
-                    }
-                }
-
-                if(!hasBoundary)
-                    return false;
-            }
-
-
-            if(p.y > 0){
-                hasBoundary = false;
-                for(let i = p.y; i >= 0;i--){
-                    if(filledPoints.filter(fp => fp.x == p.x && fp.y == i).length){
-                        hasBoundary = true;
-                        break;
-                    }
-                }
-            
-            }
-            return hasBoundary;
         }
     }
 

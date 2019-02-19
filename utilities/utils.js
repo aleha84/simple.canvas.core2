@@ -566,10 +566,10 @@ function flipX(p, xOrigin) {
   return new V2(reverted+xOrigin, p.y)
 }
 
-function distinct(array){
+function distinct(array, keyCreator){
   var keys = new Set()
-  return arr.filter(p => {
-    let key = p.x+'_'+p.y;
+  return array.filter(p => {
+    let key = keyCreator(p)//p.x+'_'+p.y;
     if(keys.has(key)){
       return false;
     }

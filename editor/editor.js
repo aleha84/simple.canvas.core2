@@ -103,7 +103,9 @@ points: [{
                 selected: l.selected,
                 type: l.type,
                 strokeColor: l.strokeColor,
+                fillColor: l.fillColor,
                 closePath: l.closePath,
+                fill: l.fill,
                 points: l.points.map((p) => {
                     return {
                         point: new V2(p.point),
@@ -119,6 +121,9 @@ points: [{
                             if(select){
                                 for(let i = 0; i < select.options.length;i++){
                                     select.options[i].selected = select.options[i].value == p.id;
+                                    if(select.options[i].selected){
+                                        select.options[i].text = `x: ${p.point.x}, y: ${p.point.y}`
+                                    }
                                 }
 
                                 select.dispatchEvent(new Event('change'));

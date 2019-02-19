@@ -193,6 +193,11 @@ var components = {
             changeCallback();
         }));
 
+        layerEl.appendChild(this.createColorPicker(layerProps.strokeColor, 'Fill color', (color) => {
+            layerProps.fillColor = color;
+            changeCallback();
+        }));
+
         layerEl.appendChild(components.createCheckBox(layerProps.closePath, 'Close path', function(value) {
             layerProps.closePath = value;
             changeCallback();
