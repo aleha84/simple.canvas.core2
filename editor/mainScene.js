@@ -35,6 +35,8 @@ class EditorScene extends Scene {
         let {general, main} = model;
         mg.model = model;
 
+        // let _fillPoints = []
+
         mg.img = createCanvas(general.size, (ctx, size) => {
             let pp = new PerfectPixel({context: ctx});
             for(let layer of main.layers.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
@@ -60,7 +62,7 @@ class EditorScene extends Scene {
                                 if(layer.fill){
                                     ctx.fillStyle = layer.fillColor;
                                     let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
-                                    this.fill(pp, uniquePoints);
+                                    this.fill(pp, uniquePoints)//, _fillPoints);
                                 }
                                 
                             }
@@ -79,10 +81,28 @@ class EditorScene extends Scene {
         mg.showGrid = general.showGrid;
         mg.invalidate();
 
+        // let delay = 0;
+        // for(let p of _fillPoints){
+        //     let go = mg.addChild(new GO({
+        //         position: new V2(mg.tl.x + mg.itemSize.x/2 + mg.itemSize.x*p.x, mg.tl.y + mg.itemSize.y/2 + mg.itemSize.y*p.y),
+        //         size: mg.itemSize,
+        //         img: createCanvas(new V2(1,1), (ctx, size) => {
+        //             ctx.fillStyle = 'blue'; ctx.fillRect(0,0, size.x, size.y);
+        //         }),
+        //         isVisible: false
+        //     }));
+
+            
+        //     go.addEffect(new FadeInEffect({startDelay: delay, effectTime: 150,updateDelay: 40,  beforeStartCallback: function() {
+        //         this.parent.isVisible = true;
+        //     }}))
+        //     delay+=50
+        // }
+
         mg.needRecalcRenderProperties = true;
     }
 
-    fill(pp, filledPoints) {
+    fill(pp, filledPoints) {//, _fillPoints) {
         let checkBoundaries = function(p) {
             let checkedPoints = [];
             //check left
@@ -182,9 +202,12 @@ class EditorScene extends Scene {
                 // 3.3 Fill point and checked points
                 matrix[p.y][p.x] = { filled: true };
                 pp.setPixel(p.x, p.y);
+                //_fillPoints.push({x: p.x, y: p.y})
+
                 for(let cp of checkedPoints){
                     matrix[cp.y][cp.x] = { filled: true };
                     pp.setPixel(cp.x, cp.y);
+                    //_fillPoints.push({x: cp.x, y: cp.y})
                 }
                 
             }

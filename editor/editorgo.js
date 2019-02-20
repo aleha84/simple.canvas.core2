@@ -16,34 +16,44 @@ class EditorGO extends GO {
             handlers: {
                 move:function (relativePosition) {
                     this.moveEventTriggered = true;
-                    let d = this.drag;
-                    if(d.downOn){
-                        d.started = true;
-                        let index = new V2(
-                            fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
-                            fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0));
-                        //console.log(index);
-                        if(!d.downOn.index.equal(index)){
-                            d.downOn.indexChanged = true;
-                            d.downOn.index = index;
-                            d.downOn.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*index.y);
-                            d.downOn.needRecalcRenderProperties = true;
-                        }
-                        //console.log('drag rp:' + relativePosition.toString(), this.size.toString())
+                    this.model.editor.index = new V2(
+                        fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
+                        fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0));
 
+                    let index = this.model.editor.index;
+
+                    if(this.model.editor.mode == 'edit'){  
+                        let d = this.drag;
+                        if(d.downOn){
+                            d.started = true;
+                            
+                            if(!d.downOn.index.equal(index)){
+                                d.downOn.indexChanged = true;
+                                d.downOn.index = index;
+                                d.downOn.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*index.y);
+                                d.downOn.needRecalcRenderProperties = true;
+                            }
+                        }
                     }
 
                     return {
                         preventDiving: this.preventDiving
                     };
                 },
+                
                 up: function(){
-                    let d = this.drag;
-                    if(d.started && d.downOn.indexChanged){
-                        //console.log('changeCallback');
-                        d.downOn.pointModel.changeCallback(d.downOn.index);
+                    if(this.model.editor.mode == 'edit'){
+                        let d = this.drag;
+                        if(d.started && d.downOn.indexChanged){
+                            d.downOn.pointModel.changeCallback(d.downOn.index);
+                        }
+                        d.disable();
                     }
-                    d.disable();
+                    else if(this.model.editor.mode == 'add'){
+                        //console.log(this.model.editor.index)
+                        this.model.editor.selectedLayer.addPointCallback(this.model.editor.index);
+                    }
+                    
                 },
                 out: function(e) {
                     this.moveEventTriggered = false; 
@@ -118,6 +128,7 @@ class EditorGO extends GO {
             let selectedLayer = this.model.main.layers ? this.model.main.layers.filter(l => l.selected) : [];
             if(selectedLayer.length){
                 selectedLayer = selectedLayer[0];
+                this.model.editor.selectedLayer = selectedLayer;
                 selectedLayer.points.forEach(p => {
                     this.addChild(new Dot({
                         size: this.itemSize,
@@ -149,8 +160,10 @@ class Dot extends GO {
         options = assignDeep({}, {
             handlers: {
                 down: function(){
-                    this.parent.drag.downOn = this;
-                    this.parent.drag.downOn.pointModel.selectCallback();
+                    if(this.parent.model.editor.mode == 'edit'){
+                        this.parent.drag.downOn = this;
+                        this.parent.drag.downOn.pointModel.selectCallback();
+                    }
                 }
             }
         }, options);

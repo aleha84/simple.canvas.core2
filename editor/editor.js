@@ -1,9 +1,34 @@
 class Editor {
     constructor(options = {}){
         assignDeep(this, {
+            editor: {
+                element: undefined,
+                mode: {
+                    value: 'edit',
+                    element: undefined,
+                    setValue(value) {
+                        value = value || this.value;
+                        this.value = value
+
+                        if(value == 'add'){
+                            this.element.value = '"Add points" mode';
+                        }
+                        else if(value == 'edit') {
+                            this.element.value = '"Edit points" mode';
+                        }
+                    },
+                    toggle() {
+                        this.setValue(this.value == 'add' ? 'edit' : 'add');
+                    }
+                },
+                setModeState(buttonState, modeValue){
+                    this.mode.element.disabled = !buttonState;
+                    this.mode.setValue(modeValue);
+                }
+            },
             image: {
                 general: {
-                    originalSize: {x: 10, y: 10},//new V2(10, 10),
+                    originalSize: {x: 20, y: 20},//new V2(10, 10),
                     zoom: {current: 10, max: 10, min: 1, step: 1},
                     showGrid: false,
                     element: undefined
@@ -18,26 +43,26 @@ class Editor {
                             strokeColor: '#FF0000',
                             fillColor: '#FF0000',
                             fill: false,
-                            closePath: true,
+                            closePath: false,
                             type: 'lines',
                             pointsEl: undefined,
                             pointEl: undefined,
                             points: [
-                                {
-                                    id: 'main_0_point_0',
-                                    order: 0,
-                                    point: {x: 1, y: 1},
-                                },
-                                {
-                                    id: 'main_0_point_1',
-                                    order: 1,
-                                    point: {x: 9, y: 4},
-                                },
-                                {
-                                    id: 'main_0_point_2',
-                                    order: 2,
-                                    point: {x: 3, y: 8},
-                                }
+                                // {
+                                //     id: 'main_0_point_0',
+                                //     order: 0,
+                                //     point: {x: 1, y: 1},
+                                // },
+                                // {
+                                //     id: 'main_0_point_1',
+                                //     order: 1,
+                                //     point: {x: 9, y: 4},
+                                // },
+                                // {
+                                //     id: 'main_0_point_2',
+                                //     order: 2,
+                                //     point: {x: 3, y: 8},
+                                // }
                             ]
                         }
 /* layer props
@@ -75,7 +100,7 @@ points: [{
     }
 
     init() {
-
+        this.createEditor();
         this.createGeneral();
         this.createMain();
         // this.appendList(this.parentElement, {
@@ -97,6 +122,7 @@ points: [{
     prepareModel() {
         let that = this;
         let i = this.image;
+        let e = this.editor;
         let layerMapper = (l) => {
             return {
                 order: l.order,
@@ -146,20 +172,63 @@ points: [{
                             p.selected = true;
                         }
                     }
-                })
+                }),
+                addPointCallback(p) {
+                    let callback = that.updateEditor.bind(that);
+                    l.points.push({
+                        id: `${l.id}_point_${l.points.length}`,
+                        order: l.points.length,
+                        point: {x: p.x, y: p.y},
+                    })
+                    components.fillPoints(l.pointsEl, l.pointEl, l.points, that.updateEditor.bind(that))
+                    callback();
+                }
             }
         }
+        
         return {
+            editor: {
+                mode: e.mode.value
+            },
             general: {
                 originalSize: new V2(i.general.originalSize),
                 size: new V2(i.general.originalSize),
                 zoom: i.general.zoom.current,
-                showGrid: i.general.showGrid
+                showGrid: i.general.showGrid, 
             },
             main: {
                 layers: i.main.layers.map(layerMapper)
             }
         }
+    }
+
+    createEditor() {
+        let { editor } = this;
+        let that = this;
+        if(editor.element){
+            editor.element.remove();
+        }
+
+        let editorlEl = htmlUtils.createElement('div', { className: 'editorBlock' });
+        let modeSwitch = htmlUtils.createElement('div', { className: 'modeSwitch' });
+        let modeSwitchButton = htmlUtils.createElement('input', { 
+            value: '"Edit points" mode', 
+            attributes: { type: 'button' }, 
+            props: {disabled: true},
+            events: {
+                click: () => {
+                    that.editor.mode.toggle();
+                    that.updateEditor();
+                }
+            }
+        })
+
+        modeSwitch.appendChild(modeSwitchButton);
+        editorlEl.appendChild(modeSwitch)
+        
+        editor.element = editorlEl;
+        editor.mode.element = modeSwitchButton;
+        this.parentElement.appendChild(editor.element);
     }
 
     createGeneral() {
@@ -201,10 +270,12 @@ points: [{
                     let layer = main.layers.find(l => l.id == e.target.value);
                     layer.selected = true;
                     components.createLayer(layerEl, layer, that.updateEditor.bind(that));  
+                    that.editor.setModeState(true, 'edit');
                 },
                 reset: function(e) { 
                     main.layers.forEach(l => l.selected = false);
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
+                    that.editor.setModeState(false, 'edit');
                 },
                 changeCallback: that.updateEditor.bind(that)
             }
