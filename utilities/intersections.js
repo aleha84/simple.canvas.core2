@@ -272,3 +272,14 @@ function rayBoxIntersection(rayOrigin, direction, box){
         raySegmentIntersectionVector2(rayOrigin, direction, new Line(box.topLeft, box.bottomLeft))
     ].filter((item) => item !== undefined);
 }
+
+function pointInsidePoligon(testPoint, poligonPoints) {
+  let i = 0, j = 0, result = false;
+  for (i = 0, j = poligonPoints.length - 1; i < poligonPoints.length; j = i++) {
+    if ((poligonPoints[i].y > testPoint.y) != (poligonPoints[j].y > testPoint.y) &&
+        (testPoint.x < (poligonPoints[j].x - poligonPoints[i].x) * (testPoint.y - poligonPoints[i].y) / (poligonPoints[j].y-poligonPoints[i].y) + poligonPoints[i].x)) {
+      result = !result;
+     }
+  }
+  return result;
+}

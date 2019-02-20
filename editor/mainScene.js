@@ -35,7 +35,7 @@ class EditorScene extends Scene {
         let {general, main} = model;
         mg.model = model;
 
-        // let _fillPoints = []
+         //let _fillPoints = []
 
         mg.img = createCanvas(general.size, (ctx, size) => {
             let pp = new PerfectPixel({context: ctx});
@@ -62,7 +62,7 @@ class EditorScene extends Scene {
                                 if(layer.fill){
                                     ctx.fillStyle = layer.fillColor;
                                     let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
-                                    this.fill(pp, uniquePoints)//, _fillPoints);
+                                    this.fill(pp, uniquePoints, p.map(p => p.point))//, _fillPoints)
                                 }
                                 
                             }
@@ -102,7 +102,8 @@ class EditorScene extends Scene {
         mg.needRecalcRenderProperties = true;
     }
 
-    fill(pp, filledPoints) {//, _fillPoints) {
+    fill(pp, filledPoints, cornerPoints) {//, _fillPoints) {
+        
         let checkBoundaries = function(p) {
             let checkedPoints = [];
             //check left
@@ -190,6 +191,9 @@ class EditorScene extends Scene {
                 let p = {x: c, y: r};
                 // 3.0 Check fill
                 if(matrix[p.y][p.x] != undefined && matrix[p.y][p.x].filled)
+                    continue;
+
+                if(!pointInsidePoligon(p, cornerPoints))
                     continue;
 
                 // 3.1 Check boundaries
