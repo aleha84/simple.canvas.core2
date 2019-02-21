@@ -1,6 +1,9 @@
 class Editor {
     constructor(options = {}){
         assignDeep(this, {
+            controls: {
+                overlayEl: undefined,
+            },
             editor: {
                 element: undefined,
                 mode: {
@@ -100,17 +103,10 @@ points: [{
     }
 
     init() {
+        this.createControlButtons();   
         this.createEditor();
         this.createGeneral();
         this.createMain();
-        // this.appendList(this.parentElement, {
-        //     title: 'test list box',
-        //     items: [
-        //         {title: 'test1', value: 'value1'},
-        //         {title: 'test2', value: 'value2'},
-        //         {title: 'test3', value: 'value3'}
-        //     ]
-        // })
 
         this.updateEditor();
     }
@@ -119,6 +115,18 @@ points: [{
         this.renderCallback(this.prepareModel());
     }
 
+    exportModel() {
+        return `let model = ${JSON.stringify(this.prepareModel(), (k,v) => {
+            if(k == 'editor')
+                return undefined;
+            
+            return v;
+        }, 4)}
+        
+let img = PP.createImage(model);
+        `
+        //createCanvas(new V2())
+    }
     prepareModel() {
         let that = this;
         let i = this.image;
@@ -180,7 +188,7 @@ points: [{
                         order: l.points.length,
                         point: {x: p.x, y: p.y},
                     })
-                    components.fillPoints(l.pointsEl, l.pointEl, l.points, that.updateEditor.bind(that))
+                    components.fillPoints(l, that.updateEditor.bind(that))
                     callback();
                 }
             }
@@ -200,6 +208,34 @@ points: [{
                 layers: i.main.layers.map(layerMapper)
             }
         }
+    }
+
+    createControlButtons() {
+        let that = this;
+        let controlsEl = htmlUtils.createElement('div', { className: 'mainControlsBlock' });
+
+        controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Export', attributes: { type: 'button' }, events: {
+            click: function(){
+                that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
+                that.controls.overlayEl.appendChild(htmlUtils.createElement('textarea', {
+                    classNames: ['content', 'export'],
+                    value: that.exportModel(),
+                    attributes: {
+                        resize: false,
+                        readonly: 'readonly'
+                    }
+                }))
+                that.controls.overlayEl.appendChild(htmlUtils.createElement('input',{
+                    value: 'Close', className:'close', attributes: { type: 'button' }, events: {click: function() {
+                        that.controls.overlayEl.remove();
+                        that.controls.overlayEl = undefined;
+                    }}
+                }))
+                that.parentElement.appendChild(that.controls.overlayEl);
+            }
+        } }));
+
+        this.parentElement.appendChild(controlsEl);
     }
 
     createEditor() {
@@ -264,7 +300,6 @@ points: [{
             title: 'Layers',
             items: main.layers.map(l => {return { title: l.id, value: l.id }}),
             callbacks: {
-                
                 select: function(e){ 
                     main.layers.forEach(l => l.selected = false);
                     let layer = main.layers.find(l => l.id == e.target.value);
@@ -276,6 +311,26 @@ points: [{
                     main.layers.forEach(l => l.selected = false);
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
                     that.editor.setModeState(false, 'edit');
+                },
+                add: function(e, select){
+                    main.layers.forEach(l => l.selected = false);
+                    let layer = {
+                        selected: true,
+                        order: main.layers.length,
+                        id: `main_${main.layers.length}`,
+                        strokeColor: '#FF0000',
+                        fillColor: '#FF0000',
+                        fill: false,
+                        closePath: false,
+                        type: 'dots',
+                        pointsEl: undefined,
+                        pointEl: undefined,
+                        points: []
+                    }
+                    main.layers.push(layer);
+                    select.options[select.options.length] = new Option(layer.id, layer.id);
+                    select.value = layer.id;
+                    select.dispatchEvent(new Event('change'));
                 },
                 changeCallback: that.updateEditor.bind(that)
             }

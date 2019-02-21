@@ -177,6 +177,181 @@ class BottlesScene extends Scene {
 
         //this.lineStopTimer = createTimer(2000, () => this.lineStop = !this.lineStop, this, false);
 
+        this.corker = this.addGo(new GO({
+            position: new V2(200, this.viewport.y/4 - 6),
+            size: new V2(60, 90),
+            img: createCanvas(new V2(1,1), (ctx, size) => {
+                ctx.fillStyle = 'white'; ctx.fillRect(0,0, 1,1)
+            }),
+            init() {
+                let bodyModel = {
+                    "general": {
+                        "originalSize": {
+                            "x": 10,
+                            "y": 30
+                        },
+                        "size": {
+                            "x": 10,
+                            "y": 30
+                        },
+                        "zoom": 8,
+                        "showGrid": true
+                    },
+                    "main": {
+                        "layers": [
+                            {
+                                "order": 0,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#4085C8",
+                                "fillColor": "#4085C8",
+                                "closePath": true,
+                                "fill": true,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 23
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 9,
+                                            "y": 23
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 9,
+                                            "y": 4
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 4
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 1,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#4B9DEA",
+                                "fillColor": "#4085C8",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 9,
+                                            "y": 4
+                                        },
+                                        "selected": true
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 9,
+                                            "y": 23
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 8,
+                                            "y": 23
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 8,
+                                            "y": 4
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 2,
+                                "selected": true,
+                                "type": "lines",
+                                "strokeColor": "#356FA5",
+                                "fillColor": "#356FA5",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 4
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 23
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 1,
+                                            "y": 23
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 1,
+                                            "y": 4
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+                 
+                this.body = this.addChild(new GO({
+                    position: new V2(15,5),
+                    size: new V2(30, 90),
+                    img: PP.createImage(bodyModel)
+                }))
+                
+
+                this.outputLine = this.addChild(new GO({
+                    position: new V2(0,20),
+                    size: new V2(30, 10),
+                    img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'red'; ctx.fillRect(0,0,1,1) }),
+                    init() {
+                        this.outputCorkGenerator = createTimer(2000, () => {
+                            this.addChild(new GO({
+                                position: new V2(0, -this.size.y/2 - 2.5),
+                                size: new V2(5,5),
+                                img: createCanvas(new V2(1,1), (ctx) =>{ ctx.fillStyle = 'green'; ctx.fillRect(0,0,1,1) }),
+                                init() {
+                                    this.setDeadTimer = createTimer(1000, () => {
+                                        this.setDead();
+                                    }, this, false);
+                                },
+                                internalUpdate(now) {
+                                    if(this.setDeadTimer) 
+                                        doWorkByTimer(this.setDeadTimer, now)
+                                }
+                            }))
+                        }, this, true)
+                    },
+                    internalUpdate(now) {
+                        if(this.outputCorkGenerator) 
+                            doWorkByTimer(this.outputCorkGenerator, now)
+                    }
+                }))
+            }
+        }))
+
+
+
+
+        
+
+
         this.pourer = this.addGo(new GO({
             position: new V2(100.5, this.viewport.y/4 - 6),
             size: new V2(30, 90),

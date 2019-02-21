@@ -131,11 +131,27 @@ var components = {
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
         }
 
-        el.appendChild(htmlUtils.createElement('input', {attributes: { type: 'color'}, props: { value }, events: {
+        let cPicker = htmlUtils.createElement('input', {attributes: { type: 'color'}, props: { value }, events: {
             change: (event) => {
+                hexInput.value = event.target.value;
                 changeCallback(event.target.value);
             }
-        } }))
+        } })
+
+        let hexInput = htmlUtils.createElement('input', {attributes: { type: 'text'}, props: { value }, events: {
+            blur: (event) => {
+                if(!/^#[0-9A-F]{6}$/i.test(event.target.value)){
+                    event.target.value = cPicker.value;
+                    return;
+                }
+
+                cPicker.value = event.target.value;
+                changeCallback(event.target.value);
+            }
+        } })
+
+        el.appendChild(cPicker);
+        el.appendChild(hexInput);
 
         return el;
     },
@@ -171,6 +187,19 @@ var components = {
                         click: function(e) { 
                             select.options.selectedIndex = -1;
                             listProps.callbacks.reset(e);
+                        } } }))
+
+        sControls.append(
+            htmlUtils.createElement('input', 
+                { 
+                    attributes: { 
+                        type: 'button', 
+                        value: 'Add' 
+                    }, 
+                    events: { 
+                        click: function(e) { 
+                            listProps.callbacks.add(e, select);
+                            //select.options.selectedIndex = select.options.length-1;
                         } } }))
 
         selectHolder.append(sControls)
@@ -218,12 +247,13 @@ var components = {
         layerEl.appendChild(layerProps.pointsEl);
         layerEl.appendChild(layerProps.pointEl);
 
-        this.fillPoints(layerProps.pointsEl, layerProps.pointEl, layerProps.points, changeCallback)
+        this.fillPoints(layerProps, changeCallback) //layerProps.pointsEl, layerProps.pointEl, layerProps.points
 
         changeCallback();
     },
 
-    fillPoints(pointsEl,pointEl, points, changeCallback) {
+    fillPoints(layerProps, changeCallback) {
+        let {pointsEl, pointEl, points} = layerProps;
         let fillPoint = (point, selectedOptionEl,changeCallback, eventDetails) => {
             htmlUtils.removeChilds(pointEl);
 
@@ -269,6 +299,15 @@ var components = {
                 reset: function(e) { 
                     points.forEach(p => p.selected = false);
                     fillPoint(undefined, undefined, changeCallback, '') 
+                },
+                add: function(e, select) {
+                    points.push({
+                        id: `${layerProps.id}_point_${points.length}`,
+                        order: points.length,
+                        point: {x: 0, y: 0},
+                    })
+                    components.fillPoints(layerProps, changeCallback);
+                    changeCallback();
                 },
                 changeCallback: changeCallback
             }
