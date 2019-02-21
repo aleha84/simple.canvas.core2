@@ -314,26 +314,46 @@ class BottlesScene extends Scene {
                     size: new V2(30, 90),
                     img: PP.createImage(bodyModel)
                 }))
-                
-
+                               
                 this.outputLine = this.addChild(new GO({
                     position: new V2(0,20),
-                    size: new V2(30, 10),
-                    img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'red'; ctx.fillRect(0,0,1,1) }),
+                    size: new V2(30, 9),
+                    img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#4085C8'; ctx.fillRect(0,0,1,1) }),
                     init() {
                         this.outputCorkGenerator = createTimer(2000, () => {
                             this.addChild(new GO({
-                                position: new V2(0, -this.size.y/2 - 2.5),
+                                position: new V2(5, -this.size.y/2 - 2.5),
                                 size: new V2(5,5),
+                                renderValuesRound: true,
+                                slideLeft: {
+                                    time: 0, 
+                                    duration: 15, 
+                                    startValue: 5, 
+                                    change: -17, 
+                                    type: 'quad',
+                                    method: 'out',
+                                },
                                 img: createCanvas(new V2(1,1), (ctx) =>{ ctx.fillStyle = 'green'; ctx.fillRect(0,0,1,1) }),
                                 init() {
                                     this.setDeadTimer = createTimer(1000, () => {
                                         this.setDead();
                                     }, this, false);
+
+                                    this.slideTimer = createTimer(25, () => {
+                                        this.position.x = easing.process(this.slideLeft);
+                                        this.slideLeft.time++;
+                                        this.needRecalcRenderProperties = true;
+                                        if(this.slideLeft.time > this.slideLeft.duration)
+                                            this.slideTimer = undefined;
+
+                                    }, this, true);
                                 },
                                 internalUpdate(now) {
                                     if(this.setDeadTimer) 
                                         doWorkByTimer(this.setDeadTimer, now)
+
+                                    if(this.slideTimer) 
+                                        doWorkByTimer(this.slideTimer, now)
                                 }
                             }))
                         }, this, true)
@@ -343,14 +363,15 @@ class BottlesScene extends Scene {
                             doWorkByTimer(this.outputCorkGenerator, now)
                     }
                 }))
+
+                this.bodyTopCover = this.addChild(new GO({
+                    position: new V2(11,12),
+                    size: new V2(10, 9),
+                    img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#4085C8'; ctx.fillRect(0,0,1,1) }),
+                }))
             }
+
         }))
-
-
-
-
-        
-
 
         this.pourer = this.addGo(new GO({
             position: new V2(100.5, this.viewport.y/4 - 6),
