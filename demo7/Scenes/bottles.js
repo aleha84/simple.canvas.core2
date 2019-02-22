@@ -24,6 +24,84 @@ class BottlesScene extends Scene {
 
     start() {
         this.bottleOriginalSize = new V2(10, 28);
+
+        this.corkImg = PP.createImage({
+            "general": {
+                "originalSize": {
+                    "x": 4,
+                    "y": 2
+                },
+                "size": {
+                    "x": 4,
+                    "y": 2
+                },
+                "zoom": 10,
+                "showGrid": false
+            },
+            "main": {
+                "layers": [
+                    {
+                        "order": 0,
+                        "selected": false,
+                        "type": "lines",
+                        "strokeColor": "#DB965D",
+                        "fillColor": "#DB965D",
+                        "closePath": false,
+                        "fill": false,
+                        "points": [
+                            {
+                                "point": {
+                                    "x": 0,
+                                    "y": 0
+                                }
+                            },
+                            {
+                                "point": {
+                                    "x": 2,
+                                    "y": 0
+                                }
+                            },
+                            {
+                                "point": {
+                                    "x": 2,
+                                    "y": 1
+                                }
+                            },
+                            {
+                                "point": {
+                                    "x": 0,
+                                    "y": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "order": 1,
+                        "selected": false,
+                        "type": "dots",
+                        "strokeColor": "#E09E67",
+                        "fillColor": "#E09E67",
+                        "closePath": false,
+                        "fill": false,
+                        "points": [
+                            {
+                                "point": {
+                                    "x": 3,
+                                    "y": 0
+                                }
+                            },
+                            {
+                                "point": {
+                                    "x": 3,
+                                    "y": 1
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        })
+
         this.bottleImg = createCanvas(this.bottleOriginalSize, (ctx, size) => {
             ctx.fillStyle = '#1E5F4C';
             ctx.fillRect(3,3,4,25);
@@ -178,11 +256,17 @@ class BottlesScene extends Scene {
         //this.lineStopTimer = createTimer(2000, () => this.lineStop = !this.lineStop, this, false);
 
         this.corker = this.addGo(new GO({
-            position: new V2(200, this.viewport.y/4 - 6),
+            position: new V2(181.5, this.viewport.y/4 ),
             size: new V2(60, 90),
-            img: createCanvas(new V2(1,1), (ctx, size) => {
-                ctx.fillStyle = 'white'; ctx.fillRect(0,0, 1,1)
-            }),
+            plugCork(bottle) {
+                if(this.isPlugging)
+                    return;
+
+                this.indicators.togglePlugging(true);
+                this.isPlugging = true;
+                this.bottle = bottle;
+                this.outputLine.takeOutCork();
+            },
             init() {
                 let bodyModel = {
                     "general": {
@@ -272,7 +356,7 @@ class BottlesScene extends Scene {
                             },
                             {
                                 "order": 2,
-                                "selected": true,
+                                "selected": false,
                                 "type": "lines",
                                 "strokeColor": "#356FA5",
                                 "fillColor": "#356FA5",
@@ -304,6 +388,145 @@ class BottlesScene extends Scene {
                                         }
                                     }
                                 ]
+                            },
+                            {
+                                "order": 3,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#4085C8",
+                                "fillColor": "#4085C8",
+                                "closePath": true,
+                                "fill": true,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 18
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 1,
+                                            "y": 18
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 1,
+                                            "y": 20
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 20
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 4,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#234e78",
+                                "fillColor": "#234e78",
+                                "closePath": true,
+                                "fill": true,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 15
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 1,
+                                            "y": 15
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 1,
+                                            "y": 17
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 17
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 5,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#356FA5",
+                                "fillColor": "#356FA5",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 3,
+                                            "y": 5
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 6,
+                                            "y": 5
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 6,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#356FA5",
+                                "fillColor": "#356FA5",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 3,
+                                            "y": 7
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 6,
+                                            "y": 7
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 7,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#356FA5",
+                                "fillColor": "#356FA5",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 3,
+                                            "y": 9
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 6,
+                                            "y": 9
+                                        }
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -314,49 +537,454 @@ class BottlesScene extends Scene {
                     size: new V2(30, 90),
                     img: PP.createImage(bodyModel)
                 }))
-                               
+                  
+                let vRodModel = {
+                    "general": {
+                        "originalSize": {
+                            "x": 1,
+                            "y": 20
+                        },
+                        "size": {
+                            "x": 1,
+                            "y": 20
+                        },
+                        "zoom": 10,
+                        "showGrid": true
+                    },
+                    "main": {
+                        "layers": [
+                            {
+                                "order": 0,
+                                "selected": false,
+                                "type": "dots",
+                                "strokeColor": "#234e78",
+                                "fillColor": "#234e78",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 0
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 4
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 6
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 8
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 10
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 12
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 14
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 16
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 18
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 1,
+                                "selected": false,
+                                "type": "dots",
+                                "strokeColor": "#356FA5",
+                                "fillColor": "#356FA5",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 1
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 3
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 5
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 7
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 9
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 11
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 13
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 15
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 17
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 19
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+                let gRodModel = {
+                    "general": {
+                        "originalSize": {
+                            "x": 10,
+                            "y": 6
+                        },
+                        "size": {
+                            "x": 10,
+                            "y": 6
+                        },
+                        "zoom": 10,
+                        "showGrid": true
+                    },
+                    "main": {
+                        "layers": [
+                            {
+                                "order": 0,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#356FA5",
+                                "fillColor": "#356FA5",
+                                "closePath": true,
+                                "fill": true,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 0
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 9,
+                                            "y": 0
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 9,
+                                            "y": 5
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 5
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 1,
+                                "selected": false,
+                                "type": "dots",
+                                "strokeColor": "#234e78",
+                                "fillColor": "#234e78",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 1,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 1,
+                                            "y": 3
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 3,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 3,
+                                            "y": 3
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 5,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 5,
+                                            "y": 3
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 7,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 7,
+                                            "y": 3
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 9,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 9,
+                                            "y": 3
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 2,
+                                "selected": false,
+                                "type": "dots",
+                                "strokeColor": "#4085C8",
+                                "fillColor": "#4085C8",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 2,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 2,
+                                            "y": 3
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 4,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 4,
+                                            "y": 3
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 6,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 6,
+                                            "y": 3
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 8,
+                                            "y": 2
+                                        }
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 8,
+                                            "y": 3
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+
+                this.rod = this.addChild(new GO({
+                    position: new V2(-10,18.5),
+                    size: new V2(10, 6),
+                    img: PP.createImage(gRodModel),
+                    init() {
+                        this.addChild(new GO({
+                            position: new V2(-2,-13),
+                            size: new V2(3, 20),
+                            img: PP.createImage(vRodModel),
+                        }))
+                    },
+                    movement: {
+                        left: {
+                                dimension: 'x',
+                                time: 0, 
+                                duration: 10, 
+                                startValue: -10, 
+                                change: -8, 
+                                type: 'quad',
+                                method: 'out',
+                            },
+                        right: {
+                            dimension: 'x',
+                            time: 0, 
+                            duration: 10, 
+                            startValue: -18, 
+                            change: 8, 
+                            type: 'quad',
+                            method: 'out',
+                        }
+                    },
+                    move(isLeft) {
+                        this.movementTimer = createTimer(25, () => {
+                            let m = isLeft ? this.movement.left: this.movement.right;
+                            let next = easing.process(m);
+
+                            let delta = next - this.position[m.dimension];
+                            this.parent.plugger.position[m.dimension]+=delta;
+                            this.parent.plugger.needRecalcRenderProperties = true;
+
+                            this.position[m.dimension] = next;
+                            this.needRecalcRenderProperties = true;
+                            m.time++;
+                            if(m.time >= m.duration){
+                                m.time = 0;
+                                this.movementTimer = undefined; 
+                                if(isLeft){
+                                    this.parent.plugger.plug();
+                                }
+                                else{
+                                    this.parent.isPlugging = false;
+                                    this.parent.indicators.togglePlugging(false);
+                                }
+                            }
+
+                        }, this, true);
+                    },
+                    internalUpdate(now){
+                        if(this.movementTimer)
+                            doWorkByTimer(this.movementTimer, now);
+                    }
+                }))
+
                 this.outputLine = this.addChild(new GO({
-                    position: new V2(0,20),
+                    position: new V2(0,18.5),
                     size: new V2(30, 9),
                     img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#4085C8'; ctx.fillRect(0,0,1,1) }),
+                    takeOutCork(){
+                        this.addChild(new GO({
+                            position: new V2(5, -this.size.y/2 - 1.75),
+                            size: new V2(4,3.75),
+                            renderValuesRound: true,
+                            slideLeft: {
+                                time: 0, 
+                                duration: 10, 
+                                startValue: 5, 
+                                change: -17, 
+                                type: 'quad',
+                                method: 'out',
+                            },
+                            img: this.parent.parentScene.corkImg,//createCanvas(new V2(1,1), (ctx) =>{ ctx.fillStyle = 'green'; ctx.fillRect(0,0,1,1) }),
+                            init() {
+                                this.setDeadTimer = createTimer(1000, () => {
+                                    this.setDead();
+                                }, this, false);
+
+                                this.slideTimer = createTimer(25, () => {
+                                    this.position.x = easing.process(this.slideLeft);
+                                    this.slideLeft.time++;
+                                    this.needRecalcRenderProperties = true;
+                                    if(this.slideLeft.time > this.slideLeft.duration){
+                                        this.slideTimer = undefined;
+                                        this.parent.parent.plugger.take(this);
+                                    }
+                                }, this, true);
+                            },
+                            internalUpdate(now) {
+                                if(this.slideTimer) 
+                                    doWorkByTimer(this.slideTimer, now)
+                            }
+                        }))
+                    },
                     init() {
-                        this.outputCorkGenerator = createTimer(2000, () => {
-                            this.addChild(new GO({
-                                position: new V2(5, -this.size.y/2 - 2.5),
-                                size: new V2(5,5),
-                                renderValuesRound: true,
-                                slideLeft: {
-                                    time: 0, 
-                                    duration: 15, 
-                                    startValue: 5, 
-                                    change: -17, 
-                                    type: 'quad',
-                                    method: 'out',
-                                },
-                                img: createCanvas(new V2(1,1), (ctx) =>{ ctx.fillStyle = 'green'; ctx.fillRect(0,0,1,1) }),
-                                init() {
-                                    this.setDeadTimer = createTimer(1000, () => {
-                                        this.setDead();
-                                    }, this, false);
-
-                                    this.slideTimer = createTimer(25, () => {
-                                        this.position.x = easing.process(this.slideLeft);
-                                        this.slideLeft.time++;
-                                        this.needRecalcRenderProperties = true;
-                                        if(this.slideLeft.time > this.slideLeft.duration)
-                                            this.slideTimer = undefined;
-
-                                    }, this, true);
-                                },
-                                internalUpdate(now) {
-                                    if(this.setDeadTimer) 
-                                        doWorkByTimer(this.setDeadTimer, now)
-
-                                    if(this.slideTimer) 
-                                        doWorkByTimer(this.slideTimer, now)
-                                }
-                            }))
-                        }, this, true)
                     },
                     internalUpdate(now) {
                         if(this.outputCorkGenerator) 
@@ -368,10 +996,353 @@ class BottlesScene extends Scene {
                     position: new V2(11,12),
                     size: new V2(10, 9),
                     img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#4085C8'; ctx.fillRect(0,0,1,1) }),
-                }))
+                }));
+
+                let pluggerModel = {
+                    "general": {
+                        "originalSize": {
+                            "x": 5,
+                            "y": 7
+                        },
+                        "size": {
+                            "x": 5,
+                            "y": 7
+                        },
+                        "zoom": 10,
+                        "showGrid": true
+                    },
+                    "main": {
+                        "layers": [
+                            {
+                                "order": 0,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#4085C8",
+                                "fillColor": "#4085C8",
+                                "closePath": true,
+                                "fill": true,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 5
+                                        },
+                                        "selected": false
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 6
+                                        },
+                                        "selected": false
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 4,
+                                            "y": 6
+                                        },
+                                        "selected": true
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 4,
+                                            "y": 5
+                                        },
+                                        "selected": false
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 1,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#4085C8",
+                                "fillColor": "#4085C8",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 2,
+                                            "y": 0
+                                        },
+                                        "selected": false
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 2,
+                                            "y": 4
+                                        },
+                                        "selected": true
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 2,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#356FA5",
+                                "fillColor": "#356FA5",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 1,
+                                            "y": 4
+                                        },
+                                        "selected": false
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 5
+                                        },
+                                        "selected": false
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 0,
+                                            "y": 6
+                                        },
+                                        "selected": true
+                                    }
+                                ]
+                            },
+                            {
+                                "order": 3,
+                                "selected": false,
+                                "type": "lines",
+                                "strokeColor": "#4B9DEA",
+                                "fillColor": "#4B9DEA",
+                                "closePath": false,
+                                "fill": false,
+                                "points": [
+                                    {
+                                        "point": {
+                                            "x": 3,
+                                            "y": 4
+                                        },
+                                        "selected": false
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 4,
+                                            "y": 5
+                                        },
+                                        "selected": false
+                                    },
+                                    {
+                                        "point": {
+                                            "x": 4,
+                                            "y": 6
+                                        },
+                                        "selected": true
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+
+                this.plugger = this.addChild(new GO({
+                    initialPosition: new V2(),
+                    position: new V2(-12, -2),
+                    size: new V2(9,21),
+                    takeMovement: [
+                        {
+                            dimension: 'y',
+                            time: 0, 
+                            duration: 10, 
+                            startValue: -2, 
+                            change: 6, 
+                            type: 'quad',
+                            method: 'out',
+                        },
+                        {
+                            dimension: 'y',
+                            time: 0, 
+                            duration: 10, 
+                            startValue: 4, 
+                            change: -6, 
+                            type: 'quad',
+                            method: 'out',
+                        }
+                    ],
+                    plugMovement: [
+                        {
+                            dimension: 'y',
+                            time: 0, 
+                            duration: 10, 
+                            startValue: -2, 
+                            change: 32, 
+                            type: 'quad',
+                            method: 'out',
+                        },
+                        {
+                            dimension: 'y',
+                            time: 0, 
+                            duration: 10, 
+                            startValue: 30, 
+                            change: -32, 
+                            type: 'quad',
+                            method: 'out',
+                        }
+                    ],
+                    currentTakeMovement: 0,
+                    currentPlugMovement: 0,
+                    img: PP.createImage(pluggerModel),
+                    init(){
+                        this.addChild(new GO({
+                            position: new V2(0,-10),
+                            size: new V2(4,3),
+                            img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#4085C8'; ctx.fillRect(0,0,1,1) })
+                        }))
+                    },
+                    take(cork) {
+                        this.movementTimer = createTimer(25, () => {
+                            let m = this.takeMovement[this.currentTakeMovement];
+                            this.position[m.dimension] = easing.process(m);
+                            this.needRecalcRenderProperties = true;
+                            m.time++;
+                            if(m.time >= m.duration){
+                                m.time = 0;
+                                if(this.currentTakeMovement == 0){
+                                    cork.setDead();
+                                }
+                                else if(this.currentTakeMovement == 1){
+                                    this.parent.rod.move(true);
+                                }
+
+                                this.currentTakeMovement++;
+                                if(this.currentTakeMovement >= this.takeMovement.length){
+                                    this.movementTimer = undefined;
+                                    this.currentTakeMovement = 0;
+                                }                                    
+                            }
+
+                        }, this, true);
+                    },
+                    plug(){
+                        this.movementTimer = createTimer(25, () => {
+                            let m = this.plugMovement[this.currentPlugMovement];
+                            this.position[m.dimension] = easing.process(m);
+                            this.needRecalcRenderProperties = true;
+                            m.time++;
+                            if(m.time >= m.duration){
+                                m.time = 0;
+                                if(this.currentPlugMovement == 0){
+                                    this.parent.bottle.cork.isVisible = true;
+                                    this.parent.bottle = undefined;
+                                }
+                                else if(this.currentPlugMovement == 1){
+                                    this.parent.rod.move(false);
+                                }
+
+                                this.currentPlugMovement++;
+                                if(this.currentPlugMovement >= this.plugMovement.length){
+                                    this.movementTimer = undefined;
+                                    this.currentPlugMovement = 0;
+                                }                                    
+                            }
+
+                        }, this, true);
+                    },
+                    internalUpdate(now){
+                        if(this.movementTimer)
+                            doWorkByTimer(this.movementTimer, now);
+                    }
+
+                }));
+
+                this.shadows = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: createCanvas(this.size, (ctx, size) => {
+                        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(30,77,30,2);ctx.fillRect(15,68,21,2);ctx.fillRect(39,20,12,1);
+                        ctx.fillRect(39,26,12,1);ctx.fillRect(39,32,12,1); ctx.fillRect(35,50,1,9);
+                        ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(30,79,30,2);ctx.fillRect(15,70,21,2);ctx.fillRect(39,21,12,1);
+                        ctx.fillRect(39,27,12,1);ctx.fillRect(39,33,12,1);ctx.fillRect(34,50,1,9);
+                        ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(30,81,30,2);ctx.fillRect(15,72,21,2);ctx.fillRect(39,22,12,1);
+                        ctx.fillRect(39,28,12,1);ctx.fillRect(39,34,12,1);ctx.fillRect(33,50,1,9);
+                    })
+                }));
+
+                this.communications = this.addChild(new GO({
+                    position: new V2(15, -this.size.y/2-8),
+                    size: new V2(8, 50),
+                    img: createCanvas(new V2(8, 30), (ctx, size) => { 
+                        ctx.fillStyle = '#4085C8';
+                        ctx.fillRect(1,0,size.x-2, size.y);
+                        
+                        ctx.fillStyle = '#4796E0';
+                        ctx.fillRect(size.x-3,0,1, size.y);
+                         ctx.fillStyle = '#3570A8';
+                        ctx.fillRect(2,0,1, size.y);
+                        
+                        ctx.fillStyle = '#4085C8';
+                        ctx.fillRect(0,size.y-3,size.x, 3);
+                        ctx.fillStyle = '#4796E0';
+                        ctx.fillRect(size.x-2,size.y-3,1, 3);
+                        ctx.fillStyle = '#3570A8';
+                        ctx.fillRect(1,size.y-3,1, 3);
+
+                        ctx.fillStyle = 'rgba(0,0,0,0.1)'
+                        ctx.fillRect(0,size.y-3,size.x, 3);
+                     })
+                 }));
+
+                 this.indicators = this.addChild(new GO({
+                    position: new V2(16,28),
+                    size: new V2(4,3),
+                    state: {
+                        power: true,
+                        pluggingCork: false,
+                    },
+                    togglePlugging(enable) {
+                        this.state.pluggingCork = enable;
+                        this.pluggingCork.img = enable ? this.workImg : this.idleImg;
+                    },
+                    togglePower() {
+                        this.state.power = !this.state.power;
+                        this.power.img = this.state.power ? this.okImg : this.idleImg;
+                    },
+                    init() {
+                        this.ledWidth = this.size.x/2;
+                        this.idleImg = createCanvas(new V2(1,2), (ctx, size) => {
+                            ctx.fillStyle = '#D3D3D3';ctx.fillRect(0,0, size.x, size.y);
+                            ctx.fillStyle = '#A5A5A5';ctx.fillRect(0,1, size.x, 1);
+                        })
+                        this.okImg = createCanvas(new V2(1,2), (ctx, size) => {
+                            ctx.fillStyle = '#43CC53';ctx.fillRect(0,0, size.x, size.y);
+                            ctx.fillStyle = '#35A342';ctx.fillRect(0,1, size.x, 1);
+                        })
+                        this.workImg= createCanvas(new V2(1,2), (ctx, size) => {
+                            ctx.fillStyle = '#DB965D';ctx.fillRect(0,0, size.x, size.y);
+                            ctx.fillStyle = '#A57147';ctx.fillRect(0,1, size.x, 1);
+                        });
+                        
+                        this.power = this.addChild(new GO({
+                            size: new V2(this.ledWidth, this.size.y),
+                            position: new V2(-this.size.x/2 , 0),
+                            img: this.okImg
+                        }));
+                        this.pluggingCork = this.addChild(new GO({
+                            size: new V2(this.ledWidth, this.size.y),
+                            position: new V2(this.size.x/2 - this.ledWidth, 0),
+                            img: this.idleImg
+                         }));
+        
+                         this.togglePowerLedTimer = createTimer(500, this.togglePower, this, true);
+                    },
+                    internalUpdate(now){
+                        if(this.togglePowerLedTimer)
+                            doWorkByTimer(this.togglePowerLedTimer, now);
+                    }
+                 }));
             }
 
-        }))
+        }), 5)
 
         this.pourer = this.addGo(new GO({
             position: new V2(100.5, this.viewport.y/4 - 6),
@@ -668,6 +1639,7 @@ class BottlesScene extends Scene {
             position: new V2(posX, posY),
             size: this.bottleOriginalSize,//.mul(5),
             bottleImg: this.bottleImg,
+            corkImg: this.corkImg,
             reflectionImages: {
                 left: this.reflectionImgLeft,
                 center: this.reflectionImgCenter,
@@ -814,6 +1786,14 @@ class Bottle extends MovingGO {
             renderValuesRound: true
         }));
 
+        this.cork = this.addChild(new GO({
+            isVisible: false,
+            renderValuesRound: true,
+            position: new V2(0,-this.size.y/2 + 1),
+            size: new V2(4,2),
+            img: this.corkImg
+        }));
+
         this.originY = this.position.y;
     }
 
@@ -833,11 +1813,13 @@ class Bottle extends MovingGO {
                 this.container.fill();
                 this.fillDelayTimer = undefined;
             }, this, false)
-            
         }
 
         if(this.parentScene.lineStop){
-            this.position.add(this.direction.mul(-this.speed), true)
+            this.position.add(this.direction.mul(-this.speed), true);
+            if(!this.cork.isVisible  && this.position.x > 150){
+                this.parentScene.corker.plugCork(this);
+            }
         }
 
         if(this.position.x - this.size.x/2 > this.parentScene.viewport.x){
