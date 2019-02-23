@@ -7,15 +7,19 @@ class EditorScene extends Scene {
     }
 
     start(){
-        // this.addGo(new GO({
-        //     position: this.sceneCenter,
-        //     size: new V2(200, 200),
-        //     img: createCanvas(new V2(20,20), (ctx, size)=> {
-        //         let pp = new PP({ context: ctx });
-        //         ctx.fillStyle = '#00FF00';
-        //         pp.line(0, size.y/2, size.x, 0)
-        //     })
-        // }));
+        this.editorMode = this.addUIGo(new UILabel({
+            position: new V2(55, 20),
+            size: new V2(50,20),
+            text: {
+                size: 12,
+                color: 'white'
+            },
+            format: {
+                format: "Editor mode: {0}",
+                argsRetriever: () => { 
+                    return [this.editor.editor.mode.value.toUpperCase()]; }
+            }
+        }));
 
         this.mainGo = this.addGo(new EditorGO({
             position: this.sceneCenter
@@ -59,6 +63,8 @@ class EditorScene extends Scene {
         //     }}))
         //     delay+=50
         // }
+
+        SCG.UI.invalidate()
 
         mg.needRecalcRenderProperties = true;
     }

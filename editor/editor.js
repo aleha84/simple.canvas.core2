@@ -9,15 +9,16 @@ class Editor {
                 mode: {
                     value: 'edit',
                     element: undefined,
+                    stateElement: undefined,
                     setValue(value) {
                         value = value || this.value;
                         this.value = value
 
                         if(value == 'add'){
-                            this.element.value = '"Add points" mode';
+                            this.stateElement.innerText = '"Add points" mode';
                         }
                         else if(value == 'edit') {
-                            this.element.value = '"Edit points" mode';
+                            this.stateElement.innerText = '"Edit points" mode';
                         }
                     },
                     toggle() {
@@ -115,13 +116,13 @@ points: [{
         this.renderCallback(this.prepareModel());
     }
 
-    exportModel() {
+    exportModel(pretty) {
         return `let model = ${JSON.stringify(this.prepareModel(), (k,v) => {
             if(k == 'editor')
                 return undefined;
             
             return v;
-        }, 4)}
+        }, pretty? 4: null)}
         
 let img = PP.createImage(model);
         `
@@ -217,14 +218,20 @@ let img = PP.createImage(model);
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Export', attributes: { type: 'button' }, events: {
             click: function(){
                 that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
-                that.controls.overlayEl.appendChild(htmlUtils.createElement('textarea', {
-                    classNames: ['content', 'export'],
-                    value: that.exportModel(),
+                let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'export'] });
+                let textarea = htmlUtils.createElement('textarea', {
+                    value: that.exportModel(true),
                     attributes: {
                         resize: false,
                         readonly: 'readonly'
                     }
+                });
+
+                containerEl.appendChild(components.createCheckBox(true, 'Pretty', (value) => {
+                    textarea.value = that.exportModel(value);
                 }))
+                containerEl.appendChild(textarea);
+                that.controls.overlayEl.appendChild(containerEl);
                 that.controls.overlayEl.appendChild(htmlUtils.createElement('input',{
                     value: 'Close', className:'close', attributes: { type: 'button' }, events: {click: function() {
                         that.controls.overlayEl.remove();
@@ -248,7 +255,7 @@ let img = PP.createImage(model);
         let editorlEl = htmlUtils.createElement('div', { className: 'editorBlock' });
         let modeSwitch = htmlUtils.createElement('div', { className: 'modeSwitch' });
         let modeSwitchButton = htmlUtils.createElement('input', { 
-            value: '"Edit points" mode', 
+            value: 'Toggle mode', 
             attributes: { type: 'button' }, 
             props: {disabled: true},
             events: {
@@ -263,7 +270,10 @@ let img = PP.createImage(model);
         editorlEl.appendChild(modeSwitch)
         
         editor.element = editorlEl;
+        
         editor.mode.element = modeSwitchButton;
+        editor.mode.stateElement = htmlUtils.createElement('span', { className: 'stateName', text: '"Edit points" mode' });
+        modeSwitch.appendChild(editor.mode.stateElement);
         this.parentElement.appendChild(editor.element);
     }
 
@@ -304,8 +314,8 @@ let img = PP.createImage(model);
                     main.layers.forEach(l => l.selected = false);
                     let layer = main.layers.find(l => l.id == e.target.value);
                     layer.selected = true;
+                    that.editor.setModeState(true, e.detail == 'setModeStateToAdd' ? 'add' : 'edit');
                     components.createLayer(layerEl, layer, that.updateEditor.bind(that));  
-                    that.editor.setModeState(true, 'edit');
                 },
                 reset: function(e) { 
                     main.layers.forEach(l => l.selected = false);
@@ -330,7 +340,8 @@ let img = PP.createImage(model);
                     main.layers.push(layer);
                     select.options[select.options.length] = new Option(layer.id, layer.id);
                     select.value = layer.id;
-                    select.dispatchEvent(new Event('change'));
+                    select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+                    //that.editor.setModeState(true, 'add');
                 },
                 changeCallback: that.updateEditor.bind(that)
             }

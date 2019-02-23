@@ -137,7 +137,13 @@ html,
     .overlay>.content.export {
       width: 50%;
       height: 50%;
-      resize: none;
+      background: white;
+    }
+
+    .overlay>.content.export>textarea {
+        width: 100%;
+        height: 100%;
+        resize: none;
     }
 
     .overlay>.close {
@@ -147,4 +153,9 @@ html,
       width: 90px;
       height: 40px;
       font-size: 28px;
+    }
+
+    .editorBlock>.modeSwitch>.stateName {
+        font-size: 20px;
+        font-weight: bold;
     }
