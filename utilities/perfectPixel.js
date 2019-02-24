@@ -12,7 +12,9 @@ class PerfectPixel {
     setPixel(x, y){
         this.ctx.fillRect(x,y, 1,1);
     }
-
+    removePixel(x,y){
+        this.ctx.clearRect(x, y, 1,1);
+    }
     lineV2(p1, p2){
         if(!p1 || !(p1 instanceof Vector2)){
             if(isObject(p1) && p1.x != undefined && p1.y != undefined){
@@ -51,7 +53,7 @@ class PerfectPixel {
      
         let filledPoints = [];
         while(true){
-          this.setPixel(x0,y0);  // Do what you need to for this
+          this.setPixel(x0,y0);  
           filledPoints.push({x: x0, y: y0});
 
           if ((x0==x1) && (y0==y1)) break;

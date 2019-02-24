@@ -322,6 +322,17 @@ let img = PP.createImage(model);
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
                     that.editor.setModeState(false, 'edit');
                 },
+                remove(e, select) {
+                    main.layers = main.layers.filter(l => l.id != select.value);  
+                    main.layers.forEach((l, i) => l.order = i);
+                    select.options.length = 0;
+                    for(let l of main.layers){
+                        select.options[select.options.length] = new Option(l.id, l.id);
+                    }
+                    select.value = undefined;
+                    components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
+                    that.editor.setModeState(false, 'edit');
+                },
                 add: function(e, select){
                     main.layers.forEach(l => l.selected = false);
                     let layer = {

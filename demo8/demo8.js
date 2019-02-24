@@ -23,7 +23,12 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.scenes.cacheScene(new InfoScreenScene({
         name:'info',
         viewport: defaultViewpot
-    }));    
+    }));  
+
+    SCG.scenes.cacheScene(new SpaceportScene({
+        name:'spaceport',
+        viewport: defaultViewpot
+    }));   
 
     sceneSelectByHashValue();
     

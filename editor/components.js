@@ -160,10 +160,25 @@ var components = {
         let lb = htmlUtils.createElement('div', { className: 'listbox' });
         lb.appendChild(htmlUtils.createElement('p', { className: 'title', text: listProps.title }));
         let selectHolder = htmlUtils.createElement('div', { className: 'selectHolder'});
+        let addButton = htmlUtils.createElement('input', {
+            attributes: { 
+                type: 'button', 
+                value: 'Remove' 
+            },
+            events: { 
+                click: function(e) { 
+                    listProps.callbacks.remove(e, select);
+                } },
+            props: {
+                disabled: true
+            }
+        });
         let select = htmlUtils.createElement('select', { attributes: { size: listProps.maxSize || 10 }, events: {
             change: function(e) { 
-                if(listProps.callbacks.select)
+                if(listProps.callbacks.select) {
+                    addButton.disabled = false;
                     listProps.callbacks.select(e)
+                }
                 else 
                     console.log(e.target.value)
          }
@@ -176,6 +191,8 @@ var components = {
         selectHolder.append(select);
 
         let sControls = htmlUtils.createElement('div', { className: 'selectControls'});
+        
+
         sControls.append(
             htmlUtils.createElement('input', 
                 { 
@@ -186,6 +203,7 @@ var components = {
                     events: { 
                         click: function(e) { 
                             select.options.selectedIndex = -1;
+                            addButton.disabled = true;
                             listProps.callbacks.reset(e);
                         } } }))
 
@@ -199,8 +217,11 @@ var components = {
                     events: { 
                         click: function(e) { 
                             listProps.callbacks.add(e, select);
+                            
                             //select.options.selectedIndex = select.options.length-1;
                         } } }))
+
+        sControls.append(addButton);
 
         selectHolder.append(sControls)
         lb.append(selectHolder);
@@ -222,7 +243,7 @@ var components = {
             changeCallback();
         }));
 
-        layerEl.appendChild(this.createColorPicker(layerProps.strokeColor, 'Fill color', (color) => {
+        layerEl.appendChild(this.createColorPicker(layerProps.fillColor, 'Fill color', (color) => {
             layerProps.fillColor = color;
             changeCallback();
         }));
@@ -275,6 +296,7 @@ var components = {
 
         htmlUtils.removeChilds(pointsEl);
 
+        // points list
         pointsEl.appendChild(components.createList({
             title: 'Points',
             items: points.map(p => {return { title: `x: ${p.point.x}, y: ${p.point.y}`, value: p.id }}),
@@ -299,6 +321,14 @@ var components = {
                 reset: function(e) { 
                     points.forEach(p => p.selected = false);
                     fillPoint(undefined, undefined, changeCallback, '') 
+                },
+                remove(e, select) {
+                    points = points.filter(p => p.id != select.value);  
+                    points.forEach((p, i) => p.order = i);
+                    select.value = undefined;
+                    layerProps.points = points;
+                    components.fillPoints(layerProps, changeCallback);
+                    changeCallback();
                 },
                 add: function(e, select) {
                     points.push({

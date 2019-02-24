@@ -259,6 +259,17 @@ class GO {
         return result;
     }
 
+    removeEffect(effect){
+        if(effect === undefined)
+            return;
+
+        let index = this.effects.indexOf(effect);
+        if(index !== -1){
+            this.effects.splice(index,1);
+            effect.parent = undefined;
+        }
+    }
+
     addEffect(effect){
         if(!(effect instanceof EffectBase))
             throw 'Effect must be derived from EffectBase class';
@@ -268,6 +279,8 @@ class GO {
         if(effect.initOnAdd){
             effect.__init(this);
         }
+
+        return effect;
     }
 
     addChild(childGo, regEvents = false) {

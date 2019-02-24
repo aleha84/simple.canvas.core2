@@ -50,8 +50,13 @@ class EditorGO extends GO {
                         d.disable();
                     }
                     else if(this.model.editor.mode == 'add'){
-                        //console.log(this.model.editor.index)
-                        this.model.editor.selectedLayer.addPointCallback(this.model.editor.index);
+                        let e = this.model.editor;
+                        if( e.selectedLayer.points.filter(p => p.point.x == e.index.x && p.point.y == e.index.y).length > 0){
+                            console.log('existing point trying to add');
+                            return;
+                        }
+
+                        e.selectedLayer.addPointCallback(e.index);
                     }
                     
                 },
@@ -133,11 +138,20 @@ class EditorGO extends GO {
                     this.addChild(new Dot({
                         size: this.itemSize,
                         pointModel: p,
+                        selected: p.selected,
                         index: p.point.clone(),
                         position: new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.point.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.point.y),
-                        img: createCanvas(this.itemSize, (ctx, size) => {
+                        notSelectedImg: createCanvas(this.itemSize, (ctx, size) => {
+                            ctx.translate(0.5,0.5);
                             ctx.strokeStyle = 'white';
-                            ctx.strokeRect(0,0, size.x, size.y);
+                            ctx.strokeRect(0,0, size.x-1, size.y-1);
+                        }),
+                        selectedImg:createCanvas(this.itemSize, (ctx, size) => {
+                            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                            ctx.fillRect(0,0, size.x, size.y);
+                            ctx.translate(0.5,0.5);
+                            ctx.strokeStyle = 'white';
+                            ctx.strokeRect(0,0, size.x-1, size.y-1);
                         })
                     }), true)
                 })
@@ -163,11 +177,31 @@ class Dot extends GO {
                     if(this.parent.model.editor.mode == 'edit'){
                         this.parent.drag.downOn = this;
                         this.parent.drag.downOn.pointModel.selectCallback();
+                        this.setSelected(true);
                     }
                 }
             }
         }, options);
 
         super(options);
+
+        if(this.selected){
+            this.selectedEffect = this.addEffect(new FadeInOutEffect({effectTime: 500, max: 1, min: 0.5, updateDelay: 50, loop: true}))
+        }
+    }
+    init(){
+        this.setSelected(this.selected);
+    }
+    setSelected(selected) {
+        this.selected = selected;
+        if(this.selected){
+            this.parent.childrenGO.filter(c => c.type == 'Dot').forEach(c => c.setSelected(false));
+            this.img = this.selectedImg;
+            this.selectedEffect = this.addEffect(new FadeInOutEffect({effectTime: 500, max: 1, min: 0.5, updateDelay: 50, loop: true, initOnAdd: true}))
+        }
+        else {
+            this.img = this.notSelectedImg;
+            this.removeEffect(this.selectedEffect);
+        }
     }
 }
