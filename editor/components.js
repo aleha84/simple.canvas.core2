@@ -258,6 +258,11 @@ var components = {
             changeCallback();
         }));
 
+        layerEl.appendChild(components.createCheckBox(layerProps.visible, 'Visible', function(value) {
+            layerProps.visible = value;
+            changeCallback();
+        }));
+
         layerEl.appendChild(components.createSelect(layerProps.type, ['dots','lines'],'Type', function(value){
             layerProps.type = value;
             changeCallback();

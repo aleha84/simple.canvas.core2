@@ -51,6 +51,7 @@ class Editor {
                             type: 'lines',
                             pointsEl: undefined,
                             pointEl: undefined,
+                            visible: true,
                             points: [
                                 // {
                                 //     id: 'main_0_point_0',
@@ -141,6 +142,7 @@ let img = PP.createImage(model);
                 fillColor: l.fillColor,
                 closePath: l.closePath,
                 fill: l.fill,
+                visible: l.visible,
                 points: l.points.map((p) => {
                     return {
                         point: new V2(p.point),
@@ -346,6 +348,7 @@ let img = PP.createImage(model);
                         type: 'dots',
                         pointsEl: undefined,
                         pointEl: undefined,
+                        visible: true,
                         points: []
                     }
                     main.layers.push(layer);

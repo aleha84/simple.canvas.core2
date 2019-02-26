@@ -190,6 +190,9 @@ PP.createImage = function(model) {
     return createCanvas(general.size, (ctx, size) => {
         let pp = new PerfectPixel({context: ctx});
         for(let layer of main.layers.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
+            if(!layer.visible)
+                continue;
+                
             ctx.fillStyle = layer.strokeColor;
             if(layer.type == 'dots'){
                 for(let po of layer.points){
