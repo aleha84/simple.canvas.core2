@@ -146,6 +146,11 @@ html,
         resize: none;
     }
 
+    .overlay>.content.save {
+        padding: 10px;
+        background: white;
+    }
+
     .overlay>.close {
       position: absolute;
       top: 21%;

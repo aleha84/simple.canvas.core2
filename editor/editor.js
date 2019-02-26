@@ -2,6 +2,7 @@ class Editor {
     constructor(options = {}){
         assignDeep(this, {
             controls: {
+                savedAs: undefined,
                 overlayEl: undefined,
             },
             editor: {
@@ -233,6 +234,57 @@ let img = PP.createImage(model);
                     textarea.value = that.exportModel(value);
                 }))
                 containerEl.appendChild(textarea);
+                that.controls.overlayEl.appendChild(containerEl);
+                that.controls.overlayEl.appendChild(htmlUtils.createElement('input',{
+                    value: 'Close', className:'close', attributes: { type: 'button' }, events: {click: function() {
+                        that.controls.overlayEl.remove();
+                        that.controls.overlayEl = undefined;
+                    }}
+                }))
+                that.parentElement.appendChild(that.controls.overlayEl);
+            }
+        } }));
+
+        controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Save', attributes: { type: 'button' }, events: {
+            click: function(){
+                that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
+                let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'save'] });
+
+                let saveNameInput = htmlUtils.createElement('input', { value: that.controls.savedAs || '', attributes: { type: 'text' } });
+
+                containerEl.appendChild(saveNameInput);
+
+                containerEl.appendChild(htmlUtils.createElement('input', { value: 'Ok', attributes: { type: 'button' }, events: {
+                    click: function(){
+                        var lsItem = localStorage.getItem('editorSaves');
+                        if(!lsItem){
+                            lsItem = [];
+                        }
+                        else {
+                            lsItem = JSON.parse(lsItem);
+                        }
+
+                        that.controls.savedAs = saveNameInput.value;
+                        lsItem.push({
+                            name: saveNameInput.value,
+                            datetime: new Date().toISOString(),
+                            content: that
+                        });
+
+                        localStorage.setItem('editorSaves', JSON.stringify(lsItem));
+
+                        that.controls.overlayEl.remove();
+                        that.controls.overlayEl = undefined;
+                    }
+                } }));
+
+                containerEl.appendChild(htmlUtils.createElement('input', { value: 'Cancel', attributes: { type: 'button' }, events: {
+                    click: function(){
+                        that.controls.overlayEl.remove();
+                        that.controls.overlayEl = undefined;
+                    }
+                } }))
+
                 that.controls.overlayEl.appendChild(containerEl);
                 that.controls.overlayEl.appendChild(htmlUtils.createElement('input',{
                     value: 'Close', className:'close', attributes: { type: 'button' }, events: {click: function() {
