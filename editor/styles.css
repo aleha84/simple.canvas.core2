@@ -146,6 +146,11 @@ html,
         resize: none;
     }
 
+    .overlay>.content.load {
+        padding: 10px;
+        background: white;
+    }
+
     .overlay>.content.save {
         padding: 10px;
         background: white;

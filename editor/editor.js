@@ -130,10 +130,10 @@ let img = PP.createImage(model);
         `
         //createCanvas(new V2())
     }
-    prepareModel() {
-        let that = this;
-        let i = this.image;
-        let e = this.editor;
+    prepareModel(model) {
+        let that = model || this;
+        let i = that.image;
+        let e = that.editor;
         let layerMapper = (l) => {
             return {
                 order: l.order,
@@ -217,6 +217,16 @@ let img = PP.createImage(model);
     createControlButtons() {
         let that = this;
         let controlsEl = htmlUtils.createElement('div', { className: 'mainControlsBlock' });
+        let createCloseButtonAndAddOverlay = function(containerEl){
+            that.controls.overlayEl.appendChild(containerEl);
+            that.controls.overlayEl.appendChild(htmlUtils.createElement('input',{
+                value: 'Close', className:'close', attributes: { type: 'button' }, events: {click: function() {
+                    that.controls.overlayEl.remove();
+                    that.controls.overlayEl = undefined;
+                }}
+            }))
+            that.parentElement.appendChild(that.controls.overlayEl);
+        }
 
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Export', attributes: { type: 'button' }, events: {
             click: function(){
@@ -234,16 +244,46 @@ let img = PP.createImage(model);
                     textarea.value = that.exportModel(value);
                 }))
                 containerEl.appendChild(textarea);
-                that.controls.overlayEl.appendChild(containerEl);
-                that.controls.overlayEl.appendChild(htmlUtils.createElement('input',{
-                    value: 'Close', className:'close', attributes: { type: 'button' }, events: {click: function() {
-                        that.controls.overlayEl.remove();
-                        that.controls.overlayEl = undefined;
-                    }}
-                }))
-                that.parentElement.appendChild(that.controls.overlayEl);
+                createCloseButtonAndAddOverlay(containerEl);
             }
         } }));
+
+        controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Load', attributes: { type: 'button' }, events: {
+            click: function(){
+                that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
+                let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'load'] });
+
+                let list = htmlUtils.createElement('div', { className: 'saveList'})
+                let lsItem = localStorage.getItem('editorSaves');
+                if(!lsItem){
+                    lsItem = [];
+                }
+                else {
+                    lsItem = JSON.parse(lsItem);
+                }
+
+                for(let save of lsItem){
+                    let saveItem = htmlUtils.createElement('div', { className: 'saveListItem'})
+                    saveItem.appendChild(htmlUtils.createElement('span', { className: 'name', text: save.name }));
+                    saveItem.appendChild(htmlUtils.createElement('span', { className: 'date', text: save.datetime }));
+                    saveItem.appendChild(htmlUtils.createElement('img', { className: 'image', attributes: { src: PP.createImage(that.prepareModel(save.content)).toDataURL() }}))
+
+                    saveItem.content = save.content;
+                    list.appendChild(saveItem)
+                }
+
+                containerEl.appendChild(list);
+
+                containerEl.appendChild(htmlUtils.createElement('input', { value: 'Cancel', attributes: { type: 'button' }, events: {
+                    click: function(){
+                        that.controls.overlayEl.remove();
+                        that.controls.overlayEl = undefined;
+                    }
+                } }))
+
+                createCloseButtonAndAddOverlay(containerEl);
+            }
+        }}));
 
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Save', attributes: { type: 'button' }, events: {
             click: function(){
@@ -256,7 +296,11 @@ let img = PP.createImage(model);
 
                 containerEl.appendChild(htmlUtils.createElement('input', { value: 'Ok', attributes: { type: 'button' }, events: {
                     click: function(){
-                        var lsItem = localStorage.getItem('editorSaves');
+                        let saveName = saveNameInput.value;
+                        if(!saveName)
+                            return;
+
+                        let lsItem = localStorage.getItem('editorSaves');
                         if(!lsItem){
                             lsItem = [];
                         }
@@ -265,9 +309,10 @@ let img = PP.createImage(model);
                         }
 
                         that.controls.savedAs = saveNameInput.value;
+                        let now = new Date();
                         lsItem.push({
                             name: saveNameInput.value,
-                            datetime: new Date().toISOString(),
+                            datetime: new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString(), //new Date().toISOString(),
                             content: that
                         });
 
@@ -285,14 +330,7 @@ let img = PP.createImage(model);
                     }
                 } }))
 
-                that.controls.overlayEl.appendChild(containerEl);
-                that.controls.overlayEl.appendChild(htmlUtils.createElement('input',{
-                    value: 'Close', className:'close', attributes: { type: 'button' }, events: {click: function() {
-                        that.controls.overlayEl.remove();
-                        that.controls.overlayEl = undefined;
-                    }}
-                }))
-                that.parentElement.appendChild(that.controls.overlayEl);
+                createCloseButtonAndAddOverlay(containerEl);
             }
         } }));
 
