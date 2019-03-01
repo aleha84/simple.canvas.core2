@@ -151,6 +151,10 @@ html,
         background: white;
     }
 
+    .overlay>.content.load .saveListItem.selected  {
+        border: 1px solid blue;
+    }
+
     .overlay>.content.save {
         padding: 10px;
         background: white;

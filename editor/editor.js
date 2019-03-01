@@ -108,6 +108,10 @@ points: [{
     init() {
         this.createControlButtons();   
         this.createEditor();
+        this.createImage();
+    }
+
+    createImage() {
         this.createGeneral();
         this.createMain();
 
@@ -262,17 +266,45 @@ let img = PP.createImage(model);
                     lsItem = JSON.parse(lsItem);
                 }
 
+                let items = []
+                let selectedEl = undefined;
                 for(let save of lsItem){
-                    let saveItem = htmlUtils.createElement('div', { className: 'saveListItem'})
+                    let saveItem = htmlUtils.createElement('div', { className: 'saveListItem', events: { click: function(){ 
+                        selectedEl = this;
+                        items.forEach(el => el.classList.remove('selected')); 
+                        this.classList.add('selected'); } }})
                     saveItem.appendChild(htmlUtils.createElement('span', { className: 'name', text: save.name }));
                     saveItem.appendChild(htmlUtils.createElement('span', { className: 'date', text: save.datetime }));
                     saveItem.appendChild(htmlUtils.createElement('img', { className: 'image', attributes: { src: PP.createImage(that.prepareModel(save.content)).toDataURL() }}))
 
                     saveItem.content = save.content;
+                    saveItem.saveName = save.name;
                     list.appendChild(saveItem)
+                    items.push(saveItem);
                 }
 
                 containerEl.appendChild(list);
+
+                containerEl.appendChild(htmlUtils.createElement('input', { value: 'Ok', attributes: { type: 'button' }, events: {
+                    click: function(){
+                        if(!selectedEl)
+                            return;
+
+                        //console.log(selectedEl.content);
+                        let image = selectedEl.content.image;
+                        image.main.element = that.image.main.element;
+                        image.general.element = that.image.general.element;
+                        image.main.layers.forEach(l => {l.selected = undefined;} )
+
+                        that.image = image;
+
+                        that.createImage();
+
+                        that.controls.savedAs = selectedEl.saveName;
+                        that.controls.overlayEl.remove();
+                        that.controls.overlayEl = undefined;
+                    }
+                } }))
 
                 containerEl.appendChild(htmlUtils.createElement('input', { value: 'Cancel', attributes: { type: 'button' }, events: {
                     click: function(){
@@ -309,13 +341,22 @@ let img = PP.createImage(model);
                         }
 
                         that.controls.savedAs = saveNameInput.value;
-                        let now = new Date();
-                        lsItem.push({
-                            name: saveNameInput.value,
-                            datetime: new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString(), //new Date().toISOString(),
-                            content: that
-                        });
 
+                        let saved = lsItem.filter(l => l.name == that.controls.savedAs);
+
+                        let now = new Date();
+                        if(saved.length){
+                            saved[0].datetime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString();
+                            saved[0].content = that;
+                        }
+                        else {
+                            lsItem.push({
+                                name: saveNameInput.value,
+                                datetime: new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString(), //new Date().toISOString(),
+                                content: that
+                            });    
+                        }
+                        
                         localStorage.setItem('editorSaves', JSON.stringify(lsItem));
 
                         that.controls.overlayEl.remove();
