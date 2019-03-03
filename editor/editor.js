@@ -232,6 +232,76 @@ let img = PP.createImage(model);
             that.parentElement.appendChild(that.controls.overlayEl);
         }
 
+        controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Import', attributes: { type: 'button' }, events: {
+            click: function(){
+                that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
+                let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'export'] });
+                let textarea = htmlUtils.createElement('textarea', {
+                    value: '',
+                    attributes: {
+                        resize: false
+                    }
+                });
+
+                containerEl.appendChild(textarea);
+
+                containerEl.appendChild(htmlUtils.createElement('input', { value: 'Ok', attributes: { type: 'button' }, events: {
+                    click: function(){
+                        if(!textarea.value)
+                            return;
+
+                        let image = undefined;
+                        try{
+                            image = JSON.parse(textarea.value);
+                        }
+                        catch(e){
+                            alert('Entered value is invalid.\n' + e.message);
+                            return;
+                        }
+                        // image.general = assignDeep({}, {
+                        //     zoom: {current: 10, max: 10, min: 1, step: 1},
+                        //     showGrid: false,
+                        //     element: undefined
+                        // }, image.general);
+                        image.general.element = that.image.general.element;
+                        image.general.zoom =  {current: 10, max: 10, min: 1, step: 1};
+
+                        image.main.layers = image.main.layers.map((l,i) => assignDeep({}, {
+                            selected: false,
+                            order: i,
+                            id: `main_${i}`,
+                            strokeColor: '#FF0000',
+                            fillColor: '#FF0000',
+                            fill: false,
+                            closePath: false,
+                            type: 'dots',
+                            pointsEl: undefined,
+                            pointEl: undefined,
+                            visible: true,
+                        }, 
+                        {...l, points: l.points.map((p,j) => assignDeep({}, {
+                            id: `main_${i}_point_${j}`,
+                            order: j,
+                        }, p))}));
+                        image.main.element = that.image.main.element;
+
+                        /*
+
+                        */
+
+                        that.image = image;
+
+                        that.createImage();
+
+                        // that.controls.savedAs = selectedEl.saveName;
+                        that.controls.overlayEl.remove();
+                        that.controls.overlayEl = undefined;
+                    }
+                } }))
+                createCloseButtonAndAddOverlay(containerEl);
+            }
+        } }));
+
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Export', attributes: { type: 'button' }, events: {
             click: function(){
                 that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
