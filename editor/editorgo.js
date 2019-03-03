@@ -65,6 +65,21 @@ class EditorGO extends GO {
                 out: function(e) {
                     this.moveEventTriggered = false; 
                     this.highlightChild();
+
+                    if(this.model.editor.mode == 'edit'){
+                        let d = this.drag;
+                        let os  = this.model.general.originalSize;
+                        if(d.started && d.downOn.indexChanged){
+                            let index = d.downOn.index;
+                            if(index.x < 0) index.x = 0;
+                            if(index.y < 0) index.y = 0;
+                            if(index.x >= os.x) index.x = os.x-1;
+                            if(index.y >= os.y) index.y = os.y-1;
+                            d.downOn.pointModel.changeCallback(index);
+                        }
+                        d.disable();
+                    }
+
                     this.model.editor.index = undefined;
                     this.parentScene.pointerDataLabel.invalidate();
 
