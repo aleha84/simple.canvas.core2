@@ -21,6 +21,23 @@ class EditorScene extends Scene {
             }
         }));
 
+        this.pointerDataLabel = this.addUIGo(new UILabel({
+            position: new V2(this.viewport.x- 100, 20),
+            size: new V2(70,20),
+            text: {
+                size: 8,
+                color: 'white'
+            },
+            format: {
+                format: "Pointer: {0}",
+                argsRetriever: () => { 
+                    if(this.mainGo.model.editor.index)
+                        return [this.mainGo.model.editor.index.toString()]; 
+                
+                    return ['No data']; }
+            }
+        }));
+
         this.mainGo = this.addGo(new EditorGO({
             position: this.sceneCenter
         }),0, true);

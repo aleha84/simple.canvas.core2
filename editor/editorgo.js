@@ -36,6 +36,8 @@ class EditorGO extends GO {
                         }
                     }
 
+                    this.parentScene.pointerDataLabel.invalidate();
+
                     return {
                         preventDiving: this.preventDiving
                     };
@@ -63,6 +65,9 @@ class EditorGO extends GO {
                 out: function(e) {
                     this.moveEventTriggered = false; 
                     this.highlightChild();
+                    this.model.editor.index = undefined;
+                    this.parentScene.pointerDataLabel.invalidate();
+
                     return {
                         preventDiving: this.preventDiving
                     };
