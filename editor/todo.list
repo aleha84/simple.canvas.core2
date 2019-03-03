@@ -1,0 +1,7 @@
+1. Add pointer position value
+2. Range control - add min, max values. Current value label
+3. Stroke color to fill color button
+4. Point color override.
+5. Next point color override based on previous
+6. Dithering? Blending?
+7. Animation
