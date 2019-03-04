@@ -153,6 +153,9 @@ var components = {
         el.appendChild(cPicker);
         el.appendChild(hexInput);
 
+        el.cPicker = cPicker;
+        el.hexInput = hexInput;
+
         return el;
     },
     createList(listProps) {
@@ -238,15 +241,25 @@ var components = {
         }
 
         layerEl.appendChild(htmlUtils.createElement('div', { text: layerProps.id }))
-        layerEl.appendChild(this.createColorPicker(layerProps.strokeColor, 'Stroke color', (color) => {
+
+        let strokeColor = this.createColorPicker(layerProps.strokeColor, 'Stroke color', (color) => {
             layerProps.strokeColor = color;
             changeCallback();
-        }));
+        });
 
-        layerEl.appendChild(this.createColorPicker(layerProps.fillColor, 'Fill color', (color) => {
+        let fillColor = this.createColorPicker(layerProps.fillColor, 'Fill color', (color) => {
             layerProps.fillColor = color;
             changeCallback();
-        }));
+        });
+
+        layerEl.appendChild(strokeColor);
+
+        // let colorsExchange = htmlUtils.createElement('div',  { classNames: ['colorsExchange', 'row'] });
+        // colorsExchange.appendChild(htmlUtils.createElement('input', { value: '&#darr;', attributes: {type: 'button'}, events: { click: function(){ layerProps.fillColor = layerProps.strokeColor; fillColor.hexInput = layerProps.strokeColor; changeCallback(); } } }))
+
+        // layerEl.appendChild(colorsExchange);
+
+        layerEl.appendChild(fillColor);
 
         layerEl.appendChild(components.createCheckBox(layerProps.closePath, 'Close path', function(value) {
             layerProps.closePath = value;
