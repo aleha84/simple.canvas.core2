@@ -541,7 +541,7 @@ var colorTransitionHelper = {
                         ctx.fillStyle = currentItem.color;
                         ctx.fillRect(0,r,size.x, 1);
 
-                        if(getRandomInt(0, fastRoundWithPrecision(5 - 5*r/transitionTo, 0)) == 0){
+                        if(currentItem.noNextColorPropbabilityCheck || getRandomInt(0, fastRoundWithPrecision(5 - 5*r/transitionTo, 0)) == 0){
                             ctx.fillStyle = nextItem.color;
                             let from = getRandomInt(-size.x/4, size.x);
                             let lengthX = getRandomInt(size.x/10,size.x/4 + (size.x/2)* r/transitionTo);
