@@ -37,7 +37,7 @@ class SpaceportScene extends Scene {
         });
 
         this.cargoShip = this.addGo(new CargoShip({
-            position: new V2(this.viewport.x + 150, 100)//this.sceneCenter.x
+            position: new V2(this.viewport.x + 100, 100)//this.sceneCenter.x
         }),10);
 
         this.ground = this.addGo(new Ground({
@@ -49,7 +49,43 @@ class SpaceportScene extends Scene {
             this.cloudsGenerator(new V2(i *this.viewport.x/4,  getRandomInt(75,125)))
         }
 
-        this.cloudGeneratorTImer = createTimer(15000*4, () => this.cloudsGenerator(), this, true);15000
+        this.dustClouds = [createCanvas(new V2(spacePortImages.dustCloudImages_1.length*10, 10), (ctx, size) => {
+            for(let i = 0; i < spacePortImages.dustCloudImages_1.length; i++){
+                ctx.drawImage(PP.createImage(spacePortImages.dustCloudImages_1[i]), 10*i,0);
+            }
+        })];
+
+        
+
+        this.cloudGeneratorTImer = createTimer(15000*4, () => this.cloudsGenerator(), this, true);
+
+        this.dustCloudDemoTimer = createTimer(100, () => {
+            this.addGo(new MovingGO({
+                speed: getRandom(0.01, 0.2),
+                destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
+                setDestinationOnInit: true,
+                renderValuesRound: true,
+                size: new V2(10,10),
+                position: new V2(this.sceneCenter.x + getRandomInt(-10,10), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
+                img: this.dustClouds[0],
+                isAnimated: true,
+                beforeDead: function(){
+                    console.log('litl cloud is dead');
+                },
+                animation: {
+                    totalFrameCount: spacePortImages.dustCloudImages_1.length,
+                    framesInRow: spacePortImages.dustCloudImages_1.length,
+                    framesRowsCount: 1,
+                    frameChangeDelay: 250,
+                    destinationFrameSize:new V2(10,10),
+                    sourceFrameSize: new V2(10,10),
+                    animationEndCallback: function(){
+                        this.addEffect(new FadeOutEffect({ effectTime: 500, updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
+                        //this.setDead();
+                    }
+                },
+            }), 20)
+        }, this, true);
     }
 
     cloudsGenerator(position) {
@@ -100,6 +136,9 @@ class SpaceportScene extends Scene {
     afterMainWork(now){
         if(this.cloudGeneratorTImer)
             doWorkByTimer(this.cloudGeneratorTImer, now);
+
+        if(this.dustCloudDemoTimer)
+            doWorkByTimer(this.dustCloudDemoTimer, now);
     }
 
     backgroundRender(){

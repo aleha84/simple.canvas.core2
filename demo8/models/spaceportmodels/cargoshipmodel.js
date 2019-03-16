@@ -3,7 +3,7 @@ class CargoShip extends GO {
         options = assignDeep({}, {
             renderValuesRound: true,
             size: new V2(100, 20),
-            thrustersAngle: -10,
+            thrustersAngle: -20,
             levitation: {
                 time: 0, 
                 duration: 40, 
@@ -22,13 +22,52 @@ class CargoShip extends GO {
         this.script = {
             currentStep: undefined,
             items: [
-                {
-                    speedV2: new V2(-1, 0),
-                    destination: new V2(300, 100),
-                    check: function(go) {
-                        return go.position.x <= this.destination.x;
-                    },
-                    timerType: 'movement'
+                // {
+                //     speedV2: new V2(-1, 0),
+                //     destination: new V2(300, 100),
+                //     check: function(go) {
+                //         return go.position.x <= this.destination.x;
+                //     },
+                //     timerType: 'movement'
+                // }
+                function(){
+                    this.scriptTimer = createTimer(50, () => {
+                        this.position.x+=-1;
+                        if(this.position.x <= 300){
+                            this.scriptTimer = undefined;
+                            this.processScript();
+                            return;
+                        }
+                        this.needRecalcRenderProperties = true;
+                    }, this, true);
+                },
+                function(){
+                    let brake = {
+                        time: 0, duration: 100, change: -50, type: 'quad', method: 'out', startValue: 0
+                    }
+
+                    let tv = {
+                        time: 0, duration: 100, change: 20, type: 'quad', method: 'out', startValue: -20
+                    }
+
+                    let originX = this.position.x;
+                    this.scriptTimer = createTimer(50, () => {
+                        let delta = easing.process(brake);
+                        let adelta = easing.process(tv);
+                        this.position.x = originX + delta;
+                        this.thrustersAngle = adelta;
+
+                        this.needRecalcRenderProperties = true;
+
+                        brake.time++;
+                        tv.time = brake.time;
+
+                        if(brake.time > brake.duration){
+                            this.scriptTimer = undefined;
+                            this.processScript();
+                            return;
+                        }
+                    }, this, true);
                 }
             ]
         }
@@ -82,7 +121,7 @@ class CargoShip extends GO {
         this.frontalThruster.fire = this.frontalThruster.addChild(new GO({
             renderValuesRound: true,
             size: new V2(6,15),
-            position: new V2(0,15),
+            position: new V2(0,14.75),
             img: igniteImg,
             isAnimated: true,
             animation: {
@@ -122,7 +161,7 @@ class CargoShip extends GO {
         this.rearThruster.fire = this.rearThruster.addChild(new GO({
             renderValuesRound: true,
             size: new V2(6,15),
-            position: new V2(0,15),
+            position: new V2(0,14.75),
             img: igniteImg,
             isAnimated: true,
             animation: {
@@ -195,29 +234,7 @@ class CargoShip extends GO {
             return;
 
         this.script.currentStep = this.script.items.shift();
-        if(this.script.currentStep.speedV2){
-            this.script.currentStep.speedV2Module = this.script.currentStep.speedV2.module();
-        }
-        this.scriptTimer = this.createScriptTimer();
-    }
-
-    createScriptTimer() {
-        if(!this.script.currentStep)
-            return;
-
-        let cs = this.script.currentStep;
-        switch(cs.timerType) {
-            case 'movement': 
-                return createTimer(50, () => {
-                    this.position.add(cs.speedV2, true);
-                    if(cs.check(this)){
-                        this.scriptTimer = undefined;
-                        this.processScript();
-                        return;
-                    }
-                    this.needRecalcRenderProperties = true;
-                }, this, true);
-        }
+        this.script.currentStep.call(this);
     }
 
     internalUpdate(now) {

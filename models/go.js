@@ -63,6 +63,7 @@ class GO {
                 reverse: false,
                 paused: false,
                 loop : false,
+                completed: false,
                 animationTimer : undefined,
                 animationEndCallback: function(){},
                 animationRestartCallback: function(){},
@@ -71,7 +72,7 @@ class GO {
                     this.animationTimer.originDelay = value;
                 },
                 frameChange : function(){
-                    if(this.paused){
+                    if(this.paused || this.completed){
                         return;
                     }
         
@@ -94,6 +95,7 @@ class GO {
                             this.animationRestartCallback.call(objectContext);
                         }
                         else{
+                            this.completed = true;
                             this.animationEndCallback.call(objectContext);
                             return;
                         }
