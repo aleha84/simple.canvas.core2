@@ -49,39 +49,60 @@ class SpaceportScene extends Scene {
             this.cloudsGenerator(new V2(i *this.viewport.x/4,  getRandomInt(75,125)))
         }
 
-        this.dustClouds = [createCanvas(new V2(spacePortImages.dustCloudImages_1.length*10, 10), (ctx, size) => {
-            for(let i = 0; i < spacePortImages.dustCloudImages_1.length; i++){
-                ctx.drawImage(PP.createImage(spacePortImages.dustCloudImages_1[i]), 10*i,0);
-            }
-        })];
-
-        
+        this.dustClouds = [
+            createCanvas(new V2(spacePortImages.dustCloudImages_1.length*10, 10), (ctx, size) => {
+                for(let i = 0; i < spacePortImages.dustCloudImages_1.length; i++){
+                    ctx.drawImage(PP.createImage(spacePortImages.dustCloudImages_1[i]), 10*i,0);
+                }
+            }),
+            createCanvas(new V2(spacePortImages.dustCloudImages_medium.length*15, 15), (ctx, size) => {
+                for(let i = 0; i < spacePortImages.dustCloudImages_medium.length; i++){
+                    ctx.drawImage(PP.createImage(spacePortImages.dustCloudImages_medium[i]), 15*i,0);
+                }
+            })
+        ];
 
         this.cloudGeneratorTImer = createTimer(15000*4, () => this.cloudsGenerator(), this, true);
 
+        this.mDustCount = 3;
         this.dustCloudDemoTimer = createTimer(100, () => {
+            this.mDustCount--;
+            if(this.mDustCount == 0){
+                this.mDustCount = 3;
+                this.addGo(new MovingGO({
+                    speed: getRandom(0.01, 0.05),
+                    destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
+                    setDestinationOnInit: true, renderValuesRound: true,isAnimated: true,
+                    size: new V2(15,15),
+                    position: new V2(this.sceneCenter.x + getRandomInt(-15,15), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
+                    img: this.dustClouds[1],
+                    animation: {
+                        totalFrameCount: spacePortImages.dustCloudImages_medium.length, framesInRow: spacePortImages.dustCloudImages_medium.length,
+                        framesRowsCount: 1, frameChangeDelay: 350,
+                        destinationFrameSize:new V2(15,15),
+                        sourceFrameSize: new V2(15,15),
+                        animationEndCallback: function(){
+                            this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(350,600), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
+                        }
+                    },
+                }), 19)
+            }
             this.addGo(new MovingGO({
                 speed: getRandom(0.01, 0.2),
                 destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
-                setDestinationOnInit: true,
-                renderValuesRound: true,
+                setDestinationOnInit: true, renderValuesRound: true,isAnimated: true,
                 size: new V2(10,10),
                 position: new V2(this.sceneCenter.x + getRandomInt(-10,10), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
                 img: this.dustClouds[0],
-                isAnimated: true,
-                // beforeDead: function(){
-                //     console.log('litl cloud is dead');
-                // },
+                
                 animation: {
                     totalFrameCount: spacePortImages.dustCloudImages_1.length,
                     framesInRow: spacePortImages.dustCloudImages_1.length,
-                    framesRowsCount: 1,
-                    frameChangeDelay: 250,
+                    framesRowsCount: 1, frameChangeDelay: 250,
                     destinationFrameSize:new V2(10,10),
                     sourceFrameSize: new V2(10,10),
                     animationEndCallback: function(){
                         this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(250,500), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
-                        //this.setDead();
                     }
                 },
             }), 20)
