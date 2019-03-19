@@ -69,9 +69,9 @@ class SpaceportScene extends Scene {
                 position: new V2(this.sceneCenter.x + getRandomInt(-10,10), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
                 img: this.dustClouds[0],
                 isAnimated: true,
-                beforeDead: function(){
-                    console.log('litl cloud is dead');
-                },
+                // beforeDead: function(){
+                //     console.log('litl cloud is dead');
+                // },
                 animation: {
                     totalFrameCount: spacePortImages.dustCloudImages_1.length,
                     framesInRow: spacePortImages.dustCloudImages_1.length,
@@ -80,7 +80,7 @@ class SpaceportScene extends Scene {
                     destinationFrameSize:new V2(10,10),
                     sourceFrameSize: new V2(10,10),
                     animationEndCallback: function(){
-                        this.addEffect(new FadeOutEffect({ effectTime: 500, updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
+                        this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(250,500), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
                         //this.setDead();
                     }
                 },

@@ -21,54 +21,49 @@ class CargoShip extends GO {
 
         this.script = {
             currentStep: undefined,
+            options: {
+                timerDelay: 50,
+            },
             items: [
-                // {
-                //     speedV2: new V2(-1, 0),
-                //     destination: new V2(300, 100),
-                //     check: function(go) {
-                //         return go.position.x <= this.destination.x;
-                //     },
-                //     timerType: 'movement'
-                // }
                 function(){
-                    this.scriptTimer = createTimer(50, () => {
-                        this.position.x+=-1;
-                        if(this.position.x <= 300){
-                            this.scriptTimer = undefined;
-                            this.processScript();
-                            return;
-                        }
-                        this.needRecalcRenderProperties = true;
-                    }, this, true);
+                    this.scriptTimer = this.createScriptTimer(
+                        function() { this.position.x+=-1; },
+                        function() {return this.position.x <= 300})
                 },
                 function(){
-                    let brake = {
-                        time: 0, duration: 100, change: -50, type: 'quad', method: 'out', startValue: 0
-                    }
+                    let brake = { time: 0, duration: 100, change: -50, type: 'quad', method: 'out', startValue: this.position.x };
+                    let tv = { time: 0, duration: 100, change: 20, type: 'quad', method: 'out', startValue: -20 }
 
-                    let tv = {
-                        time: 0, duration: 100, change: 20, type: 'quad', method: 'out', startValue: -20
-                    }
+                    this.scriptTimer = this.createScriptTimer(
+                        function() { 
+                            this.position.x =  easing.process(brake)
+                            this.thrustersAngle = easing.process(tv); 
+                            brake.time++;
+                            tv.time = brake.time;
+                        },
+                        function() { return brake.time > brake.duration; });
+                },
+                function(){
+                    this.levitationTimer = undefined;
+                    let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'in', startValue: this.position.y };
 
-                    let originX = this.position.x;
-                    this.scriptTimer = createTimer(50, () => {
-                        let delta = easing.process(brake);
-                        let adelta = easing.process(tv);
-                        this.position.x = originX + delta;
-                        this.thrustersAngle = adelta;
+                    this.scriptTimer = this.createScriptTimer(
+                        function(){ this.position.y = easing.process(fall); fall.time++; },
+                        function() { return fall.time > fall.duration; });
+                        
+                },
+                function(){
+                    this.scriptTimer = this.createScriptTimer(
+                        function() {this.position.y+=1;},
+                        function() { return this.position.y >= 200; });
+                },
+                function(){
+                    let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'out', startValue: this.position.y };
 
-                        this.needRecalcRenderProperties = true;
-
-                        brake.time++;
-                        tv.time = brake.time;
-
-                        if(brake.time > brake.duration){
-                            this.scriptTimer = undefined;
-                            this.processScript();
-                            return;
-                        }
-                    }, this, true);
-                }
+                    this.scriptTimer = this.createScriptTimer(
+                        function () {this.position.y = easing.process(fall); fall.time++; },
+                        function() { return fall.time > fall.duration; });
+                },
             ]
         }
     }
@@ -229,12 +224,34 @@ class CargoShip extends GO {
         this.processScript();
     }
 
+    toggleIgnition(enabled){
+        if(enabled != undefined){
+            enabled = !this.frontalThruster.fire.isVisible;
+        }
+
+        this.frontalThruster.fire.isVisible = enabled;
+        this.rearThruster.fire.isVisible = enabled;
+    }
+
     processScript() {
         if(this.script.items.length == 0)
             return;
 
         this.script.currentStep = this.script.items.shift();
         this.script.currentStep.call(this);
+    }
+
+    createScriptTimer = function(script, stopPredicate){
+        return createTimer(this.script.options.timerDelay, () => {
+            script.call(this);
+            if(stopPredicate.call(this)){
+                this.scriptTimer = undefined;
+                this.processScript();
+                return;
+            }
+            
+            this.needRecalcRenderProperties = true;
+        }, this, true);
     }
 
     internalUpdate(now) {
