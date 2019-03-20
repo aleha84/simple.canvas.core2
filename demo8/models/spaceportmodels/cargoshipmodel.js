@@ -55,15 +55,23 @@ class CargoShip extends GO {
                 function(){
                     this.scriptTimer = this.createScriptTimer(
                         function() {this.position.y+=1;},
-                        function() { return this.position.y >= 200; });
+                        function() { return this.position.y >= 220; });
                 },
                 function(){
                     let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'out', startValue: this.position.y };
 
+                    var target = new V2(this.position.x, 275);
+
+                    this.parentScene.toggleDust(true, [target.add(this.frontalThruster.position),target.add(this.rearThruster.position)])
                     this.scriptTimer = this.createScriptTimer(
                         function () {this.position.y = easing.process(fall); fall.time++; },
                         function() { return fall.time > fall.duration; });
                 },
+                function(){
+                    this.toggleIgnition(false);
+                    this.parentScene.toggleDust(false)
+                    this.processScript();
+                }
             ]
         }
     }

@@ -10,6 +10,7 @@ class Scene {
             AI: undefined,
             ui: [],
             clearGOOnDispose: true,
+            timers: [],
             debug: {
                 enabled: false,
                 font: (25*SCG.viewport.scale) + 'px Arial',
@@ -320,6 +321,23 @@ class Scene {
 
     afterMainWork(now) {}
 
+    processTimers(now) {
+        for(let timer of this.timers) {
+            doWorkByTimer(timer, now);
+        }
+    }
+
+    registerTimer(timer) {
+        if(this.timers.indexOf(timer) == -1)
+            this.timers.push(timer);
+    }
+
+    unregTimer(timer) {
+        let p = this.timers.indexOf(timer);
+        if(p != -1)
+            this.timers.splice(p, 1);
+    }
+
     cycleWork(now) {
         this.preMainWorkInner(now);
 
@@ -344,6 +362,8 @@ class Scene {
         }
         
         this.afterMainWork(now);
+        
+        this.processTimers(now);
 
         if(this.debug.enabled){
 

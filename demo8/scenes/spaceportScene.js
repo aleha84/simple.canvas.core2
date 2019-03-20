@@ -1,6 +1,7 @@
 class SpaceportScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
+            dustTimers: [],
             debug: {
                 enabled: true
             }
@@ -64,49 +65,91 @@ class SpaceportScene extends Scene {
 
         this.cloudGeneratorTImer = createTimer(15000*4, () => this.cloudsGenerator(), this, true);
 
-        this.mDustCount = 3;
-        this.dustCloudDemoTimer = createTimer(100, () => {
-            this.mDustCount--;
-            if(this.mDustCount == 0){
-                this.mDustCount = 3;
-                this.addGo(new MovingGO({
-                    speed: getRandom(0.01, 0.05),
-                    destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
-                    setDestinationOnInit: true, renderValuesRound: true,isAnimated: true,
-                    size: new V2(15,15),
-                    position: new V2(this.sceneCenter.x + getRandomInt(-15,15), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
-                    img: this.dustClouds[1],
-                    animation: {
-                        totalFrameCount: spacePortImages.dustCloudImages_medium.length, framesInRow: spacePortImages.dustCloudImages_medium.length,
-                        framesRowsCount: 1, frameChangeDelay: 350,
-                        destinationFrameSize:new V2(15,15),
-                        sourceFrameSize: new V2(15,15),
-                        animationEndCallback: function(){
-                            this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(350,600), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
-                        }
-                    },
-                }), 19)
-            }
+        // this.mDustCount = 3;
+        // this.dustCloudDemoTimer = createTimer(100, () => {
+        //     this.mDustCount--;
+        //     if(this.mDustCount == 0){
+        //         this.mDustCount = 3;
+        //         this.addGo(new MovingGO({
+        //             speed: getRandom(0.01, 0.05),
+        //             destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
+        //             setDestinationOnInit: true, renderValuesRound: true,isAnimated: true,
+        //             size: new V2(15,15),
+        //             position: new V2(this.sceneCenter.x + getRandomInt(-15,15), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
+        //             img: this.dustClouds[1],
+        //             animation: {
+        //                 totalFrameCount: spacePortImages.dustCloudImages_medium.length, framesInRow: spacePortImages.dustCloudImages_medium.length,
+        //                 framesRowsCount: 1, frameChangeDelay: 350,
+        //                 destinationFrameSize:new V2(15,15),
+        //                 sourceFrameSize: new V2(15,15),
+        //                 animationEndCallback: function(){
+        //                     this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(350,600), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
+        //                 }
+        //             },
+        //         }), 19)
+        //     }
+        //     this.addGo(new MovingGO({
+        //         speed: getRandom(0.01, 0.2),
+        //         destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
+        //         setDestinationOnInit: true, renderValuesRound: true,isAnimated: true,
+        //         size: new V2(10,10),
+        //         position: new V2(this.sceneCenter.x + getRandomInt(-10,10), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
+        //         img: this.dustClouds[0],
+                
+        //         animation: {
+        //             totalFrameCount: spacePortImages.dustCloudImages_1.length,
+        //             framesInRow: spacePortImages.dustCloudImages_1.length,
+        //             framesRowsCount: 1, frameChangeDelay: 250,
+        //             destinationFrameSize:new V2(10,10),
+        //             sourceFrameSize: new V2(10,10),
+        //             animationEndCallback: function(){
+        //                 this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(250,500), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
+        //             }
+        //         },
+        //     }), 20)
+        // }, this, true);
+    }
+
+    dustCloudGenerator(params) {
+        if(params.mDustCount == 0){
+            params.mDustCount = 3;
             this.addGo(new MovingGO({
-                speed: getRandom(0.01, 0.2),
+                speed: getRandom(0.01, 0.05),
                 destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
                 setDestinationOnInit: true, renderValuesRound: true,isAnimated: true,
-                size: new V2(10,10),
-                position: new V2(this.sceneCenter.x + getRandomInt(-10,10), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
-                img: this.dustClouds[0],
-                
+                size: new V2(15,15),
+                position: new V2(params.position.x + getRandomInt(-15,15), params.position.y + getRandomInt(-10,10)),//new V2(0,14.75),
+                img: this.dustClouds[1],
                 animation: {
-                    totalFrameCount: spacePortImages.dustCloudImages_1.length,
-                    framesInRow: spacePortImages.dustCloudImages_1.length,
-                    framesRowsCount: 1, frameChangeDelay: 250,
-                    destinationFrameSize:new V2(10,10),
-                    sourceFrameSize: new V2(10,10),
+                    totalFrameCount: spacePortImages.dustCloudImages_medium.length, framesInRow: spacePortImages.dustCloudImages_medium.length,
+                    framesRowsCount: 1, frameChangeDelay: 350,
+                    destinationFrameSize:new V2(15,15),
+                    sourceFrameSize: new V2(15,15),
                     animationEndCallback: function(){
-                        this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(250,500), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
+                        this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(350,600), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
                     }
                 },
-            }), 20)
-        }, this, true);
+            }), 19)
+        }
+        this.addGo(new MovingGO({
+            speed: getRandom(0.01, 0.2),
+            destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
+            setDestinationOnInit: true, renderValuesRound: true,isAnimated: true,
+            size: new V2(10,10),
+            position: new V2(params.position.x + getRandomInt(-10,10), params.position.y + getRandomInt(-10,10)),//new V2(0,14.75),
+            img: this.dustClouds[0],
+            
+            animation: {
+                totalFrameCount: spacePortImages.dustCloudImages_1.length,
+                framesInRow: spacePortImages.dustCloudImages_1.length,
+                framesRowsCount: 1, frameChangeDelay: 250,
+                destinationFrameSize:new V2(10,10),
+                sourceFrameSize: new V2(10,10),
+                animationEndCallback: function(){
+                    this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(250,500), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
+                }
+            },
+        }), 20)
     }
 
     cloudsGenerator(position) {
@@ -154,12 +197,33 @@ class SpaceportScene extends Scene {
         }),1);
     }
 
+    toggleDust(enabled, positions) {
+        if(!enabled){
+            for(let dustTimer of this.dustTimers){
+                this.unregTimer(dustTimer);
+            }
+
+            this.dustTimers = [];
+
+            return;
+        }
+
+        for(let position of positions) {
+            let params = { mDustCount: 0, position };
+            let t = createTimer(100, () => {
+                this.dustCloudGenerator(params);
+            }, this, true);
+            this.registerTimer(t);
+            this.dustTimers.push(t);
+        }
+    }
+
     afterMainWork(now){
         if(this.cloudGeneratorTImer)
             doWorkByTimer(this.cloudGeneratorTImer, now);
 
-        if(this.dustCloudDemoTimer)
-            doWorkByTimer(this.dustCloudDemoTimer, now);
+        // if(this.dustCloudDemoTimer)
+        //     doWorkByTimer(this.dustCloudDemoTimer, now);
     }
 
     backgroundRender(){
