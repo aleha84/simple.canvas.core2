@@ -72,9 +72,15 @@ class CargoShip extends GO {
                         function() { return fall.time > fall.duration; });
                 },
                 function(){
-                    this.toggleIgnition(false);
-                    this.parentScene.toggleDust(false)
+                    this.setIgnition('none');
                     this.processScript();
+                },
+                function(){
+                    this.scriptTimer = this.createScriptTimer(
+                        function(){ this.parentScene.toggleDust(false); },
+                        function() { return true },
+                        false, 1000
+                    )
                 }
             ]
         }
@@ -249,8 +255,8 @@ class CargoShip extends GO {
         this.script.currentStep.call(this);
     }
 
-    createScriptTimer = function(script, stopPredicate){
-        return createTimer(this.script.options.timerDelay, () => {
+    createScriptTimer = function(script, stopPredicate, startNow = true, customDelay = undefined){
+        return createTimer(customDelay || this.script.options.timerDelay, () => {
             script.call(this);
             if(stopPredicate.call(this)){
                 this.scriptTimer = undefined;
@@ -259,7 +265,7 @@ class CargoShip extends GO {
             }
             
             this.needRecalcRenderProperties = true;
-        }, this, true);
+        }, this, startNow);
     }
 
     internalUpdate(now) {
