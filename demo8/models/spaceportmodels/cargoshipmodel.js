@@ -26,6 +26,10 @@ class CargoShip extends GO {
             },
             items: [
                 function(){
+                    this.setIgnition('big');
+                    this.processScript();
+                },
+                function(){
                     this.scriptTimer = this.createScriptTimer(
                         function() { this.position.x+=-1; },
                         function() {return this.position.x <= 300})
@@ -70,9 +74,14 @@ class CargoShip extends GO {
 
     init() {
         
-        let igniteImg = createCanvas(new V2(spacePortImages.igniteImages.length*6, 15), (ctx, size) => {
+        this.igniteImg = createCanvas(new V2(spacePortImages.igniteImages.length*6, 15), (ctx, size) => {
             for(let i = 0; i < spacePortImages.igniteImages.length; i++){
                 ctx.drawImage(PP.createImage(spacePortImages.igniteImages[i]), 6*i,0);
+            }
+        })
+        this.igniteSMallImg = createCanvas(new V2(spacePortImages.igniteSmallImages.length*6, 6), (ctx, size) => {
+            for(let i = 0; i < spacePortImages.igniteSmallImages.length; i++){
+                ctx.drawImage(PP.createImage(spacePortImages.igniteSmallImages[i]), 6*i,0);
             }
         })
         this.body = this.addChild(new GO({
@@ -113,23 +122,6 @@ class CargoShip extends GO {
             }
         }));
 
-        this.frontalThruster.fire = this.frontalThruster.addChild(new GO({
-            renderValuesRound: true,
-            size: new V2(6,15),
-            position: new V2(0,14.75),
-            img: igniteImg,
-            isAnimated: true,
-            animation: {
-                totalFrameCount: spacePortImages.igniteImages.length,
-                framesInRow: spacePortImages.igniteImages.length,
-                framesRowsCount: 1,
-                frameChangeDelay: 150,
-                destinationFrameSize:new V2(6,15),
-                sourceFrameSize: new V2(6,15),
-                loop: true
-            },
-        }));
-
         this.rearThruster = this.addChild(new GO({
             renderValuesRound: true,
             position: new V2(40, 7),
@@ -151,23 +143,6 @@ class CargoShip extends GO {
                 this.context.rotate(degreeToRadians(-this.parent.thrustersAngle));
                 this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
             }
-        }));
-
-        this.rearThruster.fire = this.rearThruster.addChild(new GO({
-            renderValuesRound: true,
-            size: new V2(6,15),
-            position: new V2(0,14.75),
-            img: igniteImg,
-            isAnimated: true,
-            animation: {
-                totalFrameCount: spacePortImages.igniteImages.length,
-                framesInRow: spacePortImages.igniteImages.length,
-                framesRowsCount: 1,
-                frameChangeDelay: 150,
-                destinationFrameSize:new V2(6,15),
-                sourceFrameSize: new V2(6,15),
-                loop: true
-            },
         }));
 
         this.indicators = [new V2(-35, -8), new V2(-15, -8), new V2(15, -8), new V2(35, -8)].map(p => this.addChild(new GO({
@@ -223,14 +198,39 @@ class CargoShip extends GO {
 
         this.processScript();
     }
-
-    toggleIgnition(enabled){
-        if(enabled != undefined){
-            enabled = !this.frontalThruster.fire.isVisible;
+    setIgnition(type) {
+        if(type == 'none'){
+            if(this.frontalThruster.fire)
+                this.frontalThruster.fire.setDead();
+            if(this.rearThruster.fire)
+                this.rearThruster.fire.setDead();
         }
+        else if(type == 'big'){
+            this.frontalThruster.fire = this.frontalThruster.addChild(new Ignition({  
+                size: new V2(6,15),
+                position: new V2(0,14.75),
+                img: this.igniteImg,
+                animation: {
+                    totalFrameCount: spacePortImages.igniteImages.length,
+                    framesInRow: spacePortImages.igniteImages.length,
+                    destinationFrameSize:new V2(6,15),
+                    sourceFrameSize: new V2(6,15),
+                    
+                },
+            }));
 
-        this.frontalThruster.fire.isVisible = enabled;
-        this.rearThruster.fire.isVisible = enabled;
+            this.rearThruster.fire = this.rearThruster.addChild(new Ignition({
+                size: new V2(6,15),
+                position: new V2(0,14.75),
+                img: this.igniteImg,
+                animation: {
+                    totalFrameCount: spacePortImages.igniteImages.length,
+                    framesInRow: spacePortImages.igniteImages.length,
+                    destinationFrameSize:new V2(6,15),
+                    sourceFrameSize: new V2(6,15),
+                },
+            }));
+        }
     }
 
     processScript() {
@@ -260,5 +260,21 @@ class CargoShip extends GO {
 
         if(this.scriptTimer) 
             doWorkByTimer(this.scriptTimer, now);
+    }
+}
+
+class Ignition extends GO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            renderValuesRound: true,
+            isAnimated: true,
+            animation: {
+                framesRowsCount: 1,
+                frameChangeDelay: 150,
+                loop: true
+            }
+        }, options);
+
+        super(options);
     }
 }
