@@ -59,27 +59,39 @@ class CargoShip extends GO {
                 function(){
                     this.scriptTimer = this.createScriptTimer(
                         function() {this.position.y+=1;},
-                        function() { return this.position.y >= 220; });
+                        function() { return this.position.y >= 210; });
                 },
                 function(){
                     let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'out', startValue: this.position.y };
 
-                    var target = new V2(this.position.x, 275);
+                    var target = new V2(this.position.x, 270);
+                    let ignitionSmallSet = false;
+                    let ignitionNoneSet = false;
 
                     this.parentScene.toggleDust(true, [target.add(this.frontalThruster.position),target.add(this.rearThruster.position)])
                     this.scriptTimer = this.createScriptTimer(
-                        function () {this.position.y = easing.process(fall); fall.time++; },
+                        function () {this.position.y = easing.process(fall); fall.time++;
+                            if(fall.time > fall.duration/2 && !ignitionSmallSet){
+                                ignitionSmallSet = true;
+                                this.setIgnition('small');
+                            }
+
+                            if(fall.time > fall.duration*3/4 && !ignitionNoneSet){
+                                ignitionNoneSet = true;
+                                this.setIgnition('none');
+                            }
+                         },
                         function() { return fall.time > fall.duration; });
                 },
-                function(){
-                    this.setIgnition('none');
-                    this.processScript();
-                },
+                // function(){
+                //     this.setIgnition('none');
+                //     this.processScript();
+                // },
                 function(){
                     this.scriptTimer = this.createScriptTimer(
                         function(){ this.parentScene.toggleDust(false); },
                         function() { return true },
-                        false, 1000
+                        false, 500
                     )
                 }
             ]
@@ -93,7 +105,7 @@ class CargoShip extends GO {
                 ctx.drawImage(PP.createImage(spacePortImages.igniteImages[i]), 6*i,0);
             }
         })
-        this.igniteSMallImg = createCanvas(new V2(spacePortImages.igniteSmallImages.length*6, 6), (ctx, size) => {
+        this.igniteSmallImg = createCanvas(new V2(spacePortImages.igniteSmallImages.length*6, 6), (ctx, size) => {
             for(let i = 0; i < spacePortImages.igniteSmallImages.length; i++){
                 ctx.drawImage(PP.createImage(spacePortImages.igniteSmallImages[i]), 6*i,0);
             }
@@ -220,29 +232,31 @@ class CargoShip extends GO {
                 this.rearThruster.fire.setDead();
         }
         else if(type == 'big'){
+            this.setIgnition('none')
             this.frontalThruster.fire = this.frontalThruster.addChild(new Ignition({  
-                size: new V2(6,15),
                 position: new V2(0,14.75),
                 img: this.igniteImg,
-                animation: {
-                    totalFrameCount: spacePortImages.igniteImages.length,
-                    framesInRow: spacePortImages.igniteImages.length,
-                    destinationFrameSize:new V2(6,15),
-                    sourceFrameSize: new V2(6,15),
-                    
-                },
+                type: type
             }));
 
             this.rearThruster.fire = this.rearThruster.addChild(new Ignition({
-                size: new V2(6,15),
                 position: new V2(0,14.75),
                 img: this.igniteImg,
-                animation: {
-                    totalFrameCount: spacePortImages.igniteImages.length,
-                    framesInRow: spacePortImages.igniteImages.length,
-                    destinationFrameSize:new V2(6,15),
-                    sourceFrameSize: new V2(6,15),
-                },
+                type: type
+            }));
+        }
+        else if(type == 'small'){
+            this.setIgnition('none')
+            this.frontalThruster.fire = this.frontalThruster.addChild(new Ignition({  
+                position: new V2(0,10.25),
+                img: this.igniteSmallImg,
+                type: type
+            }));
+
+            this.rearThruster.fire = this.rearThruster.addChild(new Ignition({
+                position: new V2(0,10.25),
+                img: this.igniteSmallImg,
+                type: type
             }));
         }
     }
@@ -282,12 +296,30 @@ class Ignition extends GO {
         options = assignDeep({}, {
             renderValuesRound: true,
             isAnimated: true,
+            type: 'big',
             animation: {
                 framesRowsCount: 1,
                 frameChangeDelay: 150,
                 loop: true
             }
         }, options);
+
+        switch(options.type){
+            case 'big':
+                options.size = new V2(6,15);
+                options.animation.totalFrameCount = spacePortImages.igniteImages.length;
+                options.animation.framesInRow = spacePortImages.igniteImages.length;
+                options.animation.destinationFrameSize =new V2(6,15);
+                options.animation.sourceFrameSize = new V2(6,15);
+                break;
+            case 'small':
+                options.size = new V2(6,6);
+                options.animation.totalFrameCount = spacePortImages.igniteSmallImages.length;
+                options.animation.framesInRow = spacePortImages.igniteSmallImages.length;
+                options.animation.destinationFrameSize =new V2(6,6);
+                options.animation.sourceFrameSize = new V2(6,6);
+                break;
+        }
 
         super(options);
     }

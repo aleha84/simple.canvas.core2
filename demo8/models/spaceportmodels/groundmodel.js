@@ -48,5 +48,11 @@ class Ground extends GO {
                 ]
             })
         }))
+
+        this.landingPad = this.addChild(new GO({
+            size: new V2(140,20),
+            position: new V2(0, -4),
+            img: PP.createImage(spacePortImages.landingPad)
+        }))
     }
 }
