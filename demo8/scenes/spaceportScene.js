@@ -41,6 +41,12 @@ class SpaceportScene extends Scene {
             position: new V2(this.viewport.x + 100, 100)//this.sceneCenter.x
         }),10);
 
+        this.farMountains = this.addGo(new GO({
+            position: new V2(this.viewport.x/2, 230),
+            img: PP.createImage(spacePortImages.farMOuntainsImage),
+            size: new V2(500, 100)
+        }), 1)
+
         this.ground = this.addGo(new Ground({
             size: new V2(this.viewport.x, 50),
             position: new V2(this.sceneCenter.x, this.viewport.y- 25)
@@ -64,55 +70,12 @@ class SpaceportScene extends Scene {
         ];
 
         this.cloudGeneratorTImer = createTimer(15000*4, () => this.cloudsGenerator(), this, true);
-
-        // this.mDustCount = 3;
-        // this.dustCloudDemoTimer = createTimer(100, () => {
-        //     this.mDustCount--;
-        //     if(this.mDustCount == 0){
-        //         this.mDustCount = 3;
-        //         this.addGo(new MovingGO({
-        //             speed: getRandom(0.01, 0.05),
-        //             destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
-        //             setDestinationOnInit: true, renderValuesRound: true,isAnimated: true,
-        //             size: new V2(15,15),
-        //             position: new V2(this.sceneCenter.x + getRandomInt(-15,15), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
-        //             img: this.dustClouds[1],
-        //             animation: {
-        //                 totalFrameCount: spacePortImages.dustCloudImages_medium.length, framesInRow: spacePortImages.dustCloudImages_medium.length,
-        //                 framesRowsCount: 1, frameChangeDelay: 350,
-        //                 destinationFrameSize:new V2(15,15),
-        //                 sourceFrameSize: new V2(15,15),
-        //                 animationEndCallback: function(){
-        //                     this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(350,600), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
-        //                 }
-        //             },
-        //         }), 19)
-        //     }
-        //     this.addGo(new MovingGO({
-        //         speed: getRandom(0.01, 0.2),
-        //         destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
-        //         setDestinationOnInit: true, renderValuesRound: true,isAnimated: true,
-        //         size: new V2(10,10),
-        //         position: new V2(this.sceneCenter.x + getRandomInt(-10,10), this.viewport.y-40 + getRandomInt(-10,10)),//new V2(0,14.75),
-        //         img: this.dustClouds[0],
-                
-        //         animation: {
-        //             totalFrameCount: spacePortImages.dustCloudImages_1.length,
-        //             framesInRow: spacePortImages.dustCloudImages_1.length,
-        //             framesRowsCount: 1, frameChangeDelay: 250,
-        //             destinationFrameSize:new V2(10,10),
-        //             sourceFrameSize: new V2(10,10),
-        //             animationEndCallback: function(){
-        //                 this.addEffect(new FadeOutEffect({ effectTime: getRandomInt(250,500), updateDelay: 50, setParentDeadOnComplete: true, initOnAdd: true }))
-        //             }
-        //         },
-        //     }), 20)
-        // }, this, true);
     }
 
     dustCloudGenerator(params) {
-        if(params.mDustCount == 0){
-            params.mDustCount = 3;
+        if(params.mDustCount <= 0){
+            params.mDustCount = 4;
+            // console.log('big cloud generated')
             this.addGo(new MovingGO({
                 speed: getRandom(0.01, 0.05),
                 destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
@@ -131,6 +94,7 @@ class SpaceportScene extends Scene {
                 },
             }), 19)
         }
+        params.mDustCount--;
         this.addGo(new MovingGO({
             speed: getRandom(0.01, 0.2),
             destination: new V2(getRandomInt(0, this.viewport.x), getRandomInt(0, this.viewport.y - 40)),
@@ -191,9 +155,6 @@ class SpaceportScene extends Scene {
                     
                 }
             }),
-            // beforeDead() {
-            //     this.parentScene.cloudsGenerator();
-            // }
         }),1);
     }
 

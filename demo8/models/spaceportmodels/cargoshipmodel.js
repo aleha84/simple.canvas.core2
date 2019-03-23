@@ -64,7 +64,7 @@ class CargoShip extends GO {
                 function(){
                     let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'out', startValue: this.position.y };
 
-                    var target = new V2(this.position.x, 270);
+                    var target = new V2(this.position.x, 265);
                     let ignitionSmallSet = false;
                     let ignitionNoneSet = false;
 
@@ -91,7 +91,7 @@ class CargoShip extends GO {
                     this.scriptTimer = this.createScriptTimer(
                         function(){ this.parentScene.toggleDust(false); },
                         function() { return true },
-                        false, 500
+                        false, 250
                     )
                 }
             ]

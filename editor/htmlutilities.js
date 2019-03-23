@@ -41,7 +41,7 @@ var htmlUtils = {
             }
 
             if(props.props){
-                this.setAttributes(el, props.props)
+                this.setProps(el, props.props)
             }
         }
 
@@ -52,15 +52,15 @@ var htmlUtils = {
             element.removeChild(element.firstChild);
         }
     },
+    setProps(el, props){
+        for(var key in props) {
+            if(props[key])
+                el.setAttribute(key, props[key]);
+        }
+    },
     setAttributes(el, attrs) {
         for(var key in attrs) {
             el.setAttribute(key, attrs[key]);
-        }
-    },
-
-    setProps(el, props){
-        for(var key in props) {
-            el.setAttribute(key, '');
         }
     }
 }

@@ -131,14 +131,14 @@ var components = {
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
         }
 
-        let cPicker = htmlUtils.createElement('input', {attributes: { type: 'color'}, props: { value }, events: {
+        let cPicker = htmlUtils.createElement('input', {attributes: { type: 'color', value}, events: {
             change: (event) => {
                 hexInput.value = event.target.value;
                 changeCallback(event.target.value);
             }
         } })
 
-        let hexInput = htmlUtils.createElement('input', {attributes: { type: 'text'}, props: { value }, events: {
+        let hexInput = htmlUtils.createElement('input', {attributes: { type: 'text', value}, events: {
             blur: (event) => {
                 if(!/^#[0-9A-F]{6}$/i.test(event.target.value)){
                     event.target.value = cPicker.value;
@@ -159,10 +159,40 @@ var components = {
         return el;
     },
     createList(listProps) {
-        
+        let selected = false;
         let lb = htmlUtils.createElement('div', { className: 'listbox' });
         lb.appendChild(htmlUtils.createElement('p', { className: 'title', text: listProps.title }));
         let selectHolder = htmlUtils.createElement('div', { className: 'selectHolder'});
+        
+        let select = htmlUtils.createElement('select', { attributes: { size: listProps.maxSize || 10 }, events: {
+            change: function(e) { 
+                if(listProps.callbacks.select) {
+                    selected = true;
+                    addButton.disabled = false;
+                    if(moveUpButton)
+                        moveUpButton.disabled = false;
+
+                    if(moveDownButton)
+                        moveDownButton.disabled = false;
+                    listProps.callbacks.select(e)
+                }
+                else 
+                    console.log(e.target.value)
+         }
+        } });
+
+        for(let item of listProps.items){
+            let op = new Option(item.title || item.text, item.value);
+            if(item.selected){
+                op.selected = true;
+                selected = true;
+            }
+
+            select.options[select.options.length] = op;
+        }
+
+        selectHolder.append(select);
+        
         let addButton = htmlUtils.createElement('input', {
             attributes: { 
                 type: 'button', 
@@ -173,29 +203,56 @@ var components = {
                     listProps.callbacks.remove(e, select);
                 } },
             props: {
-                disabled: true
+                disabled: !selected
             }
         });
-        let select = htmlUtils.createElement('select', { attributes: { size: listProps.maxSize || 10 }, events: {
-            change: function(e) { 
-                if(listProps.callbacks.select) {
-                    addButton.disabled = false;
-                    listProps.callbacks.select(e)
-                }
-                else 
-                    console.log(e.target.value)
-         }
-        } });
-
-        for(let item of listProps.items){
-            select.options[select.options.length] = new Option(item.title || item.text, item.value);
-        }
-
-        selectHolder.append(select);
-
-        let sControls = htmlUtils.createElement('div', { className: 'selectControls'});
         
 
+        let sControls = htmlUtils.createElement('div', { className: 'selectControls'});
+        let moveUpButton = undefined;
+        let moveDownButton = undefined;
+        if(listProps.callbacks.move){
+            moveUpButton = htmlUtils.createElement('input', 
+            { 
+                attributes: { 
+                    type: 'button', 
+                    value: 'Move ↑' 
+                }, 
+                events: { 
+                    click: function(e) { 
+                        if(!selected)
+                            return;
+                        
+                        listProps.callbacks.move(select, -1);
+                    } 
+                },
+                props: {
+                    disabled: !selected
+                } });
+    
+            sControls.append(moveUpButton);
+
+            moveDownButton = htmlUtils.createElement('input', 
+            { 
+                attributes: { 
+                    type: 'button', 
+                    value: 'Move ↓' 
+                }, 
+                events: { 
+                    click: function(e) { 
+                        if(!selected)
+                            return;
+                        
+                        listProps.callbacks.move(select, 1);
+                    } 
+                },
+                props: {
+                    disabled: !selected
+                } });
+    
+            sControls.append(moveDownButton);
+        }
+        
         sControls.append(
             htmlUtils.createElement('input', 
                 { 
@@ -205,8 +262,13 @@ var components = {
                     }, 
                     events: { 
                         click: function(e) { 
+                            selected = false;
                             select.options.selectedIndex = -1;
                             addButton.disabled = true;
+                            if(moveUpButton)
+                                moveUpButton.disabled = true;
+                            if(moveDownButton)
+                                moveDownButton.disabled = true;
                             listProps.callbacks.reset(e);
                         } } }))
 
@@ -254,10 +316,33 @@ var components = {
 
         layerEl.appendChild(strokeColor);
 
-        // let colorsExchange = htmlUtils.createElement('div',  { classNames: ['colorsExchange', 'row'] });
-        // colorsExchange.appendChild(htmlUtils.createElement('input', { value: '&#darr;', attributes: {type: 'button'}, events: { click: function(){ layerProps.fillColor = layerProps.strokeColor; fillColor.hexInput = layerProps.strokeColor; changeCallback(); } } }))
+        //обмен цвентов
+        let colorsExchange = htmlUtils.createElement('div',  { classNames: ['colorsExchange', 'row'] });
+        colorsExchange.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Colors exchange' }))
+        colorsExchange.appendChild(htmlUtils.createElement('button', { text: '↓', attributes: {}, events: { 
+            click: function() { 
+                if(layerProps.fillColor == layerProps.strokeColor)
+                    return;
 
-        // layerEl.appendChild(colorsExchange);
+                fillColor.cPicker.value = strokeColor.cPicker.value;
+                fillColor.hexInput.value = strokeColor.hexInput.value;
+                layerProps.fillColor = layerProps.strokeColor;
+                changeCallback();
+             }
+        } }))
+        colorsExchange.appendChild(htmlUtils.createElement('button', { text: '↑', attributes: {}, events: { 
+            click: function() { 
+                if(layerProps.fillColor == layerProps.strokeColor)
+                    return;
+                    
+                strokeColor.cPicker.value = fillColor.cPicker.value;
+                strokeColor.hexInput.value = fillColor.hexInput.value;
+                layerProps.strokeColor = layerProps.fillColor;
+                changeCallback();
+             }
+        } }))
+
+        layerEl.appendChild(colorsExchange);
 
         layerEl.appendChild(fillColor);
 
@@ -317,7 +402,7 @@ var components = {
         // points list
         pointsEl.appendChild(components.createList({
             title: 'Points',
-            items: points.map(p => {return { title: `x: ${p.point.x}, y: ${p.point.y}`, value: p.id }}),
+            items: points.map(p => {return { title: `x: ${p.point.x}, y: ${p.point.y}`, value: p.id, selected: p.selected }}),
             callbacks: {
                 select: function(e){ 
                     points.forEach(p => p.selected = false);
@@ -357,8 +442,35 @@ var components = {
                     components.fillPoints(layerProps, changeCallback);
                     changeCallback();
                 },
+                move(select, direction) {
+                    let p = points.filter(p => p.id == select.value); 
+                    if(!p.length)
+                        return;
+                    else 
+                        p = p[0];
+
+                    let currentIndex = points.indexOf(p);
+                    if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == points.length-1))
+                        return;
+
+                    components.array_move(points, currentIndex, currentIndex + direction);
+                    points.forEach((p, i) => p.order = i);
+
+                    components.fillPoints(layerProps, changeCallback);
+                    changeCallback();
+                },
                 changeCallback: changeCallback
             }
         }))
+    },
+    array_move(arr, old_index, new_index) {
+        if (new_index >= arr.length) {
+            var k = new_index - arr.length + 1;
+            while (k--) {
+                arr.push(undefined);
+            }
+        }
+        arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
+        return arr; // for testing
     }
 }

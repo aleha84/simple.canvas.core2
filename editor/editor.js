@@ -122,17 +122,21 @@ points: [{
         this.renderCallback(this.prepareModel());
     }
 
-    exportModel(pretty) {
-        return `let model = ${JSON.stringify(this.prepareModel(), (k,v) => {
+    exportModel(pretty, clean) {
+        let model = JSON.stringify(this.prepareModel(), (k,v) => {
             if(k == 'editor')
                 return undefined;
             
             return v;
-        }, pretty? 4: null)}
-        
-let img = PP.createImage(model);
-        `
-        //createCanvas(new V2())
+        }, pretty? 4: null);
+
+        if(!clean)
+            return `let model = ${model}
+            
+    let img = PP.createImage(model);
+            `
+        else 
+            return model;
     }
     prepareModel(model) {
         let that = model || this;
@@ -304,10 +308,12 @@ let img = PP.createImage(model);
 
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Export', attributes: { type: 'button' }, events: {
             click: function(){
+                let pretty = true;
+                let clean = false;
                 that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
                 let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'export'] });
                 let textarea = htmlUtils.createElement('textarea', {
-                    value: that.exportModel(true),
+                    value: that.exportModel(pretty, clean),
                     attributes: {
                         resize: false,
                         readonly: 'readonly'
@@ -315,8 +321,15 @@ let img = PP.createImage(model);
                 });
 
                 containerEl.appendChild(components.createCheckBox(true, 'Pretty', (value) => {
-                    textarea.value = that.exportModel(value);
+                    pretty = value;
+                    textarea.value = that.exportModel(value, clean);
                 }))
+
+                containerEl.appendChild(components.createCheckBox(false, 'Clean', (value) => {
+                    clean = value;
+                    textarea.value = that.exportModel(pretty, value);
+                }))
+
                 containerEl.appendChild(textarea);
                 createCloseButtonAndAddOverlay(containerEl);
             }
