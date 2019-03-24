@@ -47,7 +47,13 @@ class Ground extends GO {
                     }
                 ]
             })
-        }))
+        }));
+
+        this.hangingWireImg = createCanvas(new V2(spacePortImages.hangingWireImages.length*37, 30), (ctx, size) => {
+            for(let i = 0; i < spacePortImages.hangingWireImages.length; i++){
+                ctx.drawImage(PP.createImage(spacePortImages.hangingWireImages[i]), 37*i,0);
+            }
+        })
 
         this.landingPad = this.addChild(new GO({
             size: new V2(140,20),
@@ -82,11 +88,62 @@ class Ground extends GO {
             })
         }));
 
-        this.utilityHangar = this.addChild(new GO({
+        this.utilityHangar2 = this.addChild(new GO({
+            size: new V2(30,20),
+            position: new V2(90,-13),
+            img: PP.createImage(spacePortImages.buildings.hangar2)
+        }));
+
+        this.utilityHangar1 = this.addChild(new GO({
             size: new V2(30,20),
             position: new V2(70,-13),
             img: PP.createImage(spacePortImages.buildings.hangar1)
         }));
+
+        this.powerUtility = this.addChild(new GO({
+            size: new V2(15,15),
+            position: new V2(-100, -15),
+            img: PP.createImage(spacePortImages.buildings.powerUtility)
+        }));
+
+        this.powerUtilityIndicatorImg = createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'blue'; ctx.fillRect(0,0,1,1); });
+        this.powerUtility.indicators = [
+            this.powerUtility.addChild(new GO({
+                size: new V2(2,1),
+                position: new V2(-2.5,-3),
+                img: this.powerUtilityIndicatorImg
+            })),
+            this.powerUtility.addChild(new GO({
+                size: new V2(2,1),
+                position: new V2(-2.5,-2),
+                img: this.powerUtilityIndicatorImg
+            })),
+            this.powerUtility.addChild(new GO({
+                size: new V2(2,1),
+                position: new V2(-2.5,-1),
+                img: this.powerUtilityIndicatorImg
+            }))
+        ]
+
+        this.powerUtility.indicators[0].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, loop: true, initOnAdd: true, delayOnLoop: 2000}))
+        this.powerUtility.indicators[1].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, startDelay: 1000,loop: true, initOnAdd: true, delayOnLoop: 2000}))
+        this.powerUtility.indicators[2].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, startDelay: 2000,loop: true, initOnAdd: true, delayOnLoop: 2000}))
+
+        this.hangingWire = this.addChild(new GO({
+            size: new V2(37,30),
+            position: new V2(-123, -34),
+            img: this.hangingWireImg,
+            isAnimated: true,
+            animation: {
+                framesRowsCount: 1,
+                frameChangeDelay: 1500,
+                loop: true,
+                totalFrameCount: spacePortImages.hangingWireImages.length,
+                framesInRow: spacePortImages.hangingWireImages.length,
+                destinationFrameSize:new V2(37,30),
+                sourceFrameSize: new V2(37,30)
+            }
+        }))
 
         this.farAwayCity = this.addChild(new GO({
             position: new V2(200, -35),
