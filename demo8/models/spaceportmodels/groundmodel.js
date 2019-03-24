@@ -82,6 +82,12 @@ class Ground extends GO {
             })
         }));
 
+        this.utilityHangar = this.addChild(new GO({
+            size: new V2(30,20),
+            position: new V2(70,-13),
+            img: PP.createImage(spacePortImages.buildings.hangar1)
+        }));
+
         this.farAwayCity = this.addChild(new GO({
             position: new V2(200, -35),
             size: new V2(100, 20),
