@@ -79,6 +79,7 @@ class CargoShip extends GO {
                             if(fall.time > fall.duration*3/4 && !ignitionNoneSet){
                                 ignitionNoneSet = true;
                                 this.setIgnition('none');
+                                this.parentScene.toggleDust(false);
                             }
                          },
                         function() { return fall.time > fall.duration; });
@@ -87,13 +88,13 @@ class CargoShip extends GO {
                 //     this.setIgnition('none');
                 //     this.processScript();
                 // },
-                function(){
-                    this.scriptTimer = this.createScriptTimer(
-                        function(){ this.parentScene.toggleDust(false); },
-                        function() { return true },
-                        false, 250
-                    )
-                }
+                // function(){
+                //     this.scriptTimer = this.createScriptTimer(
+                //         function(){ this.parentScene.toggleDust(false); },
+                //         function() { return true },
+                //         false, 250
+                //     )
+                // }
             ]
         }
     }

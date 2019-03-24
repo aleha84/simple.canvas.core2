@@ -82,6 +82,12 @@ class Ground extends GO {
             })
         }));
 
+        this.farAwayCity = this.addChild(new GO({
+            position: new V2(200, -35),
+            size: new V2(100, 20),
+            img: PP.createImage(spacePortImages.farAwayCity)
+        }))
+
         this.tower.top.antennas.beacons = [
             this.tower.top.antennas.addChild(new GO({
                size: new V2(1,1),

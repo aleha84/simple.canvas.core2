@@ -124,7 +124,7 @@ points: [{
 
     exportModel(pretty, clean) {
         let model = JSON.stringify(this.prepareModel(), (k,v) => {
-            if(k == 'editor')
+            if(k == 'editor' || k == 'selected')
                 return undefined;
             
             return v;
