@@ -55,6 +55,12 @@ class Ground extends GO {
             }
         })
 
+        this.farAwayCity = this.addChild(new GO({
+            position: new V2(200, -35),
+            size: new V2(100, 20),
+            img: PP.createImage(spacePortImages.farAwayCity)
+        }))
+
         this.landingPad = this.addChild(new GO({
             size: new V2(140,20),
             position: new V2(0, -4),
@@ -87,6 +93,12 @@ class Ground extends GO {
                 ctx.fillRect(2, 0, 1, 1);
             })
         }));
+
+        this.administrationBuilding = this.addChild(new GO({
+            size: new V2(70,40),
+            position: new V2(140, -22),
+            img: PP.createImage(spacePortImages.buildings.administration)
+        }))
 
         this.utilityHangar2 = this.addChild(new GO({
             size: new V2(30,20),
@@ -143,12 +155,6 @@ class Ground extends GO {
                 destinationFrameSize:new V2(37,30),
                 sourceFrameSize: new V2(37,30)
             }
-        }))
-
-        this.farAwayCity = this.addChild(new GO({
-            position: new V2(200, -35),
-            size: new V2(100, 20),
-            img: PP.createImage(spacePortImages.farAwayCity)
         }))
 
         this.tower.top.antennas.beacons = [
