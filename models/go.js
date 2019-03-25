@@ -39,6 +39,13 @@ class GO {
             disabled: false,
             effects: [],
             renderValuesRound: false,
+            script: {
+                currentStep: undefined,
+                options: {
+                    timerDelay: 50,
+                },
+                items: []
+            },
             collisionDetection: {
                 enabled: false,
                 render: false,
@@ -683,7 +690,10 @@ class GO {
 		if(this.isAnimated)
             doWorkByTimer(this.animation.animationTimer, now);
         
-		this.internalUpdate(now);
+        this.internalUpdate(now);
+        
+        if(this.scriptTimer) 
+            doWorkByTimer(this.scriptTimer, now);
 
 		if(!this.alive){
             this.console('update completed. this.alive = false');
@@ -766,6 +776,27 @@ class GO {
                     eh[key][that.layerIndex].splice(index, 1);	
             }
         });
+    }
+
+    processScript() {
+        if(this.script.items.length == 0)
+            return;
+
+        this.script.currentStep = this.script.items.shift();
+        this.script.currentStep.call(this);
+    }
+
+    createScriptTimer(script, stopPredicate, startNow = true, customDelay = undefined){
+        return createTimer(customDelay || this.script.options.timerDelay, () => {
+            script.call(this);
+            if(stopPredicate.call(this)){
+                this.scriptTimer = undefined;
+                this.processScript();
+                return;
+            }
+            
+            this.needRecalcRenderProperties = true;
+        }, this, startNow);
     }
 }
 

@@ -19,84 +19,67 @@ class CargoShip extends GO {
 
         super(options);
 
-        this.script = {
-            currentStep: undefined,
-            options: {
-                timerDelay: 50,
+        this.script.items = [
+            function(){
+                this.setIgnition('big');
+                this.processScript();
             },
-            items: [
-                function(){
-                    this.setIgnition('big');
-                    this.processScript();
-                },
-                function(){
-                    this.scriptTimer = this.createScriptTimer(
-                        function() { this.position.x+=-1; },
-                        function() {return this.position.x <= 300})
-                },
-                function(){
-                    let brake = { time: 0, duration: 100, change: -50, type: 'quad', method: 'out', startValue: this.position.x };
-                    let tv = { time: 0, duration: 100, change: 20, type: 'quad', method: 'out', startValue: -20 }
+            function(){
+                this.scriptTimer = this.createScriptTimer(
+                    function() { this.position.x+=-1; },
+                    function() {return this.position.x <= 300})
+            },
+            function(){
+                let brake = { time: 0, duration: 100, change: -50, type: 'quad', method: 'out', startValue: this.position.x };
+                let tv = { time: 0, duration: 100, change: 20, type: 'quad', method: 'out', startValue: -20 }
 
-                    this.scriptTimer = this.createScriptTimer(
-                        function() { 
-                            this.position.x =  easing.process(brake)
-                            this.thrustersAngle = easing.process(tv); 
-                            brake.time++;
-                            tv.time = brake.time;
+                this.scriptTimer = this.createScriptTimer(
+                    function() { 
+                        this.position.x =  easing.process(brake)
+                        this.thrustersAngle = easing.process(tv); 
+                        brake.time++;
+                        tv.time = brake.time;
+                    },
+                    function() { return brake.time > brake.duration; });
+            },
+            function(){
+                this.levitationTimer = undefined;
+                let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'in', startValue: this.position.y };
+
+                this.scriptTimer = this.createScriptTimer(
+                    function(){ this.position.y = easing.process(fall); fall.time++; },
+                    function() { return fall.time > fall.duration; });
+                    
+            },
+            function(){
+                this.scriptTimer = this.createScriptTimer(
+                    function() {this.position.y+=1;},
+                    function() { return this.position.y >= 210; });
+            },
+            function(){
+                let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'out', startValue: this.position.y };
+
+                var target = new V2(this.position.x, 265);
+                let ignitionSmallSet = false;
+                let ignitionNoneSet = false;
+
+                this.parentScene.toggleDust(true, [target.add(this.frontalThruster.position),target.add(this.rearThruster.position)])
+                this.scriptTimer = this.createScriptTimer(
+                    function () {this.position.y = easing.process(fall); fall.time++;
+                        if(fall.time > fall.duration/2 && !ignitionSmallSet){
+                            ignitionSmallSet = true;
+                            this.setIgnition('small');
+                        }
+
+                        if(fall.time > fall.duration*3/4 && !ignitionNoneSet){
+                            ignitionNoneSet = true;
+                            this.setIgnition('none');
+                            this.parentScene.toggleDust(false);
+                        }
                         },
-                        function() { return brake.time > brake.duration; });
-                },
-                function(){
-                    this.levitationTimer = undefined;
-                    let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'in', startValue: this.position.y };
-
-                    this.scriptTimer = this.createScriptTimer(
-                        function(){ this.position.y = easing.process(fall); fall.time++; },
-                        function() { return fall.time > fall.duration; });
-                        
-                },
-                function(){
-                    this.scriptTimer = this.createScriptTimer(
-                        function() {this.position.y+=1;},
-                        function() { return this.position.y >= 210; });
-                },
-                function(){
-                    let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'out', startValue: this.position.y };
-
-                    var target = new V2(this.position.x, 265);
-                    let ignitionSmallSet = false;
-                    let ignitionNoneSet = false;
-
-                    this.parentScene.toggleDust(true, [target.add(this.frontalThruster.position),target.add(this.rearThruster.position)])
-                    this.scriptTimer = this.createScriptTimer(
-                        function () {this.position.y = easing.process(fall); fall.time++;
-                            if(fall.time > fall.duration/2 && !ignitionSmallSet){
-                                ignitionSmallSet = true;
-                                this.setIgnition('small');
-                            }
-
-                            if(fall.time > fall.duration*3/4 && !ignitionNoneSet){
-                                ignitionNoneSet = true;
-                                this.setIgnition('none');
-                                this.parentScene.toggleDust(false);
-                            }
-                         },
-                        function() { return fall.time > fall.duration; });
-                },
-                // function(){
-                //     this.setIgnition('none');
-                //     this.processScript();
-                // },
-                // function(){
-                //     this.scriptTimer = this.createScriptTimer(
-                //         function(){ this.parentScene.toggleDust(false); },
-                //         function() { return true },
-                //         false, 250
-                //     )
-                // }
-            ]
-        }
+                    function() { return fall.time > fall.duration; });
+            }
+        ]
     }
 
     init() {
@@ -262,33 +245,9 @@ class CargoShip extends GO {
         }
     }
 
-    processScript() {
-        if(this.script.items.length == 0)
-            return;
-
-        this.script.currentStep = this.script.items.shift();
-        this.script.currentStep.call(this);
-    }
-
-    createScriptTimer = function(script, stopPredicate, startNow = true, customDelay = undefined){
-        return createTimer(customDelay || this.script.options.timerDelay, () => {
-            script.call(this);
-            if(stopPredicate.call(this)){
-                this.scriptTimer = undefined;
-                this.processScript();
-                return;
-            }
-            
-            this.needRecalcRenderProperties = true;
-        }, this, startNow);
-    }
-
     internalUpdate(now) {
         if(this.levitationTimer)
             doWorkByTimer(this.levitationTimer, now);
-
-        if(this.scriptTimer) 
-            doWorkByTimer(this.scriptTimer, now);
     }
 }
 

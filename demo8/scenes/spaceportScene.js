@@ -70,6 +70,10 @@ class SpaceportScene extends Scene {
         ];
 
         this.cloudGeneratorTImer = createTimer(15000*4, () => this.cloudsGenerator(), this, true);
+
+        this.df = this.addGo(new DistantFlyer({
+            position: new V2(450, 250)
+        }), 4)
     }
 
     dustCloudGenerator(params) {
@@ -190,6 +194,71 @@ class SpaceportScene extends Scene {
     backgroundRender(){
         // /this.backgroundRenderDefault();
         SCG.contexts.background.drawImage(this.backgroundImage, 0,0, SCG.viewport.real.width,SCG.viewport.real.height)
+    }
+}
+
+class DistantFlyer extends GO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            size: new V2(1,1),
+            renderValuesRound: true,
+        }, options)
+
+        super(options);
+
+        this.img = createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#CCA394', ctx.fillRect(0,0,1,1)});
+
+        this.script.items = [
+            function(){
+                this.img = createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#CCA394', ctx.fillRect(0,0,1,1)});
+                let rise = { time: 0, duration: 150, change: -30, type: 'quad', method: 'out', startValue: this.position.y };
+                this.scriptTimer = this.createScriptTimer(
+                    function() { this.position.y = easing.process(rise); rise.time++; },
+                    function() {return rise.time > rise.duration; })
+            },
+            function(){
+                this.scriptTimer = this.createScriptTimer(
+                    function() {  },
+                    function() {return true }, true, 500)
+            },
+            function(){
+                let goLeft = { time: 0, duration: 40, change: -500, type: 'quad', method: 'in', startValue: this.position.x };
+                let currentSizeX = 1;
+                this.scriptTimer = this.createScriptTimer(
+                    function() { 
+                        let next = fastRoundWithPrecision(easing.process(goLeft));
+                        let delta = this.position.x - next;
+                        if(delta == 0)
+                            delta = 1;
+
+                        this.position.x = next;
+                        this.size.x = fastRoundWithPrecision(delta*2);
+                        if(currentSizeX != this.size.x){
+                            currentSizeX = this.size.x;
+                            this.img = createCanvas(new V2(currentSizeX,1), (ctx) => { 
+                                let baseColor = '#CCA394';
+                                let rgb = hexToRgb(baseColor, true);
+                                if(currentSizeX == 40)
+                                    debugger;
+
+                                for(let i = 0; i < currentSizeX;i++){
+                                    let opacity = 1 - (i/currentSizeX);
+                                    ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${opacity})`;
+                                    ctx.fillRect(i,0,1,1);
+                                }
+                            });
+                        }
+                         goLeft.time++; },
+                    function() {return goLeft.time > goLeft.duration; }, true, 30)
+            }, function() {
+                this.setDead();
+            }
+        ];
+
+    }
+
+    init() {
+        this.processScript();
     }
 }
 
