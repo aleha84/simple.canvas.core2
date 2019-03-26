@@ -71,9 +71,12 @@ class SpaceportScene extends Scene {
 
         this.cloudGeneratorTImer = createTimer(15000*4, () => this.cloudsGenerator(), this, true);
 
-        this.df = this.addGo(new DistantFlyer({
-            position: new V2(450, 250)
-        }), 4)
+        this.distantFlyerTimer = createTimer(5000, () => {
+            this.df = this.addGo(new DistantFlyer({
+                position: new V2(getRandomInt(430,470), 250)
+            }), 4)
+        }, this, true);
+        
     }
 
     dustCloudGenerator(params) {
@@ -187,8 +190,8 @@ class SpaceportScene extends Scene {
         if(this.cloudGeneratorTImer)
             doWorkByTimer(this.cloudGeneratorTImer, now);
 
-        // if(this.dustCloudDemoTimer)
-        //     doWorkByTimer(this.dustCloudDemoTimer, now);
+        if(this.distantFlyerTimer)
+            doWorkByTimer(this.distantFlyerTimer, now);
     }
 
     backgroundRender(){
@@ -211,7 +214,7 @@ class DistantFlyer extends GO {
         this.script.items = [
             function(){
                 this.img = createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#CCA394', ctx.fillRect(0,0,1,1)});
-                let rise = { time: 0, duration: 150, change: -30, type: 'quad', method: 'out', startValue: this.position.y };
+                let rise = { time: 0, duration: getRandomInt(120, 160), change: -getRandomInt(20,40), type: 'quad', method: 'out', startValue: this.position.y };
                 this.scriptTimer = this.createScriptTimer(
                     function() { this.position.y = easing.process(rise); rise.time++; },
                     function() {return rise.time > rise.duration; })
@@ -219,10 +222,10 @@ class DistantFlyer extends GO {
             function(){
                 this.scriptTimer = this.createScriptTimer(
                     function() {  },
-                    function() {return true }, true, 500)
+                    function() {return true }, true, getRandomInt(300, 700))
             },
             function(){
-                let goLeft = { time: 0, duration: 40, change: -500, type: 'quad', method: 'in', startValue: this.position.x };
+                let goLeft = { time: 0, duration: getRandomInt(30,50), change: -500, type: 'quad', method: 'in', startValue: this.position.x };
                 let currentSizeX = 1;
                 this.scriptTimer = this.createScriptTimer(
                     function() { 
