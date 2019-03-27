@@ -196,11 +196,11 @@ class Ground extends GO {
         }
         
 
-        // this.addChild(new GO({
-        //     position: new V2(100, 0),
-        //     size: new V2(30, 10),
-        //     img: PP.createImage(spacePortImages.roadParts.type1)
-        // }))
+        this.smallBarrier = this.addChild(new GO({
+            size: new V2(10,20),
+            position: new V2(67,-8),
+            img: PP.createImage(spacePortImages.buildings.smallBarrier)
+        }))
 
         this.tower.top.antennas.beacons[0].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, loop: true}))
         this.tower.top.antennas.beacons[1].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, startDelay: 1000,loop: true}))
