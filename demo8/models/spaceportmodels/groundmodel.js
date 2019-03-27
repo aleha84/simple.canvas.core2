@@ -61,6 +61,8 @@ class Ground extends GO {
             img: PP.createImage(spacePortImages.farAwayCity)
         }))
 
+        
+        
         this.landingPad = this.addChild(new GO({
             size: new V2(140,20),
             position: new V2(0, -4),
@@ -169,6 +171,36 @@ class Ground extends GO {
                 img: createCanvas(new V2(1,1), (ctx,size) => { ctx.fillStyle = '#FF0000'; ctx.fillRect(0,0,1,1) }) 
              }))            
         ]
+
+        let startFromX = 71;
+        let stepX = 20;
+        for(let i = 0; i < 10; i++){
+            this.addChild(new GO({
+                position: new V2(startFromX + stepX*i, 0),
+                size: new V2(30, 10),
+                img: createCanvas(new V2(30, 10), (ctx, size) => {
+                    ctx.drawImage(PP.createImage(spacePortImages.roadParts.straight), 0, 0, size.x, size.y)
+                    let darkParsCount = getRandomInt(2,5);
+                    ctx.fillStyle = '#afb0a4';
+                    for(let i = 0; i < darkParsCount; i++){
+                        ctx.fillRect(getRandomInt(0, size.x), getRandomInt(3,8), 1, 1);
+                    }
+
+                    let darkSoilCount = getRandomInt(1,4);
+                    ctx.fillStyle = '#C4A073';
+                    for(let i = 0; i < darkSoilCount; i++){
+                        ctx.fillRect(getRandomInt(9, size.x-1), 9, 1, 1);
+                    }
+                }) 
+            }))
+        }
+        
+
+        // this.addChild(new GO({
+        //     position: new V2(100, 0),
+        //     size: new V2(30, 10),
+        //     img: PP.createImage(spacePortImages.roadParts.type1)
+        // }))
 
         this.tower.top.antennas.beacons[0].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, loop: true}))
         this.tower.top.antennas.beacons[1].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, startDelay: 1000,loop: true}))
