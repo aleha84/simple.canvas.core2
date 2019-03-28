@@ -195,6 +195,46 @@ class Ground extends GO {
             }))
         }
         
+for(let i = 0; i < 5; i++){
+    this.addChild(new GO({
+        size: new V2(100,30),
+        position: new V2(-200, 6),
+        img: createCanvas(new V2(100,30), (ctx,size) => {
+            ctx.fillStyle = '#CDCEC8';
+            for(let i = 0; i < 15; i++){
+                ctx.fillRect(
+                    fastRoundWithPrecision(that.randn_bm()*size.x), 
+                    fastRoundWithPrecision(that.randn_bm()*size.y), 
+                    1,1);
+            }
+            
+        })
+    }));
+}
+
+        this.addChild(new GO({
+            size: new V2(5,5),
+            position: new V2(-200, 6),
+            img: PP.createImage(spacePortImages.debrish[0])
+        }));
+
+        this.addChild(new GO({
+            size: new V2(5,5),
+            position: new V2(-170, 18),
+            img: PP.createImage(spacePortImages.debrish[1])
+        }))
+
+        this.addChild(new GO({
+            size: new V2(5,5),
+            position: new V2(-130, -5),
+            img: PP.createImage(spacePortImages.debrish[2])
+        }))
+
+        this.addChild(new GO({
+            size: new V2(5,5),
+            position: new V2(-75, 10),
+            img: PP.createImage(spacePortImages.debrish[3])
+        }))
 
         this.smallBarrier = this.addChild(new GO({
             size: new V2(10,20),
@@ -204,5 +244,15 @@ class Ground extends GO {
 
         this.tower.top.antennas.beacons[0].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, loop: true}))
         this.tower.top.antennas.beacons[1].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, startDelay: 1000,loop: true}))
+    }
+
+    randn_bm() {
+        var u = 0, v = 0;
+        while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+        while(v === 0) v = Math.random();
+        let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+        num = num / 10.0 + 0.5; // Translate to 0 -> 1
+        if (num > 1 || num < 0) return randn_bm(); // resample between 0 and 1
+        return num;
     }
 }
