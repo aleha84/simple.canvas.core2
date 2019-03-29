@@ -17,6 +17,20 @@ function getRandomBool(){
   return Math.round(getRandom(0, 1)) === 1;
 }
 
+function getRandomGaussian(min, max, skew = 1) {
+  var u = 0, v = 0;
+  while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+  while(v === 0) v = Math.random();
+  let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+
+  num = num / 10.0 + 0.5; // Translate to 0 -> 1
+  if (num > 1 || num < 0) num = randn_bm(min, max, skew); // resample between 0 and 1 if out of range
+  num = Math.pow(num, skew); // Skew
+  num *= max - min; // Stretch to fill range
+  num += min; // offset to min
+  return num;
+}
+
 function radiansToDegree (radians) {
   if(radians === undefined)
   {
@@ -554,9 +568,72 @@ function hexToRgb(hex, asArray = false, asObject = false) {
 }
 
 function rgbToHex(r, g, b) {
+  if(isArray(r)){
+    b = r[2];
+    g = r[1];
+    r = r[0];
+  }
   if (r > 255 || g > 255 || b > 255)
       throw "Invalid color component";
-    return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+
+  return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function rgbToHsv (r, g, b, asArray = false) {
+  if (arguments.length === 1) {
+    g = r.g, b = r.b, r = r.r;
+  }
+  var max = Math.max(r, g, b), min = Math.min(r, g, b),
+      d = max - min,
+      h,
+      s = (max === 0 ? 0 : d / max),
+      v = max / 255;
+
+  switch (max) {
+      case min: h = 0; break;
+      case r: h = (g - b) + d * (g < b ? 6: 0); h /= 6 * d; break;
+      case g: h = (b - r) + d * 2; h /= 6 * d; break;
+      case b: h = (r - g) + d * 4; h /= 6 * d; break;
+  }
+
+  let result = {
+      h, s, v
+  };
+
+  if(asArray)
+    return [result.h, result.s, result.v];
+
+  return result
+}
+
+function hsvToRgb(h, s, v, asArray = false) {
+  var r, g, b, i, f, p, q, t;
+  if (arguments.length === 1) {
+      s = h.s, v = h.v, h = h.h;
+  }
+  i = fastFloorWithPrecision(h * 6);
+  f = h * 6 - i;
+  p = v * (1 - s);
+  q = v * (1 - f * s);
+  t = v * (1 - (1 - f) * s);
+  switch (i % 6) {
+      case 0: r = v, g = t, b = p; break;
+      case 1: r = q, g = v, b = p; break;
+      case 2: r = p, g = v, b = t; break;
+      case 3: r = p, g = q, b = v; break;
+      case 4: r = t, g = p, b = v; break;
+      case 5: r = v, g = p, b = q; break;
+  }
+  let result = {
+      r: fastRoundWithPrecision(r * 255),
+      g: fastRoundWithPrecision(g * 255),
+      b: fastRoundWithPrecision(b * 255)
+  };
+
+  if(asArray)
+    return [result.r, result.g, result.b];
+
+  return result
 }
 
 function flipX(p, xOrigin) {

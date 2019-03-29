@@ -61,7 +61,31 @@ class Ground extends GO {
             img: PP.createImage(spacePortImages.farAwayCity)
         }))
 
-        
+        let debrishFieldSize = new V2(1000,60);
+        this.addChild(new GO({
+            size: debrishFieldSize,
+            position: new V2(-150, 0),
+            img: createCanvas(debrishFieldSize, (ctx,size) => {
+                let rgb = hexToRgb('#CDCEC8', false, true);
+                for(let i = 0; i < 200; i++){
+                    let y = fastRoundWithPrecision(getRandomGaussian(0, size.y, 0.8));
+
+                    let hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+                    let v = fastRoundWithPrecision(hsv.v*100);
+
+                    v += (50* y/size.y) - 25;
+
+                    if(v < 0) v = 0; if(v > 100) v = 100;
+                    ctx.fillStyle = '#' + rgbToHex(hsvToRgb(hsv.h, hsv.s, v/100, true));
+
+                    ctx.fillRect(
+                        fastRoundWithPrecision(getRandomGaussian(0, size.x)), 
+                        y, 
+                        1,1);
+                }
+                
+            })
+        }));
         
         this.landingPad = this.addChild(new GO({
             size: new V2(140,20),
@@ -69,10 +93,28 @@ class Ground extends GO {
             img: PP.createImage(spacePortImages.landingPad)
         }))
 
+        this.landingPad.cargoShipShadow =SCG.scenes.activeScene.ground.landingPad.addChild(new GO({
+            position: new V2(10,4),
+            size: new V2(10, 2), // to 100
+            img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(0,0,1,1) }),
+            isVisible: false
+        }))
+
         this.tower = this.addChild(new GO({
             size: new V2(25,60),
             position: new V2(-150, -30),
             img: PP.createImage(spacePortImages.buildings.tower)
+        }))
+
+        this.tower.shadow = this.tower.addChild(new GO({
+            position: new V2(21, 28.5),
+            size: new V2(25, 3),
+            img: createCanvas(new V2(25,3), (ctx,size)=> {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(3,0, size.x - 2, 1)
+                ctx.fillRect(2,1, size.x - 3, 1)
+                ctx.fillRect(0,2, size.x - 5, 1)
+            })
         }))
 
         this.tower.top = this.tower.addChild(new GO({
@@ -102,6 +144,20 @@ class Ground extends GO {
             img: PP.createImage(spacePortImages.buildings.administration)
         }))
 
+        this.administrationBuilding.shadow = this.administrationBuilding.addChild(new GO({
+            position: new V2(33.5,15.5),
+            size: new V2(5, 5),
+            img: createCanvas(new V2(5,5), (ctx,size)=> {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                
+                ctx.fillRect(0,1, size.x-4 , 1)
+                ctx.fillRect(0,2, size.x-3 , 1)
+                ctx.fillRect(0,3, size.x-1 , 1)
+                ctx.fillRect(0,4, size.x-0 , 1)
+
+            })
+        }))
+
         this.utilityHangar2 = this.addChild(new GO({
             size: new V2(30,20),
             position: new V2(90,-13),
@@ -119,6 +175,16 @@ class Ground extends GO {
             position: new V2(-100, -15),
             img: PP.createImage(spacePortImages.buildings.powerUtility)
         }));
+
+        this.powerUtility.shadow = this.powerUtility.addChild(new GO({
+            position: new V2(9,5.5),
+            size: new V2(5, 2),
+            img: createCanvas(new V2(5,2), (ctx,size)=> {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(1,0, size.x , 1)
+                ctx.fillRect(0,1, size.x - 1, 1)
+            })
+        }))
 
         this.powerUtilityIndicatorImg = createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'blue'; ctx.fillRect(0,0,1,1); });
         this.powerUtility.indicators = [
@@ -194,23 +260,6 @@ class Ground extends GO {
                 }) 
             }))
         }
-        
-for(let i = 0; i < 5; i++){
-    this.addChild(new GO({
-        size: new V2(100,30),
-        position: new V2(-200, 6),
-        img: createCanvas(new V2(100,30), (ctx,size) => {
-            ctx.fillStyle = '#CDCEC8';
-            for(let i = 0; i < 15; i++){
-                ctx.fillRect(
-                    fastRoundWithPrecision(that.randn_bm()*size.x), 
-                    fastRoundWithPrecision(that.randn_bm()*size.y), 
-                    1,1);
-            }
-            
-        })
-    }));
-}
 
         this.addChild(new GO({
             size: new V2(5,5),

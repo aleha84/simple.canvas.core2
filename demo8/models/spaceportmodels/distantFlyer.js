@@ -24,7 +24,7 @@ class DistantFlyer extends GO {
                             this.size.x = delta > 1 ? fastRoundWithPrecision(delta*2) : delta;
                             if(currentSizeX != this.size.x){
                                 currentSizeX = this.size.x;
-                                console.log(delta, currentSizeX);
+                                //console.log(delta, currentSizeX);
                                 this.regenImg();
                             }
                             goRight.time++; },
