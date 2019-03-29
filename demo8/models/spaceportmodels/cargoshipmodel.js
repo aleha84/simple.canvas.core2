@@ -58,14 +58,22 @@ class CargoShip extends GO {
             },
             function(){
                 let fall = { time: 0, duration: 100, change: 50, type: 'quad', method: 'out', startValue: this.position.y };
+                //let csShadowIncrease = { time: 0, duration: 100, change: 99, type: 'quad', method: 'out', startValue: 1 };
 
                 var target = new V2(this.position.x, 265);
                 let ignitionSmallSet = false;
                 let ignitionNoneSet = false;
 
+                //let cargoShipShadow = this.parentScene.ground.landingPad.cargoShipShadow;
+                //cargoShipShadow.isVisible = true;
                 this.parentScene.toggleDust(true, [target.add(this.frontalThruster.position),target.add(this.rearThruster.position)])
                 this.scriptTimer = this.createScriptTimer(
-                    function () {this.position.y = easing.process(fall); fall.time++;
+                    function () {
+                        this.position.y = easing.process(fall); 
+                        // cargoShipShadow.size.x = easing.process(csShadowIncrease); 
+                        // cargoShipShadow.needRecalcRenderProperties = true;
+                        fall.time++;
+                        //csShadowIncrease.time++;
                         if(fall.time > fall.duration/2 && !ignitionSmallSet){
                             ignitionSmallSet = true;
                             this.setIgnition('small');
@@ -84,6 +92,18 @@ class CargoShip extends GO {
 
     init() {
         
+        this.shadow = this.addChild(new GO({
+            size: new V2(10, 2),
+            position: new V2(50,this.parentScene.viewport.y - this.position.y-this.shadowTargetY),
+            img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(0,0,1,1) }),
+        }))
+
+        this.shadow.target = {
+            sizeX: 100,
+            positionY: 25,
+            positionX: 7
+        }
+
         this.igniteImg = createCanvas(new V2(spacePortImages.igniteImages.length*6, 15), (ctx, size) => {
             for(let i = 0; i < spacePortImages.igniteImages.length; i++){
                 ctx.drawImage(PP.createImage(spacePortImages.igniteImages[i]), 6*i,0);
@@ -162,8 +182,8 @@ class CargoShip extends GO {
                 this.addChild(new GO({
                     position: new V2(),
                     size: new V2(1,1),
-                    imgRed: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'red', ctx.fillRect(0,0, 1,1) }),
-                    imgYellow: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'yellow', ctx.fillRect(0,0, 1,1) }),
+                    imgRed: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#F24121', ctx.fillRect(0,0, 1,1) }),
+                    imgYellow: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = '#F2D94A', ctx.fillRect(0,0, 1,1) }),
                     init() {
                         this.img = this.imgRed;
                         this.isRed = true;
@@ -248,6 +268,19 @@ class CargoShip extends GO {
     internalUpdate(now) {
         if(this.levitationTimer)
             doWorkByTimer(this.levitationTimer, now);
+
+        this.shadow.position.y = this.parentScene.viewport.y - this.position.y-this.shadow.target.positionY;
+        let nSHadowSIzeX = fastRoundWithPrecision(100*this.position.y/265);
+        if(this.shadow.size.x != nSHadowSIzeX) {
+            this.shadow.size.x = nSHadowSIzeX;
+            this.shadow.img = createCanvas(new V2(this.shadow.size), (ctx, size) => {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)'; 
+                ctx.fillRect(1,0,size.x-1,1)
+                ctx.fillRect(0,1,size.x-1,1)
+            });
+        }
+        this.shadow.position.x = 100 + this.shadow.target.positionX - (100 * this.position.y/265);
+        //this.shadow.needRecalcRenderProperties = true;
     }
 }
 

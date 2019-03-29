@@ -93,12 +93,12 @@ class Ground extends GO {
             img: PP.createImage(spacePortImages.landingPad)
         }))
 
-        this.landingPad.cargoShipShadow =SCG.scenes.activeScene.ground.landingPad.addChild(new GO({
-            position: new V2(10,4),
-            size: new V2(10, 2), // to 100
-            img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(0,0,1,1) }),
-            isVisible: false
-        }))
+        // this.landingPad.cargoShipShadow =SCG.scenes.activeScene.ground.landingPad.addChild(new GO({
+        //     position: new V2(10,4),
+        //     size: new V2(1, 2), // to 100
+        //     img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(0,0,1,1) }),
+        //     isVisible: false
+        // }))
 
         this.tower = this.addChild(new GO({
             size: new V2(25,60),
@@ -293,6 +293,25 @@ class Ground extends GO {
 
         this.tower.top.antennas.beacons[0].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, loop: true}))
         this.tower.top.antennas.beacons[1].addEffect(new FadeInOutEffect({effectTime: 1000, updateDelay: 50, startDelay: 1000,loop: true}))
+
+        this.bushes = [
+            this.addChild(new GO({
+                size: new V2(5,5),
+                position: new V2(150, 10),
+                img: PP.createImage(spacePortImages.bushes.small1)
+            })),
+
+            this.addChild(new GO({
+                size: new V2(3,3),
+                position: new V2(200, -10),
+                img: PP.createImage(spacePortImages.bushes.small2)
+            })),
+            this.addChild(new GO({
+                size: new V2(2,2),
+                position: new V2(55, -13),
+                img: PP.createImage(spacePortImages.bushes.small3)
+            }))
+        ]
     }
 
     randn_bm() {
