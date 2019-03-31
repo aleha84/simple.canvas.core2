@@ -93,13 +93,6 @@ class Ground extends GO {
             img: PP.createImage(spacePortImages.landingPad)
         }))
 
-        // this.landingPad.cargoShipShadow =SCG.scenes.activeScene.ground.landingPad.addChild(new GO({
-        //     position: new V2(10,4),
-        //     size: new V2(1, 2), // to 100
-        //     img: createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(0,0,1,1) }),
-        //     isVisible: false
-        // }))
-
         this.tower = this.addChild(new GO({
             size: new V2(25,60),
             position: new V2(-150, -30),
@@ -137,6 +130,12 @@ class Ground extends GO {
                 ctx.fillRect(2, 0, 1, 1);
             })
         }));
+
+        this.parking = this.addChild(new GO({
+            size: new V2(20, 10),
+            position: new V2(179, -9),
+            img: PP.createImage(spacePortImages.roadParts.parking)
+        }))
 
         this.administrationBuilding = this.addChild(new GO({
             size: new V2(70,40),
@@ -262,6 +261,22 @@ class Ground extends GO {
         }
 
         this.addChild(new GO({
+            position: new V2(77, -3), size: new V2(12, 10), img: PP.createImage(spacePortImages.roadParts.vRoadRight)
+        }));
+
+        this.addChild(new GO({
+            position: new V2(97, -3), size: new V2(12, 10), img: PP.createImage(spacePortImages.roadParts.vRoadRight)
+        }));
+
+        this.addChild(new GO({
+            position: new V2(141, -3), size: new V2(12, 10), img: PP.createImage(spacePortImages.roadParts.vRoadRight)
+        }));
+
+        this.addChild(new GO({
+            position: new V2(182, -3), size: new V2(12, 10), img: PP.createImage(spacePortImages.roadParts.vRoadRight)
+        }));
+
+        this.addChild(new GO({
             size: new V2(5,5),
             position: new V2(-200, 6),
             img: PP.createImage(spacePortImages.debrish[0])
@@ -296,20 +311,20 @@ class Ground extends GO {
 
         this.bushes = [
             this.addChild(new GO({
-                size: new V2(5,5),
-                position: new V2(150, 10),
-                img: PP.createImage(spacePortImages.bushes.small1)
+                size: new V2(5,5), position: new V2(150, 10), img: PP.createImage(spacePortImages.bushes.small1)
             })),
 
             this.addChild(new GO({
-                size: new V2(3,3),
-                position: new V2(200, -10),
-                img: PP.createImage(spacePortImages.bushes.small2)
+                size: new V2(3,3), position: new V2(200, -10), img: PP.createImage(spacePortImages.bushes.small2)
             })),
             this.addChild(new GO({
-                size: new V2(2,2),
-                position: new V2(55, -13),
-                img: PP.createImage(spacePortImages.bushes.small3)
+                size: new V2(2,2), position: new V2(55, -13), img: PP.createImage(spacePortImages.bushes.small3)
+            })),
+            this.addChild(new GO({
+                size: new V2(1,2), position: new V2(-25, -13), img: PP.createImage(spacePortImages.bushes.small4)
+            })),
+            this.addChild(new GO({
+                size: new V2(1,2), position: new V2(-70, -9), img: PP.createImage(spacePortImages.bushes.small4)
             }))
         ]
     }

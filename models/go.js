@@ -38,6 +38,7 @@ class GO {
             initialized: false,
             disabled: false,
             effects: [],
+            timers: [],
             renderValuesRound: false,
             script: {
                 currentStep: undefined,
@@ -692,6 +693,8 @@ class GO {
         
         this.internalUpdate(now);
         
+        this.processTimers(now);
+
         if(this.scriptTimer) 
             doWorkByTimer(this.scriptTimer, now);
 
@@ -776,6 +779,23 @@ class GO {
                     eh[key][that.layerIndex].splice(index, 1);	
             }
         });
+    }
+
+    processTimers(now) {
+        for(let timer of this.timers) {
+            doWorkByTimer(timer, now);
+        }
+    }
+
+    registerTimer(timer) {
+        if(this.timers.indexOf(timer) == -1)
+            this.timers.push(timer);
+    }
+
+    unregTimer(timer) {
+        let p = this.timers.indexOf(timer);
+        if(p != -1)
+            this.timers.splice(p, 1);
     }
 
     processScript() {

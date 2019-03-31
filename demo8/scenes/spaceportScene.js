@@ -3,7 +3,7 @@ class SpaceportScene extends Scene {
         options = assignDeep({}, {
             dustTimers: [],
             debug: {
-                enabled: true
+                enabled: false
             }
         }, options)
 
