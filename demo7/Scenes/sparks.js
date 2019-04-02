@@ -170,7 +170,7 @@ class SparksGeneratorObject extends GO {
                         speed: getRandom(0.1,0.2)
                     }));
     
-                    spark.addEffect(new FadeOutEffect({effectTime: getRandomInt(2500, 5000), initOnAdd: true, updateTime: 40, setParentDeadOnComplete: true}))
+                    spark.addEffect(new FadeOutEffect({effectTime: getRandomInt(5000, 10000), initOnAdd: true, updateTime: 40, setParentDeadOnComplete: true}))
                 }
                 
             }
