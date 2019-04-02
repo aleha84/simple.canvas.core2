@@ -11,14 +11,14 @@ class SparksScene extends Scene {
     start(){
         this.stars = this.addGo(new Stars({
             position: this.sceneCenter.clone(),
-            size: new V2(this.viewport.x/3, this.viewport.y)
+            size: this.viewport.clone()//new V2(this.viewport.x/3, this.viewport.y)
         }), 1)
 
-        this.interior = this.addGo(new Interior({
-            position: this.sceneCenter,
-            size: this.viewport,
-            redLayerMaxOpacity: this.redLayerMaxOpacity
-        }), 2)
+        // this.interior = this.addGo(new Interior({
+        //     position: this.sceneCenter,
+        //     size: this.viewport,
+        //     redLayerMaxOpacity: this.redLayerMaxOpacity
+        // }), 2)
 
         this.addGo(new SparksGeneratorObject({
             position: new V2(this.sceneCenter.x, this.sceneCenter.y+20)
@@ -26,7 +26,15 @@ class SparksScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault();
+        SCG.contexts.background.fillStyle = 'black';
+        SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+
+        let grd = SCG.contexts.background.createLinearGradient(0,SCG.viewport.real.height/2, SCG.viewport.real.width, SCG.viewport.real.height/2);
+        grd.addColorStop(0, 'rgba(255,255,255,0)');grd.addColorStop(0.1, 'rgba(255,255,255,0)');grd.addColorStop(0.5, 'rgba(255,255,255,0.04)');
+        grd.addColorStop(0.9, 'rgba(255,255,255,0)');grd.addColorStop(1, 'rgba(255,255,255,0)');
+
+        SCG.contexts.background.fillStyle = grd;
+        SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
     }
 }
 
@@ -34,20 +42,68 @@ class Stars extends MovingGO {
     constructor(options = {}){
         options = assignDeep({}, {
             starsColor: [255,255,255],
-            vMax: 0.5
+            vClamps: [0.1, 0.8],
+            startCountClamps: [100, 2000]
+            // vMax: 0.5,
+            // speed: 0.01,
+            // setDestinationOnInit: true,
+            // renderValuesRound: true
         }, options);
+
+        options.destination = new V2(options.position.x, options.position.y - options.size.y/2)
 
         super(options);
 
-        let that = this;
-        this.img = createCanvas(this.size, (ctx, size) => {
-            for(let i = 0; i < size.x*size.y/75; i++){
-                let sc = that.starsColor;
-                let hsv = rgbToHsv(sc[0], sc[1], sc[2]);
-                hsv.v = 0.9 - getRandom(0, that.vMax);
-                ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, hsv.v, true));
+        // let that = this;
+        // this.img = createCanvas(this.size, (ctx, size) => {
+        //     for(let i = 0; i < size.x*size.y/75; i++){
+        //         let sc = that.starsColor;
+        //         let hsv = rgbToHsv(sc[0], sc[1], sc[2]);
+        //         hsv.v = 0.9 - getRandom(0, that.vMax);
+        //         ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, hsv.v, true));
 
-                ctx.fillRect(fastRoundWithPrecision(getRandomGaussian(0, size.x)), getRandomInt(0, size.y), 1, 1)
+        //         ctx.fillRect(fastRoundWithPrecision(getRandomGaussian(0, size.x)), getRandomInt(0, size.y), 1, 1)
+        //     }
+        // })
+    }
+
+    init() {
+        this.layeredStars = []
+        this.layersCount = 5;
+
+        this.itemsCountPerLayer = 3;
+        for(let layer = 0; layer < this.layersCount; layer++){
+            this.layeredStars[layer] = [];
+            for(let i = 0;i<this.itemsCountPerLayer;i++){
+                this.layeredStars[layer][i] = [
+                    this.addChild(new MovingGO({
+                        size: this.size,
+                        position: new V2().add(new V2(0,this.size.y*i)),
+                        img: this.starsLayerGeneratr(layer, this.layersCount-1),
+                        setDestinationOnInit: true,
+                        destination: new V2().add(new V2(0, -this.size.y)),
+                        speed: 0.1 + (0.01*layer),
+                        destinationCompleteCallBack: function(){
+                            this.position = new V2().add(new V2(0, this.size.y*(this.parent.itemsCountPerLayer-1)));
+                            this.setDestination( new V2().add(new V2(0, -this.size.y)))
+                        }
+                    }), layer),
+                    
+                ]
+            }
+        }
+    }
+
+    starsLayerGeneratr(layer, layersMax) {
+        let that = this;
+        return createCanvas(this.size, (ctx, size)=> {
+            let sc = that.starsColor;
+            let hsv = rgbToHsv(sc[0], sc[1], sc[2]);
+            hsv.v = this.vClamps[0] + (this.vClamps[1]-this.vClamps[0])*(layer/layersMax);
+            ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, hsv.v, true));
+            let count =  fastRoundWithPrecision(this.startCountClamps[1] - (this.startCountClamps[1] - this.startCountClamps[0])*(layer/layersMax));
+            for(let i = 0; i < count; i++){
+                ctx.fillRect(fastRoundWithPrecision(getRandomGaussian(-size.x*0.5, 1.5*size.x)), getRandomInt(0, size.y), 1, 1)
             }
         })
     }
@@ -83,9 +139,9 @@ class SparksGeneratorObject extends GO {
             imageModel.main.layers[17].strokeColor = baseColor;
             imageModel.main.layers[17].fillColor = baseColor;
             
-            this.parentScene.interior.redLayer.opacity = 
-            this.parentScene.redLayerMinOpacity + 
-            (this.parentScene.redLayerMaxOpacity - this.parentScene.redLayerMinOpacity) * (red - this.redClamps[0])/(this.redClamps[1] - this.redClamps[0])
+            // this.parentScene.interior.redLayer.opacity = 
+            // this.parentScene.redLayerMinOpacity + 
+            // (this.parentScene.redLayerMaxOpacity - this.parentScene.redLayerMinOpacity) * (red - this.redClamps[0])/(this.redClamps[1] - this.redClamps[0])
 
             this.img = PP.createImage(imageModel)
             // createCanvas(this.size, (ctx, size) => {
@@ -177,7 +233,6 @@ class Interior extends GO {
                         ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, hsv.v, true));
                     }
                     
-                    
                     let pp = new PP({context: ctx})
                     let first = undefined;
                     let last = undefined;
@@ -210,6 +265,17 @@ class Interior extends GO {
 
                     filledPoints = [...filledPoints, ...pp.lineV2(first, last)];
                     pp.fill(filledPoints, cornerPoints);
+
+                    if(!isRedLayer && hsv.v != 0){
+                        
+                        let lColor = ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, (hsv.v*100 - 1) /100, true));
+                        let hColor = ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, (hsv.v*100 + 1) /100, true));
+                        let tl = new V2(startX, startY - height);
+                        for(let j = 0; j < width*height/10; j++){
+                            ctx.fillStyle = getRandomBool() ? lColor : hColor;
+                            ctx.fillRect(tl.x + getRandomInt(0, width),tl.y + getRandomInt(0,height),1,1)
+                        }
+                    }
 
                     ctx.clip(clipPath);
                     ctx.clearRect(0,0, size.x, size.y);
