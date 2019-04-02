@@ -129,6 +129,10 @@ class SparksGeneratorObject extends GO {
         this.from = { time: 0, duration: getRandomInt(15,30), change: this.redClamps[1] - this.redClamps[0], type: 'quad', method: 'inOut', startValue: this.redClamps[0] };
         this.to = { time: 0, duration: getRandomInt(15,30), change: -1 *(this.redClamps[1] - this.redClamps[0]), type: 'quad', method: 'inOut', startValue: this.redClamps[1] };
         this.direction = 1;
+        this.sparkImg = createCanvas(new V2(1,1), (ctx) => {
+            ctx.fillStyle = '#' + rgbToHex(180, 54,79);
+             ctx.fillRect(0,0,1,1);
+        })
 
         this.glowEffectTimer = createTimer(30, () => {
             let props = this.direction > 0 ? this.from : this.to;
@@ -154,6 +158,21 @@ class SparksGeneratorObject extends GO {
                 this.direction*=-1;
                 props.time = 0;
                 props.duration = getRandomInt(15,30);
+
+                for(let i = 0; i < getRandomInt(3,6); i++){
+                    let x = getRandomInt(-this.size.x/2, this.size.x/2);
+                    let spark = this.addChild(new MovingGO({
+                        size: new V2(1,1),
+                        position: new V2(x,getRandomInt(-this.size.y/2, 0)),
+                        img: this.sparkImg,
+                        setDestinationOnInit: true,
+                        destination: new V2(x, -1000),
+                        speed: getRandom(0.1,0.2)
+                    }));
+    
+                    spark.addEffect(new FadeOutEffect({effectTime: getRandomInt(2500, 5000), initOnAdd: true, updateTime: 40, setParentDeadOnComplete: true}))
+                }
+                
             }
         }, this, true);
 
