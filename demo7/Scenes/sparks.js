@@ -1,17 +1,24 @@
 class SparksScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
-
+            redLayerMinOpacity: 0.05,
+            redLayerMaxOpacity: 0.15
         }, options);
 
         super(options);
     }
 
     start(){
-        this.addGo(new Interior({
-            position: this.sceneCenter,
-            size: this.viewport
+        this.stars = this.addGo(new Stars({
+            position: this.sceneCenter.clone(),
+            size: new V2(this.viewport.x/3, this.viewport.y)
         }), 1)
+
+        this.interior = this.addGo(new Interior({
+            position: this.sceneCenter,
+            size: this.viewport,
+            redLayerMaxOpacity: this.redLayerMaxOpacity
+        }), 2)
 
         this.addGo(new SparksGeneratorObject({
             position: new V2(this.sceneCenter.x, this.sceneCenter.y+20)
@@ -20,6 +27,29 @@ class SparksScene extends Scene {
 
     backgroundRender() {
         this.backgroundRenderDefault();
+    }
+}
+
+class Stars extends MovingGO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            starsColor: [255,255,255],
+            vMax: 0.5
+        }, options);
+
+        super(options);
+
+        let that = this;
+        this.img = createCanvas(this.size, (ctx, size) => {
+            for(let i = 0; i < size.x*size.y/75; i++){
+                let sc = that.starsColor;
+                let hsv = rgbToHsv(sc[0], sc[1], sc[2]);
+                hsv.v = 0.9 - getRandom(0, that.vMax);
+                ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, hsv.v, true));
+
+                ctx.fillRect(fastRoundWithPrecision(getRandomGaussian(0, size.x)), getRandomInt(0, size.y), 1, 1)
+            }
+        })
     }
 }
 
@@ -53,7 +83,11 @@ class SparksGeneratorObject extends GO {
             imageModel.main.layers[17].strokeColor = baseColor;
             imageModel.main.layers[17].fillColor = baseColor;
             
-            this.img= PP.createImage(imageModel)
+            this.parentScene.interior.redLayer.opacity = 
+            this.parentScene.redLayerMinOpacity + 
+            (this.parentScene.redLayerMaxOpacity - this.parentScene.redLayerMinOpacity) * (red - this.redClamps[0])/(this.redClamps[1] - this.redClamps[0])
+
+            this.img = PP.createImage(imageModel)
             // createCanvas(this.size, (ctx, size) => {
             //     ctx.fillStyle = '#' + rgbToHex(that.red, green, that.blue);
             //     ctx.fillRect(0,0, size.x, size.y);
@@ -74,9 +108,10 @@ class SparksGeneratorObject extends GO {
 class Interior extends GO {
     constructor(options = {}) {
         options = assignDeep({}, {
-            layers: 4,
-            maxV: 30,
-            inittialColor: [0,0,0]
+            layers: 10,
+            maxV: 20,
+            initialColor: [0,0,0],
+            redLayerMaxOpacity: 0.25
         }, options);
 
         super(options);
@@ -86,36 +121,116 @@ class Interior extends GO {
 
     init() {
         this.minWidth = this.size.x*.2;
-        this.maxWidth = this.size.x*0.9;
+        this.maxWidth = this.size.x*1.5;
         this.minHeight = this.size.y*0.4;
-        this.maxHeight = this.size.y*0.9;
+        this.maxHeight = this.size.y*1.5;
+
+        this.layersObj = []
+
+        this.redLayerColorRgb = [180,54,79]
 
         let that = this;
-        this.img = createCanvas(this.size, (ctx, size) => {
-            for(let l = 0; l < that.layers; l++){
-                let width = that.minWidth + (that.maxWidth-that.minWidth)*l/that.layers
-                let height = that.minHeight + (that.maxHeight-that.minHeight)*l/that.layers
 
-                let startX = fastRoundWithPrecision(size.x/2 - width/2);
-                let startY = fastRoundWithPrecision(size.y/2 + height/2);
-                let prevX = undefined;
-                let prevY = undefined;
-                ctx.fillStyle = 'red';
-                let pp = new PP({context: ctx})
-                for(let i = -1; i <= 1; i+=0.1){
-                    let y = -(i*i)+1;
-    
-                    let currentX =  fastRoundWithPrecision(startX + width*(i+1)/2 + getRandom(-5,5));
-                    let currentY = fastRoundWithPrecision(startY - height*y/1 + getRandom(-5,5));
-                    if(prevX != undefined && prevY != undefined){
-                        pp.line(prevX, prevY, currentX, currentY);
+
+        let clipPath = new Path2D();
+        let clipWidth = that.minWidth;
+        let clipHeight = that.minHeight;
+        let clipStartX = fastRoundWithPrecision(this.size.x/2 - clipWidth/2);
+        let clipStartY = fastRoundWithPrecision(this.size.y/2 + clipHeight/2);
+        clipPath.moveTo(clipStartX, clipStartY);
+        for(let i = -10; i <= 10; i+=1){
+            let x = i/10;
+            let y = -(x*x)+1;
+            let currentX =  fastRoundWithPrecision(clipStartX + clipWidth*(x+1)/2 + getRandom(-5,5));
+            let currentY = fastRoundWithPrecision(clipStartY - clipHeight*y/1);
+            if(i != -10 && i != 10)
+                currentY += getRandom(-5,5);
+            
+            clipPath.lineTo(currentX, currentY);
+        }
+
+        clipPath.closePath();
+
+
+        for(let l = that.layers; l > 0; l--){
+            let isRedLayer = l == fastRoundWithPrecision(that.layers*1/3);
+            this.layersObj[l] = this.addChild(new GO({
+                position: new V2(),
+                size: this.size,
+                isRedLayer: isRedLayer,
+                img: createCanvas(this.size, (ctx, size) => {
+                    let width = that.minWidth + (that.maxWidth-that.minWidth)*l/that.layers
+                    let height = that.minHeight + (that.maxHeight-that.minHeight)*l/that.layers
+
+                    let startX = fastRoundWithPrecision(size.x/2 - width/2);
+                    let startY = fastRoundWithPrecision(size.y/2 + height/2);
+                    let prevX = undefined;
+                    let prevY = undefined;
+
+                    let hsv = rgbToHsv(that.initialColor[0],that.initialColor[1],that.initialColor[2]);
+                    hsv.v = (that.maxV - fastRoundWithPrecision(that.maxV*l/that.layers))/100;
+
+                    if(isRedLayer){
+                        ctx.fillStyle = '#'+  rgbToHex(that.redLayerColorRgb);
                     }
-    
-                    prevX = currentX;
-                    prevY = currentY;
+                    else {
+                        ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, hsv.v, true));
+                    }
+                    
+                    
+                    let pp = new PP({context: ctx})
+                    let first = undefined;
+                    let last = undefined;
+                    let filledPoints = [];
+                    let cornerPoints = [];
+                    for(let i = -10; i <= 10; i+=1){
+                        let x = i/10;
+                        let y = -(x*x)+1;
+
+                        let currentX =  fastRoundWithPrecision(startX + width*(x+1)/2 + getRandom(-5,5));
+                        let currentY = fastRoundWithPrecision(startY - height*y/1);
+                        if(i != -10 && i != 10)
+                            currentY += getRandom(-5,5);
+
+                        if(i == -10)
+                            first = new V2(currentX, currentY);
+
+                        if(i == 10)
+                            last = new V2(currentX, currentY);
+
+                        cornerPoints.push({x: currentX, y: currentY})
+
+                        if(prevX != undefined && prevY != undefined){
+                            filledPoints = [...filledPoints, ...pp.line(prevX, prevY, currentX, currentY)];
+                        }
+
+                        prevX = currentX;
+                        prevY = currentY;
+                    }
+
+                    filledPoints = [...filledPoints, ...pp.lineV2(first, last)];
+                    pp.fill(filledPoints, cornerPoints);
+
+                    ctx.clip(clipPath);
+                    ctx.clearRect(0,0, size.x, size.y);
+                }),
+                init() {
+                    if(this.isRedLayer)
+                        this.opacity = this.parent.redLayerMaxOpacity;
+                },
+                internalPreRender() {
+                    this.originalGlobalAlpha = this.context.globalAlpha;
+                    this.context.globalAlpha = this.opacity;
+                },
+                internalRender() {
+                    this.context.globalAlpha = this.originalGlobalAlpha;
                 }
+            }))
+
+            if(isRedLayer){
+                this.redLayer = this.layersObj[l]
             }
             
-        })
+        }
     }
 }
