@@ -1381,6 +1381,24 @@ class BottlesScene extends Scene {
                             function() { return rRight.time > rRight.duration; }, true, this.scriptCustomDelay);
                     },
                     function(){
+                        let panel = { time: 0, duration: 10, change: 5, type: 'quad', method: 'out', startValue: this.panel.position.y }
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.panel.position.y = easing.process(panel); 
+                                panel.time++;
+                            },
+                            function() { return panel.time > panel.duration; }, true, this.scriptCustomDelay);
+                    },
+                    function(){
+                        let panel = { time: 0, duration: 10, change: -5, type: 'quad', method: 'out', startValue: this.panel.position.y }
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.panel.position.y = easing.process(panel); 
+                                panel.time++;
+                            },
+                            function() { return panel.time > panel.duration; }, true, this.scriptCustomDelay);
+                    },
+                    function(){
                         let rRight = { time: 0, duration: 10, change: 90, type: 'quad', method: 'out', startValue: this.angle }
                         this.scriptTimer = this.createScriptTimer(
                             function() { 
@@ -1409,6 +1427,24 @@ class BottlesScene extends Scene {
                             function() { return rLeft.time > rLeft.duration; }, true, this.scriptCustomDelay);
                     },
                     function(){
+                        let panel = { time: 0, duration: 10, change: 5, type: 'quad', method: 'out', startValue: this.panel.position.y }
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.panel.position.y = easing.process(panel); 
+                                panel.time++;
+                            },
+                            function() { return panel.time > panel.duration; }, true, this.scriptCustomDelay);
+                    },
+                    function(){
+                        let panel = { time: 0, duration: 10, change: -5, type: 'quad', method: 'out', startValue: this.panel.position.y }
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.panel.position.y = easing.process(panel); 
+                                panel.time++;
+                            },
+                            function() { return panel.time > panel.duration; }, true, this.scriptCustomDelay);
+                    },
+                    function(){
                         let rLeft = { time: 0, duration: 10, change: -90, type: 'quad', method: 'out', startValue: this.angle }
                         this.scriptTimer = this.createScriptTimer(
                             function() { 
@@ -1429,13 +1465,21 @@ class BottlesScene extends Scene {
                     },
                 ]
 
+                this.panelSize = new V2(5, 10);
+                this.panel = this.addChild(new GO({
+                    position: new V2(0, 5),
+                    size: this.panelSize,
+                    img: createCanvas(this.panelSize, (ctx, size) => {
+                        ctx.fillStyle = 'blue';ctx.fillRect(0,0,size.x, size.y);
+                    })
+                }))
+
                 this.bodySize = new V2(10,20);
                 this.body = this.addChild(new GO({
                     position: new V2(),
                     size: new V2(10,15),
                     img: createCanvas(this.bodySize, (ctx, size) => {
                         ctx.fillStyle = 'green';ctx.fillRect(0,0,size.x, size.y);
-                        //ctx.fillStyle = 'blue';ctx.fillRect(fastRoundWithPrecision(size.x/4),fastRoundWithPrecision(size.y*3/4),fastRoundWithPrecision(size.x/2), fastRoundWithPrecision(size.y*1/4));
                     })
                 }));
 
