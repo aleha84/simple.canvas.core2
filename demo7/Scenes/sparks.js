@@ -30,8 +30,9 @@ class SparksScene extends Scene {
         SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
 
         let grd = SCG.contexts.background.createLinearGradient(0,SCG.viewport.real.height/2, SCG.viewport.real.width, SCG.viewport.real.height/2);
-        grd.addColorStop(0, 'rgba(255,255,255,0)');grd.addColorStop(0.1, 'rgba(255,255,255,0)');grd.addColorStop(0.5, 'rgba(255,255,255,0.04)');
-        grd.addColorStop(0.9, 'rgba(255,255,255,0)');grd.addColorStop(1, 'rgba(255,255,255,0)');
+        grd.addColorStop(0, 'rgba(255,255,255,0)');grd.addColorStop(0.2, 'rgba(255,255,255,0)');grd.addColorStop(0.35, 'rgba(255,255,255,0.005)');
+        grd.addColorStop(0.5, 'rgba(255,255,255,0.04)');
+        grd.addColorStop(0.65, 'rgba(255,255,255,0.005)');grd.addColorStop(0.8, 'rgba(255,255,255,0)');grd.addColorStop(1, 'rgba(255,255,255,0)');
 
         SCG.contexts.background.fillStyle = grd;
         SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
@@ -43,11 +44,11 @@ class Stars extends MovingGO {
         options = assignDeep({}, {
             starsColor: [255,255,255],
             vClamps: [0.1, 0.8],
-            startCountClamps: [100, 2000]
+            startCountClamps: [100, 2000],
             // vMax: 0.5,
             // speed: 0.01,
             // setDestinationOnInit: true,
-            // renderValuesRound: true
+            renderValuesRound: true
         }, options);
 
         options.destination = new V2(options.position.x, options.position.y - options.size.y/2)
@@ -83,6 +84,7 @@ class Stars extends MovingGO {
                         setDestinationOnInit: true,
                         destination: new V2().add(new V2(0, -this.size.y)),
                         speed: 0.1 + (0.01*layer),
+                        renderValuesRound: true,
                         destinationCompleteCallBack: function(){
                             this.position = new V2().add(new V2(0, this.size.y*(this.parent.itemsCountPerLayer-1)));
                             this.setDestination( new V2().add(new V2(0, -this.size.y)))
@@ -103,7 +105,7 @@ class Stars extends MovingGO {
             ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, hsv.v, true));
             let count =  fastRoundWithPrecision(this.startCountClamps[1] - (this.startCountClamps[1] - this.startCountClamps[0])*(layer/layersMax));
             for(let i = 0; i < count; i++){
-                ctx.fillRect(fastRoundWithPrecision(getRandomGaussian(-size.x*0.5, 1.5*size.x)), getRandomInt(0, size.y), 1, 1)
+                ctx.fillRect(fastRoundWithPrecision(getRandomGaussian(-size.x*0, 1*size.x)), getRandomInt(0, size.y), 1, 1)
             }
         })
     }
@@ -163,10 +165,11 @@ class SparksGeneratorObject extends GO {
                     let x = getRandomInt(-this.size.x/2, this.size.x/2);
                     let spark = this.addChild(new MovingGO({
                         size: new V2(1,1),
-                        position: new V2(x,getRandomInt(-this.size.y/2, 0)),
+                        position: new V2(x,getRandomInt(-this.size.y/4, 0)),
                         img: this.sparkImg,
                         setDestinationOnInit: true,
                         destination: new V2(x, -1000),
+                        renderValuesRound: true,
                         speed: getRandom(0.1,0.2)
                     }));
     
