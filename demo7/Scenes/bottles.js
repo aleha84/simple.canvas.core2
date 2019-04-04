@@ -1342,7 +1342,126 @@ class BottlesScene extends Scene {
                  }));
             }
 
-        }), 5)
+        }), 5);
+
+        this.labellerBase = this.addGo(new GO({
+            position: new V2(280, this.viewport.y/4),
+            size: new V2(60, 90),
+            init() {
+                // this.img = createCanvas(this.size, (ctx, size) => {
+                //     ctx.fillStyle = 'red';
+                //     ctx.fillRect(0,0, size.x, size.y)
+                // })
+                this.rails = this.addChild(new GO({
+                    size: new V2(15, 40),
+                    position: new V2(-10, 10),
+                    img: createCanvas(this.size, (ctx, size) => {
+                            ctx.fillStyle = 'red';
+                            ctx.fillRect(0,0, size.x, size.y)
+                        })
+                }))
+            }
+        }), 1)
+
+        this.labellerHead = this.addGo(new GO({
+            position: new V2(250, this.viewport.y/4),
+            size: new V2(10, 20),
+            renderValuesRound: false,
+            angle: 0,
+            scriptCustomDelay: 25,
+            init(){
+                this.scriptTemplates = [
+                    function(){
+                        let rRight = { time: 0, duration: 10, change: -90, type: 'quad', method: 'out', startValue: this.angle }
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.angle = easing.process(rRight); 
+                                rRight.time++;
+                            },
+                            function() { return rRight.time > rRight.duration; }, true, this.scriptCustomDelay);
+                    },
+                    function(){
+                        let rRight = { time: 0, duration: 10, change: 90, type: 'quad', method: 'out', startValue: this.angle }
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.angle = easing.process(rRight); 
+                                rRight.time++;
+                            },
+                            function() { return rRight.time > rRight.duration; }, true, this.scriptCustomDelay);
+                    },
+                    function() {
+                        let goDown = { time: 0, duration: 10, change: 30, type: 'quad', method: 'out', startValue: this.position.y};
+                        this.angle = 0;
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.position.y =  easing.process(goDown)
+                                goDown.time++;
+                            },
+                            function() { return goDown.time > goDown.duration; }, true, this.scriptCustomDelay);
+                    },
+                    function(){
+                        let rLeft = { time: 0, duration: 10, change: 90, type: 'quad', method: 'out', startValue: this.angle }
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.angle = easing.process(rLeft); 
+                                rLeft.time++;
+                            },
+                            function() { return rLeft.time > rLeft.duration; }, true, this.scriptCustomDelay);
+                    },
+                    function(){
+                        let rLeft = { time: 0, duration: 10, change: -90, type: 'quad', method: 'out', startValue: this.angle }
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.angle = easing.process(rLeft); 
+                                rLeft.time++;
+                            },
+                            function() { return rLeft.time > rLeft.duration; }, true, this.scriptCustomDelay);
+                    },
+                    function() {
+                        let goUp = { time: 0, duration: 10, change: -30, type: 'quad', method: 'out', startValue: this.position.y};
+                        this.angle = 0;
+                        this.scriptTimer = this.createScriptTimer(
+                            function() { 
+                                this.position.y =  easing.process(goUp)
+                                goUp.time++;
+                            },
+                            function() { return goUp.time > goUp.duration; }, true, this.scriptCustomDelay);
+                    },
+                ]
+
+                this.bodySize = new V2(10,20);
+                this.body = this.addChild(new GO({
+                    position: new V2(),
+                    size: new V2(10,15),
+                    img: createCanvas(this.bodySize, (ctx, size) => {
+                        ctx.fillStyle = 'green';ctx.fillRect(0,0,size.x, size.y);
+                        //ctx.fillStyle = 'blue';ctx.fillRect(fastRoundWithPrecision(size.x/4),fastRoundWithPrecision(size.y*3/4),fastRoundWithPrecision(size.x/2), fastRoundWithPrecision(size.y*1/4));
+                    })
+                }));
+
+                this.startScript();
+            },
+            startScript(){
+                this.script.items = [...this.scriptTemplates];
+                this.processScript();
+            },
+            internalPreRender() {
+                if(this.angle == 0)
+                    return;
+        
+                this.context.translate(this.renderPosition.x, this.renderPosition.y);
+                this.context.rotate(degreeToRadians(this.angle));
+                this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+            },
+            internalRender() {
+                if(this.angle == 0)
+                    return;
+        
+                this.context.translate(this.renderPosition.x, this.renderPosition.y);
+                this.context.rotate(degreeToRadians(-this.angle));
+                this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+            }
+        }))
 
         this.pourer = this.addGo(new GO({
             position: new V2(100.5, this.viewport.y/4 - 6),
@@ -1669,6 +1788,8 @@ class BottlesScene extends Scene {
             doWorkByTimer(this.lineStartTimer, now);
     }
 }
+
+
 
 ////////////////////////////////////////////////// bottle class //////////////////////////////////////////
 class Bottle extends MovingGO {
