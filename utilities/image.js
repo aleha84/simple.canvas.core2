@@ -580,6 +580,42 @@ var colors = {
         transparentBlack: 'rgba(0,0,0, 0)',
         white: 'rgba(255,255,255, 1)',
         black: 'rgba(0,0,0,1)',
+    },
+    changeHSV({initialValue, parameter, amount,  isRgb = false, asArray = true}){
+        let rgb = undefined;
+        if(!isRgb){
+            rgb = hexToRgb(initialValue, true)
+        }
+        else if(!isArray(initialValue)) {
+            rgb = [initialValue.r, initialValue.g, initialValue.b];
+        }
+        else {
+            rgb = [...initialValue];
+        }
+
+        let hsv = rgbToHsv(rgb[0], rgb[1], rgb[2]);
+        if(hsv[parameter] == undefined)
+            throw 'colors.changeHSV unknown parameter:' + parameter;
+
+        if(amount > 1 || amount < -1){
+            if(parameter == 'h')
+                amount/=360;
+            else 
+                amount/=100;
+        }
+
+        hsv[parameter]+=amount;
+        let resultRgb = hsvToRgb(hsv.h, hsv.s, hsv.v, true);
+        if(isRgb){
+            if(asArray)
+                return resultRgb;
+            else {
+                return { r: resultRgb[0], g: resultRgb[1], br: resultRgb[2]}
+            }
+        }
+        else {
+            return '#' + rgbToHex(resultRgb);
+        }
     }
     
 

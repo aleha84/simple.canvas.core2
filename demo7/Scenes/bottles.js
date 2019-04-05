@@ -1352,19 +1352,25 @@ class BottlesScene extends Scene {
                 //     ctx.fillStyle = 'red';
                 //     ctx.fillRect(0,0, size.x, size.y)
                 // })
+                this.railsSize = new V2(15, 40);
                 this.rails = this.addChild(new GO({
-                    size: new V2(15, 40),
+                    size: this.railsSize,
                     position: new V2(-10, 10),
-                    img: createCanvas(this.size, (ctx, size) => {
-                            ctx.fillStyle = 'red';
-                            ctx.fillRect(0,0, size.x, size.y)
-                        })
+                    img: createCanvas(this.railsSize, (ctx, size) => {
+                        ctx.fillStyle = '#4592D1';ctx.fillRect(0,0, size.x, size.y);
+                        ctx.fillStyle = '#3570A8';ctx.fillRect(4,2, size.x-8, size.y-4);
+                        ctx.fillStyle = '#2C5E8C';
+                        for(let i =2; i< size.y-2;i++){
+                            if(i%4== 0)
+                                ctx.fillRect(5,i, size.x-10, 2);
+                        }
+                    })
                 }))
             }
         }), 1)
 
         this.labellerHead = this.addGo(new GO({
-            position: new V2(250, this.viewport.y/4),
+            position: new V2(270, this.viewport.y/4),
             size: new V2(10, 20),
             renderValuesRound: false,
             angle: 0,
@@ -1423,6 +1429,9 @@ class BottlesScene extends Scene {
                             function() { 
                                 this.angle = easing.process(rLeft); 
                                 rLeft.time++;
+                                if(rLeft.time >= rLeft.duration/2 ){
+                                    this.body.img = this.body.imgInverted;
+                                }
                             },
                             function() { return rLeft.time > rLeft.duration; }, true, this.scriptCustomDelay);
                     },
@@ -1450,6 +1459,9 @@ class BottlesScene extends Scene {
                             function() { 
                                 this.angle = easing.process(rLeft); 
                                 rLeft.time++;
+                                if(rLeft.time >= rLeft.duration/2 ){
+                                    this.body.img = this.body.imgDefault;
+                                }
                             },
                             function() { return rLeft.time > rLeft.duration; }, true, this.scriptCustomDelay);
                     },
@@ -1465,23 +1477,35 @@ class BottlesScene extends Scene {
                     },
                 ]
 
-                this.panelSize = new V2(5, 10);
+                this.panelSize = new V2(10, 10);
                 this.panel = this.addChild(new GO({
-                    position: new V2(0, 5),
+                    position: new V2(0, 7),
                     size: this.panelSize,
-                    img: createCanvas(this.panelSize, (ctx, size) => {
-                        ctx.fillStyle = 'blue';ctx.fillRect(0,0,size.x, size.y);
-                    })
+                    img: PP.createImage({"general":{"originalSize":{"x":10,"y":10},"size":{"x":10,"y":10},"zoom":10,"showGrid":true},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#356FA5","fillColor":"#356FA5","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":2,"y":0}},{"point":{"x":2,"y":9}},{"point":{"x":7,"y":9}},{"point":{"x":7,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#4085C8","fillColor":"#4085C8","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":0,"y":7}},{"point":{"x":9,"y":7}},{"point":{"x":9,"y":9}},{"point":{"x":0,"y":9}}]},{"order":2,"type":"lines","strokeColor":"#3979B5","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":7}},{"point":{"x":9,"y":7}}]}]}})
                 }))
 
                 this.bodySize = new V2(10,20);
                 this.body = this.addChild(new GO({
                     position: new V2(),
                     size: new V2(10,15),
-                    img: createCanvas(this.bodySize, (ctx, size) => {
-                        ctx.fillStyle = 'green';ctx.fillRect(0,0,size.x, size.y);
-                    })
+                    imgDefault: PP.createImage({"general":{"originalSize":{"x":10,"y":15},"size":{"x":10,"y":15},"zoom":10,"showGrid":true},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#4085C8","fillColor":"#4085C8","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":2,"y":14}},{"point":{"x":2,"y":0}},{"point":{"x":7,"y":0}},{"point":{"x":7,"y":14}}]},{"order":1,"type":"lines","strokeColor":"#4B9DEA","fillColor":"#4B9DEA","closePath":true,"fill":false,"visible":true,"points":[{"point":{"x":8,"y":14}},{"point":{"x":9,"y":14}},{"point":{"x":9,"y":0}},{"point":{"x":8,"y":0}}]},{"order":2,"type":"lines","strokeColor":"#356FA5","fillColor":"#356FA5","closePath":true,"fill":false,"visible":true,"points":[{"point":{"x":1,"y":14}},{"point":{"x":0,"y":14}},{"point":{"x":0,"y":0}},{"point":{"x":1,"y":0}}]},{"order":3,"type":"dots","strokeColor":"#356FA5","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":1}},{"point":{"x":4,"y":2}},{"point":{"x":5,"y":1}},{"point":{"x":5,"y":3}},{"point":{"x":3,"y":3}},{"point":{"x":4,"y":4}},{"point":{"x":3,"y":5}},{"point":{"x":5,"y":5}}]}]}}),
+                    imgInverted: PP.createImage({"general":{"originalSize":{"x":10,"y":15},"size":{"x":10,"y":15},"zoom":10,"showGrid":true},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#4085C8","fillColor":"#4085C8","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":2,"y":14}},{"point":{"x":2,"y":0}},{"point":{"x":7,"y":0}},{"point":{"x":7,"y":14}}]},{"order":1,"type":"lines","strokeColor":"#356FA5","fillColor":"#356FA5","closePath":true,"fill":false,"visible":true,"points":[{"point":{"x":8,"y":14}},{"point":{"x":9,"y":14}},{"point":{"x":9,"y":0}},{"point":{"x":8,"y":0}}]},{"order":2,"type":"lines","strokeColor":"#4B9DEA","fillColor":"#4B9DEA","closePath":true,"fill":false,"visible":true,"points":[{"point":{"x":1,"y":14}},{"point":{"x":0,"y":14}},{"point":{"x":0,"y":0}},{"point":{"x":1,"y":0}}]},{"order":3,"type":"dots","strokeColor":"#356FA5","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":1}},{"point":{"x":4,"y":2}},{"point":{"x":5,"y":1}},{"point":{"x":5,"y":3}},{"point":{"x":3,"y":3}},{"point":{"x":4,"y":4}},{"point":{"x":3,"y":5}},{"point":{"x":5,"y":5}}]}]}}),
+                    // img: createCanvas(this.bodySize, (ctx, size) => {
+                    //     ctx.fillStyle = colors.changeHSV({ initialValue: '#4085C8', parameter: 'v', amount: -5 });ctx.fillRect(0,0, size.x, size.y);
+                    //     ctx.fillStyle = '#4085C8';ctx.fillRect(
+                    //         2, fastRoundWithPrecision(size.y/3), size.x-4, fastRoundWithPrecision(size.y*2/3)
+                    //     );
+
+                    //     ctx.fillStyle = colors.changeHSV({ initialValue: '#4085C8', parameter: 'v', amount: -20 });
+                    //     for(let j = 0; j < 3; j++){
+                    //         for(let i = 0; i < 4; i++){
+                    //             ctx.fillRect(i*2 + (j%2==0?1:2), j+1, 1, 1);
+                    //         }
+                    //     }
+                    // })
                 }));
+
+                this.body.img = this.body.imgDefault;
 
                 this.startScript();
             },
@@ -1505,7 +1529,7 @@ class BottlesScene extends Scene {
                 this.context.rotate(degreeToRadians(-this.angle));
                 this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
             }
-        }))
+        }),5)
 
         this.pourer = this.addGo(new GO({
             position: new V2(100.5, this.viewport.y/4 - 6),
