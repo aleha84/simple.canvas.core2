@@ -45,7 +45,10 @@ class GO {
                 options: {
                     timerDelay: 50,
                 },
-                items: []
+                items: [],
+                callbacks: {
+                    completed: function() {}
+                }
             },
             collisionDetection: {
                 enabled: false,
@@ -799,8 +802,11 @@ class GO {
     }
 
     processScript() {
-        if(this.script.items.length == 0)
+        if(this.script.items.length == 0){
+            this.script.callbacks.completed.call(this);
             return;
+        }
+            
 
         this.script.currentStep = this.script.items.shift();
         this.script.currentStep.call(this);
