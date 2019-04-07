@@ -1375,6 +1375,7 @@ class BottlesScene extends Scene {
                 this.labelsDeliverer = this.addChild(new GO({
                     size: this.labelsDelivererSize,
                     position: new V2(11, -45),
+                    renderValuesRound: true,
                     img: createCanvas(this.labelsDelivererSize, (ctx, size) => {
                         ctx.fillStyle = '#4085C8'; ctx.fillRect(0,0, size.x, size.y);
                         ctx.fillStyle = '#4B9DEA'; ctx.fillRect(7,0,3, size.y);
@@ -1385,6 +1386,7 @@ class BottlesScene extends Scene {
                             position: new V2(-7.5,45),
                             amount: 5,
                             size: this.labelsPackSize,
+                            renderValuesRound: true,
                             init() {
                                 this.changeAmount(5);
                             },
@@ -1404,6 +1406,50 @@ class BottlesScene extends Scene {
                                 })
                             }
                         }))
+                    },
+                    refillLabelsPack() {
+                        this.script.items = [
+                            function(){
+                                this.scriptTimer = this.createScriptTimer(
+                                    function() { },
+                                function() { return true }, false, 250);
+                            },
+                            function(){
+                                let up = { time: 0, duration: 15, change: -100, type: 'quad', method: 'in', startValue: this.labelsPack.position.y }
+                                this.scriptTimer = this.createScriptTimer(
+                                    function() { 
+                                        this.labelsPack.position.y = easing.process(up); 
+                                        up.time++;
+                                    },
+                                    function() { return up.time > up.duration; }, true, 25);
+                            },
+                            function(){
+                                this.scriptTimer = this.createScriptTimer(
+                                    function() { 
+                                        this.labelsPack.changeAmount(5);
+                                    },
+                                function() { return true }, false, 500);
+                            },
+                            function(){
+                                let up = { time: 0, duration: 15, change: 100, type: 'quad', method: 'out', startValue: this.labelsPack.position.y }
+                                this.scriptTimer = this.createScriptTimer(
+                                    function() { 
+                                        this.labelsPack.position.y = easing.process(up); 
+                                        up.time++;
+                                    },
+                                function() { return up.time > up.duration; }, true, 25);
+                            },
+                            function(){
+                                this.scriptTimer = this.createScriptTimer(
+                                    function() { 
+                                        this.labelsPack.position.y = 45;
+                                        this.labelsPack.needRecalcRenderProperties = true;
+                                    },
+                                function() { return true }, false, 25);
+                            }
+                        ]
+
+                        this.processScript();
                     }
                 }))
             }
@@ -1427,7 +1473,8 @@ class BottlesScene extends Scene {
                             function() { return rRight.time > rRight.duration; }, true, this.scriptCustomDelay);
                     },
                     function(){
-                        let panel = { time: 0, duration: 5, change: 2, type: 'quad', method: 'out', startValue: this.panel.position.y }
+                        let lp = this.parentScene.labellerBase.labelsDeliverer.labelsPack
+                        let panel = { time: 0, duration: 5, change: 2 + 5 - lp.amount - 1, type: 'quad', method: 'out', startValue: this.panel.position.y }
                         this.scriptTimer = this.createScriptTimer(
                             function() { 
                                 this.panel.position.y = easing.process(panel); 
@@ -1436,15 +1483,14 @@ class BottlesScene extends Scene {
                             function() { return panel.time > panel.duration; }, true, this.scriptCustomDelay);
                     },
                     function(){
-                        let panel = { time: 0, duration: 5, change: -2, type: 'quad', method: 'out', startValue: this.panel.position.y }
-                        this.panel.label.isVisible = true;
-                        
                         let lp = this.parentScene.labellerBase.labelsDeliverer.labelsPack
+                        let panel = { time: 0, duration: 5, change: -2 - (5 - lp.amount - 1), type: 'quad', method: 'out', startValue: this.panel.position.y }
+                        this.panel.label.isVisible = true;
                         
                         lp.changeAmount(lp.amount-1);
 
                         if(lp.amount == 0){
-                            //todo call lp refill
+                            this.parentScene.labellerBase.labelsDeliverer.refillLabelsPack()
                         }
 
                         this.scriptTimer = this.createScriptTimer(
@@ -1496,6 +1542,7 @@ class BottlesScene extends Scene {
                     },
                     function(){
                         this.panel.label.isVisible = false;
+                        this.bottle.label.isVisible = true;
                         let panel = { time: 0, duration: 5, change: -5, type: 'quad', method: 'out', startValue: this.panel.position.y }
                         this.scriptTimer = this.createScriptTimer(
                             function() { 
@@ -1569,24 +1616,26 @@ class BottlesScene extends Scene {
 
                 this.body.img = this.body.imgDefault;
                 this.script.callbacks.completed = this.scriptCompleted;
-                this.startScript();
+                //this.startScript();
             },
             scriptCompleted() {
                 //console.log('scriptCompleted');
                 this.scriptStarted = false;
             },
-            startScript(){
+            startScript(bottle){
                 if(this.scriptStarted)
                     return;
                 
                 this.scriptStarted = true;
                 this.script.items = [...this.scriptTemplates];
+                this.bottle = bottle;
                 this.processScript();
             },
             internalPreRender() {
                 if(this.angle == 0)
                     return;
         
+                this.context.save();
                 this.context.translate(this.renderPosition.x, this.renderPosition.y);
                 this.context.rotate(degreeToRadians(this.angle));
                 this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
@@ -1598,6 +1647,8 @@ class BottlesScene extends Scene {
                 this.context.translate(this.renderPosition.x, this.renderPosition.y);
                 this.context.rotate(degreeToRadians(-this.angle));
                 this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+
+                this.context.restore();
             }
         }),5)
 
@@ -1936,6 +1987,7 @@ class Bottle extends MovingGO {
             speed: 0.25,//0.255,
             nextCreated: false,
             lineStopped: false,
+            renderValuesRound: true,
         }, options);
 
         super(options);
@@ -2038,6 +2090,17 @@ class Bottle extends MovingGO {
             }
         }));
 
+        this.label = this.addChild(new GO({
+            isVisible: false,
+            size: new V2(5,8),
+            position: new V2(2.5,6),
+            renderValuesRound: true,
+            img: createCanvas(new V2(4,8), (ctx, size) => {
+                ctx.fillStyle = '#E5BC8D'; ctx.fillRect(0,0, size.x, size.y)
+            })
+            
+        }));
+
         this.reflection = this.addChild(new GO({
             position: new V2(),
             size: this.size.clone(),
@@ -2052,11 +2115,6 @@ class Bottle extends MovingGO {
             size: new V2(4,2),
             img: this.corkImg
         }));
-
-        this.label = {
-            isVisible: false,
-        }
-
 
         this.originY = this.position.y;
     }
@@ -2086,7 +2144,7 @@ class Bottle extends MovingGO {
             }
 
             if(!this.label.isVisible && this.position.x > 250){
-                this.parentScene.labellerHead.startScript();
+                this.parentScene.labellerHead.startScript(this);
             }
         }
 
