@@ -1371,7 +1371,37 @@ class BottlesScene extends Scene {
                     })
                 }));
 
-                this.labelsDelivererSize = new V2(10, 100);
+                this.controlsBlockSize = new V2(19,20);
+                this.controlsBlock = this.addChild(new GO({
+                    position: new V2(6.5, 20),
+                    renderValuesRound: true,
+                    size: this.controlsBlockSize,
+                    img: createCanvas(this.controlsBlockSize, (ctx, size)=> {
+                        ctx.fillStyle = '#4085C8';ctx.fillRect(0,0,size.x,size.y);
+                        ctx.fillStyle = '#4B9DEA';ctx.fillRect(size.x-3,0,3,size.y);
+                        ctx.fillStyle = '#356FA5';
+                        for(let j = 0;j<3;j++){
+                            for(let i = 0;i<10;i++){
+                                let shift = 0;
+                                if(j%2 == 0) shift = 1;
+                                if(i%2 == 0) ctx.fillRect(shift + 1 + i, size.y-4 + j, 1, 1);
+                            }
+                        }
+                    }),
+                    init() {
+                        this.shadowsH = this.addChild(new GO({
+                            position: new V2(0, this.size.y/2 + 6),
+                            size: new V2(this.size.x,12 ),
+                            img: createCanvas(this.size, (ctx, size) => {
+                                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,size.x,4);
+                                ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0,4,size.x,4);
+                                ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0,8,30,4);
+                            })
+                        }));
+                    }
+                }))
+
+                this.labelsDelivererSize = new V2(10, 110);
                 this.labelsDeliverer = this.addChild(new GO({
                     size: this.labelsDelivererSize,
                     position: new V2(11, -45),
