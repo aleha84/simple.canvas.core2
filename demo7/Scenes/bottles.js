@@ -1376,8 +1376,8 @@ class BottlesScene extends Scene {
                             //renderValuesRound: true,
                             img: createCanvas(new V2(this.size.x, 2), (ctx, size) => {
                                 //ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,size.x,2);
-                                ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0,0,size.x,2);
-                                //ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0,4,30,2);
+                                ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0,0,size.x,1);
+                                ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0,1,size.x,1);
                             })
                         }));
                     }
@@ -1400,6 +1400,14 @@ class BottlesScene extends Scene {
                                 if(i%2 == 0) ctx.fillRect(shift + 1 + i, size.y-4 + j, 1, 1);
                             }
                         }
+
+                        for(let i = 0; i < 5; i++){
+                            ctx.fillStyle = '#356FA5'; 
+                            //ctx.fillRect(9, 43 + 20*i, 6, 1);
+                            ctx.fillRect(12, 43 + 20*i - 2, 1, 1);
+                            //ctx.fillStyle = '#4085C8'; ctx.fillRect(15, 43 + 20*i, 2, 1);
+                        }
+                        
 
                         ctx.fillStyle = '#3570A8';
                         ctx.fillRect(6, 119, 3,1);
@@ -1452,8 +1460,74 @@ class BottlesScene extends Scene {
                                 ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(0,0,size.x,size.y);
                             })
                         }));
+
+                        this.indicators = this.addChild(new GO({
+                            position: new V2(-3,this.size.y/2 - 10),
+                            size: new V2(6,3),
+                            state: {
+                                power: true,
+                                labelling: false,
+                                refilling: false,
+                            },
+                            toggleLabelling(enable) {
+                                this.state.labelling = enable;
+                                this.labelling.img = enable ? this.workImg : this.idleImg;
+                            },
+                            toggleRefilling(enable) {
+                                this.state.refilling = enable;
+                                this.refilling.img = enable ? this.warnImg : this.idleImg;
+                            },
+                            togglePower() {
+                                this.state.power = !this.state.power;
+                                this.power.img = this.state.power ? this.okImg : this.idleImg;
+                            },
+                            init() {
+                                debugger;
+                                this.ledWidth = this.size.x/3;
+                                this.idleImg = createCanvas(new V2(1,2), (ctx, size) => {
+                                    ctx.fillStyle = '#D3D3D3';ctx.fillRect(0,0, size.x, size.y);
+                                    ctx.fillStyle = '#A5A5A5';ctx.fillRect(0,1, size.x, 1);
+                                })
+                                this.okImg = createCanvas(new V2(1,2), (ctx, size) => {
+                                    ctx.fillStyle = '#43CC53';ctx.fillRect(0,0, size.x, size.y);
+                                    ctx.fillStyle = '#35A342';ctx.fillRect(0,1, size.x, 1);
+                                })
+                                this.workImg= createCanvas(new V2(1,2), (ctx, size) => {
+                                    ctx.fillStyle = '#E5BC8D';ctx.fillRect(0,0, size.x, size.y);
+                                    ctx.fillStyle = '#A08463';ctx.fillRect(0,1, size.x, 1);
+                                });
+
+                                this.warnImg= createCanvas(new V2(1,2), (ctx, size) => {
+                                    ctx.fillStyle = '#E02B28';ctx.fillRect(0,0, size.x, size.y);
+                                    ctx.fillStyle = '#B52320';ctx.fillRect(0,1, size.x, 1);
+                                });
+                                
+                                this.power = this.addChild(new GO({
+                                    size: new V2(this.ledWidth, this.size.y),
+                                    position: new V2(-this.size.x/3 , 0),
+                                    img: this.okImg
+                                }));
+                                this.labelling = this.addChild(new GO({
+                                    size: new V2(this.ledWidth, this.size.y),
+                                    position: new V2(this.size.x/3 - this.ledWidth, 0),
+                                    img: this.idleImg
+                                 }));
+
+                                 this.refilling = this.addChild(new GO({
+                                    size: new V2(this.ledWidth, this.size.y),
+                                    position: new V2(this.ledWidth, 0),
+                                    img: this.idleImg
+                                 }));
+                
+                                 this.togglePowerLedTimer = createTimer(500, this.togglePower, this, true);
+                                 this.registerTimer(this.togglePowerLedTimer)
+                            },
+                         }));
+
+                         this.script.callbacks.completed = () => this.indicators.toggleRefilling(false);
                     },
                     refillLabelsPack() {
+                        this.indicators.toggleRefilling(true);
                         this.script.items = [
                             function(){
                                 this.scriptTimer = this.createScriptTimer(
@@ -1510,6 +1584,7 @@ class BottlesScene extends Scene {
             init(){
                 this.scriptTemplates = [
                     function(){
+                        this.parentScene.labellerBase.labelsDeliverer.indicators.toggleLabelling(true)
                         let rRight = { time: 0, duration: 5, change: -90, type: 'quad', method: 'out', startValue: this.angle }
                         this.scriptTimer = this.createScriptTimer(
                             function() { 
@@ -1667,6 +1742,7 @@ class BottlesScene extends Scene {
             scriptCompleted() {
                 //console.log('scriptCompleted');
                 this.scriptStarted = false;
+                this.parentScene.labellerBase.labelsDeliverer.indicators.toggleLabelling(false)
             },
             startScript(bottle){
                 if(this.scriptStarted)
