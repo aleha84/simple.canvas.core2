@@ -1368,17 +1368,30 @@ class BottlesScene extends Scene {
                         ctx.fillStyle = '#3570A8';
                         ctx.fillRect(1,1,1,1);ctx.fillRect(size.x-2,1,1,1);
                         ctx.fillRect(1,size.y-2,1,1);ctx.fillRect(size.x-2,size.y-2,1,1);
-                    })
+                    }),
+                    init(){
+                        this.shadowsH = this.addChild(new GO({
+                            position: new V2(0, this.size.y/2 + 1),
+                            size: new V2(this.size.x,2),
+                            //renderValuesRound: true,
+                            img: createCanvas(new V2(this.size.x, 2), (ctx, size) => {
+                                //ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,size.x,2);
+                                ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0,0,size.x,2);
+                                //ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0,4,30,2);
+                            })
+                        }));
+                    }
                 }));
 
-                this.controlsBlockSize = new V2(19,20);
-                this.controlsBlock = this.addChild(new GO({
-                    position: new V2(6.5, 20),
+                this.labelsDelivererSize = new V2(20, 140);
+                this.labelsDeliverer = this.addChild(new GO({
+                    size: this.labelsDelivererSize,
+                    position: new V2(7.5, -45),
                     renderValuesRound: true,
-                    size: this.controlsBlockSize,
-                    img: createCanvas(this.controlsBlockSize, (ctx, size)=> {
-                        ctx.fillStyle = '#4085C8';ctx.fillRect(0,0,size.x,size.y);
-                        ctx.fillStyle = '#4B9DEA';ctx.fillRect(size.x-3,0,3,size.y);
+                    img: createCanvas(this.labelsDelivererSize, (ctx, size) => {
+                        ctx.fillStyle = '#4085C8'; ctx.fillRect(0,124, size.x-3, 16); ctx.fillRect(9,0, 8, size.y);
+                        ctx.fillStyle = '#4B9DEA'; ctx.fillRect(15,0,2, size.y);
+
                         ctx.fillStyle = '#356FA5';
                         for(let j = 0;j<3;j++){
                             for(let i = 0;i<10;i++){
@@ -1387,33 +1400,16 @@ class BottlesScene extends Scene {
                                 if(i%2 == 0) ctx.fillRect(shift + 1 + i, size.y-4 + j, 1, 1);
                             }
                         }
-                    }),
-                    init() {
-                        this.shadowsH = this.addChild(new GO({
-                            position: new V2(0, this.size.y/2 + 6),
-                            size: new V2(this.size.x,12 ),
-                            img: createCanvas(this.size, (ctx, size) => {
-                                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,size.x,4);
-                                ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0,4,size.x,4);
-                                ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0,8,30,4);
-                            })
-                        }));
-                    }
-                }))
 
-                this.labelsDelivererSize = new V2(10, 110);
-                this.labelsDeliverer = this.addChild(new GO({
-                    size: this.labelsDelivererSize,
-                    position: new V2(11, -45),
-                    renderValuesRound: true,
-                    img: createCanvas(this.labelsDelivererSize, (ctx, size) => {
-                        ctx.fillStyle = '#4085C8'; ctx.fillRect(0,0, size.x, size.y);
-                        ctx.fillStyle = '#4B9DEA'; ctx.fillRect(7,0,3, size.y);
+                        ctx.fillStyle = '#3570A8';
+                        ctx.fillRect(6, 119, 3,1);
+                        ctx.fillRect(7, 120, 2,1);
+                        ctx.fillRect(8, 121, 1,1);
                     }) ,
                     init(){
                         this.labelsPackSize = new V2(5, 10);
                         this.labelsPack = this.addChild(new GO({
-                            position: new V2(-7.5,45),
+                            position: new V2(-3.5,45),
                             amount: 5,
                             size: this.labelsPackSize,
                             renderValuesRound: true,
@@ -1435,7 +1431,27 @@ class BottlesScene extends Scene {
                                     ctx.fillRect(0,0,size.x, 1);ctx.fillRect(0,size.y-1,size.x, 1);
                                 })
                             }
-                        }))
+                        }));
+
+                        this.shadowsH = this.addChild(new GO({
+                            position: new V2(-1.5, this.size.y/2 + 6.1),
+                            size: new V2(this.size.x-3,12),
+                            //renderValuesRound: true,
+                            img: createCanvas(new V2(this.size.x, 12), (ctx, size) => {
+                                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,size.x,2);
+                                ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0,2,size.x,2);
+                                ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0,4,30,2);
+                            })
+                        }));
+
+                        this.shadowsV = this.addChild(new GO({
+                            position: new V2(-this.size.x/2 - 1, 62),
+                            size: new V2(2, 16),
+                            //renderValuesRound: true,
+                            img: createCanvas(new V2(this.size.x, 12), (ctx, size) => {
+                                ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(0,0,size.x,size.y);
+                            })
+                        }));
                     },
                     refillLabelsPack() {
                         this.script.items = [
@@ -1445,7 +1461,7 @@ class BottlesScene extends Scene {
                                 function() { return true }, false, 250);
                             },
                             function(){
-                                let up = { time: 0, duration: 15, change: -100, type: 'quad', method: 'in', startValue: this.labelsPack.position.y }
+                                let up = { time: 0, duration: 15, change: -100, type: 'cubic', method: 'in', startValue: this.labelsPack.position.y }
                                 this.scriptTimer = this.createScriptTimer(
                                     function() { 
                                         this.labelsPack.position.y = easing.process(up); 
@@ -1461,7 +1477,7 @@ class BottlesScene extends Scene {
                                 function() { return true }, false, 500);
                             },
                             function(){
-                                let up = { time: 0, duration: 15, change: 100, type: 'quad', method: 'out', startValue: this.labelsPack.position.y }
+                                let up = { time: 0, duration: 15, change: 100, type: 'cubic', method: 'out', startValue: this.labelsPack.position.y }
                                 this.scriptTimer = this.createScriptTimer(
                                     function() { 
                                         this.labelsPack.position.y = easing.process(up); 

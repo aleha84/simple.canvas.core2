@@ -294,11 +294,11 @@ class DemoSpaceShip extends MovingGO {
         this.rotationEndAmount = 0;
 
         for(let i = 0; i < this.rotationStart.duration;i++){
-            this.rotationStartAmount += easing.process({...this.rotationStart, time: i});
+            this.rotationStartAmount += _easing.process({...this.rotationStart, time: i});
         }
 
         for(let i = 0; i < this.rotationEnd.duration;i++){
-            this.rotationEndAmount += easing.process({...this.rotationEnd, startValue: this.rotationMaxSpeed, change: -this.rotationMaxSpeed, time: i});
+            this.rotationEndAmount += _easing.process({...this.rotationEnd, startValue: this.rotationMaxSpeed, change: -this.rotationMaxSpeed, time: i});
         }
     }
 
@@ -322,10 +322,10 @@ class DemoSpaceShip extends MovingGO {
         this.accelerationDistance = 0;
         this.breakingDistance = 0;
         for(let i = 0; i < this.acceleration.duration;i++){
-                this.accelerationDistance += easing.process({...this.acceleration, time: i});
+                this.accelerationDistance += _easing.process({...this.acceleration, time: i});
         }
         for(let i = 0; i < this.breaking.duration;i++){
-            this.breakingDistance += easing.process({...this.breaking, startValue: this.maxSpeed, change: -this.maxSpeed, time: i});
+            this.breakingDistance += _easing.process({...this.breaking, startValue: this.maxSpeed, change: -this.maxSpeed, time: i});
         }
     }
 
@@ -367,7 +367,7 @@ class DemoSpaceShip extends MovingGO {
             return;
         }
 
-        this.rotationSpeed = easing.process(props);
+        this.rotationSpeed = _easing.process(props);
         props.time++;
     }
 
@@ -400,7 +400,7 @@ class DemoSpaceShip extends MovingGO {
             return;
         }
 
-        this.speed = easing.process(props);
+        this.speed = _easing.process(props);
         props.time++;
     }
 
@@ -601,7 +601,7 @@ Thruster.eshaustOriginImg = createCanvas(new V2(6,1), function(ctx, size){
 });
 
 
-var easing = {
+var _easing = {
     process(props){
         let group = this[props.type];
         if(!group) {
