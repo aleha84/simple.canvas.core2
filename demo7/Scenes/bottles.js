@@ -126,6 +126,14 @@ class BottlesScene extends Scene {
             ctx.fillRect(4,2,2,24);
         });
 
+        this.streamImages = [];
+        for(let i = 0; i < 3; i++){
+            this.streamImages[i] = createCanvas(this.bottleOriginalSize, (ctx, size) => {
+                ctx.fillStyle = '#363140';
+                ctx.fillRect(4,2,2, fastRoundWithPrecision(24 * (i+1)/3));
+            });
+        }
+
         this.backImgRight = createCanvas(this.bottleOriginalSize, (ctx, size) => {
             ctx.fillStyle = '#114A48';
             ctx.fillRect(3,3,4,1); ctx.fillRect(3,3,1,9);ctx.fillRect(2,11,2,1);ctx.fillRect(2,11,1,2);ctx.fillRect(1,13,2,1);ctx.fillRect(1,13,1,14);ctx.fillRect(1,26,8,1);ctx.fillRect(8,19,1,8);
