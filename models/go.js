@@ -477,8 +477,7 @@ class GO {
                     rsx = fastRoundWithPrecision(rsx, 0);
                     rsy = fastRoundWithPrecision(rsy, 0);
                 }
-
-
+                
 				if(this.isAnimated)
 				{
 					let ani = this.animation;
@@ -654,6 +653,7 @@ class GO {
                 }
 
                 let rtl = new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2);
+
                 if(!this.renderBox)
                     this.renderBox = new Box(rtl, this.renderSize, this.boxRenderProperties);
                 else 

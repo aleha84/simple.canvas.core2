@@ -114,7 +114,9 @@ SCG.viewport = {
         if(_scale < 0.5)
             throw `window is to small (width: ${_width}, height: ${_height})`;
 
-        this.real = new Box(new V2, new V2(this.logical.width * _scale, this.logical.height * _scale));
+        _scale = fastRoundWithPrecision(_scale, 1);
+
+        this.real = new Box(new V2, new V2(fastRoundWithPrecision(this.logical.width * _scale), fastRoundWithPrecision(this.logical.height * _scale)));
         
         let mTop = 0;
 		let mLeft = 0;
