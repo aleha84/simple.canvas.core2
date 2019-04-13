@@ -1450,9 +1450,9 @@ class BottlesScene extends Scene {
                         }));
 
                         this.shadowsH = this.addChild(new GO({
-                            position: new V2(-1.5, this.size.y/2 + 6.1),
+                            position: new V2(-1.5, this.size.y/2 + 6),
                             size: new V2(this.size.x-3,12),
-                            //renderValuesRound: true,
+                            renderValuesRound: true,
                             img: createCanvas(new V2(this.size.x, 12), (ctx, size) => {
                                 ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,size.x,2);
                                 ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0,2,size.x,2);
@@ -2090,6 +2090,7 @@ class BottlesScene extends Scene {
             },
             bottleContentImg: this.bottleContentImg,
             streamImg: this.streamImg,
+            streamImages: this.streamImages,
             setDestinationOnInit: true,
             destination: new V2(this.viewport.x+ 100,posY)
         }),2);
@@ -2139,7 +2140,8 @@ class Bottle extends MovingGO {
         this.contentStream = this.addChild(new GO({
             position: new V2(0,0),
             size: this.size.clone(),
-            img: this.streamImg,
+            streamImagesIndex: 0,
+            //img: this.streamImages[0],//this.streamImg,
             isVisible: false
         }))
         
@@ -2209,6 +2211,9 @@ class Bottle extends MovingGO {
                 if(this.smoothChangeTimer)
                     doWorkByTimer(this.smoothChangeTimer, now)
 
+                if(this.streamChangeTimer)
+                    doWorkByTimer(this.streamChangeTimer, now)
+
                 if(this.bubbleGeneratorTimer)
                     doWorkByTimer(this.bubbleGeneratorTimer, now);
             },
@@ -2216,14 +2221,21 @@ class Bottle extends MovingGO {
                 this.isVisible = true;
                 this.parent.contentStream.isVisible = true;
                 this.renderValuesRound = false;
-                this.smoothChangeTimer = createTimer(50, this.smoothChange, this, true);
+                this.streamChangeTimer = createTimer(25,() => {
+                    let cs = this.parent.contentStream;
+                    cs.img = this.parent.streamImages[cs.streamImagesIndex++];
+                    if(cs.streamImagesIndex == this.parent.streamImages.length ){
+                        this.streamChangeTimer = undefined;
+                        this.smoothChangeTimer = createTimer(50, this.smoothChange, this, true);
+                    }
+                }, this, true);
             }
         }));
 
         this.label = this.addChild(new GO({
             isVisible: false,
-            size: new V2(5,8),
-            position: new V2(2.5,6),
+            size: new V2(6,8),
+            position: new V2(2,6),
             renderValuesRound: true,
             img: createCanvas(new V2(4,8), (ctx, size) => {
                 ctx.fillStyle = '#E5BC8D'; ctx.fillRect(0,0, size.x, size.y)
