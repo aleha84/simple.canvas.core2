@@ -28,7 +28,12 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.scenes.cacheScene(new SpaceportScene({
         name:'spaceport',
         viewport: defaultViewpot
-    }));   
+    })); 
+    
+    SCG.scenes.cacheScene(new MiningColonyScene({
+        name:'miningcolony',
+        viewport: defaultViewpot
+    })); 
 
     sceneSelectByHashValue();
     
