@@ -14,28 +14,33 @@ class MiningColonyScene extends Scene {
         this.layersCount = 5;
         this.itemsCountPerLayer = 3;
 
-        let that = this;
-        this.bgImage = createCanvas(this.viewport, (ctx, size) => {
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0,0, size.x, size.x);
-            
-            let grd = ctx.createLinearGradient(size.x/2,0, size.x/2, size.y);
-            grd.addColorStop(0, 'rgba(255,255,255,0)');grd.addColorStop(0.2, 'rgba(255,255,255,0)');grd.addColorStop(0.35, 'rgba(255,255,255,0.005)');
-            grd.addColorStop(0.5, 'rgba(255,255,255,0.04)');
-            grd.addColorStop(0.65, 'rgba(255,255,255,0.005)');grd.addColorStop(0.8, 'rgba(255,255,255,0)');grd.addColorStop(1, 'rgba(255,255,255,0)');
-
-            ctx.fillStyle = grd;
-            ctx.fillRect(0,0, size.x, size.x);
-        })
-
         this.stars = this.addGo(new Stars({
             size: this.viewport.clone(),
             position: this.sceneCenter.clone()
-        }))
+        }), 0)
+
+        for(let i = 0; i < 10; i++){
+            this.test = this.addGo(new AsteroidModel({
+                position: new V2(300 + getRandomInt(-100, 100), this.sceneCenter.y + getRandomInt(-5,5))
+            }), 10);
+        }
+        
     }
 
     backgroundRender() {
-        SCG.contexts.background.drawImage(this.bgImage, 0,0, SCG.viewport.real.width, SCG.viewport.real.height)
+        let size = SCG.viewport.real.size;
+        SCG.contexts.background.fillStyle = 'black';
+        SCG.contexts.background.fillRect(0,0, size.x, size.x);
+        
+        let grd = SCG.contexts.background.createLinearGradient(size.x/2,0, size.x/2, size.y);
+        grd.addColorStop(0, 'rgba(255,255,255,0)');grd.addColorStop(0.2, 'rgba(255,255,255,0)');grd.addColorStop(0.35, 'rgba(255,255,255,0.005)');
+        grd.addColorStop(0.5, 'rgba(255,255,255,0.04)');
+        grd.addColorStop(0.65, 'rgba(255,255,255,0.005)');grd.addColorStop(0.8, 'rgba(255,255,255,0)');grd.addColorStop(1, 'rgba(255,255,255,0)');
+
+        SCG.contexts.background.fillStyle = grd;
+        SCG.contexts.background.fillRect(0,0, size.x, size.x);
+
+        //SCG.contexts.background.drawImage(this.bgImage, 0,0, SCG.viewport.real.width, SCG.viewport.real.height)
     }
 }
 
@@ -44,7 +49,7 @@ class Stars extends MovingGO {
         options = assignDeep({}, {
             starsColor: [255,255,255],
             vClamps: [0.1, 0.8],
-            startCountClamps: [100, 2000],
+            startCountClamps: [200, 4000],
             renderValuesRound: true,
             itemsCountPerLayer: 1,
             layersCount: 5,
@@ -89,7 +94,7 @@ class Stars extends MovingGO {
             ctx.fillStyle = '#' + rgbToHex( hsvToRgb(hsv.h, hsv.s, hsv.v, true));
             let count =  fastRoundWithPrecision(this.startCountClamps[1] - (this.startCountClamps[1] - this.startCountClamps[0])*(layer/layersMax));
             for(let i = 0; i < count; i++){
-                ctx.fillRect(getRandomInt(0, size.x), fastRoundWithPrecision(getRandomGaussian(-size.y*0, 1*size.y)), 1, 1)
+                ctx.fillRect(getRandomInt(0, size.x), fastRoundWithPrecision(getRandomGaussian(-size.y*0.25, 1.25*size.y)), 1, 1)
             }
         })
     }

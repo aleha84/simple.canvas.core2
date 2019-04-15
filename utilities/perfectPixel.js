@@ -1,6 +1,8 @@
 class PerfectPixel {
     constructor(options = {}){
-        assignDeep(this, {}, options)
+        assignDeep(this, {
+            fillStyleProvider: undefined
+        }, options)
 
         if(this.context === undefined){
             console.trace();
@@ -10,6 +12,9 @@ class PerfectPixel {
         this.ctx = this.context;
     }
     setPixel(x, y){
+        if(this.fillStyleProvider)
+            this.ctx.fillStyle = this.fillStyleProvider(x, y);
+
         this.ctx.fillRect(x,y, 1,1);
     }
     removePixel(x,y){

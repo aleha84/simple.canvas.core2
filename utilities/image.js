@@ -355,26 +355,41 @@ var colorTransitionHelper = {
                     let startP = startTransitionFrom;
                     let stepCount = 2
                     let endP = startP+transitionLength/stepCount;
-                    let lowDithNe = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)]
-                    startP += transitionLength/stepCount; endP += transitionLength/stepCount;
-                    // let midDithNe = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
-                    // startP += transitionLength/stepCount; endP += transitionLength/stepCount;
-                    let mixed = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
-                    startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+                    let mixed, lowDithNe;
+
+                    if(nextItem.inverted) {
+                        mixed = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
+                        startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+                        lowDithNe = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)]
+                        startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+                    }
+                    else {
+                        lowDithNe = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)]
+                        startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+    
+                        // let midDithNe = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
+                        // startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+    
+                        mixed = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
+                        startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+                    }
+                    
                     // let midDithCu = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
                     // startP += transitionLength/stepCount; endP += transitionLength/stepCount;
                     // let lowDithCu = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
 
                     ctx.fillStyle = currentItem.color;
-                    if(currentItem.position < lowDithNe[0]){
-                        for(let r = currentItem.position; r < lowDithNe[0];r++){
+                    let to = nextItem.inverted ? mixed[1] :  lowDithNe[1];
+                    let from = nextItem.inverted ? mixed[0] :  lowDithNe[0];
+                    if(currentItem.position < from){
+                        for(let r = currentItem.position; r < from;r++){
                             ctx.fillRect(0,r,size.x, 1);
                         }
                     }
                     
 
                     let shift = false;
-                    for(let r = lowDithNe[0]; r < lowDithNe[1];r++){
+                    for(let r = from; r < to;r++){
                         ctx.fillStyle = currentItem.color;
                         ctx.fillRect(0,r,size.x, 1);
                         if(r%2 == 0)
@@ -424,16 +439,21 @@ var colorTransitionHelper = {
                     // }
 
                     shift = true;
-                    for(let r = mixed[0]; r < mixed[1];r++){
-                        ctx.fillStyle = currentItem.color;
-                        ctx.fillRect(0,r,size.x, 1);
+                    for(let r =from; r < to;r++){
+                        
+                        //ctx.fillRect(0,r,size.x, 1);
 
                         let fill = true;
-                        ctx.fillStyle = nextItem.color;
+                        
                         for(let c = shift ? 1 : 0; c < size.x; c++){
                             if(fill){
-                                ctx.fillRect(c, r,1,1);
+                                ctx.fillStyle = nextItem.color;
                             }
+                            else {
+                                ctx.fillStyle = currentItem.color;
+                            }
+
+                            ctx.fillRect(c, r,1,1);
 
                             fill = !fill;
                         }
