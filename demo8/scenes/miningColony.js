@@ -2,8 +2,10 @@ class MiningColonyScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: false
-            }
+                enabled: false,
+                
+            },
+            asteroidBaseColor: '#484151'
         }, options)
 
         super(options);
@@ -19,11 +21,63 @@ class MiningColonyScene extends Scene {
             position: this.sceneCenter.clone()
         }), 0)
 
-        for(let i = 0; i < 10; i++){
-            this.test = this.addGo(new AsteroidModel({
-                position: new V2(300 + getRandomInt(-100, 100), this.sceneCenter.y + getRandomInt(-5,5))
-            }), 10);
+        let defaultAsteroidProps = {
+        
         }
+
+        
+
+        let asteroidsProps = [
+            {asteroids: []}, // 0
+            {
+                default: {
+                    noise: {
+                        min: -5, max: 0
+                    },
+                    baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: -10}),
+                },
+                asteroids: [
+                    { position: new V2(325, this.sceneCenter.y), size: new V2(25 + getRandomInt(-2,2), 30 + getRandomInt(-2,2)), vDelta: -15 }
+                ]}, // 1
+            {asteroids: []}, // 2
+            {
+                default: {
+                    noise: {
+                        min: -10, max: -5
+                    },
+                    baseColor: this.asteroidBaseColor,
+                    vDelta: -20
+                },
+                asteroids: [
+                    { position: new V2(300, this.sceneCenter.y + getRandomInt(-2,2)), size: new V2(20 + getRandomInt(-2,2), 30 + getRandomInt(-2,2)) },
+                    { position: new V2(350, this.sceneCenter.y + getRandomInt(-2,2)), size: new V2(20 + getRandomInt(-2,2), 30 + getRandomInt(-2,2)) },
+                    { position: new V2(425, this.sceneCenter.y + getRandomInt(-2,2)), size: new V2(20 + getRandomInt(-2,2), 35 + getRandomInt(-2,2)) }
+                ]
+            }
+        ]
+
+        for(let l = 0; l < asteroidsProps.length; l++){
+            for(let i = 0; i < asteroidsProps[l].asteroids.length; i++){
+                this.addGo(new AsteroidModel(
+                    assignDeep({}, defaultAsteroidProps, asteroidsProps[l].default, asteroidsProps[l].asteroids[i])
+                ), l);
+            }
+            
+        }
+
+        // this.test = this.addGo(new AsteroidModel({
+        //         position:this.sceneCenter.clone(),
+        //         size: new V2(20,30),
+        //         noise: {
+        //             min: -15, max: -5
+        //         }
+        //     }), 10);
+
+        // for(let i = 0; i < 10; i++){
+        //     this.test = this.addGo(new AsteroidModel({
+        //         position: new V2(300 + getRandomInt(-100, 100), this.sceneCenter.y + getRandomInt(-5,5))
+        //     }), 10);
+        // }
         
     }
 

@@ -10,11 +10,11 @@ function getRandom(min, max){
 }
 
 function getRandomInt(min, max){
-  return Math.round(getRandom(min, max));
+  return fastRoundWithPrecision(getRandom(min, max));
 }
 
 function getRandomBool(){
-  return Math.round(getRandom(0, 1)) === 1;
+  return fastRoundWithPrecision(getRandom(0, 1)) === 1;
 }
 
 function getRandomGaussian(min, max, skew = 1) {

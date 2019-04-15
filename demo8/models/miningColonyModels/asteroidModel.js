@@ -5,7 +5,11 @@ class AsteroidModel extends GO {
             size: new V2(20, 20),
             stepSize: new V2(4,4),
             baseColor: '#7B5B9E',
-            vDelta: -40
+            vDelta: -40,
+            noise: {
+                min: -5, 
+                max: 5
+            }
         }, options)
 
         super(options);
@@ -21,30 +25,47 @@ class AsteroidModel extends GO {
 
         //top 
         for(let i = 1; i < steps.x-1; i++){
-            cornerPoints.push(new V2(getRandomInt(this.stepSize.x*i,this.stepSize.x*(i+1)-1 ), getRandomInt(0, this.stepSize.y-1)));
+            let y = getRandomInt(0, this.stepSize.y-1);
+            if(i == 1 || i == steps.x-2){
+                y = getRandomInt(this.stepSize.y/2, this.stepSize.y-1)
+            }
+            cornerPoints.push(new V2(getRandomInt(this.stepSize.x*i,this.stepSize.x*(i+1)-1 ), y));
         }
 
         //right
         for(let i = 1; i < steps.y-1; i++){
-            cornerPoints.push(new V2(this.size.x -1 - getRandomInt(0, this.stepSize.x-1), getRandomInt(this.stepSize.y*i,this.stepSize.y*(i+1)-1 )));
+            let x = this.size.x -1 - getRandomInt(0, this.stepSize.x-1)
+            if(i == 1 || i == steps.y-2){
+                x = this.size.x -1 - getRandomInt(this.stepSize.x/2, this.stepSize.x-1)
+            }
+            cornerPoints.push(new V2(x, getRandomInt(this.stepSize.y*i,this.stepSize.y*(i+1)-1 )));
         }
 
         //bottom 
         for(let i = steps.x-2; i > 0 ; i--){
-            cornerPoints.push(new V2(getRandomInt(this.stepSize.x*i,this.stepSize.x*(i+1)-1 ), this.size.y - 1 - getRandomInt(0, this.stepSize.y-1)));
+            let y = this.size.y - 1 - getRandomInt(0, this.stepSize.y-1);
+            if(i == 1 || i == steps.x-2){
+                y = this.size.y - 1 - getRandomInt(this.stepSize.y/2, this.stepSize.y-1);
+            }
+
+            cornerPoints.push(new V2(getRandomInt(this.stepSize.x*i,this.stepSize.x*(i+1)-1 ), y));
         }
 
         //left
         for(let i = steps.y-2; i > 0; i--){
-            cornerPoints.push(new V2(getRandomInt(0, this.stepSize.x-1), getRandomInt(this.stepSize.y*i,this.stepSize.y*(i+1)-1 )));
+            let x = getRandomInt(0, this.stepSize.x-1)
+            if(i == 1 || i == steps.y-2){
+                x = getRandomInt(this.stepSize.x/2, this.stepSize.x-1)
+            }
+            cornerPoints.push(new V2(x, getRandomInt(this.stepSize.y*i,this.stepSize.y*(i+1)-1 )));
         }
 
         let that = this;
         this.cornerPoints = cornerPoints;
         this.img = createCanvas(this.size, (ctx, size) => {
-            let pp = new PerfectPixel({ context: ctx  });
+            let pp = new PerfectPixel({ context: ctx, fillStyleProvider: that.lineStyleProvider.bind(this)  });
             let middlePoints = [];
-            ctx.fillStyle = colors.changeHSV({initialValue: that.baseColor, parameter: 'v', amount:that.vDelta});
+            //ctx.fillStyle = colors.changeHSV({initialValue: that.baseColor, parameter: 'v', amount:that.vDelta});
             //cornerPoints = [new V2(10, 0), new V2(19, 10), new V2(10, 19), new V2(0, 10)]
             for(let i = 0; i < cornerPoints.length; i++){
                 if(i < cornerPoints.length-1)
@@ -60,6 +81,16 @@ class AsteroidModel extends GO {
         })
     }
 
+    lineStyleProvider(x, y) {
+        let noise = getRandomInt(this.noise.min, this.noise.max);
+        let change = this.vDelta;
+        change+=noise
+        if(change <= 1 && change >= -1)
+            return this.baseColor;
+
+        return colors.changeHSV({initialValue: this.baseColor, parameter: 'v', amount:change});
+    }
+
     fillStyleProvider(x, y) {
         let p = new V2(x,y);
         let dCenter = this.center.distance(p);
@@ -68,7 +99,7 @@ class AsteroidModel extends GO {
         if(change > -5)
             change = fastRoundWithPrecision(change);
 
-        let noise = getRandomInt(-5, 5);
+        let noise = getRandomInt(this.noise.min, this.noise.max);
         change+=noise
         if(change <= 1 && change >= -1)
             return this.baseColor;
