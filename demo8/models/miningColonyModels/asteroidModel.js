@@ -23,42 +23,71 @@ class AsteroidModel extends GO {
             fastRoundWithPrecision(this.size.y/this.stepSize.y)
         );
 
-        //top 
-        for(let i = 1; i < steps.x-1; i++){
-            let y = getRandomInt(0, this.stepSize.y-1);
-            if(i == 1 || i == steps.x-2){
-                y = getRandomInt(this.stepSize.y/2, this.stepSize.y-1)
+        let a = this.size.x/2;
+        let b = this.size.y/2;
+        let xShift = this.size.x/2;
+        let yShift = this.size.y/2;
+        let proportionX = (this.size.x-1)/this.size.x
+        let proportionY = (this.size.y-1)/this.size.y
+        let shiftedCornerPoints = [];
+
+        if(steps.x >= steps.y){ 
+            let lowerCornerPoints = [];
+
+            for(let i = 0; i <= steps.x;i++){
+                let shiftedX = i*this.stepSize.x - xShift;
+                let y = Math.sqrt((1 - (shiftedX*shiftedX)/(a*a) )* b*b);
+
+                shiftedCornerPoints.push(new V2(shiftedX, y));
+                if(y != 0)
+                    lowerCornerPoints.push(new V2(shiftedX, -y));
             }
-            cornerPoints.push(new V2(getRandomInt(this.stepSize.x*i,this.stepSize.x*(i+1)-1 ), y));
+            shiftedCornerPoints = [...shiftedCornerPoints, ...lowerCornerPoints.reverse()];
+            
+        }
+        else {
+            let leftPoints = [];
+            for(let i = 0; i <= steps.y;i++){
+                let shiftedY = i*this.stepSize.y - yShift;
+                let x = Math.sqrt((1 - (shiftedY*shiftedY)/(b*b) )* a*a);
+
+                let rX = x;
+                let rY = shiftedY;
+                if(true) {
+                    rX = x + getRandom(-this.stepSize.x/3, this.stepSize.x/3);
+                    if(rX > a)
+                        rX = a;
+    
+                    rY = shiftedY + getRandom(-this.stepSize.y/3, this.stepSize.y/3);
+                    if(rY > b)
+                        rY = b;
+                }
+                
+
+                shiftedCornerPoints.push(new V2(rX, rY));
+                if(x != 0){
+
+                    let rX = -x;
+                    let rY = shiftedY;
+                    if(true) {
+                        rX = -x + getRandom(-this.stepSize.x/3, this.stepSize.x/3);
+                        if(rX < -a)
+                            rX = -a;
+
+                        rY = shiftedY + getRandom(-this.stepSize.y/3, this.stepSize.y/3);
+                        if(rY > b)
+                            rY = b;
+                    }
+
+                    leftPoints.push(new V2(rX, rY));
+                }
+                    
+            }
+
+            shiftedCornerPoints = [...shiftedCornerPoints, ...leftPoints.reverse()];
         }
 
-        //right
-        for(let i = 1; i < steps.y-1; i++){
-            let x = this.size.x -1 - getRandomInt(0, this.stepSize.x-1)
-            if(i == 1 || i == steps.y-2){
-                x = this.size.x -1 - getRandomInt(this.stepSize.x/2, this.stepSize.x-1)
-            }
-            cornerPoints.push(new V2(x, getRandomInt(this.stepSize.y*i,this.stepSize.y*(i+1)-1 )));
-        }
-
-        //bottom 
-        for(let i = steps.x-2; i > 0 ; i--){
-            let y = this.size.y - 1 - getRandomInt(0, this.stepSize.y-1);
-            if(i == 1 || i == steps.x-2){
-                y = this.size.y - 1 - getRandomInt(this.stepSize.y/2, this.stepSize.y-1);
-            }
-
-            cornerPoints.push(new V2(getRandomInt(this.stepSize.x*i,this.stepSize.x*(i+1)-1 ), y));
-        }
-
-        //left
-        for(let i = steps.y-2; i > 0; i--){
-            let x = getRandomInt(0, this.stepSize.x-1)
-            if(i == 1 || i == steps.y-2){
-                x = getRandomInt(this.stepSize.x/2, this.stepSize.x-1)
-            }
-            cornerPoints.push(new V2(x, getRandomInt(this.stepSize.y*i,this.stepSize.y*(i+1)-1 )));
-        }
+        cornerPoints = shiftedCornerPoints.map(p => new V2(fastRoundWithPrecision( (p.x + xShift)*proportionX), fastRoundWithPrecision((p.y + yShift)*proportionY)))
 
         let that = this;
         this.cornerPoints = cornerPoints;
@@ -78,6 +107,29 @@ class AsteroidModel extends GO {
             let uniquePoints = distinct(middlePoints, (p) => p.x+'_'+p.y);
             pp.fillStyleProvider =  that.fillStyleProvider.bind(this);
             pp.fill(uniquePoints, cornerPoints);
+
+
+            if(steps.x < steps.y){ 
+                pp.fillStyleProvider =  (x,y) => { 
+                    let o = 0;  
+                    if(getRandomBool())
+                        o = getRandom(0.05,0.1);
+                    return `rgba(0,0,0,${o})` 
+                    //return 'red';
+                }
+    
+                let center = new V2(size.x/2, size.y/2);
+                for(let i = 0; i < cornerPoints.length;i++){
+                    let c = cornerPoints[i];
+                    let d = c.distance(center);
+
+                    pp.lineV2(c, c.add(c.direction(new V2(center.x + getRandom(-steps.x/2, steps.x/2),  center.y + getRandom(-steps.y/2, steps.y/2))).mul(getRandom(d/4, d/2))))
+                }
+            }
+            
+            
+            
+            //pp.fill(uniquePoints, cornerPoints);
         })
     }
 

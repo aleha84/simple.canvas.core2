@@ -5,7 +5,7 @@ class MiningColonyScene extends Scene {
                 enabled: false,
                 
             },
-            asteroidBaseColor: '#484151'
+            asteroidBaseColor: '#D7D7D7'
         }, options)
 
         super(options);
@@ -34,25 +34,36 @@ class MiningColonyScene extends Scene {
                     noise: {
                         min: -5, max: 0
                     },
-                    baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: -10}),
+                    baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: -40}),
+                    vDelta: -35
                 },
-                asteroids: [
-                    { position: new V2(325, this.sceneCenter.y), size: new V2(25 + getRandomInt(-2,2), 30 + getRandomInt(-2,2)), vDelta: -15 }
-                ]}, // 1
-            {asteroids: []}, // 2
+                asteroids: Array(50).fill().map((p, i) => {
+                    return { position: new V2(100 + 15*i + getRandomInt(-2, 2) , this.sceneCenter.y+ getRandomInt(-3,3)), size: new V2(8,14), stepSize: new V2(2,2),  }
+                })
+            }, // 1
+            {
+                default: {
+                    noise: {
+                        min: -7, max: -2
+                    },
+                    baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: -30}),
+                    vDelta: -45
+                },
+                asteroids: Array(20).fill().map((p, i) => {
+                    return { position: new V2(150 + 25*i + getRandomInt(-5, 5), this.sceneCenter.y+ getRandomInt(-5,5)), size: new V2(15,21), stepSize: new V2(3,3) }
+                })
+            }, // 2
             {
                 default: {
                     noise: {
                         min: -10, max: -5
                     },
                     baseColor: this.asteroidBaseColor,
-                    vDelta: -20
+                    vDelta: -50
                 },
-                asteroids: [
-                    { position: new V2(300, this.sceneCenter.y + getRandomInt(-2,2)), size: new V2(20 + getRandomInt(-2,2), 30 + getRandomInt(-2,2)) },
-                    { position: new V2(350, this.sceneCenter.y + getRandomInt(-2,2)), size: new V2(20 + getRandomInt(-2,2), 30 + getRandomInt(-2,2)) },
-                    { position: new V2(425, this.sceneCenter.y + getRandomInt(-2,2)), size: new V2(20 + getRandomInt(-2,2), 35 + getRandomInt(-2,2)) }
-                ]
+                asteroids: Array(10).fill().map((p, i) => {
+                    return { position: new V2(200 + 40*i + getRandomInt(-10, 10), this.sceneCenter.y + getRandomInt(-10,10)), size: new V2(20, 30), stepSize: new V2(5,5) }
+                } ) 
             }
         ]
 
