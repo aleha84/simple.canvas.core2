@@ -25,10 +25,25 @@ class MiningColonyScene extends Scene {
         
         }
 
-        
+        let that = this;
 
         let asteroidsProps = [
-            {asteroids: []}, // 0
+            {asteroids: []},
+            {
+                default: {
+                    noise: {
+                        min: -5, max: 0
+                    },
+                    baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: -50}),
+                    vDelta: -25
+                },
+                asteroids: Array(300).fill().map((p, i) => {
+                    return { 
+                        position: new V2(50 + 4*i + getRandomInt(-1, 1) , this.sceneCenter.y+ getRandomInt(-6,6)), 
+                        size: new V2(4 + getRandomInt(0,2)*2,6 + getRandomInt(0,2)*2), 
+                        stepSize: new V2(2,2),  }
+                })
+            }, // 0
             {
                 default: {
                     noise: {
@@ -38,7 +53,10 @@ class MiningColonyScene extends Scene {
                     vDelta: -35
                 },
                 asteroids: Array(50).fill().map((p, i) => {
-                    return { position: new V2(100 + 15*i + getRandomInt(-2, 2) , this.sceneCenter.y+ getRandomInt(-3,3)), size: new V2(8,14), stepSize: new V2(2,2),  }
+                    return { 
+                        position: new V2(100 + 15*i + getRandomInt(-2, 2) , this.sceneCenter.y+ getRandomInt(-3,3)), 
+                        size: new V2(8 + getRandomInt(0,2)*2,12 + getRandomInt(0,2)*2), 
+                        stepSize: new V2(2,2),  }
                 })
             }, // 1
             {
@@ -47,7 +65,7 @@ class MiningColonyScene extends Scene {
                         min: -7, max: -2
                     },
                     baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: -30}),
-                    vDelta: -45
+                    vDelta: -40
                 },
                 asteroids: Array(20).fill().map((p, i) => {
                     return { position: new V2(150 + 25*i + getRandomInt(-5, 5), this.sceneCenter.y+ getRandomInt(-5,5)), size: new V2(15,21), stepSize: new V2(3,3) }
@@ -58,8 +76,8 @@ class MiningColonyScene extends Scene {
                     noise: {
                         min: -10, max: -5
                     },
-                    baseColor: this.asteroidBaseColor,
-                    vDelta: -50
+                    baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: -15}), //this.asteroidBaseColor,
+                    vDelta: -40
                 },
                 asteroids: Array(10).fill().map((p, i) => {
                     return { position: new V2(200 + 40*i + getRandomInt(-10, 10), this.sceneCenter.y + getRandomInt(-10,10)), size: new V2(20, 30), stepSize: new V2(5,5) }
@@ -72,23 +90,24 @@ class MiningColonyScene extends Scene {
                 this.addGo(new AsteroidModel(
                     assignDeep({}, defaultAsteroidProps, asteroidsProps[l].default, asteroidsProps[l].asteroids[i])
                 ), l);
-            }
-            
+            } 
         }
 
-        // this.test = this.addGo(new AsteroidModel({
-        //         position:this.sceneCenter.clone(),
-        //         size: new V2(20,30),
-        //         noise: {
-        //             min: -15, max: -5
-        //         }
-        //     }), 10);
+        this.addGo(new GO({
+            position: this.sceneCenter,
+            size: new V2(this.viewport.x, 50),
+            img: createCanvas(new V2(this.viewport.x, 50), (ctx, size) => {
+                ctx.fillStyle = colors.changeHSV({initialValue: that.asteroidBaseColor, parameter: 'v', amount: -20})
+                for(let i = 0; i < 1000; i++){
+                    ctx.fillRect(getRandomInt(0, size.x), fastRoundWithPrecision(getRandomGaussian(0, size.y)), 1, 1)
+                }
 
-        // for(let i = 0; i < 10; i++){
-        //     this.test = this.addGo(new AsteroidModel({
-        //         position: new V2(300 + getRandomInt(-100, 100), this.sceneCenter.y + getRandomInt(-5,5))
-        //     }), 10);
-        // }
+                ctx.fillStyle = colors.changeHSV({initialValue: that.asteroidBaseColor, parameter: 'v', amount: -10})
+                for(let i = 0; i < 100; i++){
+                    ctx.fillRect(getRandomInt(0, size.x), fastRoundWithPrecision(getRandomGaussian(0, size.y)), 2, 2)
+                }
+            })
+        }))
         
     }
 

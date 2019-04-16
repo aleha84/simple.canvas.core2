@@ -127,7 +127,16 @@ class AsteroidModel extends GO {
                 }
             }
             
-            
+            if(size.x >= 20 && size.y >= 20){
+                for(let j = 0; j < 10; j++){
+                    let initP = new V2(size.x/2 + getRandomInt(-6,6), size.y/2 + getRandomInt(-6,6));
+                    ctx.fillStyle = `rgba(0,0,0,0.1)` 
+                    for(let i = 0; i < getRandomInt(30,100); i++){
+                        ctx.fillRect(initP.x + getRandomGaussian(-7,7), initP.y + getRandomGaussian(-7,7), 1, 1)
+                    }
+                }
+                
+            }
             
             //pp.fill(uniquePoints, cornerPoints);
         })
