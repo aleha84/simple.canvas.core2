@@ -15,7 +15,8 @@ class AsteroidModel extends GO {
                 enabled: false,
                 time: 0, duration: 40,startValue: 0, change: 5, max: 5, direction: 1, type: 'quad', method: 'inOut',
             }, 
-            fusingFactor: 3
+            fusingFactor: 3,
+            cornerPoints: []
         }, options)
 
         super(options);
@@ -23,80 +24,86 @@ class AsteroidModel extends GO {
 
     init() {
         this.center = new V2(this.size.x/2, this.size.y/2);
-        let cornerPoints = [];
+        let cornerPoints = this.cornerPoints;
         let steps = new V2(
             fastRoundWithPrecision(this.size.x/this.stepSize.x),
             fastRoundWithPrecision(this.size.y/this.stepSize.y)
         );
-
-        let a = this.size.x/2;
-        let b = this.size.y/2;
-        let xShift = this.size.x/2;
-        let yShift = this.size.y/2;
-        let proportionX = (this.size.x-1)/this.size.x
-        let proportionY = (this.size.y-1)/this.size.y
-        let shiftedCornerPoints = [];
-
-        if(steps.x >= steps.y){ 
-            let lowerCornerPoints = [];
-
-            for(let i = 0; i <= steps.x;i++){
-                let shiftedX = i*this.stepSize.x - xShift;
-                let y = Math.sqrt((1 - (shiftedX*shiftedX)/(a*a) )* b*b);
-
-                shiftedCornerPoints.push(new V2(shiftedX, y));
-                if(y != 0)
-                    lowerCornerPoints.push(new V2(shiftedX, -y));
-            }
-            shiftedCornerPoints = [...shiftedCornerPoints, ...lowerCornerPoints.reverse()];
+        if(!cornerPoints.length){
             
-        }
-        else {
-            let leftPoints = [];
-            for(let i = 0; i <= steps.y;i++){
-                let shiftedY = i*this.stepSize.y - yShift;
-                let x = Math.sqrt((1 - (shiftedY*shiftedY)/(b*b) )* a*a);
-
-                let rX = x;
-                let rY = shiftedY;
-                if(true) {
-                    rX = x + getRandom(-this.stepSize.x/this.fusingFactor, this.stepSize.x/this.fusingFactor);
-                    if(rX > a)
-                        rX = a;
     
-                    rY = shiftedY + getRandom(-this.stepSize.y/this.fusingFactor, this.stepSize.y/this.fusingFactor);
-                    if(rY > b)
-                        rY = b;
+            let a = this.size.x/2;
+            let b = this.size.y/2;
+            let xShift = this.size.x/2;
+            let yShift = this.size.y/2;
+            let proportionX = (this.size.x-1)/this.size.x
+            let proportionY = (this.size.y-1)/this.size.y
+            let shiftedCornerPoints = [];
+    
+            if(steps.x >= steps.y){ 
+                let lowerCornerPoints = [];
+    
+                for(let i = 0; i <= steps.x;i++){
+                    let shiftedX = i*this.stepSize.x - xShift;
+                    let y = Math.sqrt((1 - (shiftedX*shiftedX)/(a*a) )* b*b);
+    
+                    shiftedCornerPoints.push(new V2(shiftedX, y));
+                    if(y != 0)
+                        lowerCornerPoints.push(new V2(shiftedX, -y));
                 }
+                shiftedCornerPoints = [...shiftedCornerPoints, ...lowerCornerPoints.reverse()];
                 
-
-                shiftedCornerPoints.push(new V2(rX, rY));
-                if(x != 0){
-
-                    let rX = -x;
+            }
+            else {
+                let leftPoints = [];
+                for(let i = 0; i <= steps.y;i++){
+                    let shiftedY = i*this.stepSize.y - yShift;
+                    let x = Math.sqrt((1 - (shiftedY*shiftedY)/(b*b) )* a*a);
+    
+                    let rX = x;
                     let rY = shiftedY;
                     if(true) {
-                        rX = -x + getRandom(-this.stepSize.x/this.fusingFactor, this.stepSize.x/this.fusingFactor);
-                        if(rX < -a)
-                            rX = -a;
-
+                        rX = x + getRandom(-this.stepSize.x/this.fusingFactor, this.stepSize.x/this.fusingFactor);
+                        if(rX > a)
+                            rX = a;
+        
                         rY = shiftedY + getRandom(-this.stepSize.y/this.fusingFactor, this.stepSize.y/this.fusingFactor);
                         if(rY > b)
                             rY = b;
                     }
-
-                    leftPoints.push(new V2(rX, rY));
-                }
                     
+    
+                    shiftedCornerPoints.push(new V2(rX, rY));
+                    if(x != 0){
+    
+                        let rX = -x;
+                        let rY = shiftedY;
+                        if(true) {
+                            rX = -x + getRandom(-this.stepSize.x/this.fusingFactor, this.stepSize.x/this.fusingFactor);
+                            if(rX < -a)
+                                rX = -a;
+    
+                            rY = shiftedY + getRandom(-this.stepSize.y/this.fusingFactor, this.stepSize.y/this.fusingFactor);
+                            if(rY > b)
+                                rY = b;
+                        }
+    
+                        leftPoints.push(new V2(rX, rY));
+                    }
+                        
+                }
+    
+                shiftedCornerPoints = [...shiftedCornerPoints, ...leftPoints.reverse()];
             }
-
-            shiftedCornerPoints = [...shiftedCornerPoints, ...leftPoints.reverse()];
+    
+            cornerPoints = shiftedCornerPoints.map(p => new V2(fastRoundWithPrecision( (p.x + xShift)*proportionX), fastRoundWithPrecision((p.y + yShift)*proportionY)))
+    
+            
+            this.cornerPoints = cornerPoints;
         }
 
-        cornerPoints = shiftedCornerPoints.map(p => new V2(fastRoundWithPrecision( (p.x + xShift)*proportionX), fastRoundWithPrecision((p.y + yShift)*proportionY)))
-
         let that = this;
-        this.cornerPoints = cornerPoints;
+        
         this.img = createCanvas(this.size, (ctx, size) => {
             let pp = new PerfectPixel({ context: ctx, fillStyleProvider: that.lineStyleProvider.bind(this)  });
             let middlePoints = [];

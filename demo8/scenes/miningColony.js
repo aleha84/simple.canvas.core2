@@ -173,6 +173,16 @@ class MiningColonyScene extends Scene {
                 // }
             })
         }))
+
+        this.baseSize = new V2(60,80);
+        this.base = this.addGo(new AsteroidModel({
+            position: this.sceneCenter,
+            size: this.baseSize,
+            baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: 0}),
+            cornerPoints: [
+                new V2(0, this.baseSize.y/2), new V2(this.baseSize.x/2, 0), new V2(this.baseSize.x-1, this.baseSize.y/2), new V2(this.baseSize.x/2, this.baseSize.y-1)
+            ]
+        }), 3)
         
     }
 
