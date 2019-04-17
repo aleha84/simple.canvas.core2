@@ -9,7 +9,13 @@ class AsteroidModel extends GO {
             noise: {
                 min: -5, 
                 max: 5
-            }
+            }, 
+            rotation: 0,
+            levitation: {
+                enabled: false,
+                time: 0, duration: 40,startValue: 0, change: 5, max: 5, direction: 1, type: 'quad', method: 'inOut',
+            }, 
+            fusingFactor: 3
         }, options)
 
         super(options);
@@ -54,11 +60,11 @@ class AsteroidModel extends GO {
                 let rX = x;
                 let rY = shiftedY;
                 if(true) {
-                    rX = x + getRandom(-this.stepSize.x/3, this.stepSize.x/3);
+                    rX = x + getRandom(-this.stepSize.x/this.fusingFactor, this.stepSize.x/this.fusingFactor);
                     if(rX > a)
                         rX = a;
     
-                    rY = shiftedY + getRandom(-this.stepSize.y/3, this.stepSize.y/3);
+                    rY = shiftedY + getRandom(-this.stepSize.y/this.fusingFactor, this.stepSize.y/this.fusingFactor);
                     if(rY > b)
                         rY = b;
                 }
@@ -70,11 +76,11 @@ class AsteroidModel extends GO {
                     let rX = -x;
                     let rY = shiftedY;
                     if(true) {
-                        rX = -x + getRandom(-this.stepSize.x/3, this.stepSize.x/3);
+                        rX = -x + getRandom(-this.stepSize.x/this.fusingFactor, this.stepSize.x/this.fusingFactor);
                         if(rX < -a)
                             rX = -a;
 
-                        rY = shiftedY + getRandom(-this.stepSize.y/3, this.stepSize.y/3);
+                        rY = shiftedY + getRandom(-this.stepSize.y/this.fusingFactor, this.stepSize.y/this.fusingFactor);
                         if(rY > b)
                             rY = b;
                     }
@@ -126,20 +132,116 @@ class AsteroidModel extends GO {
                     pp.lineV2(c, c.add(c.direction(new V2(center.x + getRandom(-steps.x/2, steps.x/2),  center.y + getRandom(-steps.y/2, steps.y/2))).mul(getRandom(d/4, d/2))))
                 }
             }
-            
-            if(size.x >= 20 && size.y >= 20){
-                for(let j = 0; j < 10; j++){
-                    let initP = new V2(size.x/2 + getRandomInt(-6,6), size.y/2 + getRandomInt(-6,6));
-                    ctx.fillStyle = `rgba(0,0,0,0.1)` 
-                    for(let i = 0; i < getRandomInt(30,100); i++){
-                        ctx.fillRect(initP.x + getRandomGaussian(-7,7), initP.y + getRandomGaussian(-7,7), 1, 1)
-                    }
-                }
+
+            let holes = {
+                enabled: true,
+                count: 2,
+                initSpreadX: [-2,2],
+                initSpreadY: [-2,2],
+                dotsCount: [10,30],
+                dotsSpread: [-3,3]
+            }
+            if(size.x < 8 && size.y < 8){
+                holes.enabled = false;
+            }
+            else if(size.x <= 16 && size.y <= 16){
+                holes.count = 4;
+                holes.initSpreadX = [-4,4]
+                holes.initSpreadY = [-4,4]
+            }
+            else if (size.x == 15 && size.y == 21) {
+                holes.count = 6;
+                holes.initSpreadX = [-5,5];
+                holes.initSpreadY = [-5,5];
+                holes.dotsCount = [20,60];
+                holes.dotsSpread = [-5,5];
+            }
+            else if(size.x >= 20 && size.y >= 20){
+                holes.count = 15;
+                holes.initSpreadX = [-6,6];
+                holes.initSpreadY = [-10,10];
+                holes.dotsCount = [30,100];
+                holes.dotsSpread = [-7,7];
+            }
+            else {
+                holes.enabled = false;
                 
             }
+
+            if(holes.enabled){
+                for(let j = 0; j < holes.count; j++){
+                    let initP = new V2(size.x/2 + getRandomInt(holes.initSpreadX[0],holes.initSpreadX[1]), size.y/2 + getRandomInt(holes.initSpreadY[0],holes.initSpreadY[1]));
+                    ctx.fillStyle = `rgba(0,0,0,0.1)` 
+                    for(let i = 0; i < getRandomInt(holes.dotsCount[0],holes.dotsCount[1]); i++){
+                        ctx.fillRect(initP.x + getRandomGaussian(holes.dotsSpread[0],holes.dotsSpread[1]), initP.y + getRandomGaussian(holes.dotsSpread[0],holes.dotsSpread[1]), 1, 1)
+                    }
+                }
+            }
+            
             
             //pp.fill(uniquePoints, cornerPoints);
-        })
+        });
+
+        let l = this.levitation;
+        if(l.enabled){
+            if(l.direction < 0){
+                l.startValue = l.max;
+                l.change = -l.max;
+            }
+            else {
+                l.change = l.max;
+            }
+            
+            this.originalY = this.position.y;
+            this.levitationTimer = createTimer(50, this.levitationTimerProcesser, this, true);
+            this.registerTimer(this.levitationTimer);
+        }
+    }
+
+    levitationTimerProcesser() {
+        let l = this.levitation;
+
+        if(l.time > l.duration){
+            l.direction*=-1;
+            l.time = 0;
+
+            if(l.direction < 0){
+                l.startValue = l.max;
+                l.change = -l.max;
+            }
+            else if(l.direction > 0){
+                l.startValue = 0;
+                l.change = l.max;
+            }
+            
+        }
+
+        let delta = easing.process(l);
+        this.position.y = this.originalY + delta;
+
+        this.needRecalcRenderProperties = true;
+        l.time++;
+    }
+
+    internalPreRender() {
+        if(this.rotation == 0)
+            return;
+
+        this.context.save();
+        this.context.translate(this.renderPosition.x, this.renderPosition.y);
+        this.context.rotate(degreeToRadians(this.rotation));
+        this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+        //this.context.restore();
+    }
+    internalRender() {
+        if(this.rotation == 0)
+            return;
+
+        //this.context.save();
+        this.context.translate(this.renderPosition.x, this.renderPosition.y);
+        this.context.rotate(degreeToRadians(-this.rotation));
+        this.context.translate(-this.renderPosition.x, -this.renderPosition.y);
+        this.context.restore();
     }
 
     lineStyleProvider(x, y) {
