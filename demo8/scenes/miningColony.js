@@ -197,12 +197,12 @@ class MiningColonyScene extends Scene {
                 dotsSpread: [-10, 10]
             }, 
             fillStyleEasing: 'cubic',
-            init() {
+            initCompleted() {
                 this.entrance = this.addChild(new GO({
                     renderValuesRound: true,
-                    position: new V2(-10,-10),
-                    size: new V2(15,15),
-                    img: PP.createImage(miningColonyImages.entranceImg)
+                    position: new V2(-12,-17),
+                    size: new V2(10,10),
+                    img: PP.createImage(miningColonyImages.entranceImg1)
                 }))
             }
         }), 4)

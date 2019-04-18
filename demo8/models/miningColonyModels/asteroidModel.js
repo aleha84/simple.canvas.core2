@@ -17,7 +17,8 @@ class AsteroidModel extends GO {
             }, 
             fusingFactor: 3,
             cornerPoints: [],
-            fillStyleEasing: 'quad'
+            fillStyleEasing: 'quad',
+            initCompleted: undefined
         }, options)
 
         super(options);
@@ -216,6 +217,9 @@ class AsteroidModel extends GO {
             this.levitationTimer = createTimer(50, this.levitationTimerProcesser, this, true);
             this.registerTimer(this.levitationTimer);
         }
+
+        if(this.initCompleted)
+            this.initCompleted();
     }
 
     levitationTimerProcesser() {
