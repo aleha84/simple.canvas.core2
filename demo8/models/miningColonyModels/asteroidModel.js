@@ -16,7 +16,8 @@ class AsteroidModel extends GO {
                 time: 0, duration: 40,startValue: 0, change: 5, max: 5, direction: 1, type: 'quad', method: 'inOut',
             }, 
             fusingFactor: 3,
-            cornerPoints: []
+            cornerPoints: [],
+            fillStyleEasing: 'quad'
         }, options)
 
         super(options);
@@ -140,44 +141,56 @@ class AsteroidModel extends GO {
                 }
             }
 
-            let holes = {
-                enabled: true,
-                count: 2,
-                initSpreadX: [-2,2],
-                initSpreadY: [-2,2],
-                dotsCount: [10,30],
-                dotsSpread: [-3,3]
+            let holes; 
+            if(!this.holes) {
+                holes = {
+                    enabled: true,
+                    count: 2,
+                    initSpreadX: [-2,2],
+                    initSpreadY: [-2,2],
+                    dotsCount: [10,30],
+                    dotsSpread: [-3,3]
+                }
+                if(size.x < 8 && size.y < 8){
+                    holes.enabled = false;
+                }
+                else if(size.x <= 16 && size.y <= 16){
+                    holes.count = 4;
+                    holes.initSpreadX = [-4,4]
+                    holes.initSpreadY = [-4,4]
+                }
+                else if (size.x == 15 && size.y == 21) {
+                    holes.count = 6;
+                    holes.initSpreadX = [-5,5];
+                    holes.initSpreadY = [-5,5];
+                    holes.dotsCount = [20,60];
+                    holes.dotsSpread = [-5,5];
+                }
+                else if(size.x >= 20 && size.y >= 20){
+                    holes.count = 15;
+                    holes.initSpreadX = [-6,6];
+                    holes.initSpreadY = [-10,10];
+                    holes.dotsCount = [30,100];
+                    holes.dotsSpread = [-7,7];
+                }
+                else {
+                    holes.enabled = false;
+                    
+                }
+
+                this.holes = holes;
             }
-            if(size.x < 8 && size.y < 8){
-                holes.enabled = false;
-            }
-            else if(size.x <= 16 && size.y <= 16){
-                holes.count = 4;
-                holes.initSpreadX = [-4,4]
-                holes.initSpreadY = [-4,4]
-            }
-            else if (size.x == 15 && size.y == 21) {
-                holes.count = 6;
-                holes.initSpreadX = [-5,5];
-                holes.initSpreadY = [-5,5];
-                holes.dotsCount = [20,60];
-                holes.dotsSpread = [-5,5];
-            }
-            else if(size.x >= 20 && size.y >= 20){
-                holes.count = 15;
-                holes.initSpreadX = [-6,6];
-                holes.initSpreadY = [-10,10];
-                holes.dotsCount = [30,100];
-                holes.dotsSpread = [-7,7];
-            }
-            else {
-                holes.enabled = false;
-                
-            }
+            else 
+                holes =  this.holes;
+            
+            
 
             if(holes.enabled){
                 for(let j = 0; j < holes.count; j++){
                     let initP = new V2(size.x/2 + getRandomInt(holes.initSpreadX[0],holes.initSpreadX[1]), size.y/2 + getRandomInt(holes.initSpreadY[0],holes.initSpreadY[1]));
+                    if(!pointInsidePoligon(initP, cornerPoints))
+                        continue;
+                        
                     ctx.fillStyle = `rgba(0,0,0,0.1)` 
                     for(let i = 0; i < getRandomInt(holes.dotsCount[0],holes.dotsCount[1]); i++){
                         ctx.fillRect(initP.x + getRandomGaussian(holes.dotsSpread[0],holes.dotsSpread[1]), initP.y + getRandomGaussian(holes.dotsSpread[0],holes.dotsSpread[1]), 1, 1)
@@ -265,7 +278,7 @@ class AsteroidModel extends GO {
         let p = new V2(x,y);
         let dCenter = this.center.distance(p);
         let dBorder = Math.min.apply(null, (this.middlePoints.map((mp) => new V2(mp).distance(p))));
-        let change = this.vDelta - easing.process({ time: dBorder, duration: dBorder+dCenter, change: this.vDelta, type: 'quad', method: 'out', startValue: 0 });
+        let change = this.vDelta - easing.process({ time: dBorder, duration: dBorder+dCenter, change: this.vDelta, type: this.fillStyleEasing, method: 'out', startValue: 0 });
         if(change > -5)
             change = fastRoundWithPrecision(change);
 

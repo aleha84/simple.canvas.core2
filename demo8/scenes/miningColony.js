@@ -175,14 +175,37 @@ class MiningColonyScene extends Scene {
         }))
 
         this.baseSize = new V2(60,80);
+        let bs = this.baseSize;
         this.base = this.addGo(new AsteroidModel({
-            position: this.sceneCenter,
+            position: new V2(this.sceneCenter.x + 50, this.sceneCenter.y - 5),
             size: this.baseSize,
-            baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: 0}),
+            baseColor: colors.changeHSV({initialValue: this.asteroidBaseColor, parameter: 'v', amount: -15}),
+            vDelta: -55,
             cornerPoints: [
-                new V2(0, this.baseSize.y/2), new V2(this.baseSize.x/2, 0), new V2(this.baseSize.x-1, this.baseSize.y/2), new V2(this.baseSize.x/2, this.baseSize.y-1)
-            ]
-        }), 3)
+                //new V2(0, this.baseSize.y/2), new V2(this.baseSize.x/2, 0), new V2(this.baseSize.x-1, this.baseSize.y/2), new V2(this.baseSize.x/2, this.baseSize.y-1)
+                new V2(bs.x/10, bs.y/2),new V2(bs.x/15, bs.y/3), new V2(bs.x*2/10, bs.y/5), new V2(bs.x*3/10, bs.y/10),new V2(bs.x*4/10, bs.y/12), new V2(bs.x*5/10, bs.y/15)
+                , new V2(bs.x*6/10, 0), new V2(bs.x*7/10, bs.y/20), new V2(bs.x*8/10, bs.y/10), new V2(bs.x*8.5/10, bs.y/5), new V2(bs.x-1, bs.y/3),
+                new V2(bs.x*9.5/10, bs.y/2), new V2(bs.x*9/10, bs.y*12/20),new V2(bs.x*9/10, bs.y*14/20),new V2(bs.x*8.5/10, bs.y*15/20),new V2(bs.x*8/10, bs.y*15.5/20),new V2(bs.x*7.5/10, bs.y*16/20), new V2(bs.x*7/10, bs.y*17/20),new V2(bs.x*6.5/10, bs.y*19/20),new V2(bs.x*6/10, bs.y-1),
+                new V2(bs.x*4.5/10, bs.y*19/20),new V2(bs.x*4/10, bs.y*17/20),new V2(bs.x*3.5/10, bs.y*15/20), new V2(bs.x*3/10, bs.y*14/20), new V2(bs.x*2.5/10, bs.y*13.5/20),new V2(bs.x*2/10, bs.y*12/20)
+            ],
+            holes: {
+                enabled: true,
+                count: 100,
+                initSpreadX: [-20, 20],
+                initSpreadY: [-30, 30],
+                dotsCount: [60, 200],
+                dotsSpread: [-10, 10]
+            }, 
+            fillStyleEasing: 'cubic',
+            init() {
+                this.entrance = this.addChild(new GO({
+                    renderValuesRound: true,
+                    position: new V2(-10,-10),
+                    size: new V2(15,15),
+                    img: PP.createImage(miningColonyImages.entranceImg)
+                }))
+            }
+        }), 4)
         
     }
 
