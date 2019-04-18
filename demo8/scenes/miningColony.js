@@ -203,6 +203,13 @@ class MiningColonyScene extends Scene {
                     position: new V2(-12,-17),
                     size: new V2(10,10),
                     img: PP.createImage(miningColonyImages.entranceImg1)
+                }));
+
+                this.upperTown = this.addChild(new GO({
+                    renderValuesRound: true,
+                    position: new V2(2,-30),
+                    size: new V2(40, 20),
+                    img: PP.createImage(miningColonyImages.upperBuildings)
                 }))
             }
         }), 4)
