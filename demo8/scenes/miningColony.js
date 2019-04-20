@@ -44,7 +44,7 @@ class MiningColonyScene extends Scene {
                         size: new V2(2 + getRandomInt(0,1)*2,3 + getRandomInt(0,1)*2), 
                         stepSize: new V2(1,1), 
                         levitation: {
-                            enabled: getRandomInt(0,3) == 3, max: getRandomInt(1,2), duration: getRandomInt(100, 200), direction: getRandomBool() ? 1: -1
+                            enabled: getRandomInt(0,3) == 3, max: getRandomInt(2,5), duration: getRandomInt(100, 200), direction: getRandomBool() ? 1: -1
                         }
                      }
                 })
@@ -64,7 +64,7 @@ class MiningColonyScene extends Scene {
                         size: new V2(4 + getRandomInt(0,2)*2,6 + getRandomInt(0,2)*2), 
                         stepSize: new V2(2,2), 
                         levitation: {
-                            enabled: getRandomBool(), max: getRandomInt(1,3), duration: getRandomInt(90, 180), direction: getRandomBool() ? 1: -1
+                            enabled: getRandomBool(), max: getRandomInt(2,5), duration: getRandomInt(90, 180), direction: getRandomBool() ? 1: -1
                         }
                      }
                 })
@@ -207,6 +207,13 @@ class MiningColonyScene extends Scene {
 
                 this.upperBuilding = this.addChild(new GO({
                     renderValuesRound: true,
+                    position: new V2(5,-20),
+                    size: new V2(40, 30),
+                    img: PP.createImage(miningColonyImages.otherStructures)
+                }))
+
+                this.upperBuilding = this.addChild(new GO({
+                    renderValuesRound: true,
                     position: new V2(2,-30),
                     size: new V2(40, 20),
                     img: PP.createImage(miningColonyImages.upperBuildings1)
@@ -218,6 +225,73 @@ class MiningColonyScene extends Scene {
                     size: new V2(10, 10),
                     img: PP.createImage(miningColonyImages.upperHemiSphere)
                 }))
+
+
+                let navPointsPos = [new V2(-45, -45), new V2(-18, -17)];
+                let distance = navPointsPos[0].distance(navPointsPos[1]);
+                let direction = navPointsPos[0].direction(navPointsPos[1]);
+                
+
+                this.navPoints =  new Array(8).fill().map((p, i, arr) => {
+                    return navPointsPos[0].add(direction.mul(distance*i/(arr.length-1)))
+                }).map((p, i) => 
+                new Array(2).fill().map((_p, _i) => {
+                    return this.addChild(new GO({
+                        renderValuesRound: true,
+                        position: new V2(p.x +_i*6, p.y - _i*6),
+                        size: new V2(1,1),
+                        img: createCanvas(new V2(1,1), ctx => { ctx.fillStyle = '#91230D'; ctx.fillRect(0,0,1,1)}),//'#E2DC22'
+                        init() {
+                            this.alterColor = this.addChild(new GO({
+                                isVisible: false,
+                                renderValuesRound: true,
+                                position: new V2(0,0),
+                                size: new V2(1,1),
+                                img: createCanvas(new V2(1,1), ctx => { ctx.fillStyle = '#E2DC22'; ctx.fillRect(0,0,1,1)}),//'#'
+                                // init() {
+                                //     this.addEffect(new FadeInOutEffect({ effectTime: 250, updateDelay: 40, loop: true, initOnAdd: true, startDelay: (i%2 == 0 ? 0 : 1500) }))
+                                // }
+                            }))
+                        }
+                    }))
+                })
+                
+                );
+
+                this.sideLightTop = this.addChild(new GO({
+                    position: new V2(7, -42),
+                    size: new V2(5,10),
+                    renderValuesRound: true,
+                    img: PP.createImage(miningColonyImages.sideLightTopImg),
+                    init() {
+                        this.alterColor = this.addChild(new GO({
+                            //isVisible: false,
+                            renderValuesRound: true,
+                            position: new V2(0,1.5),
+                            size: new V2(2,1),
+                            img: createCanvas(new V2(1,1), ctx => { ctx.fillStyle = '#aa3828'; ctx.fillRect(0,0,1,1)}),
+                            init() {
+                                this.addBlink();
+                            },
+                            addBlink() {
+                                this.addEffect(new FadeInOutEffect({ effectTime: 80, updateDelay: 40, worksCount: 4, initOnAdd: true, startDelay: 2000, removeEffectOnComplete: true,
+                                    completeCallback: () => this.addBlink() }))
+                            }
+                        }))
+                    }
+                }))
+
+                this.currentNavPointIndex = 0;
+
+                this.navPointsBlinkTimer = createTimer(300, () => {
+                    this.navPoints[this.currentNavPointIndex].forEach(p => {p.alterColor.isVisible = true})
+                    this.navPoints[this.currentNavPointIndex == 0 ? this.navPoints.length-1 : this.currentNavPointIndex-1].forEach(p => {p.alterColor.isVisible = false;})
+                    this.currentNavPointIndex++;
+                    if( this.currentNavPointIndex == this.navPoints.length)
+                        this.currentNavPointIndex = 0;
+
+                }, this, true);
+                this.registerTimer(this.navPointsBlinkTimer);
             }
         }), 4)
         
@@ -230,7 +304,7 @@ class MiningColonyScene extends Scene {
         
         let grd = SCG.contexts.background.createLinearGradient(size.x/2,0, size.x/2, size.y);
         grd.addColorStop(0, 'rgba(255,255,255,0)');grd.addColorStop(0.2, 'rgba(255,255,255,0)');grd.addColorStop(0.35, 'rgba(255,255,255,0.01)');
-        grd.addColorStop(0.5, 'rgba(255,255,255,0.1)');
+        grd.addColorStop(0.5, 'rgba(255,255,255,0.15)');
         grd.addColorStop(0.65, 'rgba(255,255,255,0.01)');grd.addColorStop(0.8, 'rgba(255,255,255,0)');grd.addColorStop(1, 'rgba(255,255,255,0)');
 
         SCG.contexts.background.fillStyle = grd;

@@ -108,7 +108,7 @@ class FadeInOutEffect extends EffectBase {
             this.step = (this.max - this.min)/ (this.effectTime/this.updateDelay);
         }
 
-        this.worksCount = this.loop ? -1 : 2;
+        this.worksCount = this.loop ? -1 : (this.worksCount || 2);
 
         this.workTimer = createTimer(this.updateDelay, () => {
             if(this.completed)
