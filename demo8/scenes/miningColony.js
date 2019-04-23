@@ -258,6 +258,17 @@ class MiningColonyScene extends Scene {
                 
                 );
 
+                this.minersEntrance = this.addChild(new GO({
+                    position: new V2(25, -15),
+                    size: new V2(10,8),
+                    img: PP.createImage(miningColonyImages.minirsEntrance),
+                    init() {
+                        [new V2(2,0), new V2(3,0), new V2(4,0)].map((p,i) => {
+                            
+                        })
+                    }
+                }))
+
                 this.sideLightTop = this.addChild(new GO({
                     position: new V2(7, -42),
                     size: new V2(5,10),
@@ -268,7 +279,7 @@ class MiningColonyScene extends Scene {
                             //isVisible: false,
                             renderValuesRound: true,
                             position: new V2(0,1.5),
-                            size: new V2(2,1),
+                            size: new V2(1,1),
                             img: createCanvas(new V2(1,1), ctx => { ctx.fillStyle = '#aa3828'; ctx.fillRect(0,0,1,1)}),
                             init() {
                                 this.addBlink();
