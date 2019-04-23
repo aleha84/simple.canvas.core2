@@ -263,8 +263,15 @@ class MiningColonyScene extends Scene {
                     size: new V2(10,8),
                     img: PP.createImage(miningColonyImages.minirsEntrance),
                     init() {
-                        [new V2(2,0), new V2(3,0), new V2(4,0)].map((p,i) => {
-                            
+                        [new V2(2.5,-1.5), new V2(2.5,3)].map((p,i) => {
+                            return this.addChild(new GO({
+                                size: new V2(1,1),
+                                position: p,
+                                img: createCanvas(new V2(1,1), ctx => { ctx.fillStyle = '#E2DC22'; ctx.fillRect(0,0,1,1)}),
+                                init() {
+                                    this.addEffect(new FadeInOutEffect({ effectTime: 1000, updateDelay: 40, loop: true, initOnAdd: true }))
+                                }
+                            }));
                         })
                     }
                 }))
