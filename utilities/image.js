@@ -617,7 +617,7 @@ var colors = {
         if(hsv[parameter] == undefined)
             throw 'colors.changeHSV unknown parameter:' + parameter;
 
-        if(amount > 1 || amount < -1){
+        if(amount >= 1 || amount <= -1){
             if(parameter == 'h')
                 amount/=360;
             else 

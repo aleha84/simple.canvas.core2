@@ -263,7 +263,7 @@ class MiningColonyScene extends Scene {
                     size: new V2(10,8),
                     img: PP.createImage(miningColonyImages.minirsEntrance),
                     init() {
-                        [new V2(2.5,-1.5), new V2(2.5,3)].map((p,i) => {
+                        [new V2(2.5,-1.5), new V2(2.5,2.5)].map((p,i) => {
                             return this.addChild(new GO({
                                 size: new V2(1,1),
                                 position: p,
@@ -312,6 +312,14 @@ class MiningColonyScene extends Scene {
                 this.registerTimer(this.navPointsBlinkTimer);
             }
         }), 4)
+        
+        this.registerTimer(createTimer(1500, () => {
+            let inverted = getRandomBool();
+            this.addGo(new TrafficSpaceShip({
+                inverted:inverted,
+                position: !inverted ? new V2(289+ getRandomInt(-2,2), 127+ getRandomInt(-2,2)) : new V2(0, 90 -getRandomInt(0,20))
+            }), 20)
+        }, this, true))
         
     }
 
@@ -411,5 +419,143 @@ class Stars extends MovingGO {
                 ctx.fillRect(getRandomInt(0, size.x), fastRoundWithPrecision(getRandomGaussian(-size.y*0.25, 1.25*size.y)), 1, 1)
             }
         })
+    }
+}
+
+class TrafficSpaceShip extends GO {
+    constructor(options = {}){
+        options = assignDeep({}, {
+            size: new V2(1,1),
+            renderValuesRound: true,
+            baseColors: ['#E0BCAC', '#B5D6E2', '#88A4E2', '#E0D98D'],
+            baseColor: '#CCA394',
+        }, options)
+
+        super(options);
+    }
+
+    init() {
+        this.baseColor = colors.changeHSV({ initialValue: this.baseColors[getRandomInt(0,this.baseColors.length-1)], parameter: 'v', amount: getRandomInt(-10, 10) });
+
+        if(this.inverted)
+            this.script.items = [
+                function(){
+                    let goRight = { time: 0, duration: getRandomInt(50,70), change: getRandomInt(200,220), type: 'cubic', method: 'out', startValue: this.position.x };
+                    let currentSizeX = 1;
+                    this.scriptTimer = this.createScriptTimer(
+                        function() { 
+                            let next = easing.process(goRight);
+                            let delta = next - this.position.x;
+                            if(delta < 1)
+                                delta = 1;
+
+                            this.position.x = next;
+                            this.size.x = delta > 1 ? fastRoundWithPrecision(delta*2) : delta;
+                            if(currentSizeX != this.size.x){
+                                currentSizeX = this.size.x;
+                                //console.log(delta, currentSizeX);
+                                this.regenImg();
+                            }
+                            goRight.time++; },
+                        function() {return goRight.time > goRight.duration; }, true, 30)
+                },function(){
+                    //debugger;
+                    this.scriptTimer = this.createScriptTimer(
+                        function() {  },
+                        function() {return true }, true, getRandomInt(300, 700))
+                }, function(){
+                    let duration = 120+getRandomInt(-10, 10);
+                    let fall = { time: 0, duration: duration, change: 97 - this.position.y + getRandomInt(-2,2), type: 'quad', method: 'in', startValue: this.position.y };
+                    let goRight = { time: 0, duration: duration, change: 259 - this.position.x+ getRandomInt(-4,4), type: 'quad', method: 'in', startValue: this.position.x };
+                    this.size.x = 1;
+                    this.regenImg();
+                    this.scriptTimer = this.createScriptTimer(
+                        function() { 
+                            this.position.y = easing.process(fall); fall.time++; 
+                            this.position.x = easing.process(goRight); goRight.time++;
+                        },
+                        function() {return fall.time > fall.duration; })
+                }, function(){
+                    let duration = 140+getRandomInt(-10, 10);
+                    let fall = { time: 0, duration: duration, change: 30+ getRandomInt(-2,2), type: 'quad', method: 'out', startValue: this.position.y };
+                    let goRight = { time: 0, duration: duration, change: 30+ getRandomInt(-2,2), type: 'quad', method: 'out', startValue: this.position.x };
+                    this.size.x = 1;
+                    this.regenImg();
+                    this.scriptTimer = this.createScriptTimer(
+                        function() { 
+                            this.position.y = easing.process(fall); fall.time++; 
+                            this.position.x = easing.process(goRight); goRight.time++;
+                        },
+                        function() {return fall.time > fall.duration; })
+                }
+                , function() {
+                    this.setDead();
+                }
+            ]
+        else 
+            this.script.items = [
+                function(){
+                    let that =this;
+                    let duration = 140 + getRandomInt(-10, 10);
+                    this.img = createCanvas(new V2(1,1), (ctx) => { ctx.fillStyle = that.baseColor, ctx.fillRect(0,0,1,1)});
+                    let rise = { time: 0, duration: duration, change: -30+ getRandomInt(-2,2), type: 'quad', method: 'in', startValue: this.position.y };
+                    let goLeft = { time: 0, duration: duration, change: -30+ getRandomInt(-4,4), type: 'quad', method: 'in', startValue: this.position.x };
+                    this.scriptTimer = this.createScriptTimer(
+                        function() { 
+                            this.position.y = easing.process(rise); rise.time++; 
+                            this.position.x = easing.process(goLeft); goLeft.time++;
+                        },
+                        function() {return rise.time > rise.duration; })
+                },
+                function(){
+                    let duration = 120 + getRandomInt(-10, 10);
+                    let rise = { time: 0, duration: duration, change: -20 + getRandomInt(-5,5), type: 'quad', method: 'out', startValue: this.position.y };
+                    let goLeft = { time: 0, duration: duration, change: -40 + getRandomInt(-10, 10), type: 'quad', method: 'out', startValue: this.position.x };
+                    this.scriptTimer = this.createScriptTimer(
+                        function() { 
+                            this.position.y = easing.process(rise); rise.time++; 
+                            this.position.x = easing.process(goLeft); goLeft.time++;
+                        },
+                        function() {return rise.time > rise.duration; })
+                },
+                function(){
+                    let goLeft = { time: 0, duration: getRandomInt(30,50), change: -500, type: 'cubic', method: 'in', startValue: this.position.x };
+                    let currentSizeX = 1;
+                    this.scriptTimer = this.createScriptTimer(
+                        function() { 
+                            let next = fastRoundWithPrecision(easing.process(goLeft));
+                            let delta = this.position.x - next;
+                            if(delta == 0)
+                                delta = 1;
+
+                            this.position.x = next;
+                            this.size.x = fastRoundWithPrecision(delta*2);
+                            if(currentSizeX != this.size.x){
+                                currentSizeX = this.size.x;
+                                this.regenImg();
+                            }
+                            goLeft.time++; },
+                        function() {return goLeft.time > goLeft.duration; }, true, 30)
+                }, function() {
+                    this.setDead();
+                }
+            ];
+
+        this.processScript();
+    }
+
+    regenImg(){
+        let currentSizeX = this.size.x;
+        this.img = createCanvas(new V2(currentSizeX,1), (ctx) => { 
+            let rgb = hexToRgb(this.baseColor, true);
+            // if(currentSizeX == 40)
+            //     debugger;
+
+            for(let i = 0; i < currentSizeX;i++){
+                let opacity = this.inverted ? (i+1)/currentSizeX : 1 - (i/currentSizeX);
+                ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${opacity})`;
+                ctx.fillRect(i,0,1,1);
+            }
+        });
     }
 }
