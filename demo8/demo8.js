@@ -35,6 +35,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     })); 
 
+    SCG.scenes.cacheScene(new PixelWavesScene({
+        name:'pixelwaves',
+        viewport: defaultViewpot
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();
