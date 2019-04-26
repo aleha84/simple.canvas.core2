@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function() {
     debugger;
     
     let defaultViewpot = new V2(500,300);
+    let verticalDefaultViewport = new V2(300,500);
     SCG.scenes.cacheScene(new InfoScreenScene({
         name:'info',
         viewport: defaultViewpot
@@ -37,7 +38,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new PixelWavesScene({
         name:'pixelwaves',
-        viewport: new V2(300,500)
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new CityScene({
+        name:'city',
+        viewport: verticalDefaultViewport
     })); 
 
     sceneSelectByHashValue();

@@ -606,6 +606,15 @@ function rgbToHsv (r, g, b, asArray = false) {
   return result
 }
 
+function hsvToHex({hsv, hsvAsObject = false }) {
+  let init = hsv;
+  if(hsvAsObject) {
+    init = [hsv.h, hsv.s, hsv.v];
+  }
+
+  return '#' + rgbToHex(hsvToRgb(init[0]/360, init[1]/100, init[2]/100, true));
+}
+
 function hsvToRgb(h, s, v, asArray = false) {
   var r, g, b, i, f, p, q, t;
   if (arguments.length === 1) {
