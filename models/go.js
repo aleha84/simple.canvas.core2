@@ -793,6 +793,8 @@ class GO {
     registerTimer(timer) {
         if(this.timers.indexOf(timer) == -1)
             this.timers.push(timer);
+
+        return timer;
     }
 
     unregTimer(timer) {
