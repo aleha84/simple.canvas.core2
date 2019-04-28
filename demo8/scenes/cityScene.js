@@ -192,7 +192,7 @@ class CityScene extends Scene {
                 this.appearTimer = this.registerTimer(createTimer(10, () => {
                     if(appear.time > appear.duration){
                         this.unregTimer(this.appearTimer);
-                        this.parentScene.layers[this.parentScene.layers.length - 1].railway.appear();
+                        this.parentScene.layers[this.parentScene.layers.length - 1].treesRow.appear();
                         return;
                     }
 
@@ -205,8 +205,10 @@ class CityScene extends Scene {
             }
         }),11)));
 
-        this.triggerLayerAppear();
-
+        this.startTimer = this.registerTimer(createTimer(500, () => {
+            this.unregTimer(this.startTimer)
+            this.triggerLayerAppear();
+        }, this, false));
     }
 
     triggerLayerAppear() {
@@ -225,6 +227,7 @@ class CityScene extends Scene {
 
         this.appearLayerIndex--;
 
+        l.isVisible = true;
         l.appear(this.triggerLayerAppear.bind(this));
     }
 } 
@@ -232,6 +235,7 @@ class CityScene extends Scene {
 class BuildingsLayer extends GO {
     constructor(options = {}) {
         options = assignDeep({}, {
+            isVisible: false,
             baseColorHSV: [50, 100, 100],
             secondaryColorHSV: [200, 15, 78],
             renderValuesRound: true,
@@ -452,7 +456,42 @@ class BuildingsLayer extends GO {
                 }
             }));
 
-            
+            this.treeRowSize = new V2(this.size.x, 20);
+            this.treesRow = this.addChild(new GO({
+                position: new V2(0, this.size.y/2 + this.treeRowSize.y),
+                targetY: this.size.y/2 - this.treeRowSize.y,
+                size: this.treeRowSize,
+                img: createCanvas(this.treeRowSize, (ctx, size) => {
+                    let treeImg = PP.createImage(cityImages.tree);
+                    let treeWidth = 10;
+                    for(let i = 0; i < size.x / treeWidth;i++){
+                        ctx.drawImage(treeImg, i*treeWidth + 2*i, 0, treeWidth, size.y);
+                    }
+                }),
+                appear() {
+                    if(this.appearCalled) {
+                        return;
+                    }
+
+                    this.appearCalled = true;
+
+                    let appear = { time: 0, duration: 50, change: this.targetY - this.position.y, type: 'cubic', method: 'out', startValue: this.position.y };
+    
+                    this.appearTimer = this.registerTimer(createTimer(10, () => {
+                        if(appear.time > appear.duration){
+                            this.unregTimer(this.appearTimer);
+                            this.parent.railway.appear();
+                            return;
+                        }
+    
+                        this.position.y = easing.process(appear);
+                        this.needRecalcRenderProperties = true;
+    
+                        appear.time++;
+    
+                    }, this, true));
+                }
+            })) 
         }
     }
 
