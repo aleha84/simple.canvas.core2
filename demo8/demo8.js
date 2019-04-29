@@ -46,6 +46,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     })); 
 
+    SCG.scenes.cacheScene(new MapScene({
+        name:'map',
+        viewport: defaultViewpot
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();
