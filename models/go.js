@@ -211,6 +211,10 @@ class GO {
 
     }
 
+    initCompleted() {
+        
+    }
+
     console(message) {
         if(this.debug){
             if(this.logInDebug){
@@ -613,6 +617,8 @@ class GO {
 
             let that = this;
             this.effectsProcesser((effect) => effect.__init(that));
+
+            this.initCompleted();
         }
 
         this.internalPreUpdate(now);

@@ -272,6 +272,24 @@ class Scene {
         return go;
     }
 
+    changeLayer(go, layerIndex, regEvents) {
+        let goIndex = this.goLayers[go.layerIndex].indexOf(go);
+        if(goIndex == -1){
+            console.log('failed to change layer for GO. Not found in layer');
+            return;
+        }
+
+        if(regEvents)
+            go.unRegEvents();
+
+        this.goLayers[go.layerIndex].splice(goIndex,1);
+         
+        go.changeLayerIndex = undefined;
+        this.addGo(go, layerIndex, regEvents);
+
+        return go;
+    }
+
     innerStart(sceneProperties) {
         SCG.viewport.graphInit();
         SCG.UI.invalidate();
@@ -350,6 +368,11 @@ class Scene {
 
             let i = goLayer.length;
             while (i--) {
+                if(goLayer[i].changeLayerIndex != undefined){
+                    let go = this.changeLayer(goLayer[i], goLayer[i].changeLayerIndex, true);
+                    go.render();
+                    continue;
+                }
                 goLayer[i].update(now);
                 goLayer[i].render();
         
