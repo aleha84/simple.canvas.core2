@@ -56,6 +56,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport.mul(0.5)
     })); 
 
+    SCG.scenes.cacheScene(new PeopleScene({
+        name:'people',
+        viewport: verticalDefaultViewport
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();
