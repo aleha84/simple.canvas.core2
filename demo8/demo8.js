@@ -51,6 +51,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     })); 
 
+    SCG.scenes.cacheScene(new PixelForestScene({
+        name:'forest',
+        viewport: verticalDefaultViewport.mul(0.5)
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();

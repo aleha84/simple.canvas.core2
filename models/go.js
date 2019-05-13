@@ -836,3 +836,7 @@ class GO {
 
 GO.counter = {};
 GO.ids = [];
+
+var go = GO;
+var Go = GO;
+var gO = GO;
