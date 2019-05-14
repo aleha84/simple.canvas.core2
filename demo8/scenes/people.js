@@ -12,6 +12,56 @@ class PeopleScene extends Scene {
     start() {
         this.yClamps = [-20, 20];
 
+        this.roadSize = new V2(this.viewport.x, this.viewport.y);
+        //
+
+        this.sideWalkSize = new V2(this.viewport.x, this.yClamps[1] - this.yClamps[0] + 10);
+        this.sideWalk = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.sideWalkSize,
+            img: createCanvas(this.sideWalkSize, (ctx, size) => {
+                ctx.fillStyle = '#BEBEBC';
+                ctx.fillRect(0,0, size.x, size.y);
+
+                let alternateColors = [
+                ];
+
+                for(let i = -10; i < 5; i++){
+                    if(i == 0)
+                        continue;
+
+                    alternateColors[alternateColors.length] = colors.changeHSV({initialValue: ctx.fillStyle, parameter: 'v', amount: i, isRgb: false});
+                }
+
+                for(let i = 0; i < 500; i++){
+                    ctx.fillStyle = alternateColors[getRandomInt(0, alternateColors.length-1)];
+                    ctx.fillRect(getRandomInt(0, size.x), getRandomInt(0, size.y), getRandomInt(1,3), 1);
+                }
+
+                let pp = new PerfectPixel({ context: ctx });
+                ctx.fillStyle = '#5B5C5E';
+                for(let i = 0; i < 80; i++){
+                    pp.lineV2(new V2(170+ i, 0), new V2(140 + i, size.y))
+                }
+
+                ctx.fillStyle = '#EFEFEF';
+
+                let counterMax = 4;
+                let counter = counterMax;
+                let drawZebra = true;
+                for(let i = 0; i < 60; i++){
+                    if(drawZebra)
+                        pp.lineV2(new V2(175+ i, 10), new V2(156 + i, size.y-10));
+
+                    counter--;
+                    if(counter == 0){
+                        counter = counterMax;
+                        drawZebra = !drawZebra;
+                    }
+                }
+            })
+        }), 1)
+
         this.registerTimer(createTimer(250, () => {
             this.peopleGenerator();
         }, this, true))
@@ -20,17 +70,18 @@ class PeopleScene extends Scene {
     peopleGenerator() {
         
         let yShift = getRandomInt(this.yClamps[0], this.yClamps[1]);
+        let isLeft = getRandomBool();
         this.addGo(new PixelMan({
-            position: new V2(-10, yShift + this.sceneCenter.y),
-            xDestination: this.viewport.x + 10,
+            position: new V2(isLeft ? -10 : this.viewport.x + 10, yShift + this.sceneCenter.y),
+            xDestination:  isLeft ? this.viewport.x + 10 : -10,
             moveMaxMultiplier: getRandom(1,5),
-            bounceMaxDivider: getRandom(4,10)
-
-        }), yShift - this.yClamps[0]);
+            bounceMaxDivider: getRandom(4,10),
+            moveDirection: isLeft ? 1: -1,
+        }), yShift - this.yClamps[0] + 10);
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault('#27C5DD');
+        this.backgroundRenderDefault('#5B5C5E');
     }
 }
 
@@ -42,7 +93,8 @@ class PixelMan extends GO {
             xDestination: 300,
             bounceMaxDivider: 4,
             moveMaxMultiplier: 1,
-            value: 1
+            value: 1,
+            moveDirection: 1,
         }, options)
 
         super(options);
@@ -69,7 +121,7 @@ class PixelMan extends GO {
         };
 
         this.move = {
-            time: 0, duration: this.bounceStepDuration*2,startValue: this.position.x, change: this.moveMax, max: this.moveMax, direction: 1, 
+            time: 0, duration: this.bounceStepDuration*2,startValue: this.position.x, change: this.moveMax*this.moveDirection, max: this.moveMax, direction: this.moveDirection, 
             type: 'linear', method: 'base', 
         }
 
@@ -143,7 +195,7 @@ class PixelMan extends GO {
                     //     this.choseImg();
                     // }
 
-                    if(this.position.x > this.xDestination){
+                    if((m.direction > 0 && this.position.x > this.xDestination) || (m.direction < 0 && this.position.x < this.xDestination)){
                         this.setDead();
                     }
                 }
