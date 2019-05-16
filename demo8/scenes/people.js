@@ -23,6 +23,21 @@ class PeopleScene extends Scene {
                 ctx.fillStyle = '#BEBEBC';
                 ctx.fillRect(0,0, size.x, size.y);
 
+                ctx.fillStyle = '#999999';
+                ctx.fillRect(0, size.y- 1, size.x, 1);
+
+                // ctx.fillStyle = '#A5A5A5';
+                // ctx.fillRect(0, size.y- 3, size.x, 1);
+
+                // ctx.fillStyle = '#7F7F7F';
+                // for(let i = 0; i < 20; i++){
+                //     // ctx.fillRect(i*size.x/20, size.y-2, 1,2);
+                //     // ctx.fillRect(i*size.x/20 + 1, size.y-3, 1,1);
+                //     ctx.fillRect(i*size.x/20, size.y-1, 1,1);
+                // }
+
+                ctx.fillStyle = '#BEBEBC';
+
                 let alternateColors = [
                 ];
 
@@ -35,23 +50,23 @@ class PeopleScene extends Scene {
 
                 for(let i = 0; i < 500; i++){
                     ctx.fillStyle = alternateColors[getRandomInt(0, alternateColors.length-1)];
-                    ctx.fillRect(getRandomInt(0, size.x), getRandomInt(0, size.y), getRandomInt(1,3), 1);
+                    ctx.fillRect(getRandomInt(0, size.x), getRandomInt(0, size.y-4), getRandomInt(1,3), 1);
                 }
 
                 let pp = new PerfectPixel({ context: ctx });
-                ctx.fillStyle = '#5B5C5E';
+                ctx.fillStyle = '#757577';
                 for(let i = 0; i < 80; i++){
                     pp.lineV2(new V2(170+ i, 0), new V2(140 + i, size.y))
                 }
 
-                ctx.fillStyle = '#EFEFEF';
+                ctx.fillStyle = '#DBDBDB';
 
                 let counterMax = 4;
                 let counter = counterMax;
                 let drawZebra = true;
                 for(let i = 0; i < 60; i++){
                     if(drawZebra)
-                        pp.lineV2(new V2(175+ i, 10), new V2(156 + i, size.y-10));
+                        pp.lineV2(new V2(174+ i, 10), new V2(156 + i, size.y-10));
 
                     counter--;
                     if(counter == 0){
@@ -59,6 +74,10 @@ class PeopleScene extends Scene {
                         drawZebra = !drawZebra;
                     }
                 }
+
+                ctx.fillStyle = '#A5A5A4';
+                pp.lineV2(new V2(169, 0), new V2(139, size.y))
+                pp.lineV2(new V2(169, 1), new V2(140, size.y-1))
             })
         }), 1)
 
@@ -81,7 +100,7 @@ class PeopleScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault('#5B5C5E');
+        this.backgroundRenderDefault('#757577');
     }
 }
 
@@ -115,8 +134,26 @@ class PixelMan extends GO {
         this.bounceMax = this.size.y/this.bounceMaxDivider;
         this.moveMax = this.size.x*this.moveMaxMultiplier;
 
+        this.shadowSize = new V2(3,1);
+
+        this.shadow = this.addChild(new GO({
+            renderValuesRound: true,
+            size: this.shadowSize,
+            position: new V2(-1.5, this.size.y/2 -0.5),
+            img: createCanvas(new V2(1,1), (ctx, size) => {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(0,0,size.x, size.y);
+            })
+        }));
+
+        this.man = this.addChild(new GO({
+            renderValuesRound: true,
+            position: new V2(0,0),
+            size: this.size
+        }));
+
         this.bounce = { 
-            time: 0, duration: this.bounceStepDuration,startValue: this.position.y, change: -this.bounceMax, max: this.bounceMax, direction: -1, 
+            time: 0, duration: this.bounceStepDuration,startValue: this.man.position.y, change: -this.bounceMax, max: this.bounceMax, direction: -1, 
             type: 'sin', method: 'out', 
         };
 
@@ -125,7 +162,9 @@ class PixelMan extends GO {
             type: 'linear', method: 'base', 
         }
 
-        this.originX = this.position.x;
+        this.shadow.originX = this.shadow.position.x;
+
+        
 
         this.topColor = hsvToHex({hsv:[getRandomInt(0,360), 77,77]})//'#C6752F';
         this.skinColor = '#ED9B79';
@@ -159,7 +198,7 @@ class PixelMan extends GO {
     }
 
     choseImg() {
-        this.img = this.move.direction > 0 ? this.imgRight : this.imgLeft;
+        this.man.img = this.move.direction > 0 ? this.imgRight : this.imgLeft;
     }
 
     startBounce() {
@@ -168,7 +207,8 @@ class PixelMan extends GO {
             let m = this.move;
             let y = easing.process(b);
             
-            this.position.y = y;
+            this.man.position.y = y;
+            this.shadow.position.x = this.shadow.originX + y*1;
             this.position.x = easing.process(m);
 
             this.needRecalcRenderProperties = true;
@@ -179,7 +219,7 @@ class PixelMan extends GO {
                 b.direction*=-1;
 
                 b.time = 0;
-                b.startValue = this.position.y;
+                b.startValue = this.man.position.y;
                 b.change = (b.direction > 0 ? 1 : -1) * b.max;
                 b.method =this.direction > 0 ? 'in' : 'out'
 
