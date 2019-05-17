@@ -82,138 +82,89 @@ class PeopleScene extends Scene {
             })
         }), 1);
 
-        this.topLeftBuildingSize = new V2(250, 130);
-        this.topLeftBuilding = this.addGo(new GO({
-            position: new V2(122, 160),
-            size: this.topLeftBuildingSize,
-            renderValuesRound: true,
-            init() {
-                this.base = this.addChild(new GO({
-                    position: new V2(),
-                    size: this.size,
-                    renderValuesRound: true,
-                    img: createCanvas(this.size, (ctx, size) => {
-                        ctx.fillStyle = 'red';
-                        let shift = 77;
-                        let pp = new PerfectPixel({ context: ctx });
-                        for(let i = shift; i < size.x; i++){
-                            if(i % 10== 0)
-                                ctx.fillStyle = 'green';
-                            else 
-                                ctx.fillStyle = 'red';
-                            pp.lineV2(new V2(i, 0), new V2(i-shift, size.y));
-                        }
-        
-                        let hLinesCount = 20;
-                        ctx.fillStyle = 'green';
-                        let startXEquation = (y) => ( ((130-y)*77)/130 );
-                        let endXEquation = (y) => ( (((32500/77)-y)*77)/130 );
-        
-                        for(let i = 0; i < hLinesCount; i ++){
-                            let y = i*size.y/hLinesCount;
-                            pp.lineV2(new V2(startXEquation(y), y), new V2(endXEquation(y), y));
-                        }
-                    })
-                }));
+        this.buildings = [
+        ]
 
-                this.buildingSize = new V2(192,250);
-                this.building = this.addChild(new GO({
-                    position: new V2(2,-72),
-                    size: this.buildingSize,
-                    renderValuesRound: true,
-                    img: createCanvas(this.buildingSize, (ctx, size) => {
-                        let frontWidth = 130;
-                        
-                        ctx.fillStyle = 'blue';
-                        ctx.fillRect(0,0, frontWidth, size.y);
+        for(let j = 9; j >= 0; j--){
+            this.buildings = [...this.buildings, ...new Array(7 + (9-j)).fill().map((el, i) => 150 + (9 - j)*15 - 25*i).map((el) => this.buildingGenerator(9, new V2(el, 175 - (9- j)*25)))]
+        }
 
-                        let pp = new PerfectPixel({ context: ctx });
-                        ctx.fillStyle = 'lightblue';
-                        let shift = 105;
-                        for(let i = - shift; i < size.y - shift ; i++){
-                            pp.lineV2(new V2(frontWidth , i + shift), new V2(size.x, i));
-                        }
-                        //ctx.fillRect(frontWidth,0, size.x - frontWidth, size.y);
-                    }),
-                    init() {
-                        this.entranceSize = new V2(20, 20);
-                        this.entrance = this.addChild(new GO({
-                            position: new V2(-31,115),
-                            size: this.entranceSize,
-                            renderValuesRound: true,
-                            img: createCanvas(this.entranceSize, (ctx, size) => {
-                                ctx.fillStyle = 'green';
-                                ctx.fillRect(0,0, size.x, size.y)
-                            })
-                        }));
+        this.buildingGenerator(9, new V2(300, 175)),
+        this.buildingGenerator(9, new V2(275, 175)),
 
-                        this.frontalLargeWindowSize = new V2(50, 15);
-                        this.frontalSmallWindowSize = new V2(10, 10);
-                        this.frontalLargeWindows = [new V2(-71, 113), new V2(9, 113)].forEach(p => (this.addChild(new Go({
-                            position: p,
-                            size: this.frontalLargeWindowSize,
-                            img: createCanvas(this.frontalLargeWindowSize, (ctx, size) => {
-                                ctx.fillStyle = 'green';
-                                ctx.fillRect(0,0, size.x, size.y)
-                            })
-                        }))))
+        this.buildingGenerator(8, new V2(290, 150)),
 
-                        let startX = -80;
-                        let xCount = 6;
-                        let yCount = 10;
-                        let xStep = 20;
-                        let yStep = 20;
-                        let currentY = 90;
-                        let currentX = startX;
-                        this.frontalSmallWindows = [];
-
-                        for(let y = 0; y < yCount; y++){
-                            currentX = startX;
-                            for(let x = 0; x < xCount; x++){
-                                this.frontalSmallWindows.push(this.addChild(new Go({
-                                    position: new V2(currentX, currentY),
-                                    size: this.frontalSmallWindowSize,
-                                    img: createCanvas(this.frontalSmallWindowSize, (ctx, size) => {
-                                        ctx.fillStyle = 'green';
-                                        ctx.fillRect(0,0, size.x, size.y)
-                                    })
-                                })))
-
-                                currentX+=xStep;
-                            }
-
-                            currentY-=yStep;
-                        }
-
-                        this.sideLargeWindowSize = new V2(62, 115);
-                        let sideLargeWindow = this.addChild(new GO({
-                            position: new V2(65, 63),
-                            size: this.sideLargeWindowSize,
-                            img: createCanvas(this.sideLargeWindowSize, (ctx, size) => {
-                                ctx.fillStyle = 'green';
-                                let h = 15;
-                                let hChange = {
-                                    time: 0, duration: size.x,startValue: h, change: -5, type: 'linear', method: 'base', 
-                                }
-
-                                let xEquation = (x) => (-50/31)*x+100;
-                                let pp = new PerfectPixel({ context: ctx });
-                                for(let i = 0; i < size.x; i++){
-                                    hChange.time = i;
-                                    let _h = fastRoundWithPrecision(easing.process(hChange));
-                                    ctx.fillRect(i, xEquation(i), 1, _h);
-                                }
-                            })
-                        }))
-
-                    }
-                }));
-            }
-        }),1)
+        this.buildingGenerator(7, new V2(305, 125)),
 
         this.registerTimer(createTimer(250, () => {
             this.peopleGenerator();
         }, this, true))
+    }
+
+    buildingGenerator(layer = 1, position) {
+        return this.addGo(new GO({
+            position: position,
+            size: new V2(30, 100),
+            img: createCanvas(new V2(30, 100), (ctx, size) => {
+                
+                let colors = {
+                    main: '#CE9D23',
+                    second: '#E5AC27'
+                };
+
+                switch(getRandomInt(1,4)){
+                    case 2: 
+                        colors = {
+                            main: '#42725A',
+                            second: '#589978'
+                        }
+                        break;
+                    case 3: 
+                        colors = {
+                            main: '#CE9D23',
+                            second: '#E5AC27'
+                        }
+                        break;
+                    case 4: 
+                        colors = {
+                            main: '#B5533D',
+                            second: '#E5694E'
+                        }
+                        break;
+                    //
+                }
+
+                let model = peopleImages.fullHouse();
+                model.main.layers[0].strokeColor = colors.main;
+                model.main.layers[0].fillColor = colors.main;
+
+                model.main.layers[47].strokeColor = colors.second;
+                model.main.layers[47].fillColor = colors.second;
+
+                //
+                let img = PP.createImage(model);
+                let imgSize = new V2(30, 50);
+                ctx.drawImage(img, 0, size.y -imgSize.y, imgSize.x, imgSize.y)
+                let levels = getRandomInt(1, 4);
+                if(levels > 1){
+                    let shiftY = 4;
+                    switch(levels){
+                        case 2: 
+                        case 4:
+                            shiftY = 29;
+                            break;
+                        case 3: 
+                            shiftY = 39;
+                            break;
+                    }
+                    ctx.drawImage(img,  0, 0, imgSize.x, 33, 0, shiftY, imgSize.x, 33)
+                    if(levels > 3){
+                        ctx.drawImage(img,  0, 0, imgSize.x, 33, 0, 8, imgSize.x, 33)
+                    }
+                }
+                
+            })
+        }), layer)
     }
 
     peopleGenerator() {
