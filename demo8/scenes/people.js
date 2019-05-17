@@ -19,6 +19,7 @@ class PeopleScene extends Scene {
         this.sideWalk = this.addGo(new GO({
             position: this.sceneCenter,
             size: this.sideWalkSize,
+            
             img: createCanvas(this.sideWalkSize, (ctx, size) => {
                 ctx.fillStyle = '#BEBEBC';
                 ctx.fillRect(0,0, size.x, size.y);
@@ -79,7 +80,136 @@ class PeopleScene extends Scene {
                 pp.lineV2(new V2(169, 0), new V2(139, size.y))
                 pp.lineV2(new V2(169, 1), new V2(140, size.y-1))
             })
-        }), 1)
+        }), 1);
+
+        this.topLeftBuildingSize = new V2(250, 130);
+        this.topLeftBuilding = this.addGo(new GO({
+            position: new V2(122, 160),
+            size: this.topLeftBuildingSize,
+            renderValuesRound: true,
+            init() {
+                this.base = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    renderValuesRound: true,
+                    img: createCanvas(this.size, (ctx, size) => {
+                        ctx.fillStyle = 'red';
+                        let shift = 77;
+                        let pp = new PerfectPixel({ context: ctx });
+                        for(let i = shift; i < size.x; i++){
+                            if(i % 10== 0)
+                                ctx.fillStyle = 'green';
+                            else 
+                                ctx.fillStyle = 'red';
+                            pp.lineV2(new V2(i, 0), new V2(i-shift, size.y));
+                        }
+        
+                        let hLinesCount = 20;
+                        ctx.fillStyle = 'green';
+                        let startXEquation = (y) => ( ((130-y)*77)/130 );
+                        let endXEquation = (y) => ( (((32500/77)-y)*77)/130 );
+        
+                        for(let i = 0; i < hLinesCount; i ++){
+                            let y = i*size.y/hLinesCount;
+                            pp.lineV2(new V2(startXEquation(y), y), new V2(endXEquation(y), y));
+                        }
+                    })
+                }));
+
+                this.buildingSize = new V2(192,250);
+                this.building = this.addChild(new GO({
+                    position: new V2(2,-72),
+                    size: this.buildingSize,
+                    renderValuesRound: true,
+                    img: createCanvas(this.buildingSize, (ctx, size) => {
+                        let frontWidth = 130;
+                        
+                        ctx.fillStyle = 'blue';
+                        ctx.fillRect(0,0, frontWidth, size.y);
+
+                        let pp = new PerfectPixel({ context: ctx });
+                        ctx.fillStyle = 'lightblue';
+                        let shift = 105;
+                        for(let i = - shift; i < size.y - shift ; i++){
+                            pp.lineV2(new V2(frontWidth , i + shift), new V2(size.x, i));
+                        }
+                        //ctx.fillRect(frontWidth,0, size.x - frontWidth, size.y);
+                    }),
+                    init() {
+                        this.entranceSize = new V2(20, 20);
+                        this.entrance = this.addChild(new GO({
+                            position: new V2(-31,115),
+                            size: this.entranceSize,
+                            renderValuesRound: true,
+                            img: createCanvas(this.entranceSize, (ctx, size) => {
+                                ctx.fillStyle = 'green';
+                                ctx.fillRect(0,0, size.x, size.y)
+                            })
+                        }));
+
+                        this.frontalLargeWindowSize = new V2(50, 15);
+                        this.frontalSmallWindowSize = new V2(10, 10);
+                        this.frontalLargeWindows = [new V2(-71, 113), new V2(9, 113)].forEach(p => (this.addChild(new Go({
+                            position: p,
+                            size: this.frontalLargeWindowSize,
+                            img: createCanvas(this.frontalLargeWindowSize, (ctx, size) => {
+                                ctx.fillStyle = 'green';
+                                ctx.fillRect(0,0, size.x, size.y)
+                            })
+                        }))))
+
+                        let startX = -80;
+                        let xCount = 6;
+                        let yCount = 10;
+                        let xStep = 20;
+                        let yStep = 20;
+                        let currentY = 90;
+                        let currentX = startX;
+                        this.frontalSmallWindows = [];
+
+                        for(let y = 0; y < yCount; y++){
+                            currentX = startX;
+                            for(let x = 0; x < xCount; x++){
+                                this.frontalSmallWindows.push(this.addChild(new Go({
+                                    position: new V2(currentX, currentY),
+                                    size: this.frontalSmallWindowSize,
+                                    img: createCanvas(this.frontalSmallWindowSize, (ctx, size) => {
+                                        ctx.fillStyle = 'green';
+                                        ctx.fillRect(0,0, size.x, size.y)
+                                    })
+                                })))
+
+                                currentX+=xStep;
+                            }
+
+                            currentY-=yStep;
+                        }
+
+                        this.sideLargeWindowSize = new V2(62, 115);
+                        let sideLargeWindow = this.addChild(new GO({
+                            position: new V2(65, 63),
+                            size: this.sideLargeWindowSize,
+                            img: createCanvas(this.sideLargeWindowSize, (ctx, size) => {
+                                ctx.fillStyle = 'green';
+                                let h = 15;
+                                let hChange = {
+                                    time: 0, duration: size.x,startValue: h, change: -5, type: 'linear', method: 'base', 
+                                }
+
+                                let xEquation = (x) => (-50/31)*x+100;
+                                let pp = new PerfectPixel({ context: ctx });
+                                for(let i = 0; i < size.x; i++){
+                                    hChange.time = i;
+                                    let _h = fastRoundWithPrecision(easing.process(hChange));
+                                    ctx.fillRect(i, xEquation(i), 1, _h);
+                                }
+                            })
+                        }))
+
+                    }
+                }));
+            }
+        }),1)
 
         this.registerTimer(createTimer(250, () => {
             this.peopleGenerator();
