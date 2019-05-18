@@ -97,11 +97,64 @@ class PeopleScene extends Scene {
 
         this.buildingGenerator(7, new V2(305, 125)),
 
-        this.tram = this.addGo(new GO({
-            position: new V2(150, 300),
-            size: new V2(40, 20),
-            img: PP.createImage(peopleImages.tramModel())
-        }))
+        this.tramRoad = this.addGo(new GO({
+            position: new V2(150, 280),
+            size: new V2(this.viewport.x, 10),
+            init() {
+                this.road = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: createCanvas(this.size, (ctx, size) => {
+                        ctx.fillStyle = '#565156';
+                        let pp = new PerfectPixel({context: ctx});
+                        for(let x = 0; x < size.x; x++){
+                            if(x % 5 == 0)
+                                pp.lineV2(new V2(x, 1), new V2(x - 5, 8));
+                        }
+
+
+                        ctx.fillStyle = '#202030';
+                        ctx.fillRect(0,3, size.x, 1);
+                        ctx.fillRect(0,6, size.x, 1)
+                    })
+                }));
+
+                this.tram = this.addChild(new GO({
+                    position: new V2(-80,-9),
+                    size: new V2(40, 20),
+                    img: PP.createImage(peopleImages.tramModel())
+                }))
+            }
+        }), 60)
+
+        this.park = this.addGo(new GO({
+            position: new V2(85, 325),
+            size: new V2(170, 75),
+            img: createCanvas( new V2(170, 75), (ctx, size) => {
+                ctx.fillStyle = '#649B4A';
+                ctx.fillRect(0,0, size.x, size.y);
+
+                let colors = ['#85D155', '#89B852', '#437841', '#E0E147']
+                for(let i = 0; i < 200; i++){
+                    ctx.fillStyle = colors[getRandomInt(0, colors.length-1)];
+                    ctx.fillRect(getRandomInt(0, size.x), getRandomInt(0, size.y), 1, 1);
+                }
+
+                ctx.fillStyle = '#757577';
+                let pp = new PerfectPixel({context: ctx});
+                for(let x =136; x < size.x + 50; x++){
+                    pp.lineV2(new V2(x, 0), new V2(x -50, size.y));
+                }
+
+            }),
+            init() {
+                this.tree = this.addChild(new GO({
+                    position: new V2(),
+                    size: new V2(12, 28),
+                    img: PP.createImage(forestImages.treeTemplate())
+                }))
+            }
+        }), 70)
 
         this.registerTimer(createTimer(250, () => {
             this.peopleGenerator();
