@@ -3,6 +3,7 @@ class PeopleScene extends Scene {
         options = assignDeep({}, {
             debug: {
                 enabled: true, 
+                additional: []
             }
         }, options)
 
@@ -96,6 +97,12 @@ class PeopleScene extends Scene {
 
         this.buildingGenerator(7, new V2(305, 125)),
 
+        this.tram = this.addGo(new GO({
+            position: new V2(150, 300),
+            size: new V2(40, 20),
+            img: PP.createImage(peopleImages.tramModel())
+        }))
+
         this.registerTimer(createTimer(250, () => {
             this.peopleGenerator();
         }, this, true))
@@ -172,7 +179,7 @@ class PeopleScene extends Scene {
         let yShift = getRandomInt(this.yClamps[0], this.yClamps[1]);
         let isLeft = getRandomBool();
         this.addGo(new PixelMan({
-            position: new V2(isLeft ? -10 : this.viewport.x + 10, yShift + this.sceneCenter.y),
+            position: new V2(isLeft ? -10 : this.viewport.x + 10, yShift + this.sceneCenter.y-3),
             xDestination:  isLeft ? this.viewport.x + 10 : -10,
             moveMaxMultiplier: getRandom(1,5),
             bounceMaxDivider: getRandom(4,10),
@@ -182,6 +189,10 @@ class PeopleScene extends Scene {
 
     backgroundRender() {
         this.backgroundRenderDefault('#757577');
+    }
+
+    preMainWork() {
+        this.debug.additional[0] = 0;
     }
 }
 
@@ -210,6 +221,9 @@ class PixelMan extends GO {
     //     this.setDestination(new V2((this.mDirection > 0 ? 1:-1)*50 ,0), true);
     // }
 
+    afterUpdateCompleted(){
+        this.parentScene.debug.additional[0]++;
+    }
     init() {
         this.bounceStepDuration = 10;
         this.bounceMax = this.size.y/this.bounceMaxDivider;
