@@ -135,7 +135,7 @@ class PeopleScene extends Scene {
                 ctx.fillRect(0,0, size.x, size.y);
 
                 let colors = ['#85D155', '#89B852', '#437841', '#E0E147']
-                for(let i = 0; i < 200; i++){
+                for(let i = 0; i < 400; i++){
                     ctx.fillStyle = colors[getRandomInt(0, colors.length-1)];
                     ctx.fillRect(getRandomInt(0, size.x), getRandomInt(0, size.y), 1, 1);
                 }
@@ -148,10 +148,112 @@ class PeopleScene extends Scene {
 
             }),
             init() {
-                this.tree = this.addChild(new GO({
-                    position: new V2(),
+                let forestScene = new PixelForestScene({name:'forest',});
+                forestScene.start();
+
+                this.upperFence = this.addChild(new GO({
+                    position: new V2(-15, -41),
+                    size: new V2(130, 9),
+                    renderValuesRound: true,
+                    img: createCanvas( new V2(90, 9), (ctx, size) => {
+                        ctx.fillStyle = '#C54F27';
+                        ctx.fillRect(0,0, size.x, size.y);
+
+                        ctx.fillStyle = '#FFBFB4';
+                        ctx.fillRect(0,3, size.x, 1);
+                        ctx.fillRect(0,6, size.x, 1);
+
+                        for(let i = 0; i < 13; i++){
+                            ctx.fillRect(i*fastRoundWithPrecision(size.x/13),0, 1, 3);
+                            ctx.fillRect(i*fastRoundWithPrecision(size.x/13) + 3,4, 1, 3);
+                            ctx.fillRect(i*fastRoundWithPrecision(size.x/13) + 6,7, 1, 3);
+                        }
+
+                        ctx.fillStyle = '#DB572B';
+                        ctx.fillRect(0, 0, size.x, 1);
+                    })
+                }))
+
+                this.trees = [new V2( -83, -35), new V2(-70, -35), new V2(-56, -33), new V2(-42, -34), new V2( -28, -35), new V2( -14, -36), new V2( 0, -34),
+                    new V2( 14, -34), new V2( 27, -35),
+                    new V2( 20, -25), new V2( 12, -15), new V2( 4, -5), new V2( -4, 5), new V2( -12, 15),
+                    new V2( -26, 15), new V2( -40, 15), new V2( -54, 16), new V2( -68, 13), new V2( -82, 15)
+                ].map(p => (this.addChild(new Tree({
+                    position: p,
                     size: new V2(12, 28),
-                    img: PP.createImage(forestImages.treeTemplate())
+                    images: forestScene.treeImgGenerator(0.1),
+                    initCompleted() {
+                        for(let i = 0; i < this.images.length;i++){
+                            let that = this;
+                            this.images[i] = createCanvas(this.size, (ctx, size) => {
+                                ctx.save();
+                                ctx.scale(-1, 1);
+                                ctx.drawImage(that.images[i], 0, 0, size.x*-1, size.y);
+                                ctx.restore();
+                            })
+                        }
+
+                        this.shadow = this.addChild(new GO({
+                            position: new V2(-5,12),
+                            size: new V2(10, 6),
+                            renderValuesRound: true,
+                            img: createCanvas(new V2(10, 6), (ctx, size) => {
+                                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                                ctx.fillRect(0,3,size.x,1)
+                                ctx.fillRect(0,4,size.x,1)
+                                ctx.fillRect(1,2,6,1)
+                                ctx.fillRect(2,1,5,1)
+                                ctx.fillRect(0,5,5,1)
+                            })
+                        }))
+                    }
+                }))));
+
+                this.lowerFence = this.addChild(new GO({
+                    position: new V2(-43, 33),
+                    size: new V2(90, 9),
+                    renderValuesRound: true,
+                    img: createCanvas( new V2(90, 9), (ctx, size) => {
+                        ctx.fillStyle = '#C54F27';
+                        ctx.fillRect(0,0, size.x, size.y);
+
+                        ctx.fillStyle = '#FFBFB4';
+                        ctx.fillRect(0,3, size.x, 1);
+                        ctx.fillRect(0,6, size.x, 1);
+
+                        for(let i = 0; i < 10; i++){
+                            ctx.fillRect(i*size.x/10,0, 1, 3);
+                            ctx.fillRect(i*size.x/10 + 3,4, 1, 3);
+                            ctx.fillRect(i*size.x/10 + 6,7, 1, 3);
+                        }
+
+                        ctx.fillStyle = '#DB572B';
+                        ctx.fillRect(0, 0, size.x, 1);
+                    })
+                }))
+
+                this.sideFence = this.addChild(new GO({
+                    position: new V2(27, -4),
+                    size: new V2(50, this.size.y + 8),
+                    renderValuesRound: true,
+                    img: createCanvas(new V2(50, this.size.y), (ctx, size) => {
+                        // ctx.fillStyle = 'rgba(255,255,255, 0.2)'; //
+                        // ctx.fillRect(0,0, size.x, size.y);
+
+                        ctx.fillStyle = '#CC5128';
+                        let pp = new PerfectPixel({context: ctx});
+                        for(let i = 0; i < 8; i++)
+                            pp.lineV2(new V2(size.x-1, i), new V2(0, size.y-8 + i))
+
+                        ctx.fillStyle = '#DB572B';
+                        pp.lineV2(new V2(size.x-2, 0), new V2(-1, size.y-8 ))
+                        pp.lineV2(new V2(size.x-1, 0), new V2(0, size.y-8))
+
+                        ctx.fillStyle = '#FFBFB4';
+                        pp.lineV2(new V2(size.x-1, 2), new V2(0, size.y-8 + 2))
+                        pp.lineV2(new V2(size.x-1, 5), new V2(0, size.y-8 + 5))
+                        
+                    })
                 }))
             }
         }), 70)
