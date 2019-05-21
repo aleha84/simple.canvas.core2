@@ -281,7 +281,7 @@ class Poligon2 extends GO {
                     this.unregTimer(this.blinkTimer);
                     this.blinkDelayTimer = this.registerTimer(createTimer(1000, () => {
                         this.unregTimer(this.blinkDelayTimer);
-                        this.startBlink();
+                        this.rise(this.startBlink.bind(this));
                     }, this, false));
                 }
             }
@@ -327,7 +327,7 @@ class Poligon2 extends GO {
         if(!this.images[key]){
             this.images[key] = PP.createImage(this.model);
 
-            if(this.blinkImage) {
+            if(this.blinkImage && !this.blinkImages.length) {
                 let that = this;
                 this.blinkImages = [];
                 this.blinkFrames = 12;
