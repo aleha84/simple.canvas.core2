@@ -165,8 +165,9 @@ class Poligon2 extends GO {
                 
                 
                 ctx.fillStyle = 'white';
-                for(let i = 0; i < 40; i++){
-                    pp.lineV2(new V2(size.x - 40 + i - 1, 0), new V2(i, size.y - 1));
+                this.blinkWidth = 40;
+                for(let i = 0; i < this.blinkWidth; i++){
+                    pp.lineV2(new V2(size.x - this.blinkWidth + i - 1, 0), new V2(i, size.y - 1));
                 }
             })
 
