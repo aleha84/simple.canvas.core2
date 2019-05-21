@@ -51,6 +51,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     })); 
 
+    SCG.scenes.cacheScene(new MapScene2({
+        name:'map2',
+        viewport: defaultViewpot
+    })); 
+
     SCG.scenes.cacheScene(new PixelForestScene({
         name:'forest',
         viewport: verticalDefaultViewport.mul(0.5)

@@ -2,7 +2,7 @@ class PeopleScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true, 
+                enabled: false, 
                 additional: []
             }
         }, options)
@@ -14,7 +14,98 @@ class PeopleScene extends Scene {
         this.yClamps = [-20, 20];
 
         this.roadSize = new V2(this.viewport.x, this.viewport.y);
-        //
+        
+        let alternateColors = [
+        ];
+
+        for(let i = -10; i < 5; i++){
+            if(i == 0)
+                continue;
+
+            alternateColors[alternateColors.length] = colors.changeHSV({initialValue: '#BEBEBC', parameter: 'v', amount: i, isRgb: false});
+        }
+
+        this.topDivider = this.addGo(new GO({
+            position: new V2(240, 112),
+            size: new V2(120, 226),
+            img: createCanvas(new V2(120, 226), (ctx, size) => {
+                
+                ctx.fillStyle = '#DBDBDB'
+                let pp = new PerfectPixel({ context: ctx });
+
+                pp.lineV2(new V2(30, size.y), new V2(size.x, 55))
+                pp.lineV2(new V2(31, size.y), new V2(size.x+1, 55))
+            })
+        }));
+
+        this.topFundament = this.addGo(new Go({
+            position: new V2(150, 112),
+            size: new V2(this.viewport.x, 226),
+            img: createCanvas(new V2(this.viewport.x, 200), (ctx, size) => {
+                ctx.fillStyle = '#BEBEBC';
+                ctx.fillRect(0,0, size.x, size.y);
+
+                for(let i = 0; i < 1000; i++){
+                    ctx.fillStyle = alternateColors[getRandomInt(0, alternateColors.length-1)];
+                    ctx.fillRect(getRandomInt(170, size.x), getRandomInt(0, size.y), getRandomInt(1,3), 1);
+                }
+
+                let pp = new PerfectPixel({ context: ctx });
+                ctx.fillStyle = '#757577';
+                for(let i = 0; i < 80; i++){
+                    pp.lineV2(new V2(300 + i, 0), new V2(170 + i, size.y))
+                }
+
+                ctx.fillStyle = '#A5A5A4';
+                pp.lineV2(new V2(299 , 0), new V2(169, size.y))
+                pp.lineV2(new V2(299 , 1), new V2(170, size.y-1))
+
+                ctx.fillStyle = '#BEBEBC';
+                pp.lineV2(new V2(298, 0), new V2(168 , size.y))
+                pp.lineV2(new V2(297, 0), new V2(167, size.y))
+            })
+        }));
+
+        this.bottomDivider = this.addGo(new GO({
+            position: new V2(115, 395),
+            size: new V2(120, 210),
+            img: createCanvas(new V2(120, 226), (ctx, size) => {
+                
+                ctx.fillStyle = '#DBDBDB'
+                let pp = new PerfectPixel({ context: ctx });
+
+                pp.lineV2(new V2(0, size.y), new V2(size.x-2, 0))
+                pp.lineV2(new V2(1, size.y), new V2(size.x-1, 0))
+            })
+        }), 100);
+
+        this.bottomFundament = this.addGo(new Go({
+            position: new V2(43, 430),
+            size: new V2(90, 140),
+            img: createCanvas( new V2(90, 140), (ctx, size) => {
+                ctx.fillStyle =  '#BEBEBC';
+                ctx.fillRect(0,0, size.x, size.y);
+
+                for(let i = 0; i < 500; i++){
+                    ctx.fillStyle = alternateColors[getRandomInt(0, alternateColors.length-1)];
+                    ctx.fillRect(getRandomInt(0, size.x), getRandomInt(0, size.y), getRandomInt(1,3), 1);
+                }
+
+                let pp = new PerfectPixel({ context: ctx });
+                ctx.fillStyle = '#757577';
+                for(let i = 0; i < 80; i++){
+                    pp.lineV2(new V2(size.x + i, 0), new V2(size.x - 80 + i, size.y))
+                }
+
+                ctx.fillStyle = '#A5A5A4';
+                pp.lineV2(new V2(size.x -1 , 0), new V2(size.x - 80 - 1, size.y))
+                pp.lineV2(new V2(size.x-1, 1), new V2(size.x - 80, size.y-1))
+
+                // ctx.fillStyle = '#BEBEBC';
+                // pp.lineV2(new V2(298, 0), new V2(168 , size.y))
+                // pp.lineV2(new V2(297, 0), new V2(167, size.y))
+            })
+        }))
 
         this.sideWalkSize = new V2(this.viewport.x, this.yClamps[1] - this.yClamps[0] + 10);
         this.sideWalk = this.addGo(new GO({
@@ -39,16 +130,6 @@ class PeopleScene extends Scene {
                 // }
 
                 ctx.fillStyle = '#BEBEBC';
-
-                let alternateColors = [
-                ];
-
-                for(let i = -10; i < 5; i++){
-                    if(i == 0)
-                        continue;
-
-                    alternateColors[alternateColors.length] = colors.changeHSV({initialValue: ctx.fillStyle, parameter: 'v', amount: i, isRgb: false});
-                }
 
                 for(let i = 0; i < 500; i++){
                     ctx.fillStyle = alternateColors[getRandomInt(0, alternateColors.length-1)];
@@ -87,7 +168,7 @@ class PeopleScene extends Scene {
         ]
 
         for(let j = 9; j >= 0; j--){
-            this.buildings = [...this.buildings, ...new Array(7 + (9-j)).fill().map((el, i) => 150 + (9 - j)*15 - 25*i).map((el) => this.buildingGenerator(9, new V2(el, 175 - (9- j)*25)))]
+            this.buildings = [...this.buildings, ...new Array(7 + (9-j)).fill().map((el, i) => 150 + (9 - j)*15 - 25*i).map((el) => this.buildingGenerator(j, new V2(el, 175 - (9- j)*25)))]
         }
 
         this.buildingGenerator(9, new V2(300, 175)),
@@ -95,7 +176,19 @@ class PeopleScene extends Scene {
 
         this.buildingGenerator(8, new V2(290, 150)),
 
-        this.buildingGenerator(7, new V2(305, 125)),
+        this.buildingGenerator(7, new V2(305, 125));
+
+        for(let j = 0; j < 12; j++){
+            this.buildings = [...this.buildings, ...new Array(9).fill().map((el, i) =>420 - 25*i - j*14).map((el) => this.buildingGenerator(71 + j, new V2(el, 270 + j*30), j == 0 ? 1 : undefined))]
+        }
+
+        this.buildingGenerator(71, new V2(55, 335), 1); this.buildingGenerator(71, new V2(30, 335), 1); this.buildingGenerator(71, new V2(5, 335), 1); 
+        this.buildingGenerator(72, new V2(40, 360), getRandomInt(1,2)); this.buildingGenerator(72, new V2(15, 360),getRandomInt(1,2)); 
+        this.buildingGenerator(73, new V2(25, 385));this.buildingGenerator(73, new V2(0, 385));
+        this.buildingGenerator(74, new V2(10, 410));
+        this.buildingGenerator(75, new V2(-5, 435));
+        // this.buildingGenerator(76, new V2(-5, 460));
+        
 
         this.tramRoad = this.addGo(new GO({
             position: new V2(150, 280),
@@ -109,7 +202,11 @@ class PeopleScene extends Scene {
                         let pp = new PerfectPixel({context: ctx});
                         for(let x = 0; x < size.x; x++){
                             if(x % 5 == 0)
-                                pp.lineV2(new V2(x, 1), new V2(x - 5, 8));
+                                {
+                                    pp.lineV2(new V2(x, 1), new V2(x - 5, 8));
+                                    pp.lineV2(new V2(x+1, 1), new V2(x+1 - 5, 8));
+                                }
+                                
                         }
 
 
@@ -120,9 +217,17 @@ class PeopleScene extends Scene {
                 }));
 
                 this.tram = this.addChild(new GO({
-                    position: new V2(-80,-9),
+                    position: new V2(-200,-9),
                     size: new V2(40, 20),
-                    img: PP.createImage(peopleImages.tramModel())
+                    img: PP.createImage(peopleImages.tramModel()),
+                    renderValuesRound: true,
+                    speed: 1,
+                    init() {
+                        this.moveTimer = this.registerTimer(createTimer(25, () => {
+                            this.position.x += this.speed;
+                            this.needRecalcRenderProperties = true;
+                        }, this, true));
+                    }
                 }))
             }
         }), 60)
@@ -152,12 +257,19 @@ class PeopleScene extends Scene {
                 forestScene.start();
 
                 this.upperFence = this.addChild(new GO({
-                    position: new V2(-15, -41),
+                    position: new V2(-15, -40),
                     size: new V2(130, 9),
                     renderValuesRound: true,
                     img: createCanvas( new V2(90, 9), (ctx, size) => {
-                        ctx.fillStyle = '#C54F27';
+                        ctx.fillStyle = '#B24723';
                         ctx.fillRect(0,0, size.x, size.y);
+
+                        let c = [colors.changeHSV({initialValue:ctx.fillStyle, parameter: 'v', amount: -10}), colors.changeHSV({initialValue:ctx.fillStyle, parameter: 'v', amount: 10})]
+                            
+                        for(let i = 0; i < 200; i++){
+                            ctx.fillStyle = c[getRandomInt(0, c.length-1)];
+                            ctx.fillRect(getRandomInt(0, size.x),getRandomInt(0, size.y), 1, 1);
+                        }
 
                         ctx.fillStyle = '#FFBFB4';
                         ctx.fillRect(0,3, size.x, 1);
@@ -172,6 +284,37 @@ class PeopleScene extends Scene {
                         ctx.fillStyle = '#DB572B';
                         ctx.fillRect(0, 0, size.x, 1);
                     })
+                }))
+
+                this.pond = this.addChild(new GO({
+                    position: new V2(-40, 0),
+                    size: new V2(50, 20),
+                    img: PP.createImage(peopleImages.pond),
+                    init() {
+                        this.ripple = [
+                            new V2(0,0), new V2(-1, 1), //new V2(-2, 2), 
+                             new V2(15,-2), new V2(14, -1), //new V2(8, 0), new V2(7, 1),
+                            new V2(-15, 2), new V2(-16, 3), //new V2(-17, 4)
+                            new V2(0, 5)
+                        ].map((p, i) => (this.addChild(new GO({
+                            position: p,
+                            size: new V2(3, 1),
+                            img: createCanvas(new V2(1,1), (ctx) => {
+                                ctx.fillStyle = '#8BF3F3';
+                                ctx.fillRect(0,0,1,1)
+                            }),
+                        }))));
+
+                        this.dir = 1;
+                        this.registerTimer(createTimer(1000, () => {
+                            this.ripple.forEach((r, i) => {
+                                r.position.x += 1*this.dir;
+                                r.needRecalcRenderProperties = true;
+                            })
+
+                            this.dir*=-1;
+                        }, this, true));
+                    }
                 }))
 
                 this.trees = [new V2( -83, -35), new V2(-70, -35), new V2(-56, -33), new V2(-42, -34), new V2( -28, -35), new V2( -14, -36), new V2( 0, -34),
@@ -214,8 +357,15 @@ class PeopleScene extends Scene {
                     size: new V2(90, 9),
                     renderValuesRound: true,
                     img: createCanvas( new V2(90, 9), (ctx, size) => {
-                        ctx.fillStyle = '#C54F27';
+                        ctx.fillStyle = '#B24723';
                         ctx.fillRect(0,0, size.x, size.y);
+
+                        let c = [colors.changeHSV({initialValue:ctx.fillStyle, parameter: 'v', amount: -10}), colors.changeHSV({initialValue:ctx.fillStyle, parameter: 'v', amount: 10})]
+                            
+                        for(let i = 0; i < 200; i++){
+                            ctx.fillStyle = c[getRandomInt(0, c.length-1)];
+                            ctx.fillRect(getRandomInt(0, size.x),getRandomInt(0, size.y), 1, 1);
+                        }
 
                         ctx.fillStyle = '#FFBFB4';
                         ctx.fillRect(0,3, size.x, 1);
@@ -233,7 +383,7 @@ class PeopleScene extends Scene {
                 }))
 
                 this.sideFence = this.addChild(new GO({
-                    position: new V2(27, -4),
+                    position: new V2(27, -3),
                     size: new V2(50, this.size.y + 8),
                     renderValuesRound: true,
                     img: createCanvas(new V2(50, this.size.y), (ctx, size) => {
@@ -261,9 +411,13 @@ class PeopleScene extends Scene {
         this.registerTimer(createTimer(250, () => {
             this.peopleGenerator();
         }, this, true))
+
+        this.registerTimer(createTimer(17000, () => {
+            this.tramRoad.tram.position.x = -200;
+        }, this, true))
     }
 
-    buildingGenerator(layer = 1, position) {
+    buildingGenerator(layer = 1, position, levels) {
         return this.addGo(new GO({
             position: position,
             size: new V2(30, 100),
@@ -274,7 +428,7 @@ class PeopleScene extends Scene {
                     second: '#E5AC27'
                 };
 
-                switch(getRandomInt(1,4)){
+                switch(getRandomInt(1,5)){
                     case 2: 
                         colors = {
                             main: '#42725A',
@@ -293,6 +447,12 @@ class PeopleScene extends Scene {
                             second: '#E5694E'
                         }
                         break;
+                    case 5: 
+                        colors = {
+                            main: '#7F3C2D',
+                            second: '#B25340'
+                        }
+                        break;
                     //
                 }
 
@@ -307,7 +467,8 @@ class PeopleScene extends Scene {
                 let img = PP.createImage(model);
                 let imgSize = new V2(30, 50);
                 ctx.drawImage(img, 0, size.y -imgSize.y, imgSize.x, imgSize.y)
-                let levels = getRandomInt(1, 4);
+                if(levels == undefined)
+                    levels = getRandomInt(1, 4);
                 if(levels > 1){
                     let shiftY = 4;
                     switch(levels){

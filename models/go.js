@@ -449,6 +449,8 @@ class GO {
 
         this.effectsProcesser((effect) => effect.beforeRender());
 
+        let rsx,rsy, rtlX, rtlY;
+
 		if(this.isCustomRender)
 		{
 			this.customRender();
@@ -460,8 +462,8 @@ class GO {
 			if(this.img != undefined)
 			{
 				
-                let rsx = this.renderSize.x;
-                let rsy = this.renderSize.y;
+                rsx = this.renderSize.x;
+                rsy = this.renderSize.y;
 
                 if(this.customScale.x !== 1)
                     rsx *= this.customScale.x;
@@ -472,8 +474,8 @@ class GO {
 				let dsp = this.destSourcePosition;
 				let s = this.size;
 
-                let rtlX = rp.x - rsx/2;
-                let rtlY = rp.y - rsy/2;
+                rtlX = rp.x - rsx/2;
+                rtlY = rp.y - rsy/2;
 
                 if(this.renderValuesRound){
                     rtlX = fastRoundWithPrecision(rtlX, 0);
@@ -532,7 +534,7 @@ class GO {
 
         this.effectsProcesser((effect) => effect.afterRender());
 
-        this.internalRender();
+        this.internalRender(rsx,rsy, rtlX, rtlY);
 
         this.console('render completed.');
     }
