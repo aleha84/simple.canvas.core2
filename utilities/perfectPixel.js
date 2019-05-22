@@ -234,3 +234,48 @@ PP.createImage = function(model) {
         }
     });
  }
+
+ PP.pixelFonts = {
+     "10": {
+         "normal": {
+            "properties": {
+                "width": 7,
+                "gap": 1
+            },
+            "A": {"general":{"originalSize":{"x":9,"y":10},"size":{"x":9,"y":10},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":9}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":7,"y":0}},{"point":{"x":8,"y":1}},{"point":{"x":8,"y":9}},{"point":{"x":8,"y":4}},{"point":{"x":0,"y":4}}]}]}},
+            "a": {"general":{"originalSize":{"x":9,"y":10},"size":{"x":9,"y":10},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":9}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":7,"y":0}},{"point":{"x":8,"y":1}},{"point":{"x":8,"y":9}},{"point":{"x":8,"y":4}},{"point":{"x":0,"y":4}}]}]}},
+            "E": {"general":{"originalSize":{"x":9,"y":10},"size":{"x":9,"y":10},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":8,"y":9}},{"point":{"x":0,"y":9}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":4}},{"point":{"x":6,"y":4}},{"point":{"x":2,"y":4}},{"point":{"x":0,"y":3}},{"point":{"x":0,"y":0}},{"point":{"x":8,"y":0}}]}]}},
+            "S": {"general":{"originalSize":{"x":9,"y":10},"size":{"x":9,"y":10},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":8,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":3}},{"point":{"x":1,"y":4}},{"point":{"x":7,"y":4}},{"point":{"x":8,"y":5}},{"point":{"x":8,"y":8}},{"point":{"x":7,"y":9}},{"point":{"x":0,"y":9}}]}]}},
+            "T": {"general":{"originalSize":{"x":7,"y":10},"size":{"x":7,"y":10},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":3,"y":0}},{"point":{"x":3,"y":9}}]}]}},
+            "X": {"general":{"originalSize":{"x":9,"y":10},"size":{"x":9,"y":10},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":3}},{"point":{"x":1,"y":4}},{"point":{"x":7,"y":4}},{"point":{"x":8,"y":3}},{"point":{"x":8,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":9}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":4}},{"point":{"x":7,"y":4}},{"point":{"x":8,"y":5}},{"point":{"x":8,"y":9}}]}]}},
+            
+         }
+     }
+ }
+
+ PP.createText = function({ text = '', color = '#FF0000', size = 10, weight = 'normal' }) {
+    let fontProps = PP.pixelFonts[size];
+    if(fontProps == undefined)
+        throw `Pixel font for size ${size} not found`;
+
+    fontProps = fontProps[weight];
+
+    if(fontProps == undefined)
+        throw `Pixel font for size ${size} and weight ${weight} not found`;
+
+    let width = text.length*fontProps.properties.width + (text.length-1)*fontProps.properties.gap;
+    let imgSize = new V2(width, size);
+    return {size: imgSize, img: createCanvas(imgSize, (ctx, size) => {
+        let currentX = 0;
+        for(let i = 0; i < text.length; i++){
+            let letterModel = fontProps[text[i]];
+            if(letterModel != undefined){
+                letterModel.main.layers.forEach(l => { l.fillColor = color });
+                ctx.drawImage(PP.createImage(letterModel), currentX, 0, fontProps.properties.width, size.y);
+            }
+                
+            
+            currentX+=fontProps.properties.width + fontProps.properties.gap;
+        }
+    })};
+ }

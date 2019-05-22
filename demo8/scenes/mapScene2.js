@@ -10,7 +10,8 @@ class MapScene2 extends Scene {
     }
 
     start() {
-        let rawArr = [];
+        this.rawArr = [];
+        let rawArr = this.rawArr;
         mapCoordinates.usa.states.state.forEach(s => {
             
             if(s['-name'] == 'Alaska' || s['-name'] == 'Hawaii' )
@@ -47,7 +48,9 @@ class MapScene2 extends Scene {
 
         let that = this;
 
+        this.selectedPoligon = undefined;
         for(let i = 0; i < rawArr.length; i++){
+            //let isForSelect = rawArr[i].name == 'Texas';
             let scaledCoordinates = rawArr[i].floatArr.map(c => new V2(((this.viewport.x/360.0) * (180 + c[0])), ((this.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(this.shiftRel).mul(scale));
             scaledArr = [...scaledArr, ...scaledCoordinates];
 
@@ -61,10 +64,15 @@ class MapScene2 extends Scene {
                 borderColorHSV: this.borderColorHSV,
                 hClamps: [30, 110],
                 borderHClamps: [120, 200],
+                //showBlink: isForSelect,
                 initCompleted: function() {
                     that.poligonsInitCompletionCheck();
                 }
-            }), rawArr[i].name == 'Texas' ? 10 : 1)
+            }), 1)
+
+            // if(isForSelect){
+            //     this.selectedPoligon = this.poligons[i]
+            // }
         }
 
         allX = scaledArr.map(c => c.x);
@@ -80,20 +88,99 @@ class MapScene2 extends Scene {
         })
 
         this.poligonsRiseQueue = [];
+
+        // let demoText = PP.createText({ text: 'TEXAS' });
+
+        // this.addGo(new GO({
+        //     position: this.sceneCenter,
+        //     size: demoText.size,
+        //     img: demoText.img
+        // }), 100)
+
+        
     }
 
-    risePoligon(poligon) {
-        poligon.changeLayerIndex = 10;
-        poligon.shouldRise = true;
-        poligon.riseCompleteCallback = this.poligonRiseComplete.bind(this);
-    }
+    // risePoligon(poligon) {
+    //     poligon.changeLayerIndex = 10;
+    //     poligon.shouldRise = true;
+    //     poligon.riseCompleteCallback = this.poligonRiseComplete.bind(this);
+    // }
 
-    poligonRiseComplete(poligon) {
-        poligon.changeLayerIndex = 1;
-    }
+    // poligonRiseComplete(poligon) {
+    //     poligon.changeLayerIndex = 1;
+    // }
 
     poligonsInitCompleted() {
+        let s = this.poligons.filter(p => p.rawData.name == 'Texas')[0];
+        this.selectedPoligon = s;
+        s.changeLayerIndex = 10;
+        s.startBlink();
+    }
+
+    showDetailed() {
+        let that =this;
+
+        let s_raw = this.rawArr.filter(r => r.name === 'Texas')[0];
+
+        let s_v2Raw = s_raw.floatArr.map(c => new V2(((this.viewport.x/360.0) * (180 + c[0])), ((this.viewport.y/180.0) * (90 - c[1]))));
+        let s_allX = s_v2Raw.map(c => c.x);
+        let s_allY = s_v2Raw.map(c => c.y);
+        let s_minX = Math.min.apply(null, s_allX);
+        let s_maxX = Math.max.apply(null, s_allX)+1;
+        let s_minY = Math.min.apply(null, s_allY);
+        let s_maxY = Math.max.apply(null, s_allY)+1;
+
+        let s_size = new V2((s_maxX - s_minX),(s_maxY - s_minY));
+
+        let s_ratioX = this.viewport.x /s_size.x;
+        let s_ratioY = this.viewport.y/s_size.y; 
         
+        let s_scale = Math.min(s_ratioX, s_ratioY);
+
+        let s_shiftRel = new V2(s_minX, s_minY);
+        let s_scaledCoordinates = s_raw.floatArr.map(c => new V2(((this.viewport.x/360.0) * (180 + c[0])), ((this.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
+
+        this.detailedState = this.addGo(new Poligon2({
+            rawData: {
+                floatArr: s_raw.floatArr,
+                name: 'Texas detailed'
+            },
+            coordinates: s_scaledCoordinates,
+            baseColor: hsvToHex({hsv:this.testFillColorHSV}),
+            baseColorHSV: this.selectedPoligon.baseColorHSV,
+            borderColorHSV: this.selectedPoligon.borderColorHSV,
+            hClamps: undefined,
+            borderHClamps: undefined,
+            initCompleted: function() {
+                this.targetPosition = that.sceneCenter.clone();
+                this.position = that.selectedPoligon.position.clone();
+                this.targetSize = this.size.clone();
+                this.size = that.selectedPoligon.size.clone();
+                let appearFrames = 20;
+
+                this.scaleX = { time: 0, duration: appearFrames, change: this.targetSize.x - this.size.x, type: 'quad', method: 'out', startValue: this.size.x };
+                this.scaleY = { time: 0, duration: appearFrames, change: this.targetSize.y - this.size.y, type: 'quad', method: 'out', startValue: this.size.y };
+                this.moveX = { time: 0, duration: appearFrames, change: this.targetPosition.x - this.position.x, type: 'quad', method: 'out', startValue: this.position.x };
+                this.moveY = { time: 0, duration: appearFrames, change: this.targetPosition.y - this.position.y, type: 'quad', method: 'out', startValue: this.position.y };
+
+                this.appearTimer = this.registerTimer(createTimer(25, () => {
+                    this.size.x = easing.process(this.scaleX);
+                    this.size.y = easing.process(this.scaleY);
+                    this.position.x = easing.process(this.moveX);
+                    this.position.y = easing.process(this.moveY);
+
+                    this.needRecalcRenderProperties = true;
+                    this.scaleX.time++;
+                    this.scaleY.time++;
+                    this.moveX.time++;
+                    this.moveY.time++;
+
+                    if(this.scaleX.time > this.scaleX.duration){
+                        this.unregTimer(this.appearTimer);
+                    }
+                }, this, true));
+            }
+        }), 100)
     }
 
     poligonsInitCompletionCheck() {
@@ -135,6 +222,8 @@ class Poligon2 extends GO {
     }
 
     init() {
+        this.countToTriggerRise = 2;
+
         this.riseState = 'idle';
         let allX = this.coordinates.map(c => c.x);
         let allY = this.coordinates.map(c => c.y);
@@ -153,39 +242,33 @@ class Poligon2 extends GO {
         this.model.general.size = this.size;
         this.model.main.layers[0].points = this.coordinatesRel.map(p => ({ point: p }));
 
-        this.baseColorHSV[0] =  this.hClamps[0] + (this.hClamps[1] - this.hClamps[0]) *this.position.x/this.parentScene.viewport.x;
-        this.borderColorHSV[0] = this.borderHClamps[0] + (this.borderHClamps[1] - this.borderHClamps[0]) *this.position.x/this.parentScene.viewport.x;
-
+        if(this.hClamps)
+            this.baseColorHSV[0] =  this.hClamps[0] + (this.hClamps[1] - this.hClamps[0]) *this.position.x/this.parentScene.viewport.x;
         
+        if(this.borderHClamps)
+            this.borderColorHSV[0] = this.borderHClamps[0] + (this.borderHClamps[1] - this.borderHClamps[0]) *this.position.x/this.parentScene.viewport.x;
 
-        if(this.rawData.name === 'Texas') {
-            this.blinkImages = {};
-            this.blinkImage = createCanvas(this.size, (ctx, size) => {
-                let pp = new PerfectPixel({context: ctx});
-                
-                
-                ctx.fillStyle = 'white';
-                this.blinkWidth = 40;
-                for(let i = 0; i < this.blinkWidth; i++){
-                    pp.lineV2(new V2(size.x - this.blinkWidth + i - 1, 0), new V2(i, size.y - 1));
-                }
-            })
+        // if(this.showBlink) {
+                   
+        // }
 
-            // this.addChild(new GO({
-            //     size: this.size,
-            //     position: new V2(),
-            //     img: createCanvas(this.size, (ctx, size) => {
-            //         ctx.fillStyle = 'rgba(255,255,255, 0.5)';
-            //         ctx.fillRect(0,0, size.x, size.y);
-            //     })
-            // }))            
-        }
+        this.blinkImages = [];
+        this.blinkImage = createCanvas(this.size, (ctx, size) => {
+            let pp = new PerfectPixel({context: ctx});
+            
+            
+            ctx.fillStyle = 'white';
+            this.blinkWidth = 40;
+            for(let i = 0; i < this.blinkWidth; i++){
+                pp.lineV2(new V2(size.x - this.blinkWidth + i - 1, 0), new V2(i, size.y - 1));
+            }
+        })   
 
         this.createImg({baseColor: hsvToHex({hsv:this.baseColorHSV}), borderColor: hsvToHex({hsv:this.borderColorHSV})});
 
-        if(this.rawData.name === 'Texas') {
-            this.startBlink();
-        }
+        // if(this.showBlink) {
+        //     this.startBlink();
+        // }
         
     }
 
@@ -265,6 +348,10 @@ class Poligon2 extends GO {
         this.processScript();
     }
 
+    fall(completeCallback) {
+
+    }
+
     startBlink() {
         this.blinkImageX = -this.size.x/2;
         this.currentBlinkFrameIndex = 0;
@@ -279,10 +366,19 @@ class Poligon2 extends GO {
                 this.currentBlinkFrameIndex = 0;
 
                 if(this.blinkCount == 0){
+                    this.countToTriggerRise--;
                     this.unregTimer(this.blinkTimer);
                     this.blinkDelayTimer = this.registerTimer(createTimer(1000, () => {
                         this.unregTimer(this.blinkDelayTimer);
-                        this.rise(this.startBlink.bind(this));
+                        if(this.countToTriggerRise == 0){
+                            this.countToTriggerRise = 2;
+                            this.rise(this.startBlink.bind(this));
+                        }
+                        else {
+                            this.blinkCount = 2;
+                            this.startBlink();
+                        }
+                        
                     }, this, false));
                 }
             }
@@ -299,16 +395,6 @@ class Poligon2 extends GO {
             this.riseState = 'idle';
     }
 
-    // internalRender(rsx, rsy, rtlX, rtlY) {
-    //     if(this.rawData.name === 'Texas') {
-    //         this.context.save();
-    //         this.context.globalCompositeOperation = 'source-atop';
-    //         this.context.drawImage(this.blinkImage, rsx,rsy, rtlX, rtlY)
-
-    //         this.context.restore();
-    //         let foo  = 'bar';
-    //     }
-    // }
 
     createImg({baseColor = undefined, borderColor = undefined}) {
         if(borderColor)
@@ -318,10 +404,6 @@ class Poligon2 extends GO {
 
         if(baseColor)
             this.baseColor = baseColor;
-
-        // if(this.rawData.name === 'Texas')
-        //     this.baseColor = 'red';
-
         this.model.main.layers[0].fillColor = this.baseColor;
 
         let key = `${this.baseColor}_${this.borderColor}`;
@@ -341,8 +423,7 @@ class Poligon2 extends GO {
                     })
                 }
                 
-
-                return;
+                //return;
             }
         }
 
