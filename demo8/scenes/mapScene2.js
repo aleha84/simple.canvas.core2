@@ -10,6 +10,7 @@ class MapScene2 extends Scene {
     }
 
     start() {
+        //us map preparations
         this.rawArr = [];
         let rawArr = this.rawArr;
         mapCoordinates.usa.states.state.forEach(s => {
@@ -30,26 +31,21 @@ class MapScene2 extends Scene {
         }
 
         let v2Raw = raw.map(c => new V2(((this.viewport.x/360.0) * (180 + c[0])), ((this.viewport.y/180.0) * (90 - c[1]))));
-        let allX = v2Raw.map(c => c.x);
-        let allY = v2Raw.map(c => c.y);
-        let minX = Math.min.apply(null, allX);
-        let maxX = Math.max.apply(null, allX)+1;
-        let minY = Math.min.apply(null, allY);
-        let maxY = Math.max.apply(null, allY)+1;
+        let ext = getExtremums(v2Raw);
 
-        let size = new V2((maxX - minX),(maxY - minY));
-        let scale =size.x > size.y
-            ? this.viewport.x/size.x
-            : this.viewport.y/size.y;
+        // let size = new V2((maxX - minX),(maxY - minY));
+        let scale =ext.size.x > ext.size.y
+            ? this.viewport.x/ext.size.x
+            : this.viewport.y/ext.size.y;
 
-        this.shiftRel = new V2(minX, minY);
+        this.shiftRel = new V2(ext.minX, ext.minY);
         let scaledArr = [];
         this.poligons = [];
 
         let that = this;
 
         this.selectedPoligon = undefined;
-        for(let i = 0; i < rawArr.length; i++){
+        for(let i = 0; i < rawArr.length; i++){ // creating poligon for each state based on scaled and shifted borders coordinates
             //let isForSelect = rawArr[i].name == 'Texas';
             let scaledCoordinates = rawArr[i].floatArr.map(c => new V2(((this.viewport.x/360.0) * (180 + c[0])), ((this.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(this.shiftRel).mul(scale));
             scaledArr = [...scaledArr, ...scaledCoordinates];
@@ -75,14 +71,9 @@ class MapScene2 extends Scene {
             // }
         }
 
-        allX = scaledArr.map(c => c.x);
-        allY = scaledArr.map(c => c.y);
-        minX = Math.min.apply(null, allX);
-        maxX = Math.max.apply(null, allX)+1;
-        minY = Math.min.apply(null, allY);
-        maxY = Math.max.apply(null, allY)+1;
+        ext = getExtremums(scaledArr);
 
-        let additionalAlign = new V2((this.viewport.x - maxX)/2, (this.viewport.y - maxY)/2);
+        let additionalAlign = new V2((this.viewport.x - ext.maxX)/2, (this.viewport.y - ext.maxY)/2);
         this.poligons.forEach(p => {
             p.additionalAlign = additionalAlign;
         })
@@ -114,36 +105,32 @@ class MapScene2 extends Scene {
         let s = this.poligons.filter(p => p.rawData.name == 'Texas')[0];
         this.selectedPoligon = s;
         s.changeLayerIndex = 10;
-        s.startBlink();
+        s.startBlink(
+            s.rise.bind(s, this.showDetailed.bind(this)))
     }
 
     showDetailed() {
         let that =this;
 
-        let s_raw = this.rawArr.filter(r => r.name === 'Texas')[0];
+        let s_raw = this.selectedPoligon.rawData; //this.rawArr.filter(r => r.name === 'Texas')[0];
 
         let s_v2Raw = s_raw.floatArr.map(c => new V2(((this.viewport.x/360.0) * (180 + c[0])), ((this.viewport.y/180.0) * (90 - c[1]))));
-        let s_allX = s_v2Raw.map(c => c.x);
-        let s_allY = s_v2Raw.map(c => c.y);
-        let s_minX = Math.min.apply(null, s_allX);
-        let s_maxX = Math.max.apply(null, s_allX)+1;
-        let s_minY = Math.min.apply(null, s_allY);
-        let s_maxY = Math.max.apply(null, s_allY)+1;
+        let ext = getExtremums(s_v2Raw);
 
-        let s_size = new V2((s_maxX - s_minX),(s_maxY - s_minY));
+        // let s_size = new V2((s_maxX - s_minX),(s_maxY - s_minY));
 
-        let s_ratioX = this.viewport.x /s_size.x;
-        let s_ratioY = this.viewport.y/s_size.y; 
+        let s_ratioX = this.viewport.x /ext.size.x;
+        let s_ratioY = this.viewport.y/ext.size.y; 
         
         let s_scale = Math.min(s_ratioX, s_ratioY);
 
-        let s_shiftRel = new V2(s_minX, s_minY);
+        let s_shiftRel = new V2(ext.minX, ext.minY);
         let s_scaledCoordinates = s_raw.floatArr.map(c => new V2(((this.viewport.x/360.0) * (180 + c[0])), ((this.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
 
         this.detailedState = this.addGo(new Poligon2({
             rawData: {
                 floatArr: s_raw.floatArr,
-                name: 'Texas detailed'
+                name: `${s_raw.name} detailed`
             },
             coordinates: s_scaledCoordinates,
             baseColor: hsvToHex({hsv:this.testFillColorHSV}),
@@ -152,11 +139,13 @@ class MapScene2 extends Scene {
             hClamps: undefined,
             borderHClamps: undefined,
             initCompleted: function() {
+                that.selectedPoligon.isVisible = false;
+
                 this.targetPosition = that.sceneCenter.clone();
                 this.position = that.selectedPoligon.position.clone();
                 this.targetSize = this.size.clone();
                 this.size = that.selectedPoligon.size.clone();
-                let appearFrames = 20;
+                let appearFrames = 10;
 
                 this.scaleX = { time: 0, duration: appearFrames, change: this.targetSize.x - this.size.x, type: 'quad', method: 'out', startValue: this.size.x };
                 this.scaleY = { time: 0, duration: appearFrames, change: this.targetSize.y - this.size.y, type: 'quad', method: 'out', startValue: this.size.y };
@@ -177,6 +166,65 @@ class MapScene2 extends Scene {
 
                     if(this.scaleX.time > this.scaleX.duration){
                         this.unregTimer(this.appearTimer);
+
+                        this.addChild(new GO({ // add roads and cities to detailed map
+                            position: new V2(),
+                            size: this.size,
+                            init(){
+                                let rPoints = [];
+                                createCanvas(this.size, ctx => {
+                                    let c = [
+                                        [-106.516814,31.773815],
+                                        [-105.725799,31.249310],
+                                        [-104.011932,31.136534],
+                                        [-102.693572,31.661669],
+                                        [-101.594939,32.221039],
+                                        [-100.672088,32.443830],
+                                        [-99.661346,32.480909],
+                                        [-98.870330,32.369627],
+                                        [-97.771697,32.740031],
+                                        [-96.848846,32.813928],
+                                        [-96.079803,33.127305],
+                                        [-95.047088,33.182491],
+                                        [-94.453826,33.476230],
+                                        [-94.050079,33.428679],
+                                        ].map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
+    
+                                    ctx.fillStyle = 'red';
+                                    //debugger;
+                                    let pp = new PerfectPixel({context: ctx});
+                                    let points = []
+                                    for(let i = 0; i < c.length-1; i++){
+                                        points = [...points, ...pp.lineV2(c[i], c[i+1])];
+                                    }
+
+                                    rPoints[0] = points;
+                                });
+
+                                let frames = 90;
+                                let currentFrame = 0;
+                                let dotsPerFrame = rPoints.map(rp =>fastCeilWithPrecision(rp.length/frames));
+                                
+                                this.framesGeneratorTimer = this.registerTimer(createTimer(30, () => {
+                                    this.img = createCanvas(this.size, ctx => {
+                                        ctx.fillStyle = 'red';
+                                        for(let pi = 0; pi < rPoints.length; pi++){
+                                            for(let i = 0; i < dotsPerFrame[pi]*(currentFrame+1); i++){
+                                                let p = rPoints[pi][i];
+                                                if(p){
+                                                    ctx.fillRect(p.x, p.y,1,1);
+                                                }
+                                            }
+                                        }
+                                    })
+
+                                    currentFrame++;
+                                    if(currentFrame >= frames)
+                                        this.unregTimer(this.framesGeneratorTimer);
+
+                                }, this, true));
+                            }
+                        }))
                     }
                 }, this, true));
             }
@@ -222,19 +270,16 @@ class Poligon2 extends GO {
     }
 
     init() {
-        this.countToTriggerRise = 2;
+        this.countToTriggerBlinkCallback = 2;
 
         this.riseState = 'idle';
-        let allX = this.coordinates.map(c => c.x);
-        let allY = this.coordinates.map(c => c.y);
-        let minX = Math.min.apply(null, allX);
-        let maxX = Math.max.apply(null, allX)+1;
-        let minY = Math.min.apply(null, allY);
-        let maxY = Math.max.apply(null, allY)+1;
-        this.size = new V2(fastRoundWithPrecision(maxX - minX),fastRoundWithPrecision(maxY - minY));
-        this.position = new V2(minX + this.size.x/2, minY + this.size.y/2).add(this.additionalAlign);
 
-        this.shiftRel = new V2(minX, minY);
+        
+        let ext = getExtremums(this.coordinates);
+        this.size = new V2(fastRoundWithPrecision(ext.size.x),fastRoundWithPrecision(ext.size.y));
+        this.position = new V2(ext.minX + this.size.x/2, ext.minY + this.size.y/2).add(this.additionalAlign);
+
+        this.shiftRel = new V2(ext.minX, ext.minY);
         this.coordinatesRel = this.coordinates.map(c => c.substract(this.shiftRel))
 
         this.model = assignDeep({}, this.template);
@@ -279,7 +324,7 @@ class Poligon2 extends GO {
         }
     }
 
-    rise(completeCallback) {
+    rise(callback) {
         this.initialY = this.position.y;
         this.initialX = this.position.x;
         this.initialV = this.baseColorHSV[2];
@@ -307,40 +352,29 @@ class Poligon2 extends GO {
                     10
                 );
             },
-            function(){
-                let fall = { time: 0, duration: 20, change: this.yChange, type: 'cubic', method: 'in', startValue: this.position.y };
-                let left = { time: 0, duration: 20, change: -this.xChange, type: 'cubic', method: 'in', startValue: this.position.x };
-                let darker = { time: 0, duration: 20, change: -20, type: 'cubic', method: 'in', startValue: this.baseColorHSV[2] };
+            // function(){
+            //     let fall = { time: 0, duration: 20, change: this.yChange, type: 'cubic', method: 'in', startValue: this.position.y };
+            //     let left = { time: 0, duration: 20, change: -this.xChange, type: 'cubic', method: 'in', startValue: this.position.x };
+            //     let darker = { time: 0, duration: 20, change: -20, type: 'cubic', method: 'in', startValue: this.baseColorHSV[2] };
 
-                this.scriptTimer = this.createScriptTimer(
-                    function() { 
-                        this.position.y =  easing.process(fall);
-                        this.position.x =  easing.process(left);
-                        this.baseColorHSV[2] = easing.process(darker);
+            //     this.scriptTimer = this.createScriptTimer(
+            //         function() { 
+            //             this.position.y =  easing.process(fall);
+            //             this.position.x =  easing.process(left);
+            //             this.baseColorHSV[2] = easing.process(darker);
 
-                        this.createImg({baseColor: hsvToHex({hsv:this.baseColorHSV})})
-                        fall.time++;  
-                        left.time++;   
-                        darker.time++;
-                    },
-                    function() { return fall.time > fall.duration; },
-                    true,
-                    10
-                );
-            },
+            //             this.createImg({baseColor: hsvToHex({hsv:this.baseColorHSV})})
+            //             fall.time++;  
+            //             left.time++;   
+            //             darker.time++;
+            //         },
+            //         function() { return fall.time > fall.duration; },
+            //         true,
+            //         10
+            //     );
+            // },
             function() {
-                this.position.y = this.initialY;
-                this.position.x = this.initialX;
-                this.baseColorHSV[2] = this.initialV;
-                this.createImg({baseColor: hsvToHex({hsv:this.baseColorHSV})})
-                this.needRecalcRenderProperties = true;
-                if(this.riseStateIdleOnComplete){
-                    this.riseStateIdleOnComplete = false;
-                    this.riseState = 'idle';
-                }
-                else 
-                    this.riseState = 'competed';
-                completeCallback(this);
+                callback();
                 this.processScript();
             }
         ]
@@ -352,7 +386,7 @@ class Poligon2 extends GO {
 
     }
 
-    startBlink() {
+    startBlink(callback) {
         this.blinkImageX = -this.size.x/2;
         this.currentBlinkFrameIndex = 0;
         this.blinkCount = 2;
@@ -366,17 +400,19 @@ class Poligon2 extends GO {
                 this.currentBlinkFrameIndex = 0;
 
                 if(this.blinkCount == 0){
-                    this.countToTriggerRise--;
+                    this.countToTriggerBlinkCallback--;
                     this.unregTimer(this.blinkTimer);
                     this.blinkDelayTimer = this.registerTimer(createTimer(1000, () => {
                         this.unregTimer(this.blinkDelayTimer);
-                        if(this.countToTriggerRise == 0){
-                            this.countToTriggerRise = 2;
-                            this.rise(this.startBlink.bind(this));
+                        if(this.countToTriggerBlinkCallback == 0){
+                            this.countToTriggerBlinkCallback = 2;
+                            //this.rise(this.startBlink.bind(this));
+                            if(callback)
+                                callback();
                         }
                         else {
                             this.blinkCount = 2;
-                            this.startBlink();
+                            this.startBlink(callback);
                         }
                         
                     }, this, false));
@@ -429,4 +465,16 @@ class Poligon2 extends GO {
 
         this.img = this.images[key];
     }
+}
+
+var getExtremums = function(coorditaes = []){
+    let allX = coorditaes.map(c => c.x);
+    let allY = coorditaes.map(c => c.y);
+    let minX = Math.min.apply(null, allX);
+    let maxX = Math.max.apply(null, allX)+1;
+    let minY = Math.min.apply(null, allY);
+    let maxY = Math.max.apply(null, allY)+1;
+    let size = new V2((maxX - minX),(maxY - minY));
+
+    return {allX, allY, minX, maxX, minY, maxY, size};
 }
