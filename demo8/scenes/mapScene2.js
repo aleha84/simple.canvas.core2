@@ -206,7 +206,7 @@ class MapScene2 extends Scene {
                                     });
                                 }                             
 
-                                let frames = 90;
+                                let frames = 45;
                                 let currentFrame = 0;
                                 let dotsPerFrame = rPoints.map(rp =>fastCeilWithPrecision(rp.length/frames));
                                 
@@ -217,6 +217,10 @@ class MapScene2 extends Scene {
                                             for(let i = 0; i < dotsPerFrame[pi]*(currentFrame+1); i++){
                                                 let p = rPoints[pi][i];
                                                 if(p){
+                                                    if(currentFrame == frames-1)
+                                                        ctx.fillStyle = '#9E9065';
+                                                    else 
+                                                        ctx.fillStyle = i <= dotsPerFrame[pi]*(currentFrame-5) ? '#9E9065' : '#FFFFFF';
                                                     ctx.fillRect(p.x, p.y,1,1);
                                                 }
                                             }
@@ -256,31 +260,31 @@ class MapScene2 extends Scene {
                                             let shift = c.nameShift || new V2();
                                             cityPoligon.nameLetters = [];
                                             for(let i = 0; i < c.name.length; i++){
-                                                let imgWhite = PP.createText({text: c.name[i], color: '#FFFFFF'});
-                                                let imgBase = PP.createText({text: c.name[i]});
+                                                let imgWhite = PP.createText({text: c.name[i], color: '#FFFFFF', size: 5});
+                                                let imgBase = PP.createText({text: c.name[i], size: 5});
                                                 cityPoligon.nameLetters[i] = cityPoligon.addChild(new Go({
-                                                    position: new V2(10 + shift.x + i*8, -5 + shift.y),
+                                                    position: new V2(10 + shift.x + i*6, -5 + shift.y),
                                                     size: imgBase.size,
                                                     img: imgWhite.img,
                                                     imgBase: imgBase.img,
-                                                    isVisible: true
+                                                    isVisible: false
                                                 }))
                                             }
 
-                                            // cityPoligon.currentAppearLetter = 0;
-                                            // cityPoligon.nameAppearTimer = cityPoligon.registerTimer(createTimer(50, () => {
-                                            //     cityPoligon.nameLetters[cityPoligon.currentAppearLetter].isVisible = true;
-                                            //     if(cityPoligon.currentAppearLetter > 0){
-                                            //         cityPoligon.nameLetters[cityPoligon.currentAppearLetter-1].img = cityPoligon.nameLetters.imgBase;
-                                            //     }
+                                            cityPoligon.currentAppearLetter = 0;
+                                            cityPoligon.nameAppearTimer = cityPoligon.registerTimer(createTimer(75, () => {
+                                                cityPoligon.nameLetters[cityPoligon.currentAppearLetter].isVisible = true;
+                                                if(cityPoligon.currentAppearLetter > 0){
+                                                    cityPoligon.nameLetters[cityPoligon.currentAppearLetter-1].img = cityPoligon.nameLetters[cityPoligon.currentAppearLetter-1].imgBase;
+                                                }
 
-                                            //     cityPoligon.currentAppearLetter++;
+                                                cityPoligon.currentAppearLetter++;
 
-                                            //     if(cityPoligon.currentAppearLetter == cityPoligon.nameLetters.length){
-                                            //         cityPoligon.nameLetters[cityPoligon.currentAppearLetter-1].img = cityPoligon.nameLetters.imgBase;
-                                            //         cityPoligon.unregTimer(cityPoligon.nameAppearTimer);
-                                            //     }
-                                            // }, this, true))
+                                                if(cityPoligon.currentAppearLetter == cityPoligon.nameLetters.length){
+                                                    cityPoligon.nameLetters[cityPoligon.currentAppearLetter-1].img = cityPoligon.nameLetters[cityPoligon.currentAppearLetter-1].imgBase;
+                                                    cityPoligon.unregTimer(cityPoligon.nameAppearTimer);
+                                                }
+                                            }, this, true))
 
                                             thatDP.processScript(); 
                                         },

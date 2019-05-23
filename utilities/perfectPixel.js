@@ -333,7 +333,7 @@ PP.createImage = function(model) {
             if(!letterProps.img[color]){
                 let letterModel = fontProps.properties.common();
                 letterModel.main.layers = letterProps.layers;
-                letterModel.main.layers.forEach(l => { l.fillColor = color });
+                letterModel.main.layers.forEach(l => { l.fillColor = color; l.strokeColor = color; });
                 letterProps.img[color] = PP.createImage(letterModel) 
                 //createCanvas(fontProps.properties.baseSize, (ctx, size) => { ctx.fillStyle = 'red'; ctx.fillRect(0,0,size.x, size.y) });
             }
