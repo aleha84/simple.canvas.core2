@@ -197,10 +197,22 @@ class MapScene2 extends Scene {
                                 isVisible: false,
                                 initCompleted: function(){
                                     // this.size = thatDP.size;
+                                    let cityPoligon = this;
                                     this.position.add(thatDP.size.mul(-0.5), true);
                                     this.addEffect(new FadeInEffect({
                                         beforeStartCallback: function(){ this.parent.isVisible = true; },
-                                        completeCallback: function(){ thatDP.processScript(); },
+                                        completeCallback: function(){ 
+                                            for(let i = 0; i < c.name.length; i++){
+                                                let img = PP.createText({text: c.name[i]});
+                                                cityPoligon.addChild(new Go({
+                                                    position: new V2(10 + i*6, -5),
+                                                    size: img.size.mul(0.5),
+                                                    img: img.img
+                                                }))
+                                            }
+
+                                            thatDP.processScript(); 
+                                        },
                                         effectTime: 250,
                                         removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true
                                     }))
