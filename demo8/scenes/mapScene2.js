@@ -127,6 +127,10 @@ class MapScene2 extends Scene {
         let s_shiftRel = new V2(ext.minX, ext.minY);
         let s_scaledCoordinates = s_raw.floatArr.map(c => new V2(((this.viewport.x/360.0) * (180 + c[0])), ((this.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
 
+        let detailedStateData = mapDetailedData[s_raw.name];
+        if(!detailedStateData)
+            throw `No detailed data found for key: ${s_raw.name}`;
+
         this.detailedState = this.addGo(new Poligon2({
             rawData: {
                 floatArr: s_raw.floatArr,
@@ -138,68 +142,98 @@ class MapScene2 extends Scene {
             borderColorHSV: this.selectedPoligon.borderColorHSV,
             hClamps: undefined,
             borderHClamps: undefined,
+            isVisible: false,
             initCompleted: function() {
-                that.selectedPoligon.isVisible = false;
+                let thatDP = this;
 
-                this.targetPosition = that.sceneCenter.clone();
-                this.position = that.selectedPoligon.position.clone();
-                this.targetSize = this.size.clone();
-                this.size = that.selectedPoligon.size.clone();
-                let appearFrames = 10;
+                this.script.items = [
+                    function() { // appear
+                        that.selectedPoligon.isVisible = false;
 
-                this.scaleX = { time: 0, duration: appearFrames, change: this.targetSize.x - this.size.x, type: 'quad', method: 'out', startValue: this.size.x };
-                this.scaleY = { time: 0, duration: appearFrames, change: this.targetSize.y - this.size.y, type: 'quad', method: 'out', startValue: this.size.y };
-                this.moveX = { time: 0, duration: appearFrames, change: this.targetPosition.x - this.position.x, type: 'quad', method: 'out', startValue: this.position.x };
-                this.moveY = { time: 0, duration: appearFrames, change: this.targetPosition.y - this.position.y, type: 'quad', method: 'out', startValue: this.position.y };
+                        this.isVisible = true;
+                        this.targetPosition = that.sceneCenter.clone();
+                        this.position = that.selectedPoligon.position.clone();
+                        this.targetSize = this.size.clone();
+                        this.size = that.selectedPoligon.size.clone();
+                        let appearFrames = 10;
+        
+                        this.scaleX = { time: 0, duration: appearFrames, change: this.targetSize.x - this.size.x, type: 'quad', method: 'out', startValue: this.size.x };
+                        this.scaleY = { time: 0, duration: appearFrames, change: this.targetSize.y - this.size.y, type: 'quad', method: 'out', startValue: this.size.y };
+                        this.moveX = { time: 0, duration: appearFrames, change: this.targetPosition.x - this.position.x, type: 'quad', method: 'out', startValue: this.position.x };
+                        this.moveY = { time: 0, duration: appearFrames, change: this.targetPosition.y - this.position.y, type: 'quad', method: 'out', startValue: this.position.y };
+        
+                        this.appearTimer = this.registerTimer(createTimer(25, () => {
+                                this.size.x = easing.process(this.scaleX);
+                                this.size.y = easing.process(this.scaleY);
+                                this.position.x = easing.process(this.moveX);
+                                this.position.y = easing.process(this.moveY);
+            
+                                this.needRecalcRenderProperties = true;
+                                this.scaleX.time++;
+                                this.scaleY.time++;
+                                this.moveX.time++;
+                                this.moveY.time++;
+            
+                                if(this.scaleX.time > this.scaleX.duration){
+                                    this.unregTimer(this.appearTimer);
+            
+                                    thatDP.processScript();
+                                }
+                            }, this, true));
+                    },
+                    ...detailedStateData.cities.map(c => {// show cities
+                        return function() { 
+                            let cityCoord = c.coordinates.map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
+                            this.addChild(new Poligon2({
+                                rawData: {
+                                    floatArr: cityCoord,
+                                    name: c.name
+                                },
+                                coordinates: cityCoord,
+                                baseColorHSV: [46,36,41],
+                                borderColorHSV: [46,36,41],
+                                hClamps: undefined,
+                                borderHClamps: undefined,
+                                isVisible: false,
+                                initCompleted: function(){
+                                    // this.size = thatDP.size;
+                                    this.position.add(thatDP.size.mul(-0.5), true);
+                                    this.addEffect(new FadeInEffect({
+                                        beforeStartCallback: function(){ this.parent.isVisible = true; },
+                                        completeCallback: function(){ thatDP.processScript(); },
+                                        effectTime: 250,
+                                        removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true
+                                    }))
+                                    //thatDP.processScript();
+                                }
+                            }));
+                        }
 
-                this.appearTimer = this.registerTimer(createTimer(25, () => {
-                    this.size.x = easing.process(this.scaleX);
-                    this.size.y = easing.process(this.scaleY);
-                    this.position.x = easing.process(this.moveX);
-                    this.position.y = easing.process(this.moveY);
-
-                    this.needRecalcRenderProperties = true;
-                    this.scaleX.time++;
-                    this.scaleY.time++;
-                    this.moveX.time++;
-                    this.moveY.time++;
-
-                    if(this.scaleX.time > this.scaleX.duration){
-                        this.unregTimer(this.appearTimer);
-
-                        this.addChild(new GO({ // add roads and cities to detailed map
+                    })
+                    ,
+                    function(){// add roads
+                        this.addChild(new GO({ 
                             position: new V2(),
                             size: this.size,
                             init(){
                                 let rPoints = [];
-                                createCanvas(this.size, ctx => {
-                                    let c = [
-                                        [-106.516814,31.773815],
-                                        [-105.725799,31.249310],
-                                        [-104.011932,31.136534],
-                                        [-102.693572,31.661669],
-                                        [-101.594939,32.221039],
-                                        [-100.672088,32.443830],
-                                        [-99.661346,32.480909],
-                                        [-98.870330,32.369627],
-                                        [-97.771697,32.740031],
-                                        [-96.848846,32.813928],
-                                        [-96.079803,33.127305],
-                                        [-95.047088,33.182491],
-                                        [-94.453826,33.476230],
-                                        [-94.050079,33.428679],
-                                        ].map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
+                                for(let i = 0; i < detailedStateData.roads.length;i++){
+                                    createCanvas(this.size, ctx => {
+                                        let c = 
+                                            detailedStateData.roads[i].coordinates
+                                            .map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
+        
+                                        ctx.fillStyle = '#EEDB96';
+                                        //debugger;
+                                        let pp = new PerfectPixel({context: ctx});
+                                        let points = []
+                                        for(let i = 0; i < c.length-1; i++){
+                                            points = [...points, ...pp.lineV2(c[i], c[i+1])];
+                                        }
     
-                                    ctx.fillStyle = 'red';
-                                    //debugger;
-                                    let pp = new PerfectPixel({context: ctx});
-                                    let points = []
-                                    for(let i = 0; i < c.length-1; i++){
-                                        points = [...points, ...pp.lineV2(c[i], c[i+1])];
-                                    }
-
-                                    rPoints[0] = points;
-                                });
+                                        rPoints[rPoints.length] = points;
+                                    });
+                                }                             
 
                                 let frames = 90;
                                 let currentFrame = 0;
@@ -207,7 +241,7 @@ class MapScene2 extends Scene {
                                 
                                 this.framesGeneratorTimer = this.registerTimer(createTimer(30, () => {
                                     this.img = createCanvas(this.size, ctx => {
-                                        ctx.fillStyle = 'red';
+                                        ctx.fillStyle = '#9E9065';
                                         for(let pi = 0; pi < rPoints.length; pi++){
                                             for(let i = 0; i < dotsPerFrame[pi]*(currentFrame+1); i++){
                                                 let p = rPoints[pi][i];
@@ -219,14 +253,67 @@ class MapScene2 extends Scene {
                                     })
 
                                     currentFrame++;
-                                    if(currentFrame >= frames)
+                                    if(currentFrame >= frames) {
                                         this.unregTimer(this.framesGeneratorTimer);
-
+                                        thatDP.processScript();
+                                    }
                                 }, this, true));
                             }
                         }))
-                    }
-                }, this, true));
+                    },
+                    // function(){// add secondary roads
+                    //     this.addChild(new GO({ 
+                    //         position: new V2(),
+                    //         size: this.size,
+                    //         init(){
+                    //             let rPoints = [];
+                    //             for(let i = 0; i < detailedStateData.secondaryRoads.length;i++){
+                    //                 createCanvas(this.size, ctx => {
+                    //                     let c = 
+                    //                         detailedStateData.secondaryRoads[i].coordinates
+                    //                         .map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
+        
+                    //                     ctx.fillStyle = '#EEDB96';
+                    //                     //debugger;
+                    //                     let pp = new PerfectPixel({context: ctx});
+                    //                     let points = []
+                    //                     for(let i = 0; i < c.length-1; i++){
+                    //                         points = [...points, ...pp.lineV2(c[i], c[i+1])];
+                    //                     }
+    
+                    //                     rPoints[rPoints.length] = points;
+                    //                 });
+                    //             }                             
+
+                    //             let frames = 45;
+                    //             let currentFrame = 0;
+                    //             let dotsPerFrame = rPoints.map(rp =>fastCeilWithPrecision(rp.length/frames));
+                                
+                    //             this.framesGeneratorTimer = this.registerTimer(createTimer(30, () => {
+                    //                 this.img = createCanvas(this.size, ctx => {
+                    //                     ctx.fillStyle = '#BCAB78';
+                    //                     for(let pi = 0; pi < rPoints.length; pi++){
+                    //                         for(let i = 0; i < dotsPerFrame[pi]*(currentFrame+1); i++){
+                    //                             let p = rPoints[pi][i];
+                    //                             if(p){
+                    //                                 ctx.fillRect(p.x, p.y,1,1);
+                    //                             }
+                    //                         }
+                    //                     }
+                    //                 })
+
+                    //                 currentFrame++;
+                    //                 if(currentFrame >= frames) {
+                    //                     this.unregTimer(this.framesGeneratorTimer);
+                    //                     thatDP.processScript();
+                    //                 }
+                    //             }, this, true));
+                    //         }
+                    //     }))
+                    // }
+                ];
+
+                this.processScript();
             }
         }), 100)
     }
