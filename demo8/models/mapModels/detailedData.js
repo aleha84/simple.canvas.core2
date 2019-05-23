@@ -3,6 +3,7 @@ var mapDetailedData = {
         cities: [
             {
                 name: "Dallas",
+                nameShift: new V2(),
                 coordinates: [
 [-96.996929,32.643320], 
 [-96.973583,32.696498], 
@@ -89,6 +90,7 @@ var mapDetailedData = {
             },
             {
                 name: "Fort Worth",
+                nameShift: new V2(-20, -10),
                 coordinates: [
 [-97.481228,32.632513], 
 [-97.501141,32.651593], 
@@ -169,6 +171,7 @@ var mapDetailedData = {
             },
             {
                 name: "El Paso",
+                nameShift: new V2(0, 10),
                 coordinates: [
 [-106.327849,32.002692], 
 [-106.623107,31.999198], 
@@ -202,6 +205,7 @@ var mapDetailedData = {
             },
             {
                 name: "Austin",
+                nameShift: new V2(),
                 coordinates: [
 [-97.931245,30.335238], 
 [-97.905153,30.389745], 
@@ -232,6 +236,7 @@ var mapDetailedData = {
             },
             {
                 name: "San Antonio",
+                nameShift: new V2(0,10),
                 coordinates: [
 [-98.717773,29.485085], 
 [-98.668335,29.559175], 
@@ -279,6 +284,7 @@ var mapDetailedData = {
             },
             {
                 name: "Houston",
+                nameShift: new V2(5,0),
                 coordinates: [
 [-95.825414,29.785266], 
 [-95.773229,29.803143], 

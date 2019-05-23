@@ -180,48 +180,7 @@ class MapScene2 extends Scene {
                                     thatDP.processScript();
                                 }
                             }, this, true));
-                    },
-                    ...detailedStateData.cities.map(c => {// show cities
-                        return function() { 
-                            let cityCoord = c.coordinates.map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
-                            this.addChild(new Poligon2({
-                                rawData: {
-                                    floatArr: cityCoord,
-                                    name: c.name
-                                },
-                                coordinates: cityCoord,
-                                baseColorHSV: [46,36,41],
-                                borderColorHSV: [46,36,41],
-                                hClamps: undefined,
-                                borderHClamps: undefined,
-                                isVisible: false,
-                                initCompleted: function(){
-                                    // this.size = thatDP.size;
-                                    let cityPoligon = this;
-                                    this.position.add(thatDP.size.mul(-0.5), true);
-                                    this.addEffect(new FadeInEffect({
-                                        beforeStartCallback: function(){ this.parent.isVisible = true; },
-                                        completeCallback: function(){ 
-                                            for(let i = 0; i < c.name.length; i++){
-                                                let img = PP.createText({text: c.name[i]});
-                                                cityPoligon.addChild(new Go({
-                                                    position: new V2(10 + i*6, -5),
-                                                    size: img.size.mul(0.5),
-                                                    img: img.img
-                                                }))
-                                            }
-
-                                            thatDP.processScript(); 
-                                        },
-                                        effectTime: 250,
-                                        removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true
-                                    }))
-                                    //thatDP.processScript();
-                                }
-                            }));
-                        }
-
-                    })
+                    }
                     ,
                     function(){// add roads
                         this.addChild(new GO({ 
@@ -273,6 +232,67 @@ class MapScene2 extends Scene {
                             }
                         }))
                     },
+                    ...detailedStateData.cities.map(c => {// show cities
+                        return function() { 
+                            let cityCoord = c.coordinates.map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
+                            this.addChild(new Poligon2({
+                                rawData: {
+                                    floatArr: cityCoord,
+                                    name: c.name
+                                },
+                                coordinates: cityCoord,
+                                baseColorHSV: [46,36,41],
+                                borderColorHSV: [46,36,41],
+                                hClamps: undefined,
+                                borderHClamps: undefined,
+                                isVisible: false,
+                                initCompleted: function(){
+                                    // this.size = thatDP.size;
+                                    let cityPoligon = this;
+                                    this.position.add(thatDP.size.mul(-0.5), true);
+                                    this.addEffect(new FadeInEffect({
+                                        beforeStartCallback: function(){ this.parent.isVisible = true; },
+                                        completeCallback: function(){ 
+                                            let shift = c.nameShift || new V2();
+                                            cityPoligon.nameLetters = [];
+                                            for(let i = 0; i < c.name.length; i++){
+                                                let imgWhite = PP.createText({text: c.name[i], color: '#FFFFFF'});
+                                                let imgBase = PP.createText({text: c.name[i]});
+                                                cityPoligon.nameLetters[i] = cityPoligon.addChild(new Go({
+                                                    position: new V2(10 + shift.x + i*8, -5 + shift.y),
+                                                    size: imgBase.size,
+                                                    img: imgWhite.img,
+                                                    imgBase: imgBase.img,
+                                                    isVisible: true
+                                                }))
+                                            }
+
+                                            // cityPoligon.currentAppearLetter = 0;
+                                            // cityPoligon.nameAppearTimer = cityPoligon.registerTimer(createTimer(50, () => {
+                                            //     cityPoligon.nameLetters[cityPoligon.currentAppearLetter].isVisible = true;
+                                            //     if(cityPoligon.currentAppearLetter > 0){
+                                            //         cityPoligon.nameLetters[cityPoligon.currentAppearLetter-1].img = cityPoligon.nameLetters.imgBase;
+                                            //     }
+
+                                            //     cityPoligon.currentAppearLetter++;
+
+                                            //     if(cityPoligon.currentAppearLetter == cityPoligon.nameLetters.length){
+                                            //         cityPoligon.nameLetters[cityPoligon.currentAppearLetter-1].img = cityPoligon.nameLetters.imgBase;
+                                            //         cityPoligon.unregTimer(cityPoligon.nameAppearTimer);
+                                            //     }
+                                            // }, this, true))
+
+                                            thatDP.processScript(); 
+                                        },
+                                        effectTime: 250,
+                                        removeEffectOnComplete: true, updateDelay: 40, initOnAdd: true
+                                    }))
+                                    //thatDP.processScript();
+                                }
+                            }));
+                        }
+
+                    })
                     // function(){// add secondary roads
                     //     this.addChild(new GO({ 
                     //         position: new V2(),
