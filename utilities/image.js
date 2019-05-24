@@ -601,7 +601,7 @@ var colors = {
         white: 'rgba(255,255,255, 1)',
         black: 'rgba(0,0,0,1)',
     },
-    changeHSV({initialValue, parameter, amount,  isRgb = false, asArray = true}){
+    toHsv({initialValue, isRgb = false, resultAsArray = false, asInt = false}){
         let rgb = undefined;
         if(!isRgb){
             rgb = hexToRgb(initialValue, true)
@@ -613,7 +613,23 @@ var colors = {
             rgb = [...initialValue];
         }
 
+    
         let hsv = rgbToHsv(rgb[0], rgb[1], rgb[2]);
+
+        if(asInt){
+            hsv.h= fastRoundWithPrecision(hsv.h*360);
+            hsv.s = fastRoundWithPrecision(hsv.s *100);
+            hsv.v= fastRoundWithPrecision(hsv.v*100);
+        }
+
+        if(resultAsArray){
+            return [hsv.h, hsv.s, hsv.v];
+        }
+
+        return hsv;
+    },
+    changeHSV({initialValue, parameter, amount,  isRgb = false, asArray = true}){
+        let hsv = this.toHsv({initialValue});
         if(hsv[parameter] == undefined)
             throw 'colors.changeHSV unknown parameter:' + parameter;
 

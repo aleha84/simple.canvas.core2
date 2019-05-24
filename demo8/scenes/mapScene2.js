@@ -183,7 +183,7 @@ class MapScene2 extends Scene {
                     }
                     ,
                     function(){// add roads
-                        this.addChild(new GO({ 
+                        this.roads = this.addChild(new GO({ 
                             position: new V2(),
                             size: this.size,
                             init(){
@@ -207,39 +207,143 @@ class MapScene2 extends Scene {
                                 }                             
 
                                 let frames = 45;
+                                let blinkLength = 10;
                                 let currentFrame = 0;
+                                let blinkCount = 2;
                                 let dotsPerFrame = rPoints.map(rp =>fastCeilWithPrecision(rp.length/frames));
-                                
+                                let drawState = 'lines';
+                                let roadColorHex = '#9E9065';
+                                let roadColorHsv = colors.toHsv({initialValue: roadColorHex, asInt: true});
+                                let roadColorSChange = { time: 0, duration: blinkLength, change: -roadColorHsv.s, type: 'cubic', method: 'out', startValue: roadColorHsv.s }
+                                let roadColorVChange = { time: 0, duration: blinkLength, change: 100-roadColorHsv.v, type: 'cubic', method: 'out', startValue: roadColorHsv.v }
+                                let thatroadsGo = this;
                                 this.framesGeneratorTimer = this.registerTimer(createTimer(30, () => {
-                                    this.img = createCanvas(this.size, ctx => {
-                                        ctx.fillStyle = '#9E9065';
-                                        for(let pi = 0; pi < rPoints.length; pi++){
-                                            for(let i = 0; i < dotsPerFrame[pi]*(currentFrame+1); i++){
-                                                let p = rPoints[pi][i];
-                                                if(p){
-                                                    if(currentFrame == frames-1)
-                                                        ctx.fillStyle = '#9E9065';
-                                                    else 
-                                                        ctx.fillStyle = i <= dotsPerFrame[pi]*(currentFrame-5) ? '#9E9065' : '#FFFFFF';
-                                                    ctx.fillRect(p.x, p.y,1,1);
+                                    
+                                        this.img = createCanvas(this.size, ctx => {
+                                            if(drawState == 'lines'){
+                                                ctx.fillStyle = '#9E9065';
+                                                for(let pi = 0; pi < rPoints.length; pi++){
+                                                    for(let i = 0; i < dotsPerFrame[pi]*(currentFrame+1); i++){
+                                                        let p = rPoints[pi][i];
+                                                        if(p){
+                                                            if(currentFrame == frames-1)
+                                                                ctx.fillStyle = '#9E9065';
+                                                            else 
+                                                                ctx.fillStyle = i <= dotsPerFrame[pi]*(currentFrame-5) ? '#9E9065' : '#FFFFFF';
+                                                            
+                                                                ctx.fillRect(p.x, p.y,2,2);
+                                                        }
+                                                    }
                                                 }
                                             }
-                                        }
-                                    })
+                                            else if(drawState == 'blink'){
+                                                roadColorHsv.s = easing.process(roadColorSChange);
+                                                roadColorHsv.v = easing.process(roadColorVChange);
+                                                // console.log(roadColorHsv);
+                                                let color = hsvToHex({hsv: roadColorHsv, hsvAsObject: true});
+                                                ctx.fillStyle = color;
+                                                for(let pi = 0; pi < rPoints.length; pi++){
+                                                    for(let i = 0; i < rPoints[pi].length; i++){
+                                                        let p = rPoints[pi][i];
+                                                        ctx.fillRect(p.x, p.y,2,2);
+                                                    }
+                                                }
 
+                                                roadColorSChange.time++;
+                                                roadColorVChange.time++;
+
+                                                if(roadColorSChange.time > roadColorSChange.duration){
+                                                    roadColorSChange.time = 0;
+                                                    roadColorSChange.startValue = roadColorHsv.s;
+                                                    roadColorSChange.change*=-1;
+                                                    roadColorVChange.time = 0;
+                                                    roadColorVChange.startValue = roadColorHsv.v;
+                                                    roadColorVChange.change*=-1;
+                                                    blinkCount--;
+                                                    if(blinkCount == 0){
+                                                        thatroadsGo.unregTimer(thatroadsGo.framesGeneratorTimer);
+                                                        thatDP.processScript();
+                                                    }
+                                                }
+                                            }
+                                            
+                                        })
+                                    
+                                
                                     currentFrame++;
-                                    if(currentFrame >= frames) {
-                                        this.unregTimer(this.framesGeneratorTimer);
-                                        thatDP.processScript();
+
+                                    if(currentFrame > frames) {
+                                        if(drawState == 'lines'){
+                                            drawState = 'blink';
+                                            frames = blinkLength;
+                                            currentFrame= 0;
+                                        }
+                                        // else {
+                                        //     this.unregTimer(this.framesGeneratorTimer);
+                                        //     thatDP.processScript();
+                                        // }
                                     }
                                 }, this, true));
                             }
                         }))
                     },
+                    // function(){// add secondary roads
+                    //     this.addChild(new GO({ 
+                    //         position: new V2(),
+                    //         size: this.size,
+                    //         init(){
+                    //             let rPoints = [];
+                    //             for(let i = 0; i < detailedStateData.secondaryRoads.length;i++){
+                    //                 createCanvas(this.size, ctx => {
+                    //                     let c = 
+                    //                         detailedStateData.secondaryRoads[i].coordinates
+                    //                         .map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
+        
+                    //                     ctx.fillStyle = '#EEDB96';
+                    //                     //debugger;
+                    //                     let pp = new PerfectPixel({context: ctx});
+                    //                     let points = []
+                    //                     for(let i = 0; i < c.length-1; i++){
+                    //                         points = [...points, ...pp.lineV2(c[i], c[i+1])];
+                    //                     }
+    
+                    //                     rPoints[rPoints.length] = points;
+                    //                 });
+                    //             }                             
+
+                    //             let frames = 45;
+                    //             let currentFrame = 0;
+                    //             let dotsPerFrame = rPoints.map(rp =>fastCeilWithPrecision(rp.length/frames));
+                                
+                    //             this.framesGeneratorTimer = this.registerTimer(createTimer(30, () => {
+                    //                 this.img = createCanvas(this.size, ctx => {
+                    //                     ctx.fillStyle = '#BCAB78';
+                    //                     for(let pi = 0; pi < rPoints.length; pi++){
+                    //                         for(let i = 0; i < dotsPerFrame[pi]*(currentFrame+1); i++){
+                    //                             let p = rPoints[pi][i];
+                    //                             if(p){
+                    //                                 ctx.fillRect(p.x, p.y,1,1);
+                    //                             }
+                    //                         }
+                    //                     }
+                    //                 })
+
+                    //                 currentFrame++;
+                    //                 if(currentFrame >= frames) {
+                    //                     this.unregTimer(this.framesGeneratorTimer);
+                    //                     thatDP.processScript();
+                    //                 }
+                    //             }, this, true));
+                    //         }
+                    //     }))
+                    // },
                     ...detailedStateData.cities.map(c => {// show cities
                         return function() { 
                             let cityCoord = c.coordinates.map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
-                            this.addChild(new Poligon2({
+                            if(this.cities== undefined){
+                                this.cities = [];
+                            }
+                            this.cities[this.cities.length] = this.addChild(new Poligon2({
                                 rawData: {
                                     floatArr: cityCoord,
                                     name: c.name
@@ -296,57 +400,13 @@ class MapScene2 extends Scene {
                             }));
                         }
 
-                    })
-                    // function(){// add secondary roads
-                    //     this.addChild(new GO({ 
-                    //         position: new V2(),
-                    //         size: this.size,
-                    //         init(){
-                    //             let rPoints = [];
-                    //             for(let i = 0; i < detailedStateData.secondaryRoads.length;i++){
-                    //                 createCanvas(this.size, ctx => {
-                    //                     let c = 
-                    //                         detailedStateData.secondaryRoads[i].coordinates
-                    //                         .map(c => new V2(((that.viewport.x/360.0) * (180 + c[0])), ((that.viewport.y/180.0) * (90 - c[1])))).map(c => c.substract(s_shiftRel).mul(s_scale));
-        
-                    //                     ctx.fillStyle = '#EEDB96';
-                    //                     //debugger;
-                    //                     let pp = new PerfectPixel({context: ctx});
-                    //                     let points = []
-                    //                     for(let i = 0; i < c.length-1; i++){
-                    //                         points = [...points, ...pp.lineV2(c[i], c[i+1])];
-                    //                     }
-    
-                    //                     rPoints[rPoints.length] = points;
-                    //                 });
-                    //             }                             
-
-                    //             let frames = 45;
-                    //             let currentFrame = 0;
-                    //             let dotsPerFrame = rPoints.map(rp =>fastCeilWithPrecision(rp.length/frames));
-                                
-                    //             this.framesGeneratorTimer = this.registerTimer(createTimer(30, () => {
-                    //                 this.img = createCanvas(this.size, ctx => {
-                    //                     ctx.fillStyle = '#BCAB78';
-                    //                     for(let pi = 0; pi < rPoints.length; pi++){
-                    //                         for(let i = 0; i < dotsPerFrame[pi]*(currentFrame+1); i++){
-                    //                             let p = rPoints[pi][i];
-                    //                             if(p){
-                    //                                 ctx.fillRect(p.x, p.y,1,1);
-                    //                             }
-                    //                         }
-                    //                     }
-                    //                 })
-
-                    //                 currentFrame++;
-                    //                 if(currentFrame >= frames) {
-                    //                     this.unregTimer(this.framesGeneratorTimer);
-                    //                     thatDP.processScript();
-                    //                 }
-                    //             }, this, true));
-                    //         }
-                    //     }))
-                    // }
+                    }),
+                    function() {
+                        this.delayTimer = this.registerTimer(createTimer(2000, () => {
+                            this.unregTimer(this.delayTimer);
+                            thatDP.processScript(); 
+                        }, this, false));
+                    }
                 ];
 
                 this.processScript();
