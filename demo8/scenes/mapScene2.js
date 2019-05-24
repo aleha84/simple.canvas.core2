@@ -91,22 +91,47 @@ class MapScene2 extends Scene {
         
     }
 
-    // risePoligon(poligon) {
-    //     poligon.changeLayerIndex = 10;
-    //     poligon.shouldRise = true;
-    //     poligon.riseCompleteCallback = this.poligonRiseComplete.bind(this);
-    // }
+    risePoligon(poligon) {
+        poligon.changeLayerIndex = 10;
+        poligon.shouldRise = true;
+        poligon.riseCompleteCallback = this.poligonRiseComplete.bind(this);
+    }
 
-    // poligonRiseComplete(poligon) {
-    //     poligon.changeLayerIndex = 1;
-    // }
+    poligonRiseComplete(poligon) {
+        poligon.changeLayerIndex = 1;
+    }
 
     poligonsInitCompleted() {
-        let s = this.poligons.filter(p => p.rawData.name == 'Texas')[0];
-        this.selectedPoligon = s;
-        s.changeLayerIndex = 10;
-        s.startBlink(
-            s.rise.bind(s, this.showDetailed.bind(this)))
+        this.currentRiseX = 0;
+        this.risePoligonsTimer =  this.registerTimer(createTimer(25, () => {
+            let pToRise = this.poligons.filter(p =>{
+                if(p.riseState == 'idle'){
+                    return p.position.x <= this.currentRiseX;
+                }
+                
+                return false;
+            });
+
+            pToRise.forEach(p => this.risePoligon(p));
+
+            this.currentRiseX+=5;
+
+            if(this.currentRiseX >= this.viewport.x){
+                this.unregTimer(this.risePoligonsTimer);
+
+                this.triggerDetailedTimer = this.registerTimer(createTimer(500, () => {
+                    this.unregTimer(this.triggerDetailedTimer);
+                    let s = this.poligons.filter(p => p.rawData.name == 'Texas')[0];
+                    this.selectedPoligon = s;
+                    s.changeLayerIndex = 10;
+                    s.startBlink(
+                        s.rise.bind(s, this.showDetailed.bind(this)))
+                }, this, false))
+            
+            }
+        }));
+
+        
     }
 
     showDetailed() {
@@ -152,9 +177,15 @@ class MapScene2 extends Scene {
 
                         this.isVisible = true;
                         this.targetPosition = that.sceneCenter.clone();
+                        
+                        
+                        
+
                         this.position = that.selectedPoligon.position.clone();
+                        this.initialPosition = this.position.clone();
                         this.targetSize = this.size.clone();
                         this.size = that.selectedPoligon.size.clone();
+                        this.initialSize = this.size.clone();
                         let appearFrames = 10;
         
                         this.scaleX = { time: 0, duration: appearFrames, change: this.targetSize.x - this.size.x, type: 'quad', method: 'out', startValue: this.size.x };
@@ -406,6 +437,73 @@ class MapScene2 extends Scene {
                             this.unregTimer(this.delayTimer);
                             thatDP.processScript(); 
                         }, this, false));
+                    },
+                    function() {
+                        for(let i = 0; i < this.cities.length; i++){
+                            let city = this.cities[i];
+
+                            city.addEffect(new FadeOutEffect({
+                                startDelay: i*100,
+                                effectTime: 250,
+                                updateDelay: 40, initOnAdd: true,
+                                completeCallback: function() {
+                                    if(i == thatDP.cities.length - 1){
+                                        thatDP.processScript(); 
+                                    }
+                                }
+                            }))
+                        }
+                    },
+                    function() {
+                        this.roads.addEffect(new FadeOutEffect({
+                            startDelay: 100,
+                            effectTime: 250,
+                            updateDelay: 40, initOnAdd: true,
+                            completeCallback: function() {
+                                thatDP.processScript(); 
+                            }
+                        }))
+                    },
+                    function(){
+                        this.targetPosition = this.initialPosition.clone();
+                        this.targetSize = this.initialSize.clone();
+                        
+                        let appearFrames = 10;
+        
+                        this.scaleX = { time: 0, duration: appearFrames, change: this.targetSize.x - this.size.x, type: 'quad', method: 'out', startValue: this.size.x };
+                        this.scaleY = { time: 0, duration: appearFrames, change: this.targetSize.y - this.size.y, type: 'quad', method: 'out', startValue: this.size.y };
+                        this.moveX = { time: 0, duration: appearFrames, change: this.targetPosition.x - this.position.x, type: 'quad', method: 'out', startValue: this.position.x };
+                        this.moveY = { time: 0, duration: appearFrames, change: this.targetPosition.y - this.position.y, type: 'quad', method: 'out', startValue: this.position.y };
+        
+                        this.appearTimer = this.registerTimer(createTimer(25, () => {
+                                this.size.x = easing.process(this.scaleX);
+                                this.size.y = easing.process(this.scaleY);
+                                this.position.x = easing.process(this.moveX);
+                                this.position.y = easing.process(this.moveY);
+            
+                                this.needRecalcRenderProperties = true;
+                                this.scaleX.time++;
+                                this.scaleY.time++;
+                                this.moveX.time++;
+                                this.moveY.time++;
+            
+                                if(this.scaleX.time == this.scaleX.duration){
+                                    that.selectedPoligon.isVisible = true;
+                                }
+                                
+                                if(this.scaleX.time > this.scaleX.duration){
+                                    this.unregTimer(this.appearTimer);
+                                    thatDP.processScript();
+                                }
+                            }, this, true));
+                    },
+                    function() {
+                        this.isVisible = false;
+                        that.selectedPoligon.fall(thatDP.processScript.bind(thatDP))
+                    },
+                    function() {
+                        console.log('end');
+                        thatDP.processScript(); 
                     }
                 ];
 
@@ -503,7 +601,7 @@ class Poligon2 extends GO {
     internalPreUpdate(){
         if(this.shouldRise){
             this.shouldRise = false;
-            this.rise(this.riseCompleteCallback);
+            this.rise(this.fall.bind(this, this.riseCompleteCallback));
         }
     }
 
@@ -535,29 +633,8 @@ class Poligon2 extends GO {
                     10
                 );
             },
-            // function(){
-            //     let fall = { time: 0, duration: 20, change: this.yChange, type: 'cubic', method: 'in', startValue: this.position.y };
-            //     let left = { time: 0, duration: 20, change: -this.xChange, type: 'cubic', method: 'in', startValue: this.position.x };
-            //     let darker = { time: 0, duration: 20, change: -20, type: 'cubic', method: 'in', startValue: this.baseColorHSV[2] };
-
-            //     this.scriptTimer = this.createScriptTimer(
-            //         function() { 
-            //             this.position.y =  easing.process(fall);
-            //             this.position.x =  easing.process(left);
-            //             this.baseColorHSV[2] = easing.process(darker);
-
-            //             this.createImg({baseColor: hsvToHex({hsv:this.baseColorHSV})})
-            //             fall.time++;  
-            //             left.time++;   
-            //             darker.time++;
-            //         },
-            //         function() { return fall.time > fall.duration; },
-            //         true,
-            //         10
-            //     );
-            // },
             function() {
-                callback();
+                callback(this);
                 this.processScript();
             }
         ]
@@ -565,8 +642,36 @@ class Poligon2 extends GO {
         this.processScript();
     }
 
-    fall(completeCallback) {
+    fall(callback) {
+        this.script.items = [
+            function(){
+                let fall = { time: 0, duration: 20, change: this.yChange, type: 'cubic', method: 'in', startValue: this.position.y };
+                let left = { time: 0, duration: 20, change: -this.xChange, type: 'cubic', method: 'in', startValue: this.position.x };
+                let darker = { time: 0, duration: 20, change: -20, type: 'cubic', method: 'in', startValue: this.baseColorHSV[2] };
 
+                this.scriptTimer = this.createScriptTimer(
+                    function() { 
+                        this.position.y =  easing.process(fall);
+                        this.position.x =  easing.process(left);
+                        this.baseColorHSV[2] = easing.process(darker);
+
+                        this.createImg({baseColor: hsvToHex({hsv:this.baseColorHSV})})
+                        fall.time++;  
+                        left.time++;   
+                        darker.time++;
+                    },
+                    function() { return fall.time > fall.duration; },
+                    true,
+                    10
+                );
+            },
+            function() {
+                callback(this);
+                this.processScript();
+            }
+        ]
+
+        this.processScript();
     }
 
     startBlink(callback) {
