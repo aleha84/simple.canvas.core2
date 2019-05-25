@@ -71,6 +71,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     })); 
 
+    SCG.scenes.cacheScene(new Experiments2Scene({
+        name:'experiments2',
+        viewport: verticalDefaultViewport
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();
