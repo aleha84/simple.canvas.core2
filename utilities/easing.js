@@ -1,4 +1,24 @@
 var easing = {
+    calcCache: {},
+    get(type, method, time, startValue, change, duration, action) {
+        if(!this.calcCache[type])
+            this.calcCache[type] = {};
+
+        let t = this.calcCache[type];
+
+        if(!t[method])
+            t[method] = {};
+
+        let m = t[method];
+
+        let key = time + '_' + startValue + '_' + change + '_' + duration;
+
+        if(m[key] === undefined){
+            m[key] = action(time, startValue, change, duration);
+        }
+
+        return m[key];
+    },
     process(props){
         let group = this[props.type];
         if(!group) {
@@ -11,6 +31,10 @@ var easing = {
         if(!action){
             console.trace();
             throw `wrong easing "${props.type}" method: ${props.method}`;
+        }
+
+        if(props.useCache){
+            return this.get(props.type, props.method, props.time, props.startValue, props.change, props.duration, action);
         }
 
         return action(props.time, props.startValue, props.change, props.duration);
