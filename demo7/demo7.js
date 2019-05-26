@@ -23,7 +23,8 @@ document.addEventListener("DOMContentLoaded", function() {
         headSadHooded: 'images/head_sad_hooded.png',
         headHooded: 'images/head_hooded.png',
         headHoodedGlasses: 'images/head_hooded_glasses.png',
-        itemsBg1: 'images/itemsBg.png'
+        itemsBg1: 'images/itemsBg.png',
+        ssDemo: 'images/ssDemo.png'
 	}
 
     debugger;
@@ -36,6 +37,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new EffectsScene2({
         name:'effects2',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new EffectsScene3({
+        name:'effects3',
         viewport: defaultViewpot
     }));
 
@@ -76,6 +82,36 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new EndScene({
         name:'end',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new EasingScene({
+        name:'easing',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new BottlesScene({
+        name:'bottles',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new FaceScene({
+        name:'face',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new Face2Scene({
+        name:'face2',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new ChaseScene({
+        name:'chase',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new SparksScene({
+        name:'sparks',
         viewport: defaultViewpot
     }));
 

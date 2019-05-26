@@ -20,10 +20,61 @@ document.addEventListener("DOMContentLoaded", function() {
     debugger;
     
     let defaultViewpot = new V2(500,300);
+    let verticalDefaultViewport = new V2(300,500);
     SCG.scenes.cacheScene(new InfoScreenScene({
         name:'info',
         viewport: defaultViewpot
-    }));    
+    }));  
+
+    SCG.scenes.cacheScene(new SpaceportScene({
+        name:'spaceport',
+        viewport: defaultViewpot
+    })); 
+    
+    SCG.scenes.cacheScene(new MiningColonyScene({
+        name:'miningcolony',
+        viewport: defaultViewpot
+    })); 
+
+    SCG.scenes.cacheScene(new PixelWavesScene({
+        name:'pixelwaves',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new CityScene({
+        name:'city',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new MapScene({
+        name:'map',
+        viewport: defaultViewpot
+    })); 
+
+    SCG.scenes.cacheScene(new MapScene2({
+        name:'map2',
+        viewport: defaultViewpot
+    })); 
+
+    SCG.scenes.cacheScene(new PixelForestScene({
+        name:'forest',
+        viewport: verticalDefaultViewport.mul(0.5)
+    })); 
+
+    SCG.scenes.cacheScene(new PeopleScene({
+        name:'people',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new ExperimentsScene({
+        name:'experiments',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new Experiments2Scene({
+        name:'experiments2',
+        viewport: verticalDefaultViewport
+    })); 
 
     sceneSelectByHashValue();
     

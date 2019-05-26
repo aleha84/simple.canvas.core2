@@ -332,6 +332,265 @@ var drawHelper = {
 
         if(c.closePath)
             ctx.closePath();
+    },
+}
+
+var colorTransitionHelper = {
+    create(options) {
+        let o = options;
+        return createCanvas(o.size, (ctx, size) => {
+            if(o.items.length == 1){
+                ctx.fillStyle = o.items[0].color;
+                ctx.fillRect(0,0, size.x, size.y);
+                return;
+            }
+
+            if(o.type == 'dithering'){
+                for(let i = 0; i < o.items.length-1;i++){
+                    let currentItem = o.items[i];
+                    let nextItem = o.items[i+1];
+                    let startTransitionFrom = currentItem.startTransitionFrom || currentItem.position;
+                    let transitionLength = nextItem.position - startTransitionFrom;
+                    // let nextColorAmount = 0;
+                    let startP = startTransitionFrom;
+                    let stepCount = 2
+                    let endP = startP+transitionLength/stepCount;
+                    let mixed, lowDithNe;
+
+                    if(nextItem.inverted) {
+                        mixed = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
+                        startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+                        lowDithNe = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)]
+                        startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+                    }
+                    else {
+                        lowDithNe = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)]
+                        startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+    
+                        // let midDithNe = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
+                        // startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+    
+                        mixed = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
+                        startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+                    }
+                    
+                    // let midDithCu = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
+                    // startP += transitionLength/stepCount; endP += transitionLength/stepCount;
+                    // let lowDithCu = [fastRoundWithPrecision(startP, 0), fastRoundWithPrecision(endP, 0)];
+
+                    ctx.fillStyle = currentItem.color;
+                    let to = nextItem.inverted ? mixed[1] :  lowDithNe[1];
+                    let from = nextItem.inverted ? mixed[0] :  lowDithNe[0];
+                    if(currentItem.position < from){
+                        for(let r = currentItem.position; r < from;r++){
+                            ctx.fillRect(0,r,size.x, 1);
+                        }
+                    }
+                    
+
+                    let shift = false;
+                    for(let r = from; r < to;r++){
+                        ctx.fillStyle = currentItem.color;
+                        ctx.fillRect(0,r,size.x, 1);
+                        if(r%2 == 0)
+                            continue;
+
+                        shift = !shift;
+                        let fill = true;
+                        ctx.fillStyle = nextItem.color;
+                        for(let c = shift ? 1 : 0; c < size.x; c++){
+                            if(fill){
+                                ctx.fillRect(c, r,1,1);
+                            }
+
+                            fill = !fill;
+                        }
+                    }
+
+                    // shift = false;
+                    // for(let r = midDithNe[0]; r < midDithNe[1];r++){
+                    //     ctx.fillStyle = currentItem.color;
+                    //     ctx.fillRect(0,r,size.x, 1);
+                    //     let fill = true;
+                    //     let counter = 4;
+                    //     ctx.fillStyle = nextItem.color;
+                    //     if(r%2 == 0){
+                    //         for(let c = (shift ? 1: 3); c < size.x; c++){
+                    //             if(counter == 4){
+                    //                 ctx.fillRect(c, r,1,1);
+                    //                 counter = 0;
+                    //             }
+                                    
+                    //             counter++;
+                    //         }
+                    //         shift = !shift;
+
+                    //         continue;
+                    //     }
+                            
+                    //     fill = true;  
+                    //     for(let c = 0; c < size.x; c++){
+                    //         if(fill){
+                    //             ctx.fillRect(c, r,1,1);
+                    //         }
+
+                    //         fill = !fill;
+                    //     }
+                    // }
+
+                    shift = true;
+                    for(let r =from; r < to;r++){
+                        
+                        //ctx.fillRect(0,r,size.x, 1);
+
+                        let fill = true;
+                        
+                        for(let c = shift ? 1 : 0; c < size.x; c++){
+                            if(fill){
+                                ctx.fillStyle = nextItem.color;
+                            }
+                            else {
+                                ctx.fillStyle = currentItem.color;
+                            }
+
+                            ctx.fillRect(c, r,1,1);
+
+                            fill = !fill;
+                        }
+                        shift = !shift;
+                    }
+
+                    // shift = true;
+                    // for(let r = midDithCu[0]; r < midDithCu[1];r++){
+                    //     ctx.fillStyle = nextItem.color;
+                    //     ctx.fillRect(0,r,size.x, 1);
+                    //     let fill = true;
+                    //     let counter = 4;
+                    //     ctx.fillStyle = currentItem.color;
+                    //     if(r%2 == 0){
+                    //         for(let c = (shift ? 1: 3); c < size.x; c++){
+                    //             if(counter == 4){
+                    //                 ctx.fillRect(c, r,1,1);
+                    //                 counter = 0;
+                    //             }
+                                    
+                    //             counter++;
+                    //         }
+                    //         shift = !shift;
+
+                    //         continue;
+                    //     }
+                            
+                    //     fill = true;  
+                    //     for(let c = 0; c < size.x; c++){
+                    //         if(fill){
+                    //             ctx.fillRect(c, r,1,1);
+                    //         }
+
+                    //         fill = !fill;
+                    //     }
+                    // }
+
+                    // shift = false;
+                    // for(let r = lowDithCu[0]; r < lowDithCu[1];r++){
+                    //     ctx.fillStyle = nextItem.color;
+                    //     ctx.fillRect(0,r,size.x, 1);
+                    //     if(r%2 == 0)
+                    //         continue;
+
+                    //     shift = !shift;
+                    //     let fill = true;
+                    //     ctx.fillStyle = currentItem.color;
+                    //     for(let c = shift ? 1 : 0; c < size.x; c++){
+                    //         if(fill){
+                    //             ctx.fillRect(c, r,1,1);
+                    //         }
+
+                    //         fill = !fill;
+                    //     }
+                    // }
+
+
+                    //for(let r = currentItem.position; r < nextItem.position; r++){
+                        // let nextColorPixelsXPositions = []
+                        // if(r >= startTransitionFrom){
+                        //     nextColorAmount = fastRoundWithPrecision(size.x* (r-startTransitionFrom)/transitionLength, 0);
+                        //     if(nextColorAmount != 0){
+                        //         let nextPixelStep = size.x/(nextColorAmount+1);
+                        //         for(let j = 1; j <=nextColorAmount;j++)
+                        //             nextColorPixelsXPositions[j-1] = fastRoundWithPrecision(nextPixelStep*j,0);
+                        //     }
+                        // }
+                        
+                        
+                        
+                        // console.log(`from ${currentItem.color} to ${nextItem.color}; row: ${r}; nextColorAmount: ${nextColorAmount}`);
+                        // let lineColor = currentItem.color;
+                        // let singleColor = nextItem.color;
+                        // if(nextColorAmount > size.x/2) {
+                        //     lineColor = nextItem.color;
+                        //     singleColor = currentItem.color;
+                        //     nextColorAmount = size.x - nextColorAmount;
+                        // }
+                        // ctx.fillStyle = lineColor;//currentItem.color;
+                        // ctx.fillRect(0,r,size.x,1);
+                        // ctx.fillStyle = singleColor;//nextItem.color;
+                        // for(let c = 0; c < nextColorAmount; c++){
+                        //     ctx.fillRect(getRandomInt(0, size.x-1), r,1,1);
+                        // }
+
+                    //}
+                }
+            }
+            else if(o.type == 'lines'){
+                for(let i = 0; i < o.items.length-1;i++){
+                    let currentItem = o.items[i];
+                    let nextItem = o.items[i+1];
+                    let startTransitionFrom = currentItem.startTransitionFrom || currentItem.position;
+                    let transitionLength = nextItem.position - startTransitionFrom;
+                    let transitionTo = startTransitionFrom + transitionLength;
+
+                    ctx.fillStyle = currentItem.color;
+                    if(currentItem.position < startTransitionFrom){
+                        for(let r = currentItem.position; r < startTransitionFrom;r++){
+                            ctx.fillRect(0,r,size.x, 1);
+                        }
+                    }
+
+                    for(let r = startTransitionFrom; r < transitionTo; r++){
+                        ctx.fillStyle = currentItem.color;
+                        ctx.fillRect(0,r,size.x, 1);
+
+                        if(currentItem.noNextColorPropbabilityCheck || getRandomInt(0, fastRoundWithPrecision(5 - 5*r/transitionTo, 0)) == 0){
+                            ctx.fillStyle = nextItem.color;
+                            let from = getRandomInt(-size.x/4, size.x);
+                            let lengthX = getRandomInt(size.x/10,size.x/4 + (size.x/2)* r/transitionTo);
+                            ctx.fillRect(from, r, lengthX, 1);
+
+                            if(getRandomBool()){
+                                let count = getRandomInt(1,5);
+                                ctx.fillStyle = currentItem.color;
+                                for(let ii = 0; ii < count;ii++){
+                                    let l = getRandomInt(1, lengthX/15);
+                                    if(l > 0)
+                                        ctx.fillRect(getRandomInt(from, from+lengthX), r, l, 1);
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+                if(o.items[o.items.length-1].position < size.y){
+                    ctx.fillStyle = o.items[o.items.length-1].color;
+                    for(let r = o.items[o.items.length-1].position; r < size.y; r++){
+                        ctx.fillRect(0,r,size.x, 1);
+                    }
+                }
+            }
+
+            return;
+        });
     }
 }
 
@@ -341,6 +600,58 @@ var colors = {
         transparentBlack: 'rgba(0,0,0, 0)',
         white: 'rgba(255,255,255, 1)',
         black: 'rgba(0,0,0,1)',
+    },
+    toHsv({initialValue, isRgb = false, resultAsArray = false, asInt = false}){
+        let rgb = undefined;
+        if(!isRgb){
+            rgb = hexToRgb(initialValue, true)
+        }
+        else if(!isArray(initialValue)) {
+            rgb = [initialValue.r, initialValue.g, initialValue.b];
+        }
+        else {
+            rgb = [...initialValue];
+        }
+
+    
+        let hsv = rgbToHsv(rgb[0], rgb[1], rgb[2]);
+
+        if(asInt){
+            hsv.h= fastRoundWithPrecision(hsv.h*360);
+            hsv.s = fastRoundWithPrecision(hsv.s *100);
+            hsv.v= fastRoundWithPrecision(hsv.v*100);
+        }
+
+        if(resultAsArray){
+            return [hsv.h, hsv.s, hsv.v];
+        }
+
+        return hsv;
+    },
+    changeHSV({initialValue, parameter, amount,  isRgb = false, asArray = true}){
+        let hsv = this.toHsv({initialValue});
+        if(hsv[parameter] == undefined)
+            throw 'colors.changeHSV unknown parameter:' + parameter;
+
+        if(amount >= 1 || amount <= -1){
+            if(parameter == 'h')
+                amount/=360;
+            else 
+                amount/=100;
+        }
+
+        hsv[parameter]+=amount;
+        let resultRgb = hsvToRgb(hsv.h, hsv.s, hsv.v, true);
+        if(isRgb){
+            if(asArray)
+                return resultRgb;
+            else {
+                return { r: resultRgb[0], g: resultRgb[1], br: resultRgb[2]}
+            }
+        }
+        else {
+            return '#' + rgbToHex(resultRgb);
+        }
     }
     
 

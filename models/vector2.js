@@ -243,6 +243,22 @@ class Vector2 {
     static get down(){
         return new Vector2(0,1);
     }
+
+    static get upLeft() {
+        return new Vector2(-1,-1);
+    }
+
+    static get upRight() {
+        return new Vector2(1,-1);
+    }
+
+    static get downLeft() {
+        return new Vector2(-1,1);
+    }
+
+    static get downRight() {
+        return new Vector2(1,1);
+    }
 }
 
 var V2 = Vector2;

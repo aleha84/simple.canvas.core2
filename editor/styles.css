@@ -1,0 +1,175 @@
+html, 
+      body {
+          height: 100%;
+          margin: 0;
+      }
+
+      body {
+        min-height: 100%;
+      }
+
+      input[type='button'] {
+          cursor: pointer;
+      }
+
+      .container {
+        width: 100%;
+        height: 100%;
+      }
+
+      .container>div {
+        display: inline-block;
+        height: 100%;
+      }
+
+      .editor {
+        /* width: 80%; */
+    width:calc(100% - 400px);
+    background:blue;
+    float:left;
+      }
+
+      .controlsWrapper {
+        /* width: 20%; */
+        width:400px;
+        background:#CCCCCC;
+        float:right;   
+        overflow-y: scroll;
+      }
+
+      .controlsWrapper>div {
+        margin: 10px 15px;
+      }
+
+      .listbox {
+          padding-top: 5px;
+          padding-bottom:5px;
+          width: 100%;
+      }
+
+      .listbox>*{
+        text-align: center;
+        display: block;
+      }
+
+      .listbox > .title {
+          font-weight: bold;
+          text-align: center;
+      }
+
+      .listbox>.selectHolder>* {
+        display: inline-block;
+      }
+
+      .listbox>.selectHolder>.selectControls>* {
+        display: block;
+      }
+
+      .listbox select {
+          overflow-y: auto;
+          margin: 0 auto;
+          min-width: 150px;
+      }
+
+      .listbox select>option {
+        border-bottom: 1px solid gray;
+    }
+
+    .row>.title {
+        float: left;
+        width: 20%;
+    }
+    .row>.title + .value {
+        float: right;
+        width: 80%;
+    }
+
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+      }
+
+    .V2>.value.edit > .read {
+        display: none;
+    }
+
+    .V2>.value > .edit {
+        display: none;
+    }
+
+    .V2>.value > .edit > input {
+        display: inline-block;
+        width: 30px;
+    }
+
+    .V2>.value.edit > .edit {
+        display: block;
+    }
+
+    .V2>.value:not(.edit) {
+        cursor: pointer;
+    }
+
+    .overlay {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 2000;
+      margin: 0 !important;
+    }
+
+    .overlay>.content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      /* font-size: 50px;
+      color: white; */
+      transform: translate(-50%,-50%);
+      -ms-transform: translate(-50%,-50%);
+      }
+
+    .overlay>.content.export {
+      width: 50%;
+      height: 50%;
+      background: white;
+    }
+
+    .overlay>.content.export>textarea {
+        width: 100%;
+        height: 100%;
+        resize: none;
+    }
+
+    .overlay>.content.load {
+        padding: 10px;
+        background: white;
+    }
+
+    .overlay>.content.load .saveListItem.selected  {
+        border: 1px solid blue;
+    }
+
+    .overlay>.content.save {
+        padding: 10px;
+        background: white;
+    }
+
+    .overlay>.close {
+      position: absolute;
+      top: 21%;
+      right: 21%;
+      width: 90px;
+      height: 40px;
+      font-size: 28px;
+    }
+
+    .editorBlock>.modeSwitch>.stateName {
+        font-size: 20px;
+        font-weight: bold;
+    }

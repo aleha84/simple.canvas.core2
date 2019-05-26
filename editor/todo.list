@@ -1,0 +1,13 @@
++1. Add pointer position value (done)
+2. Range control - add min, max values. Current value label
++3. Stroke color to fill color button
+4. Point color override.
+5. Next point color override based on previous
+6. Dithering? Blending?
+7. Animation
+8. Big images drag viewport movement
+9. Export to img
+10. Export animation as gif
+11. Scale select box for point on large images
+12. Select box color change to dark if underlying point has bright color
++13. Move item in list

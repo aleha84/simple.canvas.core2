@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-      <meta charset="UTF-8">
+    <meta charset=utf-8 />
         
     <script type="text/javascript" src='../models/vector2.js'></script>
     <script type="text/javascript" src='../models/renderProperties.js'></script>
@@ -23,38 +23,26 @@
     <script type="text/javascript" src='../ai.js'></script>
     <script type="text/javascript" src='../ui.js'></script>
     <script type="text/javascript" src='../main.js'></script>
-    <script type="text/javascript" src='Scenes/effectsScene.js'></script>
-    <script type="text/javascript" src='Scenes/effectsScene2.js'></script>
-    <script type="text/javascript" src='Scenes/effectsScene3.js'></script>
-    <script type="text/javascript" src='Scenes/kaambezoneScene.js'></script>
-    <script type="text/javascript" src='Scenes/pointer.js'></script>
-    <script type="text/javascript" src='Scenes/items.js'></script>
-    <script type="text/javascript" src='Scenes/items2.js'></script>
-    <script type="text/javascript" src='Scenes/texture.js'></script>
-    <script type="text/javascript" src='Scenes/sphere.js'></script>
-    <script type="text/javascript" src='Scenes/explosion.js'></script>
-    <script type="text/javascript" src='Scenes/end.js'></script>
-    <script type="text/javascript" src='Scenes/easing.js'></script>
-    <script type="text/javascript" src='Scenes/bottles.js'></script>
-    <script type="text/javascript" src='Scenes/face.js'></script>
-    <script type="text/javascript" src='Scenes/face2.js'></script>
-    <script type="text/javascript" src='Scenes/chase.js'></script>
-    <script type="text/javascript" src='Scenes/sparks.js'></script>
-    <script type="text/javascript" src='demo7.js'></script>
+    <script type="text/javascript" src='htmlutilities.js'></script>
+    <script type="text/javascript" src='components.js'></script>
+    <script type="text/javascript" src='editorgo.js'></script>
+    <script type="text/javascript" src='editor.js'></script>
+    
 
     <style>
-      html, 
-      body {
-          height: 100%;
-          margin: 0;
-      }
+      
 
-      body {
-        min-height: 100%;
-      }
+      @import './styles.css';
     </style>
   </head>
 	<body>
-		
-	</body>
+		<div class='container'>
+      <div class='editor' id='editor'></div>
+      <div class='controlsWrapper'>
+
+      </div>
+    </div>
+  </body>
+  
+  <script type="text/javascript" src='mainScene.js'></script>
 </html>  

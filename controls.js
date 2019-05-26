@@ -81,7 +81,8 @@ SCG.controls = {
                         }
                     }
 
-                    var eventResult = go.handlers[eventType].call(go);
+                    //return to all event handles logical relative to top left corner position as first argument
+                    var eventResult = go.handlers[eventType].call(go, this.logicalPosition.substract(go.box.topLeft)); 
                     if(eventResult){
                         if(eventResult.preventDiving)
                             return false;
@@ -93,7 +94,8 @@ SCG.controls = {
                     return false;
                 }
 
-                if(
+                if( //чтобы этот ивент сработал в случае наличия дочерних сущнеостей, нужно чтобы child элемент возвращал eventResult.preventDiving = false; А родительский элемент на move проставлял moveEventTriggered = true
+                    // а на out moveEventTriggered = false
                     eventType === 'move' 
                     && go.moveEventTriggered
                     && go.handlers != undefined

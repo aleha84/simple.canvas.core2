@@ -9,12 +9,15 @@ class Scene {
             space: new V2(500, 300),
             AI: undefined,
             ui: [],
+            clearGOOnDispose: true,
+            timers: [],
             debug: {
                 enabled: false,
                 font: (25*SCG.viewport.scale) + 'px Arial',
                 textAlign: 'left',
                 fillStyle: 'red',
                 position: new V2(20*SCG.viewport.scale, 20*SCG.viewport.scale),
+                additional: []
             },
             collisionDetection: {
                 enabled: false,
@@ -225,6 +228,11 @@ class Scene {
         this.sceneCenter = new V2(this.viewport.x/2, this.viewport.y/2);
     }
 
+    backgroundRenderDefault(color){
+        SCG.contexts.background.fillStyle = color || 'black';
+        SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
+    }
+
     addUIGo(go) {
         if(go === undefined)
             throw 'No GO provided';
@@ -238,6 +246,10 @@ class Scene {
         go.parentScene = this;
 
         return go;
+    }
+
+    clearGo() {
+        this.goLayers = [];
     }
 
     addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly
@@ -256,6 +268,24 @@ class Scene {
 
         go.parentScene = this;
         go.layerIndex = layerIndex;
+
+        return go;
+    }
+
+    changeLayer(go, layerIndex, regEvents) {
+        let goIndex = this.goLayers[go.layerIndex].indexOf(go);
+        if(goIndex == -1){
+            console.log('failed to change layer for GO. Not found in layer');
+            return;
+        }
+
+        if(regEvents)
+            go.unRegEvents();
+
+        this.goLayers[go.layerIndex].splice(goIndex,1);
+         
+        go.changeLayerIndex = undefined;
+        this.addGo(go, layerIndex, regEvents);
 
         return go;
     }
@@ -290,6 +320,9 @@ class Scene {
     innerDispose(){
         SCG.controls.clearEventsHandlers(); //reset event hadlers
 
+        if(this.clearGOOnDispose)
+            this.clearGo();
+
         this.dispose();
     }
     
@@ -306,6 +339,25 @@ class Scene {
 
     afterMainWork(now) {}
 
+    processTimers(now) {
+        for(let timer of this.timers) {
+            doWorkByTimer(timer, now);
+        }
+    }
+
+    registerTimer(timer) {
+        if(this.timers.indexOf(timer) == -1)
+            this.timers.push(timer);
+
+        return timer;
+    }
+
+    unregTimer(timer) {
+        let p = this.timers.indexOf(timer);
+        if(p != -1)
+            this.timers.splice(p, 1);
+    }
+
     cycleWork(now) {
         this.preMainWorkInner(now);
 
@@ -316,6 +368,11 @@ class Scene {
 
             let i = goLayer.length;
             while (i--) {
+                if(goLayer[i].changeLayerIndex != undefined){
+                    let go = this.changeLayer(goLayer[i], goLayer[i].changeLayerIndex, true);
+                    go.render();
+                    continue;
+                }
                 goLayer[i].update(now);
                 goLayer[i].render();
         
@@ -330,6 +387,8 @@ class Scene {
         }
         
         this.afterMainWork(now);
+        
+        this.processTimers(now);
 
         if(this.debug.enabled){
 
@@ -340,6 +399,12 @@ class Scene {
             ctx.fillStyle = this.debug.fillStyle;
             
             ctx.fillText(SCG.main.performance.fps, this.debug.position.x, this.debug.position.y);
+
+            let p = this.debug.position.y;
+            for(let debugData of this.debug.additional){
+                p+=12*SCG.viewport.scale;
+                ctx.fillText(debugData, this.debug.position.x, p);
+            }
         }
     }
 }

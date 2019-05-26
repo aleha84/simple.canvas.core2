@@ -16,6 +16,7 @@ class GO {
 
         assignDeep(this, {
             debug: false,
+            logInDebug: false,
             alive: true,
             id: undefined,
             img: undefined,
@@ -37,6 +38,18 @@ class GO {
             initialized: false,
             disabled: false,
             effects: [],
+            timers: [],
+            renderValuesRound: false,
+            script: {
+                currentStep: undefined,
+                options: {
+                    timerDelay: 50,
+                },
+                items: [],
+                callbacks: {
+                    completed: function() {}
+                }
+            },
             collisionDetection: {
                 enabled: false,
                 render: false,
@@ -61,6 +74,7 @@ class GO {
                 reverse: false,
                 paused: false,
                 loop : false,
+                completed: false,
                 animationTimer : undefined,
                 animationEndCallback: function(){},
                 animationRestartCallback: function(){},
@@ -69,7 +83,7 @@ class GO {
                     this.animationTimer.originDelay = value;
                 },
                 frameChange : function(){
-                    if(this.paused){
+                    if(this.paused || this.completed){
                         return;
                     }
         
@@ -92,6 +106,7 @@ class GO {
                             this.animationRestartCallback.call(objectContext);
                         }
                         else{
+                            this.completed = true;
                             this.animationEndCallback.call(objectContext);
                             return;
                         }
@@ -196,9 +211,17 @@ class GO {
 
     }
 
+    initCompleted() {
+        
+    }
+
     console(message) {
-        if(this.debug)
-            console.log(this.id + ' ' + message);
+        if(this.debug){
+            if(this.logInDebug){
+                console.log(this.id + ' ' + message);
+            }
+        }
+            
     }
 
     beforeDead(){}
@@ -253,6 +276,17 @@ class GO {
         return result;
     }
 
+    removeEffect(effect){
+        if(effect === undefined)
+            return;
+
+        let index = this.effects.indexOf(effect);
+        if(index !== -1){
+            this.effects.splice(index,1);
+            effect.parent = undefined;
+        }
+    }
+
     addEffect(effect){
         if(!(effect instanceof EffectBase))
             throw 'Effect must be derived from EffectBase class';
@@ -262,6 +296,8 @@ class GO {
         if(effect.initOnAdd){
             effect.__init(this);
         }
+
+        return effect;
     }
 
     addChild(childGo, regEvents = false) {
@@ -320,7 +356,7 @@ class GO {
 
         if(toRemove.length){
             for(let r = 0; r < toRemove.length; r++){
-                this.effects.splice(this.effects.indexOf(toRemove[r], 1));
+                this.effects = this.effects.splice(this.effects.indexOf(toRemove[r], 1));
             }
         }
 
@@ -413,6 +449,8 @@ class GO {
 
         this.effectsProcesser((effect) => effect.beforeRender());
 
+        let rsx,rsy, rtlX, rtlY;
+
 		if(this.isCustomRender)
 		{
 			this.customRender();
@@ -424,8 +462,8 @@ class GO {
 			if(this.img != undefined)
 			{
 				
-                let rsx = this.renderSize.x;
-                let rsy = this.renderSize.y;
+                rsx = this.renderSize.x;
+                rsy = this.renderSize.y;
 
                 if(this.customScale.x !== 1)
                     rsx *= this.customScale.x;
@@ -436,6 +474,16 @@ class GO {
 				let dsp = this.destSourcePosition;
 				let s = this.size;
 
+                rtlX = rp.x - rsx/2;
+                rtlY = rp.y - rsy/2;
+
+                if(this.renderValuesRound){
+                    rtlX = fastRoundWithPrecision(rtlX, 0);
+                    rtlY = fastRoundWithPrecision(rtlY, 0);
+                    rsx = fastRoundWithPrecision(rsx, 0);
+                    rsy = fastRoundWithPrecision(rsy, 0);
+                }
+                
 				if(this.isAnimated)
 				{
 					let ani = this.animation;
@@ -444,8 +492,8 @@ class GO {
 						ani.currentDestination.y * ani.sourceFrameSize.y,
 						ani.sourceFrameSize.x,
 						ani.sourceFrameSize.y,
-						rp.x - rsx/2,
-						rp.y - rsy/2,
+						rtlX,
+						rtlY,
 						rsx,
 						rsy
 					);
@@ -457,15 +505,15 @@ class GO {
 							dsp.y,
 							this.destSourceSize.x,
 							this.destSourceSize.y,
-							(rp.x - rsx/2), 
-							(rp.y - rsy/2), 
+							rtlX, 
+							rtlY, 
 							rsx, 
 							rsy);		
 					}
 					else { // draw simple img without any modifications
 						ctx.drawImage(this.img, 
-							(rp.x - rsx/2), 
-							(rp.y - rsy/2), 
+							rtlX, 
+							rtlY, 
 							rsx, 
 							rsy);			
 					}
@@ -486,7 +534,7 @@ class GO {
 
         this.effectsProcesser((effect) => effect.afterRender());
 
-        this.internalRender();
+        this.internalRender(rsx,rsy, rtlX, rtlY);
 
         this.console('render completed.');
     }
@@ -571,6 +619,8 @@ class GO {
 
             let that = this;
             this.effectsProcesser((effect) => effect.__init(that));
+
+            this.initCompleted();
         }
 
         this.internalPreUpdate(now);
@@ -611,6 +661,7 @@ class GO {
                 }
 
                 let rtl = new V2(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y - this.renderSize.y/2);
+
                 if(!this.renderBox)
                     this.renderBox = new Box(rtl, this.renderSize, this.boxRenderProperties);
                 else 
@@ -651,7 +702,12 @@ class GO {
 		if(this.isAnimated)
             doWorkByTimer(this.animation.animationTimer, now);
         
-		this.internalUpdate(now);
+        this.internalUpdate(now);
+        
+        this.processTimers(now);
+
+        if(this.scriptTimer) 
+            doWorkByTimer(this.scriptTimer, now);
 
 		if(!this.alive){
             this.console('update completed. this.alive = false');
@@ -735,7 +791,54 @@ class GO {
             }
         });
     }
+
+    processTimers(now) {
+        for(let timer of this.timers) {
+            doWorkByTimer(timer, now);
+        }
+    }
+
+    registerTimer(timer) {
+        if(this.timers.indexOf(timer) == -1)
+            this.timers.push(timer);
+
+        return timer;
+    }
+
+    unregTimer(timer) {
+        let p = this.timers.indexOf(timer);
+        if(p != -1)
+            this.timers.splice(p, 1);
+    }
+
+    processScript() {
+        if(this.script.items.length == 0){
+            this.script.callbacks.completed.call(this);
+            return;
+        }
+            
+
+        this.script.currentStep = this.script.items.shift();
+        this.script.currentStep.call(this);
+    }
+
+    createScriptTimer(script, stopPredicate, startNow = true, customDelay = undefined){
+        return createTimer(customDelay || this.script.options.timerDelay, () => {
+            script.call(this);
+            if(stopPredicate.call(this)){
+                this.scriptTimer = undefined;
+                this.processScript();
+                return;
+            }
+            
+            this.needRecalcRenderProperties = true;
+        }, this, startNow);
+    }
 }
 
 GO.counter = {};
 GO.ids = [];
+
+var go = GO;
+var Go = GO;
+var gO = GO;
