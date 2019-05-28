@@ -76,6 +76,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     })); 
 
+    SCG.scenes.cacheScene(new DestrScene({
+        name:'destr',
+        viewport: verticalDefaultViewport
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();
