@@ -104,12 +104,19 @@ class DestrScene extends Scene {
                         startPixel = startPixelsOriginals[startPixelsOriginals.getRandom(0, startPixelsOriginals.length-1)];
                     }
 
+                    let normal = startPixel.position.clone().normalize();
+                    // if(normal.y > 0)
+                    //     normal.y*=-1;
+
+                    let midPosition = normal.mul(20*getRandom(4,6));
+
                     this.pixels[this.pixels.length] = this.addChild(new MutationPixel({
                         imgCache: this.imgCache,
                         position: startPixel.position,
-                        midPosition: new V2(
-                            fastRoundWithPrecision(this.size.x* getRandom(1,2) * (startPixel.position.x >= 0 ? 1 : -1)), 
-                            fastRoundWithPrecision(this.size.y/2 - this.size.y* getRandom(0,2))),
+                        midPosition: midPosition,
+                        // new V2(
+                        //     fastRoundWithPrecision(this.size.x* getRandom(1,2) * (startPixel.position.x >= 0 ? 1 : -1)), 
+                        //     fastRoundWithPrecision(this.size.y/2 - this.size.y* getRandom(0,2))),
                         targetPosition: targetPixel.position,
                         startSize: startPixel.size,
                         targetSize: targetPixel.size,
@@ -201,15 +208,14 @@ class MutationPixel extends GO {
         this.yChange = { time: 0, duration: this.duration/2, change: this.midPosition.y - this.position.y , type: 'quad', method: 'out', startValue: this.position.y }
 
         this.mutationTimer = this.registerTimer(createTimer(30, () => {
+            if(this.mutationTimerPaused)
+                return;
+
             this.position.x = easing.process(this.xChange);
             this.position.y = easing.process(this.yChange);
 
             if(this.isColorChange){
                 this.currentColor = colors.rgbToString({value: [easing.process(this.colorChange[0]), easing.process(this.colorChange[1]), easing.process(this.colorChange[2])], opacity: this.startColorRGB[3] != undefined ? this.startColorRGB[3] : 1});
-                // this.img = createCanvas(this.pixelSize, (ctx, size) => {
-                //     ctx.fillStyle = this.currentColor;
-                //     ctx.fillRect(0,0, size.x, size.y);
-                // })
 
                 if(!this.imgCache[this.currentColor]){
                     this.imgCache[this.currentColor] = createCanvas(this.pixelSize, (ctx, size) => {
@@ -238,11 +244,39 @@ class MutationPixel extends GO {
 
             if(this.xChange.time > this.xChange.duration){
                 if(this.flyOut){
-                    this.xChange = { time: 0, duration: this.duration/2, change: this.targetPosition.x - this.position.x , type: 'quad', method: 'in', startValue: this.position.x }
-                    this.yChange = { time: 0, duration: this.duration/2, change: this.targetPosition.y - this.position.y , type: 'quad', method: 'in', startValue: this.position.y }
+                    this.xChange = { time: 0, duration: this.duration/2, change: this.targetPosition.x - this.position.x , type: 'quad', method: 'inOut', startValue: this.position.x }
+                    this.yChange = { time: 0, duration: this.duration/2, change: this.targetPosition.y - this.position.y , type: 'quad', method: 'inOut', startValue: this.position.y }
+                    // this.mutationTimerPaused = true;
+                    // this.flyOut = false;
+
+                    // this.fall = { time: 0, duration: 10, change: this.position.y + (getRandomInt(5,10)) - this.position.y , type: 'quad', method: 'in', startValue: this.position.y }
+
+                    // this.fallTimer = this.registerTimer(createTimer(30, () => {
+                    //     this.position.y = easing.process(this.fall);
+                    //     this.needRecalcRenderProperties = true;
+                    //     this.fall.time++;
+                    //     if(this.fall.time > this.fall.duration){
+                    //         this.unregTimer(this.fallTimer);
+                    //         //console.log('fallTimer unregsitered')
+                    //         this.mutationTimerPaused = false;
+
+                    //         this.xChange = { time: 0, duration: this.duration/2, change: this.targetPosition.x - this.position.x , type: 'quad', method: 'inOut', startValue: this.position.x }
+                    //         this.yChange = { time: 0, duration: this.duration/2, change: this.targetPosition.y - this.position.y , type: 'quad', method: 'inOut', startValue: this.position.y }
+
+                    //         this.flyIn = true;
+                    //     }
+                    // }, this, true));
+
+                    // return;
+                    
                 }
-                else 
+                else {
                     this.unregTimer(this.moveTImer);
+                }
+                // else if(this.flyIn){
+                //     //console.log('moveTImer unregsitered')
+                //     this.unregTimer(this.moveTImer);
+                // }   
             }
 
         }, this. true));
