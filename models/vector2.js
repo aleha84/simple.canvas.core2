@@ -259,6 +259,10 @@ class Vector2 {
     static get downRight() {
         return new Vector2(1,1);
     }
+
+    static get zero() {
+        return new V2();
+    }
 }
 
 var V2 = Vector2;
