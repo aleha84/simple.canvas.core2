@@ -19,6 +19,9 @@ var easing = {
 
         return m[key];
     },
+    createProps(duration, start, end, type, method) {
+        return { time: 0, duration, change: end - start , type, method, startValue: start, useCache: false }
+    },
     process(props){
         let group = this[props.type];
         if(!group) {
