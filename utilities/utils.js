@@ -615,7 +615,11 @@ function hsvToHex({hsv, hsvAsObject = false }) {
   return '#' + rgbToHex(hsvToRgb(init[0]/360, init[1]/100, init[2]/100, true));
 }
 
-function hsvToRgb(h, s, v, asArray = false) {
+function hsvToRgb(h, s, v, asArray = false, hsvAsInt = false) {
+  if(hsvAsInt){
+    h/=360;s/=100;v/=100;
+  }
+  
   var r, g, b, i, f, p, q, t;
   if (arguments.length === 1) {
       s = h.s, v = h.v, h = h.h;
