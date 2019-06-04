@@ -91,6 +91,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     })); 
 
+    SCG.scenes.cacheScene(new OceanScene({
+        name:'ocean',
+        viewport: defaultViewpot
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
