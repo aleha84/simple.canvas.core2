@@ -81,6 +81,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     })); 
 
+    SCG.scenes.cacheScene(new Experiments4Scene({
+        name:'experiments4',
+        viewport: verticalDefaultViewport
+    })); 
+
     SCG.scenes.cacheScene(new DestrScene({
         name:'destr',
         viewport: verticalDefaultViewport
