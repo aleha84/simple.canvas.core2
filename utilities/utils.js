@@ -543,9 +543,23 @@ function createCanvas(size, contextProcesser) {
   ctx.imageSmoothingEnabled = false;
 
   if(contextProcesser && isFunction(contextProcesser))
-      contextProcesser(ctx, size);
+      contextProcesser(ctx, size, createCanvasHelper({ctx}));
 
   return canvas;
+}
+
+function createCanvasHelper({ctx}){
+  return {
+    setFillColor(color){
+      ctx.fillStyle = color;return this;
+    },
+    rect(x,y,w,h) {
+      ctx.fillRect(x,y,w,h);return this;
+    },
+    dot(x,y){
+      this.rect(x,y,1,1);return this;
+    }
+  }
 }
 
 function hexToRgb(hex, asArray = false, asObject = false) {

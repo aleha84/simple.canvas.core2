@@ -16,7 +16,68 @@ class Experiments4Scene extends Scene {
     }
 
     start() {
-        this.addGo(new GO({
+        this.light = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: new V2(1, 214),
+            sizeClamps: [1, 185],
+            isVisible: false,
+            start() {
+                this.isVisible = true;
+                this.sizeXChange = { time: 0, duration: 30, change: this.sizeClamps[1] - this.sizeClamps[0], type: 'quad', method: 'inOut', startValue: this.sizeClamps[0]};
+                this.timer = this.registerTimer(createTimer(100, () => {
+                    this.size.x =  fastRoundWithPrecision(easing.process(this.sizeXChange));
+                    this.needRecalcRenderProperties = true;
+                    this.sizeXChange.time++;
+
+                    if(this.sizeXChange.time > this.sizeXChange.duration){
+                        this.unregTimer(this.timer);
+                    }
+
+                }, this, true));
+            },
+            stop() {
+                this.sizeXChange = { time: 0, duration: 30, change: -(this.sizeClamps[1] - this.sizeClamps[0]), type: 'quad', method: 'inOut', startValue: this.sizeClamps[1]};
+                this.timer = this.registerTimer(createTimer(100, () => {
+                    this.size.x =  fastRoundWithPrecision(easing.process(this.sizeXChange));
+                    this.needRecalcRenderProperties = true;
+                    this.sizeXChange.time++;
+
+                    if(this.sizeXChange.time > this.sizeXChange.duration){
+                        this.unregTimer(this.timer);
+                        this.isVisible = false;
+                    }
+
+                }, this, true));
+            },
+            init() {
+                this.img = createCanvas(new V2(this.sizeClamps[1], this.size.y), (ctx, size, helper) => {
+                    helper.setFillColor('rgb(255,255,255,0.25)').rect(0,7,size.x, size.y-14);
+                    let rx = size.x/2;
+                    let rxSq = rx*rx;
+                    let ry = 7;
+                    let rySq = ry*ry;
+                    for(let y =0; y < 7;y++) {
+                        for(let x =0; x < size.x;x++){
+                            let r = (( (x-rx)*(x-rx) )/(rxSq)  + ( (y-ry)*(y-ry)  )/(rySq));
+                            if( r <= 1   ){
+                                ctx.fillRect(x,y, 1,1);
+                            }
+                        }
+                    }
+
+                    ry = size.y-7;
+                    for(let y =size.y-7; y < size.y;y++) {
+                        for(let x =0; x < size.x;x++){
+                            let r = (( (x-rx)*(x-rx) )/(rxSq)  + ( (y-ry)*(y-ry)  )/(rySq));
+                            if( r <= 1   ){
+                                ctx.fillRect(x,y, 1,1);
+                            }
+                        }
+                    }
+                });
+            }
+        }), 9);
+        this.plazma = this.addGo(new GO({
             position: this.sceneCenter,
             size: new V2(30, 30).mul(4),
             renderValuesRound: true,
@@ -93,66 +154,151 @@ class Experiments4Scene extends Scene {
             }
         }), 10);
 
-        this.basement = this.addGo(new GO({
-            position: new V2(150, 350),
-            size: new V2(200, 10),
-            init() {
-                this.topEllipsis = this.addChild(new GO({
-                    position: new V2(),
-                    size: new V2(this.size.x, 20),
-                    imgCache: [],
-                    baseColorHSV: [50,100,100],
-                    sDelta: -70,
-
-                    init() {
-                        this.rx = this.size.x/2 ;
-                        this.ry = this.size.y/2;
-                        this.rxSq = this.rx*this.rx;
-                        this.rySq = this.ry*this.ry;
-                        this.change = { time: 0, duration: 10, change: this.sDelta, type: 'quad', method: 'inOut', startValue: 100};
-                        this.sOriginal = this.sDelta;
-                        this.sCurrent = this.sDelta;
-
-                        this.createImage();
-                        // this.registerTimer(createTimer(100, () => {
-                        //     this.sCurrent = easing.process(this.change);
-                        //     this.createImage();
-                        //     this.change.time++;
-
-                        //     if(this.change.time > this.change.duration){
-                        //         this.change.time = 0;
-                        //         this.change.change*=-1;
-                        //         this.change.startValue = this.sCurrent;
-                        //     }
-
-                        // }, this, true));
-                    },
-                    createImage() {
-                        if(!this.imgCache[this.sCurrent]){
-                            this.imgCache[this.sCurrent] = createCanvas(this.size, (ctx, size) => {
-                                for(let y =0; y < size.y;y++) {
-                                    for(let x =0; x < size.x;x++){
-                                        let r = (( (x-this.rx)*(x-this.rx) )/(this.rxSq)  + ( (y-this.ry)*(y-this.ry)  )/(this.rySq));
-                                        if( r <= 1   ){
-        
-                                            let s = this.baseColorHSV[1] + this.sCurrent*(1-r)/1;
-                                            s = Math.floor(s/20)*20;
-        
-                                            if(r > 0.85){
-                                                ctx.fillStyle = '#FF324E';
+        this.basements = [];
+        for(let i = 0; i < 2; i++){
+            this.basements[i] = this.addGo(new GO({
+                position: i == 0?  new V2(150, 350) : new V2(150, -50),
+                size: new V2(200, 200),
+                startLight(callback = () => {}) {
+                    this.ellipsis.start(callback);
+                },
+                stopLight(callback = () => {}) {
+                    this.ellipsis.stop(callback);
+                },
+                init() {
+                    this.body = this.addChild(new GO({
+                        position: new V2(0, 100),
+                        size: this.size,
+                        img: createCanvas(this.size, (ctx, size, helper) => {
+                            helper.setFillColor('#4F0F0F').rect(0,0,size.x, size.y);
+                            let darkWidth = size.x/4;
+                            let darkClamps = [0.7,0.1];
+                            let darkChange = { time: 0, duration: 4, change: darkClamps[1] - darkClamps[0], type: 'quad', method: 'out', startValue: darkClamps[0]};
+                            for(let i = 0; i < 5; i++){
+                                darkChange.time = i;
+                                helper
+                                    .setFillColor('rgba(0,0,0,' + easing.process(darkChange) +')')
+                                    .rect(i*darkWidth/5,0,darkWidth/5, size.y)
+                                    .rect(size.x - (i+1)*darkWidth/5,0,darkWidth/5, size.y);
+                            }
+                        })
+                    }))
+                    this.ellipsis = this.addChild(new GO({
+                        position: i == 0 ? new V2() : new V2(0, 200),
+                        size: new V2(this.size.x, 20),
+                        imgCache: [],
+                        baseColorHSV: [50,100,100],
+                        sDeltaClamps: [-10, -90],
+                        sDelta: -70,
+    
+                        init() {
+                            this.rx = this.size.x/2 ;
+                            this.ry = this.size.y/2;
+                            this.rxSq = this.rx*this.rx;
+                            this.rySq = this.ry*this.ry;
+                            
+    
+                            this.createImage();
+                            
+                        },
+                        start(callback) {
+                            this.sDeltaChange = { time: 0, duration: 30, change: this.sDeltaClamps[1] - this.sDeltaClamps[0], type: 'quad', method: 'inOut', startValue: this.sDeltaClamps[0]};
+                            this.timer = this.registerTimer(createTimer(100, () => {
+                                this.sDelta = fastRoundWithPrecision(easing.process(this.sDeltaChange));
+                                this.createImage();
+                                this.sDeltaChange.time++;
+    
+                                if(this.sDeltaChange.time > this.sDeltaChange.duration){
+                                    this.unregTimer(this.timer);
+                                    callback();
+                                }
+    
+                            }, this, true));
+                        },
+                        stop(callback) {
+                            this.sDeltaChange = { time: 0, duration: 30, change: -(this.sDeltaClamps[1] - this.sDeltaClamps[0]), type: 'quad', method: 'inOut', startValue: this.sDeltaClamps[1]};
+                            this.timer = this.registerTimer(createTimer(100, () => {
+                                this.sDelta = fastRoundWithPrecision(easing.process(this.sDeltaChange));
+                                this.createImage();
+                                this.sDeltaChange.time++;
+    
+                                if(this.sDeltaChange.time > this.sDeltaChange.duration){
+                                    this.unregTimer(this.timer);
+                                    callback();
+                                }
+    
+                            }, this, true));
+                        },
+                        createImage() {
+                            if(!this.imgCache[this.sDelta]){
+                                this.imgCache[this.sDelta] = createCanvas(this.size, (ctx, size) => {
+                                    for(let y =0; y < size.y;y++) {
+                                        for(let x =0; x < size.x;x++){
+                                            let r = (( (x-this.rx)*(x-this.rx) )/(this.rxSq)  + ( (y-this.ry)*(y-this.ry)  )/(this.rySq));
+                                            if( r <= 1   ){
+            
+                                                let s = this.baseColorHSV[1] + this.sDelta*(1-r)/1;
+                                                s = Math.floor(s/20)*20;
+            
+                                                if(r > 0.85){
+                                                    ctx.fillStyle = '#FF324E';
+                                                }
+                                                else ctx.fillStyle = hsvToHex({hsv: [ this.baseColorHSV[0], s, this.baseColorHSV[2] ]});
+                                                ctx.fillRect(x,y, 1,1);
+            
                                             }
-                                            else ctx.fillStyle = hsvToHex({hsv: [ this.baseColorHSV[0], s, this.baseColorHSV[2] ]});
-                                            ctx.fillRect(x,y, 1,1);
-        
                                         }
                                     }
-                                }
-                            });
-
-                            this.img = this.imgCache[this.sCurrent];
+                                });
+                            }
+    
+                            this.img = this.imgCache[this.sDelta];
                         }
+                    }))
+                }
+            }))
+        }
+        
+        this.sceneManager = this.addGo(new GO({
+            position: new V2(),
+            size: new V2(1,1),
+            init() {
+                this.createSequence();
+            },
+            createSequence() {
+                let that = this;
+                let scene = this.parentScene;
+                this.script.items = [
+                    function(){
+                        this.delayTimer = this.registerTimer(createTimer(2000, () => {
+                            this.unregTimer(this.delayTimer);
+                            this.processScript();
+                        }, this, false));
+                    },
+                    function() {
+                        scene.basements[0].startLight(() => this.processScript());
+                        scene.basements[1].startLight();
+
+                        scene.light.start();
+                    },
+                    function(){
+                        this.delayTimer = this.registerTimer(createTimer(2000, () => {
+                            this.unregTimer(this.delayTimer);
+                            this.processScript();
+                        }, this, false));
+                    },
+                    function() {
+                        scene.basements[0].stopLight(() => this.processScript());
+                        scene.basements[1].stopLight();
+
+                        scene.light.stop();
+                    },
+                    function() {
+                        this.createSequence();
                     }
-                }))
+                ];
+
+                this.processScript();
             }
         }))
     }
