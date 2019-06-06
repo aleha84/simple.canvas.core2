@@ -2,7 +2,7 @@ class Experiments4Scene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 additional: [],
             },
 
@@ -37,6 +37,40 @@ class Experiments4Scene extends Scene {
     }
 
     start() {
+        // this.indicators = this.addGo(new GO({
+        //     position: this.sceneCenter,
+        //     size: this.viewport,
+        //     init() {
+        //         this.itemSize = new V2(3,3);
+        //         this.blueImg = createCanvas(this.itemSize, (ctx, size, hlp) => {
+        //             hlp.setFillColor('#0065FF').rect(0,0,size.x, size.y).setFillColor('#0094FF').rect(0,0,2,2);
+        //         })
+        //         this.redImg = createCanvas(this.itemSize, (ctx, size, hlp) => {
+        //             hlp.setFillColor('#FF2323').rect(0,0,size.x, size.y).setFillColor('#FF5656').rect(0,0,2,2);
+        //         })
+        //         this.group1 = [];
+        //         for(let i = 0; i < 5; i++){
+        //             this.group1[i] = this.addChild(new GO({
+        //                 position: new V2(-125, -225 + i*5),
+        //                 size: this.itemSize,
+        //                 img: this.blueImg
+        //             }))
+        //         }
+                
+        //         this.g1State = {
+        //             index: 0,
+        //         }
+
+        //         this.g1Timer = this.registerTimer(createTimer(1000, () => {
+        //             this.group1.forEach(x => x.img = this.blueImg);
+        //             this.group1[this.g1State.index].img = this.redImg;
+        //             this.g1State.index++;
+        //             if(this.g1State.index == this.group1.length)
+        //                 this.g1State.index = 0;
+
+        //         }, this, true));
+        //     }
+        // }))
         this.particleSize = new V2(3,12);
         this.goUpParticleImg = createCanvas(this.particleSize, (ctx, size, helper) => {
             helper
@@ -62,10 +96,11 @@ class Experiments4Scene extends Scene {
             sizeYClamps: [204, 214],
             isVisible: false,
             start() {
-                this.isVisible = true;
-                this.sizeXChange = { time: 0, duration: 30, change: this.sizeXClamps[1] - this.sizeXClamps[0], type: 'quad', method: 'inOut', startValue: this.sizeXClamps[0]};
-                this.sizeYChange = { time: 0, duration: 30, change: this.sizeYClamps[1] - this.sizeYClamps[0], type: 'quad', method: 'inOut', startValue: this.sizeYClamps[0]};
-                this.timer = this.registerTimer(createTimer(100, () => {
+                //this.isVisible = true;
+                this.addEffect(new FadeInEffect({beforeStartCallback: function(){ this.parent.isVisible = true; }, removeEffectOnComplete: true, effectTime: 3000, updateDelay: 30, initOnAdd: true}))
+                this.sizeXChange = { time: 0, duration: 60, change: this.sizeXClamps[1] - this.sizeXClamps[0], type: 'quad', method: 'inOut', startValue: this.sizeXClamps[0]};
+                this.sizeYChange = { time: 0, duration: 60, change: this.sizeYClamps[1] - this.sizeYClamps[0], type: 'quad', method: 'inOut', startValue: this.sizeYClamps[0]};
+                this.timer = this.registerTimer(createTimer(50, () => {
                     this.size.x =  fastRoundWithPrecision(easing.process(this.sizeXChange));
                     this.size.y =  fastRoundWithPrecision(easing.process(this.sizeYChange));
                     this.needRecalcRenderProperties = true;
@@ -79,9 +114,10 @@ class Experiments4Scene extends Scene {
                 }, this, true));
             },
             stop() {
-                this.sizeXChange = { time: 0, duration: 30, change: -(this.sizeXClamps[1] - this.sizeXClamps[0]), type: 'quad', method: 'inOut', startValue: this.sizeXClamps[1]};
-                this.sizeYChange = { time: 0, duration: 30, change: -(this.sizeYClamps[1] - this.sizeYClamps[0]), type: 'quad', method: 'inOut', startValue: this.sizeYClamps[1]};
-                this.timer = this.registerTimer(createTimer(100, () => {
+                this.addEffect(new FadeOutEffect({completeCallback: function() { this.parent.isVisible = false; }, effectTime: 3000, removeEffectOnComplete: true, updateDelay: 30, initOnAdd: true}))
+                this.sizeXChange = { time: 0, duration: 60, change: -(this.sizeXClamps[1] - this.sizeXClamps[0]), type: 'quad', method: 'inOut', startValue: this.sizeXClamps[1]};
+                this.sizeYChange = { time: 0, duration: 60, change: -(this.sizeYClamps[1] - this.sizeYClamps[0]), type: 'quad', method: 'inOut', startValue: this.sizeYClamps[1]};
+                this.timer = this.registerTimer(createTimer(50, () => {
                     this.size.x =  fastRoundWithPrecision(easing.process(this.sizeXChange));
                     this.size.y =  fastRoundWithPrecision(easing.process(this.sizeYChange));
                     this.needRecalcRenderProperties = true;
@@ -151,6 +187,16 @@ class Experiments4Scene extends Scene {
                     {s: hexToRgb('#F74747', true), f: hexToRgb('#F97777', true) },
                     {s: hexToRgb('#F4B0B0', true), f: hexToRgb('#F7C0C0', true) }, 
                     {s: hexToRgb('#F2D5D5', true), f: hexToRgb('#F4E3E3', true) }
+                ],
+                // [ 
+                //     {s: hexToRgb('#F2DB46', true), f: hexToRgb('#F4E375', true) },
+                //     {s: hexToRgb('#EFE7AE', true), f: hexToRgb('#F2EBBC', true) }, 
+                //     {s: hexToRgb('#EDE9D5', true), f: hexToRgb('#EFEDE1', true) }
+                // ],
+                [ 
+                    {s: hexToRgb('#55ED44', true), f: hexToRgb('#7FEF73', true) },
+                    {s: hexToRgb('#B1EAAB', true), f: hexToRgb('#BEEDB8', true) }, 
+                    {s: hexToRgb('#D5E8D3', true), f: hexToRgb('#E0EADE', true) }
                 ]
             ],
             changeColors() {
@@ -283,8 +329,39 @@ class Experiments4Scene extends Scene {
         this.basements = [];
         for(let i = 0; i < 2; i++){
             this.basements[i] = this.addGo(new GO({
+                renderValuesRound: true,
                 position: i == 0?  new V2(150, 350) : new V2(150, -50),
+                yClamps: i == 0 ? [400, 350] : [-90, -50],
                 size: new V2(200, 200),
+                isUp: i != 0,
+                moveIn(callback = () => {}) {
+                    this.yChange = { time: 0, duration: 40, change: this.yClamps[1] - this.yClamps[0], type: 'quad', method: 'inOut', startValue: this.yClamps[0]};
+                    this.timer = this.registerTimer(createTimer(30, () => {
+                        this.position.y = fastRoundWithPrecision(easing.process(this.yChange));
+                        this.needRecalcRenderProperties = true;
+                        this.yChange.time++;
+
+                        if(this.yChange.time > this.yChange.duration){
+                            this.unregTimer(this.timer);
+                            callback();
+                        }
+
+                    }, this, true));
+                },
+                moveOut(callback = () => {}) {
+                    this.yChange = { time: 0, duration: 40, change: -(this.yClamps[1] - this.yClamps[0]), type: 'quad', method: 'inOut', startValue: this.yClamps[1]};
+                    this.timer = this.registerTimer(createTimer(30, () => {
+                        this.position.y = fastRoundWithPrecision(easing.process(this.yChange));
+                        this.needRecalcRenderProperties = true;
+                        this.yChange.time++;
+
+                        if(this.yChange.time > this.yChange.duration){
+                            this.unregTimer(this.timer);
+                            callback();
+                        }
+
+                    }, this, true));
+                },
                 startLight(callback = () => {}) {
                     this.ellipsis.start(callback);
                 },
@@ -292,6 +369,8 @@ class Experiments4Scene extends Scene {
                     this.ellipsis.stop(callback);
                 },
                 init() {
+                    this.position.y = this.yClamps[0];
+
                     this.body = this.addChild(new GO({
                         position: new V2(0, 100),
                         size: this.size,
@@ -318,8 +397,67 @@ class Experiments4Scene extends Scene {
                                     .rect(i*darkWidth/5,0,darkWidth/5, size.y)
                                     .rect(size.x - (i+1)*darkWidth/5,0,darkWidth/5, size.y);
                             }
-                        })
-                    }))
+                        }),
+                        init(){
+                            this.indicators = this.addChild(new GO({
+                                position: new V2(),
+                                size: this.size,
+                                setg2State(num){
+                                    this.group2.forEach(x => x.img = this.idleImg);
+                                    if(num != undefined)
+                                        this.group2[num].img = this.greenImg;
+                                },
+                                init() {
+                                    this.itemSize = new V2(3,3);
+                                    this.blueImg = createCanvas(this.itemSize, (ctx, size, hlp) => {
+                                        hlp.setFillColor('#0065FF').rect(0,0,size.x, size.y).setFillColor('#0094FF').rect(0,0,2,2);
+                                    })
+                                    this.redImg = createCanvas(this.itemSize, (ctx, size, hlp) => {
+                                        hlp.setFillColor('#FF2323').rect(0,0,size.x, size.y).setFillColor('#FF5656').rect(0,0,2,2);
+                                    })
+                                    this.idleImg = createCanvas(this.itemSize, (ctx, size, hlp) => {
+                                        hlp.setFillColor('#BCBCBC').rect(0,0,size.x, size.y).setFillColor('#EAEAEA').rect(0,0,2,2);
+                                    })
+                                    this.greenImg = createCanvas(this.itemSize, (ctx, size, hlp) => {
+                                        hlp.setFillColor('#1BC62A').rect(0,0,size.x, size.y).setFillColor('#62C46A').rect(0,0,2,2);
+                                    })
+                                    this.group1 = [];
+                                    let isUp = this.parent.parent.isUp;
+                                    
+                                    for(let i = 0; i < 5; i++){
+                                        this.group1[i] = this.addChild(new GO({
+                                            position: new V2(-80, (isUp ? 40 : -50 )+ i*5),
+                                            size: this.itemSize,
+                                            img: this.blueImg
+                                        }))
+                                    }
+
+                                    this.group2 = [];
+
+                                    for(let i = 0; i < 3; i++){
+                                        this.group2[i] = this.addChild(new GO({
+                                            position: new V2(80, (isUp ? 40 : -50 )+ i*5),
+                                            size: this.itemSize,
+                                            img: this.idleImg
+                                        }))
+                                    }
+                                    
+                                    this.g1State = {
+                                        index: 0,
+                                    }
+                    
+                                    this.g1Timer = this.registerTimer(createTimer(1000, () => {
+                                        this.group1.forEach(x => x.img = this.blueImg);
+                                        this.group1[this.g1State.index].img = this.redImg;
+                                        this.g1State.index++;
+                                        if(this.g1State.index == this.group1.length)
+                                            this.g1State.index = 0;
+                    
+                                    }, this, true));
+                                }
+                            }))
+                        }
+                    }));
                     this.ellipsis = this.addChild(new GO({
                         position: i == 0 ? new V2() : new V2(0, 200),
                         size: new V2(this.size.x, 20),
@@ -406,14 +544,21 @@ class Experiments4Scene extends Scene {
                 let that = this;
                 let scene = this.parentScene;
                 this.script.items = [
-                    // function(){
-                    //     this.delayTimer = this.registerTimer(createTimer(1000, () => {
-                    //         this.unregTimer(this.delayTimer);
-                    //         this.processScript();
-                    //     }, this, false));
-                    // },
                     function(){
                         this.delayTimer = this.registerTimer(createTimer(2000, () => {
+                            this.unregTimer(this.delayTimer);
+                            this.processScript();
+                        }, this, false));
+                    },
+                    function(){
+                        scene.basements[0].body.indicators.setg2State(0);
+                        scene.basements[1].body.indicators.setg2State(0);
+
+                        scene.basements[0].moveIn(() => this.processScript());
+                        scene.basements[1].moveIn();
+                    },
+                    function(){
+                        this.delayTimer = this.registerTimer(createTimer(500, () => {
                             this.unregTimer(this.delayTimer);
                             this.processScript();
                         }, this, false));
@@ -434,6 +579,9 @@ class Experiments4Scene extends Scene {
                         }, this, false));
                     },
                     function(){
+                        scene.basements[0].body.indicators.setg2State(1);
+                        scene.basements[1].body.indicators.setg2State(1);
+
                         scene.startParticles();
                         this.processScript();
                     },
@@ -444,6 +592,9 @@ class Experiments4Scene extends Scene {
                         }, this, false));
                     },
                     function(){
+                        scene.basements[0].body.indicators.setg2State(2);
+                        scene.basements[1].body.indicators.setg2State(2);
+
                         scene.plazma.changeColors();
                         scene.stopParticles();
                         this.processScript();
@@ -459,6 +610,19 @@ class Experiments4Scene extends Scene {
                         scene.basements[1].stopLight();
 
                         scene.light.stop();
+                    },
+                    function(){
+                        this.delayTimer = this.registerTimer(createTimer(1000, () => {
+                            this.unregTimer(this.delayTimer);
+                            this.processScript();
+                        }, this, false));
+                    },
+                    function(){
+                        scene.basements[0].body.indicators.setg2State();
+                        scene.basements[1].body.indicators.setg2State();
+
+                        scene.basements[0].moveOut(() => this.processScript());
+                        scene.basements[1].moveOut();
                     },
                     function() {
                         this.createSequence();
