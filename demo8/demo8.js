@@ -105,6 +105,10 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'spider',
         viewport: defaultViewpot
     })); 
+    SCG.scenes.cacheScene(new WhirlpoolScene({
+        name:'whirl',
+        viewport: defaultViewpot
+    }));
 
     sceneSelectByHashValue();
     
