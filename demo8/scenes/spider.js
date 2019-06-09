@@ -15,29 +15,89 @@ class SpiderScene extends Scene {
         this.backgroundRenderDefault();
     }
 
+    createTopImage(hsv) {
+        return createCanvas(this.sSize, (ctx, size) => {
+
+            ctx.fillStyle = hsvToHex({hsv});
+            let pp = new PerfectPixel({context: ctx});
+            for(let i = this.shift; i < size.x;i++){
+                pp.lineV2(new V2(i, 0), new V2(i - this.shift, size.y-1));
+            }
+        });
+    }
+
     start() {
+        this.rows = 8;
+        this.columns = 15;
+        this.angle = 40;
+        this.sHeight = 8;
+        this.rHeight = 30;
+        this.baseColorHSV = [202,14,76];
+
+        this.sWidth = this.sHeight;
+        this.shift = fastRoundWithPrecision(this.sHeight*Math.tan(degreeToRadians(this.angle)));
+        this.sSize = new V2(this.sWidth+ 2*this.shift, this.sHeight);
+        this.rSize = new V2(this.shift, this.rHeight)
+        this.topImg = this.createTopImage(this.baseColorHSV);
+        let hsvGrayLighter = [...this.baseColorHSV];
+        hsvGrayLighter[2]+=4;
+        this.topImgElevated = this.createTopImage(hsvGrayLighter);
+
+        this.rightImg = createCanvas(this.rSize, (ctx, size) => {
+            ctx.fillStyle = '#CDDBF6'; 
+            let pp = new PerfectPixel({context: ctx});
+            for(let i = this.sSize.y; i < size.y; i++){
+                pp.lineV2(new V2(0, i), new V2(size.x+1, i - this.sSize.y));
+            }
+        });
+
+        this.rustTopImg = this.createTopImage([15,97,49]);
+        this.rustTopLighterImg = this.createTopImage([15,97,55]);
+
+        this.rustTop2Img = this.createTopImage([15,63,77]);
+        this.rustTop2LighterImg = this.createTopImage([15,63,82]);
+        this.frontImg = createCanvas(new V2(1,1), ctx => {
+            ctx.fillStyle = '#8A98A0'; ctx.fillRect(0,0,1,1);
+        })
+
+        this.globalYShift = 10;
+        this.globalXShift = 30;
+
+        this.segments = [];
+        this.blocksSpeed = -0.2
+
+        for(let r = 0; r < this.rows; r++){ //
+            this.segments[r] = [];
+            for(let c = this.columns-1; c >=0 ; c--){ //
+                this.segments[r][c] = this.addGo(new ProjectedCube({
+                    position: this.sceneCenter.add(
+                        new V2(
+                            -0.0*r -this.sSize.x *this.columns/2 + (this.sSize.x - this.shift)*c +  (this.rows - r - 1)*this.sHeight*Math.tan(degreeToRadians(this.angle)) + this.globalXShift, 
+                            -this.rows*this.sHeight/2 + this.sHeight*r + this.globalYShift)),
+                    size: this.sSize,
+                    topImg: this.topImg, 
+                    rightImg: this.rightImg,
+                    frontImg: this.frontImg,
+                    topImgElevated: this.topImgElevated,
+                    sWidth: this.sWidth,
+                    rSize: new V2(this.shift, this.rHeight),
+                    index: new V2(c,r),
+                  }), 0 + r)
+            }
+        }
+
+
         this.spiderBodySize = new V2(30,10);
         this.spiderLegSize = new V2(8, 15);
-        this.spiderHeadSize = new V2(10,10);
+        this.spiderHeadSize = new V2(22,8);
 
-        this.spiderBodyImg =  PP.createImage({"general":{"originalSize":{"x":30,"y":10},"size":{"x":30,"y":10},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#626260","fillColor":"#626260","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":22,"y":9}},{"point":{"x":3,"y":9}},{"point":{"x":0,"y":7}},{"point":{"x":0,"y":4}},{"point":{"x":1,"y":2}},{"point":{"x":27,"y":0}},{"point":{"x":29,"y":2}},{"point":{"x":29,"y":6}}]},{"order":1,"type":"lines","strokeColor":"#75746F","fillColor":"#75746F","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":29,"y":2}},{"point":{"x":29,"y":6}},{"point":{"x":25,"y":8}},{"point":{"x":25,"y":4}}]},{"order":2,"type":"lines","strokeColor":"#b7b7b5","fillColor":"#b7b7b5","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":26,"y":0}},{"point":{"x":22,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":1,"y":1}},{"point":{"x":14,"y":1}},{"point":{"x":24,"y":1}}]},{"order":3,"type":"lines","strokeColor":"#F2F2F2","fillColor":"#F2F2F2","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":27,"y":0}},{"point":{"x":29,"y":1}},{"point":{"x":25,"y":4}},{"point":{"x":24,"y":2}}]}]}})
-        // createCanvas(this.spiderBodySize, (ctx, size, hlp) =>{
-        //     hlp.setFillColor('white').rect(0,0, size.x, size.y);
-        // })
+        this.spiderBodyImg =  PP.createImage(spiderSceneImages.spiderBodyImg)
 
-        this.spiderFrontalLegImg = PP.createImage({"general":{"originalSize":{"x":8,"y":15},"size":{"x":8,"y":15},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#4B4C50","fillColor":"#4B4C50","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":1,"y":9}},{"point":{"x":1,"y":13}},{"point":{"x":0,"y":14}},{"point":{"x":6,"y":14}},{"point":{"x":5,"y":13}},{"point":{"x":5,"y":9}}]},{"order":1,"type":"lines","strokeColor":"#83827D","fillColor":"#83827D","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":5,"y":9}},{"point":{"x":5,"y":13}},{"point":{"x":6,"y":14}}]},{"order":2,"type":"lines","strokeColor":"#4D4E50","fillColor":"#4D4E50","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":2,"y":8}},{"point":{"x":2,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":9}},{"point":{"x":5,"y":8}}]},{"order":3,"type":"lines","strokeColor":"#92938E","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":6,"y":10}}]},{"order":4,"type":"lines","strokeColor":"#404142","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":2,"y":8}},{"point":{"x":5,"y":8}}]}]}})
-        // createCanvas(this.spiderLegSize, (ctx, size, hlp) =>{
-        //     hlp.setFillColor('#D3D3D3').rect(0,0, size.x, size.y);
-        // })
+        this.spiderFrontalLegImg = PP.createImage(spiderSceneImages.spiderFrontalLegImg)
 
-        this.spiderBackLegImg = PP.createImage({"general":{"originalSize":{"x":8,"y":15},"size":{"x":8,"y":15},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#4B4C50","fillColor":"#4B4C50","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":2,"y":9}},{"point":{"x":2,"y":13}},{"point":{"x":1,"y":14}},{"point":{"x":7,"y":14}},{"point":{"x":6,"y":13}},{"point":{"x":6,"y":9}}]},{"order":1,"type":"lines","strokeColor":"#83827D","fillColor":"#83827D","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":9}},{"point":{"x":6,"y":13}},{"point":{"x":7,"y":14}}]},{"order":2,"type":"lines","strokeColor":"#4D4E50","fillColor":"#4D4E50","closePath":true,"fill":true,"visible":true,"points":[{"point":{"x":1,"y":10}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":5,"y":10}},{"point":{"x":4,"y":10}}]},{"order":3,"type":"lines","strokeColor":"#92938E","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":5,"y":0}},{"point":{"x":5,"y":10}}]},{"order":4,"type":"lines","strokeColor":"#404142","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":2,"y":11}},{"point":{"x":5,"y":11}}]}]}})
-        // createCanvas(this.spiderLegSize, (ctx, size, hlp) =>{
-        //     hlp.setFillColor('#A5A5A5').rect(0,0, size.x, size.y);
-        // })
+        this.spiderBackLegImg = PP.createImage(spiderSceneImages.spiderBackLegImg)
 
-        this.spiderHeadImg = createCanvas(this.spiderLegSize, (ctx, size, hlp) =>{
-            hlp.setFillColor('#CE8888').rect(0,0, size.x, size.y);
-        })
+        this.spiderHeadImg = PP.createImage(spiderSceneImages.spiderHeadImg)
 
         this.spider = this.addGo(new SimpleSpider({
             position: this.sceneCenter.clone(),
@@ -48,7 +108,47 @@ class SpiderScene extends Scene {
             bodySize: this.spiderBodySize,
             legSize: this.spiderLegSize,
             headSize: this.spiderHeadSize
-        }))
+        }), 100);
+
+        this.blockTimer = this.registerTimer(createTimer(30, () => {
+            for(let r = 0; r < this.segments.length; r++){ //
+                for(let c = this.segments[r].length-1; c >=0 ; c--){
+                    let block = this.segments[r][c];
+                    block.position.x+=this.blocksSpeed;
+                    block.needRecalcRenderProperties = true;
+
+                    if((this.sceneCenter.x -  block.position.x) > 100){
+                        block.setDead();
+                        this.segments[r].splice(c,1);
+                    }
+                }
+
+                if(this.segments[r].length < this.columns){
+                    let last = this.segments[r][this.segments[r].length-1];
+                    let preLast = this.segments[r][this.segments[r].length-2];
+    
+                    let xDelta = last.position.x - preLast.position.x;
+    
+                    this.segments[r][this.segments[r].length] = new ProjectedCube({
+                        position: new V2(last.position.x + xDelta, last.position.y),
+                        size: this.sSize,
+                        topImg: this.topImg, 
+                        rightImg: this.rightImg,
+                        frontImg: this.frontImg,
+                        topImgElevated: this.topImgElevated,
+                        sWidth: this.sWidth,
+                        rSize: new V2(this.shift, this.rHeight),
+                        index: new V2(this.segments[r].length,r),
+                      });
+
+                      this.clearGo(r);
+
+                      for(let c = this.segments[r].length-1; c >=0 ; c--){
+                          this.addGo(this.segments[r][c], r);
+                      }
+                }
+            }
+        }, this, true));
     }
 }
 
@@ -87,10 +187,17 @@ class SimpleSpider extends GO {
             init() {
 
                 this.head = this.addChild(new GO({
-                    position: new V2(0,-5),
+                    position: new V2(0,-8.5),
                     img: this.parent.headImg,
                     size: this.parent.headSize,
                     renderValuesRound: true
+                }))
+
+                this.sp1 = this.addChild(new GO({
+                    renderValuesRound: true,
+                    position: new V2(0,-9),
+                    size: new V2(10,12),
+                    img: PP.createImage(spiderSceneImages.sp1Img)
                 }))
 
                 this.yChange = easing.createProps(20, this.position.y, this.position.y+1, 'quad', 'inOut');

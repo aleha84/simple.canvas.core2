@@ -248,8 +248,11 @@ class Scene {
         return go;
     }
 
-    clearGo() {
-        this.goLayers = [];
+    clearGo(layerIndex) {
+        if(layerIndex === undefined)
+            this.goLayers = [];
+        else 
+            this.goLayers[layerIndex] = [];
     }
 
     addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly
