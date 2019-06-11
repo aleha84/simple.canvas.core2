@@ -110,6 +110,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new WaterfallScene({
+        name:'waterfall',
+        viewport: verticalDefaultViewport
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();
