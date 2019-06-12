@@ -17,6 +17,8 @@ class Scene {
                 textAlign: 'left',
                 fillStyle: 'red',
                 position: new V2(20*SCG.viewport.scale, 20*SCG.viewport.scale),
+                showFrameTimeLeft: false,
+                estimatedFrameLength: 1000/60,
                 additional: []
             },
             collisionDetection: {
@@ -379,9 +381,9 @@ class Scene {
                 goLayer[i].update(now);
                 goLayer[i].render();
         
-                if(SCG.frameCounter && goLayer[i].renderPosition!=undefined){
-                    SCG.frameCounter.visibleCount++;
-                }
+                // if(SCG.frameCounter && goLayer[i].renderPosition!=undefined){
+                //     SCG.frameCounter.visibleCount++;
+                // }
         
                 if(!goLayer[i].alive){
                     var deleted = goLayer.splice(i,1);
@@ -402,6 +404,11 @@ class Scene {
             ctx.fillStyle = this.debug.fillStyle;
             
             ctx.fillText(SCG.main.performance.fps, this.debug.position.x, this.debug.position.y);
+
+            if(this.debug.showFrameTimeLeft){
+                let flROunded = SCG.main.performance.frameLengthInMilliseconds;
+                this.debug.additional[0] = 'Frame performance load (%): ' + fastRoundWithPrecision(100* flROunded/this.debug.estimatedFrameLength,1);
+            }
 
             let p = this.debug.position.y;
             for(let debugData of this.debug.additional){
