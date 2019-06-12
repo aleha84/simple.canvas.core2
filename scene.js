@@ -408,6 +408,7 @@ class Scene {
             if(this.debug.showFrameTimeLeft){
                 let flROunded = SCG.main.performance.frameLengthInMilliseconds;
                 this.debug.additional[0] = 'Frame performance load (%): ' + fastRoundWithPrecision(100* flROunded/this.debug.estimatedFrameLength,1);
+                this.debug.additional[1] = 'Frame time (ms): ' + fastRoundWithPrecision(SCG.main.performance.frameLengthInMilliseconds,1);
             }
 
             let p = this.debug.position.y;
