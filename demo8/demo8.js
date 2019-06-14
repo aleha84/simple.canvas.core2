@@ -120,6 +120,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     })); 
 
+    SCG.scenes.cacheScene(new CloudScene({
+        name:'cloud',
+        viewport: defaultViewpot
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();
