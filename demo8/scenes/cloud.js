@@ -17,11 +17,63 @@ class CloudScene extends Scene {
         this.backgroundRenderDefault();
     }
 
+    drawCircle(ctx, center, radius, yClamp){
+        let rsq = radius*radius;
+        let up = V2.up;
+        for(let y = center.y-radius-1;y < center.y+radius+1;y++){
+            for(let x = center.x-radius-1;x < center.x+radius+1;x++){
+                if(yClamp && (y < yClamp[0] || y > yClamp[1])){
+                    continue;
+                }
+                let _p = new V2(x,y);
+                let distance = center.distance(_p);
+                if(distance < radius){
+                    ctx.fillStyle = 'white';
+                    if( distance > radius-2 ){
+                        let dir = center.direction(_p);
+                        let angle = fastRoundWithPrecision(dir.angleTo(up));
+                        if(angle < -10 && angle > -90){
+                            ctx.fillStyle = 'gray';
+                        }
+                    }
+                    ctx.fillRect(x,y,1,1);
+                }
+                
+
+
+                // let dx = x-center.x;
+                // let dy = y-center.y;
+                // let db = dx*dx + dy*dy;
+
+                // if(db < rsq){
+                //     ctx.fillStyle = 'white';
+                //     let _p = new V2(x,y);
+                //     if( fastRoundWithPrecision (center.distance(_p)) > radius-2 ){
+                //         let dir = center.direction(_p);
+                //         let angle = fastRoundWithPrecision(dir.angleTo(up));
+                //         if(angle > -90 && angle < 90 )
+                //             ctx.fillStyle = 'gray';
+                //     }
+                //     ctx.fillRect(x,y,1,1);
+                // }
+                
+            }
+        }
+    }
+
     start() {
         this.addGo(new CloudItem({
             position: this.sceneCenter.clone(),
             size: new V2(200,100)
         }));
+
+        // this.addGo(new GO({
+        //     position: this.sceneCenter.clone(),
+        //     size: new V2(200,200),
+        //     img: createCanvas(new V2(200, 200), (ctx, size) => {
+        //         this.drawCircle(ctx, new V2(size.x/2,size.y/2), size.x/2 - 1, undefined  )
+        //     })
+        // }));
     }
 }
 
@@ -35,35 +87,31 @@ class CloudItem extends GO {
 
     }
 
-    drawCircle(ctx, center, radius, yClamp){
+    drawCircle(ctx, center, radius, yClamp, goUp = false){
         let rsq = radius*radius;
         let up = V2.up;
+        let checkFrom = getRandomInt(0, 90);
+        if(goUp){
+            checkFrom = getRandomInt(90, 180);
+        }
         for(let y = center.y-radius-1;y < center.y+radius+1;y++){
             for(let x = center.x-radius-1;x < center.x+radius+1;x++){
-                if(yClamp && y < yClamp[0] || y > yClamp[1]){
+                if(yClamp && (y < yClamp[0] || y > yClamp[1])){
                     continue;
                 }
-
-                let dx = x-center.x;
-                let dy = y-center.y;
-                let db = dx*dx + dy*dy;
-
-                if(db < rsq){
+                let _p = new V2(x,y);
+                let distance = center.distance(_p);
+                if(distance < radius){
                     ctx.fillStyle = 'white';
-                    let _p = new V2(x,y);
-                    if( fastRoundWithPrecision (center.distance(_p)) > radius-2 ){
+                    if( distance > radius-1.5 ){
                         let dir = center.direction(_p);
                         let angle = fastRoundWithPrecision(dir.angleTo(up));
-                        if(angle > -90 && angle < 90 )
+                        if(angle < checkFrom  && angle > -90){
                             ctx.fillStyle = 'gray';
+                        }
                     }
                     ctx.fillRect(x,y,1,1);
                 }
-                // else if(db == rsq){
-                    
-                //     ctx.fillStyle = 'gray';
-                //     ctx.fillRect(x,y,1,1);
-                // }
             }
         }
     }
@@ -129,7 +177,7 @@ class CloudItem extends GO {
                         radius: radius
                     });
                     
-                    this.drawCircle(ctx, currentPoint, radius, yClamp);
+                    this.drawCircle(ctx, currentPoint, radius, yClamp, direction.y < 0);
                 }
             }
         })
