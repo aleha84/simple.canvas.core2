@@ -125,6 +125,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     })); 
 
+    SCG.scenes.cacheScene(new BatteryScene({
+        name:'battery',
+        viewport: verticalDefaultViewport.mul(0.5)
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();

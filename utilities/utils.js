@@ -492,6 +492,12 @@ function fastFloorWithPrecision(num, _prec = 0){
   return Math.floor(num * _precision + 1e-14) / _precision ;
 }
 
+var fast = {
+  r: fastRoundWithPrecision,
+  c: fastCeilWithPrecision,
+  f: fastFloorWithPrecision
+};
+
 function createTimer(delay, method, context, startNow = true) {
   return {
       lastTimeWork: new Date,
@@ -558,6 +564,15 @@ function createCanvasHelper({ctx}){
     },
     dot(x,y){
       this.rect(x,y,1,1);return this;
+    },
+    strokeRect(x,y,w,h,lineWidth){
+      this
+        .rect(x,y,w,lineWidth)
+        .rect(x,y,lineWidth,h)
+        .rect(x+w-lineWidth,y,lineWidth,h)
+        .rect(x,y+h-lineWidth,w,lineWidth);
+
+      return this;
     }
   }
 }
