@@ -562,6 +562,9 @@ function createCanvasHelper({ctx}){
     rect(x,y,w,h) {
       ctx.fillRect(x,y,w,h);return this;
     },
+    clear(x,y,w=1,h=1){
+      ctx.clearRect(x,y,w,h);return this;
+    },
     dot(x,y){
       this.rect(x,y,1,1);return this;
     },
