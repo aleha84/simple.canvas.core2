@@ -19,14 +19,88 @@ class BatteryScene extends Scene {
 
     start(){
         this.addGo(new GO({
-            position: this.sceneCenter,
+            position: new V2(-60, this.sceneCenter.y),
             size: new V2(60, 100),
+            angle: 7,
+            renderValuesRound: true,
+            startSequence(){
+                this.script.items = [
+                    function() { // move in
+                        this.xChange = easing.createProps(15, this.position.x, this.parentScene.sceneCenter.x, 'cubic', 'out');
+                        this.timer = this.registerTimer(createTimer(30, () => {
+                            this.position.x = easing.process(this.xChange);
+                            this.xChange.time++;
+                            this.needRecalcRenderProperties = true;
+                            if(this.xChange.time > this.xChange.duration){
+                                this.unregTimer(this.timer);
+                                this.processScript();
+                            }
+                        }, this, true));
+                    },
+                    function() { // fall back
+                        this.aChange = easing.createProps(10, this.angle, 0, 'cubic', 'in');
+                        this.timer = this.registerTimer(createTimer(30, () => {
+                            this.angle = easing.process(this.aChange);
+                            this.aChange.time++;
+                            
+                            if(this.aChange.time > this.aChange.duration){
+                                this.angle = 0;
+                                this.unregTimer(this.timer);
+                                this.processScript();
+                            }
+                        }, this, true));
+                    },
+                    this.addProcessScriptDelay(500),
+                    function(){
+                        this.body.content.fill(this.processScript.bind(this));
+                    },
+                    this.addProcessScriptDelay(100),
+                    function() { // move out
+                        this.xChange = easing.createProps(15, this.position.x, this.parentScene.viewport.x + this.size.x, 'cubic', 'in');
+                        this.timer = this.registerTimer(createTimer(30, () => {
+                            this.position.x = easing.process(this.xChange);
+                            this.xChange.time++;
+                            this.needRecalcRenderProperties = true;
+                            if(this.xChange.time > this.xChange.duration){
+                                this.unregTimer(this.timer);
+                                this.processScript();
+                            }
+                        }, this, true));
+                    },
+                    this.addProcessScriptDelay(1000),
+                    function(){
+                        this.body.content.reset();
+                        this.position.x = -60;
+                        this.angle = 7;
+                        this.startSequence();
+                    }
+                ]
+
+                this.processScript();
+            },
+            internalPreRender() {
+                if(this.angle == 0)
+                    return;
+        
+                this.context.translate(this.renderPosition.x+ this.renderSize.x/2, this.renderPosition.y + this.renderSize.y/2);
+                this.context.rotate(degreeToRadians(this.angle));
+                this.context.translate(-this.renderPosition.x-this.renderSize.x/2, -this.renderPosition.y - this.renderSize.y/2);
+            },
+            internalRender() {
+                if(this.angle == 0)
+                    return;
+        
+                this.context.translate(this.renderPosition.x+this.renderSize.x/2, this.renderPosition.y +this.renderSize.y/2);
+                this.context.rotate(degreeToRadians(-this.angle));
+                this.context.translate(-this.renderPosition.x-this.renderSize.x/2, -this.renderPosition.y- this.renderSize.y/2);
+            },
             init() {
 
-                this.lineWidth = fast.r(this.size.x/10);
+                this.lineWidth = fast.r(this.size.x/12);
                 
                 this.cap = this.addChild(new GO({
-                    position: new V2(0, -fast.r(this.size.y/2 + this.lineWidth/2) ),
+                    renderValuesRound: true,
+                    position: new V2(0, -fast.r(this.size.y/2 + this.lineWidth/2)+1 ),
                     size: new V2(fast.r(this.size.x/3), this.lineWidth), 
                     init(){
                         this.img = createCanvas(this.size, (ctx, size, hlp) => {
@@ -42,6 +116,7 @@ class BatteryScene extends Scene {
                     position: new V2(),
                     size: this.size, 
                     lineWidth: this.lineWidth,
+                    renderValuesRound: true,
                     init() {
                         this.back = this.addChild(new GO({
                             position: new V2(),
@@ -56,6 +131,7 @@ class BatteryScene extends Scene {
                             }) 
                         }));
                         this.content = this.addChild(new GO({
+                            renderValuesRound: true,
                             position: new V2(0,-1.5),
                             size: this.size.mul(0.95).toInt(), 
                             imgCache: [],
@@ -91,6 +167,8 @@ class BatteryScene extends Scene {
                                         if(this.fillChanges[0].prop.time > this.fillChanges[0].prop.duration){
                                             this.fillChanges = undefined;
                                             this.stopAnimation = true;
+
+                                            this.callback();
                                         }
                                     }
 
@@ -132,25 +210,31 @@ class BatteryScene extends Scene {
                                 }, this, true));
 
                                 this.createImage();
-                                this.fill();
+                                //this.fill();
 
                             },
                             reset(){
                                 this.baseColorHSV[0] = 0;
                                 this.imgYShift = 0.9;
-                                this.timeDelta = 2;
+                                this.timeDelta = 3;
                                 this.amplitudeModifier = 1;
                                 this.yShiftModifier = 1;
                                 this.stopAnimation = false;
+                                this.callback = undefined;
                             },
-                            fill() {
+                            fill(callback) {
+                                let type = 'quad';
+                                let method = 'out'
+
                                 this.fillChanges = [
-                                    {setter: (value) => { this.imgYShift = value; },  prop: easing.createProps(this.fillAnimationDuration, this.imgYShift, 0, 'quad', 'out')},
-                                    {setter: (value) => { this.baseColorHSV[0] = value; }, prop: easing.createProps(this.fillAnimationDuration, this.baseColorHSV[0],80, 'quad', 'out')},
-                                    {setter: (value) => { this.timeDelta = value; }, prop: easing.createProps(this.fillAnimationDuration, this.timeDelta, 0.5, 'quad', 'out')},
-                                    {setter: (value) => { this.amplitudeModifier = value; }, prop: easing.createProps(this.fillAnimationDuration, this.amplitudeModifier, 0.25, 'quad', 'out')},
-                                    {setter: (value) => { this.yShiftModifier = value; }, prop: easing.createProps(this.fillAnimationDuration, this.yShiftModifier, 0.25, 'quad', 'out')},
+                                    {setter: (value) => { this.imgYShift = value; },  prop: easing.createProps(this.fillAnimationDuration, this.imgYShift, 0,type, method)},
+                                    {setter: (value) => { this.baseColorHSV[0] = value; }, prop: easing.createProps(this.fillAnimationDuration, this.baseColorHSV[0],80,type, method)},
+                                    {setter: (value) => { this.timeDelta = value; }, prop: easing.createProps(this.fillAnimationDuration, this.timeDelta, 2,type, method)},
+                                    {setter: (value) => { this.amplitudeModifier = value; }, prop: easing.createProps(this.fillAnimationDuration, this.amplitudeModifier, 0.25,type, method)},
+                                    {setter: (value) => { this.yShiftModifier = value; }, prop: easing.createProps(this.fillAnimationDuration, this.yShiftModifier, 0.25,type, method)},
                                 ];
+
+                                this.callback = callback;
                             },
                             createImage(){
                                 this.img = createCanvas(this.size, (ctx, size) => {
@@ -203,6 +287,7 @@ class BatteryScene extends Scene {
                         }));
 
                         this.container = this.addChild(new GO({
+                            renderValuesRound: true,
                             position: new V2(),
                             size: this.size, 
                             lineWidth: this.lineWidth,
@@ -238,6 +323,9 @@ class BatteryScene extends Scene {
                         }));
                     }
                 }));
+
+
+                this.startSequence();
             }
         }))
     }

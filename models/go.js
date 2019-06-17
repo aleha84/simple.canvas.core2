@@ -811,6 +811,15 @@ class GO {
             this.timers.splice(p, 1);
     }
 
+    addProcessScriptDelay(time) {
+        return function(){
+            this.delayTimer = this.registerTimer(createTimer(time, () => {
+                this.unregTimer(this.delayTimer);
+                this.processScript();
+            }, this, false));
+        }
+    }
+
     processScript() {
         if(this.script.items.length == 0){
             this.script.callbacks.completed.call(this);
