@@ -130,6 +130,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport.mul(0.5)
     })); 
 
+    SCG.scenes.cacheScene(new WhirlpoolScene({
+        name:'drop',
+        viewport: defaultViewpot
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();

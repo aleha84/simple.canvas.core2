@@ -3,7 +3,7 @@ class BatteryScene extends Scene {
         options = assignDeep({}, {
             debug: {
                 enabled: true,
-                showFrameTimeLeft: true,
+                showFrameTimeLeft: false,
                 additional: [],
             },
             imgCache: []
@@ -21,43 +21,74 @@ class BatteryScene extends Scene {
         this.addGo(new GO({
             position: new V2(-60, this.sceneCenter.y),
             size: new V2(60, 100),
-            angle: 7,
+            angle: -7,
             renderValuesRound: true,
             startSequence(){
                 this.script.items = [
                     function() { // move in
+                        this.aChange = easing.createProps(15, this.angle, 0, 'cubic', 'in');
                         this.xChange = easing.createProps(15, this.position.x, this.parentScene.sceneCenter.x, 'cubic', 'out');
                         this.timer = this.registerTimer(createTimer(30, () => {
-                            this.position.x = easing.process(this.xChange);
-                            this.xChange.time++;
-                            this.needRecalcRenderProperties = true;
-                            if(this.xChange.time > this.xChange.duration){
-                                this.unregTimer(this.timer);
-                                this.processScript();
-                            }
-                        }, this, true));
-                    },
-                    function() { // fall back
-                        this.aChange = easing.createProps(10, this.angle, 0, 'cubic', 'in');
-                        this.timer = this.registerTimer(createTimer(30, () => {
-                            this.angle = easing.process(this.aChange);
-                            this.aChange.time++;
                             
-                            if(this.aChange.time > this.aChange.duration){
-                                this.angle = 0;
-                                this.unregTimer(this.timer);
-                                this.processScript();
+                            if(this.xChange){
+                                this.position.x = easing.process(this.xChange);
+                                this.xChange.time++;
+                                this.needRecalcRenderProperties = true;
+                                if(this.xChange.time > this.xChange.duration){
+                                    this.xChange = undefined;
+                                }
                             }
+                            
+                            if(this.aChange){
+                                this.angle = easing.process(this.aChange);
+                                this.aChange.time++;
+
+                                if(this.aChange.time > this.aChange.duration){
+                                    this.angle = 0;
+                                    this.unregTimer(this.timer);
+                                    this.processScript();
+                                }
+                            }
+                            
+                            //this.needRecalcRenderProperties = true;
+                            // if(this.xChange.time > this.xChange.duration){
+                            //     this.angle = 0;
+                            //     this.unregTimer(this.timer);
+                            //     this.processScript();
+                            // }
                         }, this, true));
                     },
+                    // function() { // fall back
+                    //     this.aChange = easing.createProps(10, this.angle, 0, 'cubic', 'in');
+                    //     this.timer = this.registerTimer(createTimer(30, () => {
+                    //         this.angle = easing.process(this.aChange);
+                    //         this.aChange.time++;
+                            
+                    //         if(this.aChange.time > this.aChange.duration){
+                    //             this.angle = 0;
+                    //             this.unregTimer(this.timer);
+                    //             this.processScript();
+                    //         }
+                    //     }, this, true));
+                    // },
                     this.addProcessScriptDelay(500),
                     function(){
                         this.body.content.fill(this.processScript.bind(this));
                     },
                     this.addProcessScriptDelay(100),
                     function() { // move out
+                        this.aChange = easing.createProps(10, this.angle, -7, 'cubic', 'in');
                         this.xChange = easing.createProps(15, this.position.x, this.parentScene.viewport.x + this.size.x, 'cubic', 'in');
                         this.timer = this.registerTimer(createTimer(30, () => {
+                            if(this.aChange){
+                                this.angle = easing.process(this.aChange);
+                                this.aChange.time++;
+
+                                if(this.aChange.time > this.aChange.duration){
+                                    this.aChange = undefined;
+                                }
+                            }
+                            
                             this.position.x = easing.process(this.xChange);
                             this.xChange.time++;
                             this.needRecalcRenderProperties = true;
@@ -71,7 +102,7 @@ class BatteryScene extends Scene {
                     function(){
                         this.body.content.reset();
                         this.position.x = -60;
-                        this.angle = 7;
+                        this.angle = -7;
                         this.startSequence();
                     }
                 ]
@@ -82,17 +113,17 @@ class BatteryScene extends Scene {
                 if(this.angle == 0)
                     return;
         
-                this.context.translate(this.renderPosition.x+ this.renderSize.x/2, this.renderPosition.y + this.renderSize.y/2);
+                this.context.translate(this.renderPosition.x - this.renderSize.x/2, this.renderPosition.y + this.renderSize.y/2);
                 this.context.rotate(degreeToRadians(this.angle));
-                this.context.translate(-this.renderPosition.x-this.renderSize.x/2, -this.renderPosition.y - this.renderSize.y/2);
+                this.context.translate(-this.renderPosition.x+this.renderSize.x/2, -this.renderPosition.y - this.renderSize.y/2);
             },
             internalRender() {
                 if(this.angle == 0)
                     return;
         
-                this.context.translate(this.renderPosition.x+this.renderSize.x/2, this.renderPosition.y +this.renderSize.y/2);
+                this.context.translate(this.renderPosition.x-this.renderSize.x/2, this.renderPosition.y +this.renderSize.y/2);
                 this.context.rotate(degreeToRadians(-this.angle));
-                this.context.translate(-this.renderPosition.x-this.renderSize.x/2, -this.renderPosition.y- this.renderSize.y/2);
+                this.context.translate(-this.renderPosition.x+this.renderSize.x/2, -this.renderPosition.y- this.renderSize.y/2);
             },
             init() {
 
@@ -307,18 +338,18 @@ class BatteryScene extends Scene {
                                 .clear(size.x-1,size.y-1).clear(size.x-1,size.y-2).clear(size.x-2,size.y-1)
                                 
                                 .setFillColor('rgba(255,255,255,0.4')
-                                .rect(this.lineWidth*1, this.lineWidth*1, this.lineWidth*1.5, size.y - this.lineWidth*2)
-                                .dot(this.lineWidth*2.5,this.lineWidth).dot(this.lineWidth*2.5+1,this.lineWidth).dot(this.lineWidth*2.5,this.lineWidth+1)
-                                .dot(this.lineWidth*2.5,size.y-this.lineWidth-1).dot(this.lineWidth*2.5,size.y-this.lineWidth-2).dot(this.lineWidth*2.5+1,size.y-this.lineWidth-1)
+                                .rect(this.lineWidth*1, this.lineWidth*1, fast.r(this.lineWidth*1.5), size.y - this.lineWidth*2)
+                                .dot(fast.r(this.lineWidth*2.5),this.lineWidth).dot(fast.r(fast.r(this.lineWidth*2.5))+1,this.lineWidth).dot(fast.r(this.lineWidth*2.5),this.lineWidth+1)
+                                .dot(fast.r(this.lineWidth*2.5),size.y-this.lineWidth-1).dot(fast.r(this.lineWidth*2.5),size.y-this.lineWidth-2).dot(fast.r(this.lineWidth*2.5)+1,size.y-this.lineWidth-1)
 
                                 // .rect(this.lineWidth, this.lineWidth+ size.y*0.2, size.x - this.lineWidth*2, 3)
                                 // .rect(this.lineWidth, this.lineWidth+ size.y*0.45, size.x - this.lineWidth*2, 3)
                                 // .rect(this.lineWidth, this.lineWidth+ size.y*0.7, size.x - this.lineWidth*2, 3)
 
                                 .setFillColor('rgba(0,0,0,0.1')
-                                .rect(size.x - this.lineWidth*2.5, this.lineWidth*1, this.lineWidth*1.5, size.y - this.lineWidth*2)
-                                .dot(size.x - this.lineWidth*2.5 - 2,this.lineWidth).dot(size.x -this.lineWidth*2.5 - 1,this.lineWidth).dot(size.x - this.lineWidth*2.5 - 1,this.lineWidth+1)
-                                .dot(size.x - this.lineWidth*2.5 -2,size.y-this.lineWidth-1).dot(size.x - this.lineWidth*2.5 - 1,size.y-this.lineWidth-2).dot(size.x - this.lineWidth*2.5-1,size.y-this.lineWidth-1)
+                                .rect(size.x - fast.r(this.lineWidth*2.5), this.lineWidth*1, fast.r(this.lineWidth*1.5), size.y - this.lineWidth*2)
+                                .dot(size.x - fast.r(this.lineWidth*2.5) - 2,this.lineWidth).dot(size.x -fast.r(this.lineWidth*2.5) - 1,this.lineWidth).dot(size.x - fast.r(this.lineWidth*2.5) - 1,this.lineWidth+1)
+                                .dot(size.x - fast.r(this.lineWidth*2.5) -2,size.y-this.lineWidth-1).dot(size.x - fast.r(this.lineWidth*2.5) - 1,size.y-this.lineWidth-2).dot(size.x - fast.r(this.lineWidth*2.5)-1,size.y-this.lineWidth-1)
                             })
                         }));
                     }
