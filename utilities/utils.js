@@ -568,7 +568,7 @@ function createCanvasHelper({ctx}){
     dot(x,y){
       this.rect(x,y,1,1);return this;
     },
-    strokeRect(x,y,w,h,lineWidth){
+    strokeRect(x,y,w,h,lineWidth = 1){
       this
         .rect(x,y,w,lineWidth)
         .rect(x,y,lineWidth,h)
