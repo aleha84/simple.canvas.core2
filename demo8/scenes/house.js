@@ -2,7 +2,7 @@ class HouseScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: false,
+                enabled: true,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -17,13 +17,45 @@ class HouseScene extends Scene {
         this.backgroundRenderDefault('gray');
     }
 
+    createFloorsDividerImages() {
+        let duration = 9;
+        let imgWidth = this.floorsDividerSize.x;
+        let wChange = easing.createProps(duration, 2, imgWidth, 'quad', 'out');
+        let center = imgWidth/2;
+        let sStart = this.floorSHadowStartX + 2;
+        for(let i = 0; i <=duration; i++){
+            wChange.time = i;
+            let width = fast.r(easing.process(wChange));
+            this.floorsDividerImgCache[i] = createCanvas(this.floorsDividerSize, (ctx, size, hlp) => {
+                let left = fast.r(center - width/2);
+                hlp.setFillColor('#E3DCC9').rect(left, 0, width, 2)
+                .setFillColor('#CFC2B2').rect(left, 2, width, 3)
+                .setFillColor('#B7A193').rect(left, 5, width, 2)
+
+                if(left + width >= sStart){
+                    let shadowWidth = left + width - sStart;
+                    hlp.setFillColor('#CEC2B2').rect(sStart, 0, shadowWidth, 2)
+                    .setFillColor('#B8A294').rect(sStart, 2, shadowWidth, 3)
+                    .setFillColor('#A07B6B').rect(sStart, 5, shadowWidth, 2)
+                }
+            })
+        }
+    }
+
     start(){
+        this.floorsDividerSize = new V2(90, 7);
+        this.floorHeight = 26;
+        this.currentFloor = 0;
         this.waitingFor = ['window'];
         this.windowImgCache = [];
+        this.floorsDividerImgCache = [];
+        this.floorSHadowStartX = 66;
         this.floorImg = createCanvas(new V2(86, 1), (ctx, size, hlp) => {
-            hlp.setFillColor('#CFC2B2').rect(0,0, 66, 1)
-            .setFillColor('#B8A294').rect(66,0,20, 1);
+            hlp.setFillColor('#CFC2B2').rect(0,0, this.floorSHadowStartX, 1)
+            .setFillColor('#B8A294').rect(this.floorSHadowStartX,0,20, 1);
         })
+
+        this.createFloorsDividerImages();
 
         this.prepWindow = this.addGo(new HouseWindow({
             position: this.sceneCenter,
@@ -44,11 +76,30 @@ class HouseScene extends Scene {
         }
     }
 
-    begin() {
+    addFloor(){
+        if(this.currentFloor == 5)
+            return;
+
         this.addGo(new HouseFloor({
-            position: this.sceneCenter.clone(),
-            img: this.floorImg
+            position: new V2(this.sceneCenter.x, this.sceneCenter.y - this.floorHeight*this.currentFloor++),
+            img: this.floorImg,
+            floorsDividerImgCache: this.floorsDividerImgCache,
+            windowImgCache: this.windowImgCache,
+            floorsDividerSize: this.floorsDividerSize,
+            script: {
+                callbacks: {
+                    completed: () => this.addFloor()
+                }
+            }
         }))
+    }
+
+    begin() {
+        this.addFloor();
+        // this.addGo(new HouseFloor({
+        //     position: this.sceneCenter.clone(),
+        //     img: this.floorImg
+        // }))
         // this.addGo(new HouseWindow({
         //     position: this.sceneCenter,
         //     size: new V2(new V2(20,14).mul(3)),
@@ -66,6 +117,7 @@ class HouseFloor extends GO {
             duration1: 10,
             duration2: 5,
             frameStep: 30,
+            renderValuesRound: false,
         }, options)
 
         super(options);
@@ -73,20 +125,29 @@ class HouseFloor extends GO {
     }
 
     init(){
-        this.targetPosition = this.position.clone();
-        this.targetSizeMidY =  fast.r(this.targetSize.y*1.2);
-        this.targetPositionMidY = fast.r(this.targetPosition.y - (this.targetSizeMidY - this.targetSize.y)/2);
-        this.position.y = fast.r(this.position.y + this.targetSizeMidY/2);
+
         
-        this.script.items = [
-            function() {
-                //this.position.y = fast.r(this.position.y + this.targetSize.y/2);
-                this.sizeYChange = easing.createProps(this.duration1, 1, this.targetSizeMidY, 'quad', 'out');
-                this.positionYChange = easing.createProps(this.duration1, this.position.y, this.targetPositionMidY, 'quad', 'out');
+
+        this.targetPosition = this.position.clone();
+
+        this.lowerY = fast.r(this.targetPosition.y + this.targetSize.y/2);
+
+        this.durations = [10,5];
+
+        this.methods = ['out', 'in']
+        this.targetSizesY = [{from: 1, to: this.targetSize.y*1.5}, {from: this.targetSize.y*1.5, to: this.targetSize.y}];
+        this.targetPositionsY = this.targetSizesY.map(s => ({ from: this.lowerY - s.from/2, to:  this.lowerY - s.to/2}))
+        this.position.y = this.targetPositionsY[0].from;
+
+        this.script.items = new Array(this.targetPositionsY.length).fill().map((_,i) => {
+            return function(){
+                this.sizeYChange = easing.createProps(this.durations[i], this.targetSizesY[i].from, this.targetSizesY[i].to, 'quad', this.methods[i]);
+                this.positionYChange = easing.createProps(this.durations[i], this.targetPositionsY[i].from, this.targetPositionsY[i].to, 'quad', this.methods[i]);
 
                 this.timer = this.registerTimer(createTimer(this.frameStep, () => {
-                    this.position.y= easing.process(this.positionYChange);
-                    this.size.y= easing.process(this.sizeYChange);
+                    this.position.y= (easing.process(this.positionYChange));
+                    this.size.y= (easing.process(this.sizeYChange));
+
                     this.needRecalcRenderProperties = true;
         
                     this.positionYChange.time++;
@@ -97,30 +158,38 @@ class HouseFloor extends GO {
                         this.timer = undefined;
                         this.processScript();
                     }
-        
+    
                 }, this, true));
-            },
-            // function() {
-            //     this.sizeYChange = easing.createProps(this.duration2, this.size.y, this.targetSize.y, 'quad', 'out');
-            //     this.positionYChange = easing.createProps(this.duration2, this.position.y, this.targetPosition.y, 'quad', 'out');
+            }
+        });
 
-            //     this.timer = this.registerTimer(createTimer(this.frameStep, () => {
-            //         this.position.y= easing.process(this.positionYChange);
-            //         this.size.y= easing.process(this.sizeYChange);
-            //         this.needRecalcRenderProperties = true;
-        
-            //         this.positionYChange.time++;
-            //         this.sizeYChange.time++;
-        
-            //         if(this.positionYChange.time > this.positionYChange.duration){
-            //             this.unregTimer(this.timer);
-            //             this.timer = undefined;
-            //             this.processScript();
-            //         }
-        
-            //     }, this, true));
-            // }
-        ]
+        this.script.items[this.script.items.length] = function() {
+            this.dividerSize = this.floorsDividerSize;
+            this.divider = this.addChild(new GO({
+                size: this.dividerSize,
+                position: new V2(0, -fast.r(this.size.y/2))
+            }));
+
+            let currentFrame = 0;
+            this.timer = this.registerTimer(createTimer(this.frameStep, () => {
+                this.divider.img = this.floorsDividerImgCache[currentFrame++];
+                if(currentFrame == this.floorsDividerImgCache.length){
+                    this.unregTimer(this.timer);
+                    this.timer = undefined;
+                    this.processScript();
+                }
+            }, this, true));   
+        }
+
+        this.script.items[this.script.items.length] = function() {
+            this.addChild(new HouseWindow({
+                position: new V2(-25, 0),
+                size: new V2(20,14),
+                imgCache: this.windowImgCache, 
+                prepare: false,
+                completeCallback: () => this.processScript()
+            }));
+        }
 
         this.processScript();
     }
@@ -135,6 +204,7 @@ class HouseWindow extends GO {
             frameStep: 30,
             prepareFrameStep: 1,
             prepare: false,
+            completeCallback: function() {}
         }, options)
 
         super(options);
@@ -152,6 +222,7 @@ class HouseWindow extends GO {
             if(this.currentFrame == this.imgCache.length){
                 this.unregTimer(this.timer);
                 this.timer = undefined;
+                this.completeCallback();
             }
             
         }, this, true));
