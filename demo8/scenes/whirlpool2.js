@@ -29,7 +29,7 @@ class Whirlpool2Scene extends Scene {
     }
 
     start() {
-        this.generatorTimer = this.registerTimer(createTimer(100, () => {
+        this.generatorTimer = this.registerTimer(createTimer(50, () => {
             this.addGo(new Whirlpool2Particle({
                 origin: new V2(this.sceneCenter.x, 150),
                 originYTarget: 400,
@@ -77,7 +77,10 @@ class Whirlpool2Particle extends GO {
             //height: 1,
             angle: 0,
             angleStep: 2,
-            v: {
+            v1: {
+                min: 70, max: 100
+            },
+            v2: {
                 min: 50, max: 100
             },
             initialHSV: [18, 96,100],
@@ -88,14 +91,15 @@ class Whirlpool2Particle extends GO {
     }
 
     init() {
-        this.v.delta = this.v.max - this.v.min;
+        this.v1.delta = this.v1.max - this.v1.min;
+        this.v2.delta = this.v2.max - this.v2.min;
         
 
         this.originYChange = easing.createProps(this.generalDuration, this.origin.y, this.originYTarget, 'quad', 'inOut');
         this.wChange = easing.createProps(fast.r(this.generalDuration/2), this.width, 1, 'sin', 'out');
         this.sChange = easing.createProps(fast.r(this.generalDuration/2), this.initialHSV[1], 0, 'cubic', 'in');
         let h = this.initialHSV[0];
-
+        let vProps = this.v1;
         this.timer = this.registerTimer(createTimer(30, () => {
             this.origin.y =  fast.r(easing.process(this.originYChange));
             this.width = easing.process(this.wChange);
@@ -112,16 +116,17 @@ class Whirlpool2Particle extends GO {
                 this.angle-=360;
             }
 
-            let v = this.v.max;
+
+            let v = vProps.max;
             if(this.angle >= 45 && this.angle < 225){
-                v = this.v.max - this.v.delta*(-45 + this.angle)/180
+                v = vProps.max - vProps.delta*(-45 + this.angle)/180
             }
             else if(this.angle >= 225 || this.angle < 45){
                 let a = this.angle;
                 if(a < 45){
                     a+=360;
                 }
-                v = this.v.min + this.v.delta*(-225+a)/180;
+                v = vProps.min + vProps.delta*(-225+a)/180;
             }
 
             s = fast.f(s/10)*10
@@ -136,13 +141,16 @@ class Whirlpool2Particle extends GO {
             // this.parentScene.addGo(new GO({
             //     position: this.position.clone(),
             //     size: new V2(1,1),
-            //     img: this.img
+            //     img: this.img,
+            //     init() {
+            //         this.addEffect(new FadeOutEffect({effectTime: 200, updateDelay: 30, setParentDeadOnComplete: true, initOnAdd: true }))
+            //     }
             // }));
 
 
             if(this.originYChange.time > this.originYChange.duration){
                this.unregTimer(this.timer);
-               //this.setDead(); 
+               this.setDead(); 
             }
 
             if(this.wChange.time > this.wChange.duration){
@@ -153,6 +161,7 @@ class Whirlpool2Particle extends GO {
 
                 this.sChange = easing.createProps(fast.r(this.generalDuration/2), 0, this.targetHSV[1], 'cubic', 'out');
                 h = this.targetHSV[0];
+                vProps = this.v2;
             }
 
         }, this, true));
