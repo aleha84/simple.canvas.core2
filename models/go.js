@@ -805,6 +805,14 @@ class GO {
         return timer;
     }
 
+    regTimer(timer) {
+        return this.registerTimer(timer);
+    }
+
+    regTimerDefault(delay, callback) {
+        return this.registerTimer(createTimer(delay, callback, this, true));
+    }
+
     unregTimer(timer) {
         let p = this.timers.indexOf(timer);
         if(p != -1)
