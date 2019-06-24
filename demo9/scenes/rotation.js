@@ -23,7 +23,30 @@ class RotationScene extends Scene {
 
     start(){
         this.robotHand = this.addGo(new RobotHand({
-            position: this.sceneCenter.clone(),
+            position: new V2(this.sceneCenter.x, 100),
+        }))
+
+        this.demoCargo = this.addGo(new GO({
+            position: new V2(320, 150),
+            size: new V2(20,20),
+            init() {
+                this.imgCenter = this.size.mul(0.5).toInt();
+                this.createImage();
+            },
+            createImage() {
+                let model = rotationSceneModels.demoCargo1();
+                model.general.size = this.size;
+                model.main.layers.forEach(l => {
+                    l.points.forEach(p => {
+                        let v2 = new V2(p.point);
+                        v2.substract(this.rotationOrigin, true).rotate(this.angle, false, true).add(this.imgCenter, true).toInt(true);
+                        p.point.x = v2.x;
+                        p.point.y = v2.y;
+                    })
+                })
+
+                this.img = PP.createImage(model);
+            }
         }))
 
         this.sceneManager = this.addGo(new GO({
@@ -31,6 +54,33 @@ class RotationScene extends Scene {
             size: new V2(1,1),
             init() {
                 let scene = this.parentScene;
+                this.takeSequence = [
+                    this.addProcessScriptDelay(500),
+                    function() {
+                        scene.robotHand.rotateForearm(90, 15, () => {
+                            this.processScript();
+                        });
+                    },
+                    this.addProcessScriptDelay(50),
+                    function() {
+                        scene.robotHand.rotateShoulder(-90, 10, () => {
+                            this.processScript();
+                        });
+
+                        scene.robotHand.rotateForearm(-130, 10);
+                    },
+                    this.addProcessScriptDelay(50),
+                    function() {
+                        scene.robotHand.rotateShoulder(35, 100, () => {
+                            this.processScript();
+                        });
+
+                        //scene.robotHand.rotateForearm(5, 100);
+                    }
+                ]
+
+                this.takeItem();
+                /*
                 this.script.items = [
                     
                     this.addProcessScriptDelay(500),
@@ -70,47 +120,14 @@ class RotationScene extends Scene {
                 ]
 
                 this.processScript();
+                */
+            },
+            takeItem() {
+                this.script.items = [...this.takeSequence];
+                this.processScript();
             }
         }))
-        // this.demo = this.addGo(new GO({
-        //     position: this.sceneCenter.clone(),
-        //     size: new V2(40, 40),//.mul(2),
-        //     originModelProvider : this.getModel.bind(this),
-        //     angle: 0,
-        //     angleStep: 3,
-        //     rotationOrigin: new V2(20,20),
-        //     imgSize: new V2(40, 40),
-        //     init() {
-        //         //this.rotationOrigin = this.imgSize.mul(0.5).toInt();
-        //         // this.model = this.originModelProvider();
-        //         // this.getImg();
-        //         //this.rotation()    
-        //         this.timer = this.regTimerDefault(30, () => {
-        //             this.rotation();
-        //             this.angle+=this.angleStep;
-
-        //             if(this.angle > 360){
-        //                 this.angle-=360;
-        //             }
-        //         })
-        //     },
-        //     rotation() {
-        //         this.model = this.originModelProvider();
-        //         this.model.main.layers.forEach(l => {
-        //             l.points.forEach(p => {
-        //                 let v2 = new V2(p.point);
-        //                 v2.substract(this.rotationOrigin, true).rotate(this.angle, false, true).add(this.rotationOrigin, true).toInt(true);
-        //                 p.point.x = v2.x;
-        //                 p.point.y = v2.y;
-        //             })
-        //         })
-
-        //         this.getImg();
-        //     },
-        //     getImg() {
-        //         this.img = PP.createImage(this.model);
-        //     }
-        // }))
+        
     }
 }
 
@@ -190,7 +207,7 @@ class RobotHand extends GO {
                                     angle: 0,
                                     rotationOrigin: new V2(15, 0),
                                     renderValuesRound: true,
-                                    currentExpand: 0,
+                                    currentExpand: 8,
                                     init() {
                                         this.imgCenter = this.size.mul(0.5).toInt();
                                         this.createImage();

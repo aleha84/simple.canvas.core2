@@ -8,5 +8,8 @@ var rotationSceneModels = {
     ),
     palm: () => (
         {"general":{"originalSize":{"x":30,"y":30},"size":{"x":30,"y":30},"zoom":6,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#3B4858","fillColor":"#3B4858","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":0}},{"point":{"x":19,"y":0}},{"point":{"x":19,"y":11}},{"point":{"x":29,"y":11}},{"point":{"x":29,"y":13}},{"point":{"x":0,"y":13}},{"point":{"x":0,"y":11}},{"point":{"x":10,"y":11}}]},{"order":1,"type":"lines","strokeColor":"#29323B","fillColor":"#29323B","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":15,"y":14}},{"point":{"x":15,"y":29}},{"point":{"x":19,"y":14}}]},{"order":2,"type":"lines","strokeColor":"#29323B","fillColor":"#29323B","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":14,"y":14}},{"point":{"x":10,"y":14}},{"point":{"x":14,"y":29}}]}]}}
+    ),
+    demoCargo1: () => (
+        {"general":{"originalSize":{"x":8,"y":10},"size":{"x":8,"y":10},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":0,"y":9}},{"point":{"x":0,"y":0}},{"point":{"x":7,"y":0}},{"point":{"x":7,"y":9}}]}]}}
     )
 }

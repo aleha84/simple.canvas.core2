@@ -277,17 +277,36 @@ class Scene {
         return go;
     }
 
-    changeLayer(go, layerIndex, regEvents) {
+    removeGo(go, regEvents = false){
         let goIndex = this.goLayers[go.layerIndex].indexOf(go);
         if(goIndex == -1){
-            console.log('failed to change layer for GO. Not found in layer');
-            return;
+            return false;
         }
 
         if(regEvents)
             go.unRegEvents();
 
         this.goLayers[go.layerIndex].splice(goIndex,1);
+
+        return true;
+    }
+
+    changeLayer(go, layerIndex, regEvents) {
+        if(!this.removeGo(go, regEvents)){
+            console.log('failed to change layer for GO. Not found in layer');
+            return;
+        }
+
+        // let goIndex = this.goLayers[go.layerIndex].indexOf(go);
+        // if(goIndex == -1){
+        //     console.log('failed to change layer for GO. Not found in layer');
+        //     return;
+        // }
+
+        // if(regEvents)
+        //     go.unRegEvents();
+
+        // this.goLayers[go.layerIndex].splice(goIndex,1);
          
         go.changeLayerIndex = undefined;
         this.addGo(go, layerIndex, regEvents);
