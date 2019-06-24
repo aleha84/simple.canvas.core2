@@ -6,7 +6,7 @@ class Whirlpool2Scene extends Scene {
                 showFrameTimeLeft: false,
                 additional: [],
             },
-            imgCache: {},
+            imgCache: [],
             baseColorHSV: [0,0,100]
         }, options)
 
@@ -19,7 +19,7 @@ class Whirlpool2Scene extends Scene {
 
     getImg([h,s,v]){
         //let key = `${h}_${s}_${v}`;
-        let key = h + '' + s + '' + v;
+        let key = h*1000000 + s*1000 + v;
         let value = this.imgCache[key];
         if(value == undefined){
             value = createCanvas(new V2(1,1), (_, __, hlp) => {
@@ -43,7 +43,7 @@ class Whirlpool2Scene extends Scene {
         this.delayTimer = this.registerTimer(createTimer(2000, () => {
             this.unregTimer(this.delayTimer);
             this.generatorTimer = this.registerTimer(createTimer(40, () => {
-                for(let i = 0; i < 2;i++){
+                for(let i = 0; i < 3;i++){
                     let sw = getRandomInt(1,3);
                     let angle = getRandomInt(0,360);
                     let currentLayer = angle > 180 ? 5 : 10
@@ -79,10 +79,10 @@ class Whirlpool2Particle extends GO {
             angle: 0,
             angleStep: 2,
             v1: {
-                min: 70, max: 100
+                min: 40, max: 100
             },
             v2: {
-                min: 50, max: 100
+                min: 40, max: 100
             },
             initialHSV: [18, 96,100],
             targetHSV: [197, 98, 100],
@@ -195,10 +195,10 @@ class Whirlpool2Particle extends GO {
             
             // this.parentScene.addGo(new GO({
             //     position: this.position.clone(),
-            //     size: new V2(1,1),
+            //     size: this.size,
             //     img: this.img,
             //     init() {
-            //         this.addEffect(new FadeOutEffect({effectTime: 200, updateDelay: 30, setParentDeadOnComplete: true, initOnAdd: true }))
+            //         this.addEffect(new FadeOutEffect({effectTime: 100, updateDelay: 30, setParentDeadOnComplete: true, initOnAdd: true }))
             //     }
             // }));
 
