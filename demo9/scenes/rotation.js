@@ -78,7 +78,7 @@ class RotationScene extends Scene {
                 this.xChangeCallback = callback;
             },
             moveOut(callback) {
-                this.xChange = easing.createProps(800, this.position.x,-20, 'linear', 'base');
+                this.xChange = easing.createProps(400, this.position.x,-20, 'linear', 'base');
                 this.xChangeCallback = callback;
             },
             fall(callback) {
@@ -209,24 +209,24 @@ class RotationScene extends Scene {
                     },
                     this.addProcessScriptDelay(5),
                       function() {
-                        scene.robotHand.rotateForearm(20, 10, false, () => {
+                        scene.robotHand.rotateForearm(20, 20, false, () => {
                             this.processScript();
                         });
                     },
                     function() {
-                        scene.robotHand.rotateShoulder(-80, 10, false, () => {
+                        scene.robotHand.rotateShoulder(-80, 20, false, () => {
                             this.processScript();
                         });
                     },
                     this.addProcessScriptDelay(5),
                       function() {
-                        scene.robotHand.rotateForearm(-60, 10, false, () => {
+                        scene.robotHand.rotateForearm(-60, 20, false, () => {
                             this.processScript();
                         });
                     },
                     this.addProcessScriptDelay(5),
                     function() {
-                        scene.robotHand.rotateShoulder(25, 10, false, () => {
+                        scene.robotHand.rotateShoulder(25, 20, false, () => {
                             this.processScript();
                         });
                     },
@@ -243,38 +243,38 @@ class RotationScene extends Scene {
                     },
                     // this.addProcessScriptDelay(5),
                     // function() {
-                    //     scene.robotHand.rotatePalm(-90, 10, true, () => {
+                    //     scene.robotHand.rotatePalm(-90, 20, true, () => {
                     //         this.processScript();
                     //     });
                     // },
                     this.addProcessScriptDelay(5),
                     function() {
-                        scene.robotHand.rotateShoulder(-25, 10, false, () => {
+                        scene.robotHand.rotateShoulder(-25, 20, false, () => {
                             this.processScript();
                         });
                     },
                     
                     this.addProcessScriptDelay(5),
                       function() {
-                        scene.robotHand.rotateForearm(60, 10, false, () => {
+                        scene.robotHand.rotateForearm(60, 20, false, () => {
                             this.processScript();
                         });
                     },
                     // this.addProcessScriptDelay(5),
                     // function() {
-                    //     scene.robotHand.rotatePalm(90, 10, true, () => {
+                    //     scene.robotHand.rotatePalm(90, 20, true, () => {
                     //         this.processScript();
                     //     });
                     // },
                     this.addProcessScriptDelay(5),
                     function() {
-                        scene.robotHand.rotateShoulder(80, 10, false, () => {
+                        scene.robotHand.rotateShoulder(80, 20, false, () => {
                             this.processScript();
                         });
                     },
                     this.addProcessScriptDelay(5),
                       function() {
-                        scene.robotHand.rotateForearm(-20, 10, false, () => {
+                        scene.robotHand.rotateForearm(-20, 20, false, () => {
 
                             let p = scene.demoCargo.getAbsolutePosition();
                             scene.demoCargoAlter = scene.createCargo();
