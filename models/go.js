@@ -225,6 +225,8 @@ class GO {
     }
 
     beforeDead(){}
+    
+    afterDead() {}
 
     setDead() {
         if(!this.alive) // can setDead only once

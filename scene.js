@@ -406,6 +406,10 @@ class Scene {
         
                 if(!goLayer[i].alive){
                     var deleted = goLayer.splice(i,1);
+                    if(deleted.length){
+                        deleted[0].afterDead();
+                    }
+                    
                 }
             }
         }
