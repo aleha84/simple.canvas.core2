@@ -123,6 +123,7 @@ class RotationScene extends Scene {
     }
 
     start(){
+        this.stepDuration = 30;
         this.cargoCount = 5;
         this.demoCargoAlter = undefined;
         this.road1 = this.addGo(new GO({
@@ -209,24 +210,24 @@ class RotationScene extends Scene {
                     },
                     this.addProcessScriptDelay(5),
                       function() {
-                        scene.robotHand.rotateForearm(20, 20, false, () => {
+                        scene.robotHand.rotateForearm(20, scene.stepDuration, false, () => {
                             this.processScript();
                         });
                     },
                     function() {
-                        scene.robotHand.rotateShoulder(-80, 20, false, () => {
+                        scene.robotHand.rotateShoulder(-80, scene.stepDuration, false, () => {
                             this.processScript();
                         });
                     },
                     this.addProcessScriptDelay(5),
                       function() {
-                        scene.robotHand.rotateForearm(-60, 20, false, () => {
+                        scene.robotHand.rotateForearm(-60, scene.stepDuration, false, () => {
                             this.processScript();
                         });
                     },
                     this.addProcessScriptDelay(5),
                     function() {
-                        scene.robotHand.rotateShoulder(25, 20, false, () => {
+                        scene.robotHand.rotateShoulder(25, scene.stepDuration, false, () => {
                             this.processScript();
                         });
                     },
@@ -249,14 +250,14 @@ class RotationScene extends Scene {
                     // },
                     this.addProcessScriptDelay(5),
                     function() {
-                        scene.robotHand.rotateShoulder(-25, 20, false, () => {
+                        scene.robotHand.rotateShoulder(-25, scene.stepDuration, false, () => {
                             this.processScript();
                         });
                     },
                     
                     this.addProcessScriptDelay(5),
                       function() {
-                        scene.robotHand.rotateForearm(60, 20, false, () => {
+                        scene.robotHand.rotateForearm(60, scene.stepDuration, false, () => {
                             this.processScript();
                         });
                     },
@@ -268,13 +269,13 @@ class RotationScene extends Scene {
                     // },
                     this.addProcessScriptDelay(5),
                     function() {
-                        scene.robotHand.rotateShoulder(80, 20, false, () => {
+                        scene.robotHand.rotateShoulder(80, scene.stepDuration, false, () => {
                             this.processScript();
                         });
                     },
                     this.addProcessScriptDelay(5),
                       function() {
-                        scene.robotHand.rotateForearm(-20, 20, false, () => {
+                        scene.robotHand.rotateForearm(-20, scene.stepDuration, false, () => {
 
                             let p = scene.demoCargo.getAbsolutePosition();
                             scene.demoCargoAlter = scene.createCargo();
@@ -564,19 +565,28 @@ class RobotHand extends GO {
                             palmHolder: this.palmHolder,
                             init() {
                                 this.imgCenter = this.size.mul(0.5).toInt();
-                                this.createImage();
+                                this.img = this.createImage();
                                 this.rotatePalmPosition();
 
                                 this.timer = this.regTimerDefault(30, () => {
 
                                     if(this.aChange){
+                                        if(this.nextImg){
+                                            this.img = this.nextImg;
+                                            this.nextImg = undefined;
+                                        }
                                         this.angle = fast.r(easing.process(this.aChange));
                                         this.aChange.time++;
-                                        this.createImage();
+                                        this.nextImg = this.createImage();
                                         
                                         this.rotatePalmPosition();
                     
                                         if(this.aChange.time > this.aChange.duration){
+                                            if(this.nextImg){
+                                                this.img = this.nextImg;
+                                                this.nextImg = undefined;
+                                            }
+
                                             this.aChange = undefined;
                                             this.rotateCompleteCallback();
                                             this.rotateCompleteCallback = undefined;
@@ -610,7 +620,7 @@ class RobotHand extends GO {
                                     })
                                 })
                 
-                                this.img = PP.createImage(model);
+                                return PP.createImage(model);
                             }
                         }))
                     }
