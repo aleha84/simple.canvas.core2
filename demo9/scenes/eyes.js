@@ -8,9 +8,15 @@ class EyeScene extends Scene {
             },
             imgCache: [],
             shine: {
-                vClamps: [5, 30],
+                vClamps: [5, 40],
                 currentV: 0,
             },
+            eyeBall: {
+                position: new V2(60, 35),
+                radius: new V2(18, 30),
+                centerRadius: new V2(5, 20),
+                
+            }
         }, options)
 
         super(options);
@@ -26,12 +32,14 @@ class EyeScene extends Scene {
         this.leftEye = this.addGo(new Eye({
             position: new V2(150, 150),
             isLeft: true,
-            shine: this.shine
+            shine: this.shine,
+            eyeBall: this.eyeBall
         }))
 
         this.rightEye = this.addGo(new Eye({
             position: new V2(300, 150),
-            shine: this.shine
+            shine: this.shine,
+            eyeBall: this.eyeBall
         }))
 
         
@@ -60,11 +68,39 @@ class EyeScene extends Scene {
 
                 this.processScript();
             },
+            eyeBallMove(position, duration) {
+                let parent = this.parentScene;
+                this.eyeBallMoveCount++;
+                this.eyeBallPositionChange = {
+                    x: easing.createProps(duration, parent.eyeBall.position.x, position.x, 'quad', 'in'),
+                    y: easing.createProps(duration, parent.eyeBall.position.y, position.y, 'quad', 'in')
+                }
+            },
             init() {
                 let parent = this.parentScene;
                 this.shineChangeIndex = 1;
                 this.shineChange = easing.createProps(getRandomInt(30,60), parent.shine.currentV, parent.shine.vClamps[this.shineChangeIndex], 'quad', 'inOut');
+
+                this.eyeBallMove(new V2(70,35), 10);
+                this.eyeBallMoveCount = 0;
                 this.regTimerDefault(30, () => {
+                    if(this.eyeBallPositionChange) {
+                        parent.eyeBall.position.x = fast.r(easing.process(this.eyeBallPositionChange.x))
+                        parent.eyeBall.position.y = fast.r(easing.process(this.eyeBallPositionChange.y))
+
+                        parent.leftEye.eyeBall.position = parent.eyeBall.position;
+                        parent.rightEye.eyeBall.position = parent.eyeBall.position;
+
+                        this.eyeBallPositionChange.x.time++;
+                        this.eyeBallPositionChange.y.time++;
+
+                        if(this.eyeBallPositionChange.x.time > this.eyeBallPositionChange.x.duration){
+                            this.eyeBallPositionChange = undefined;
+                            if(this.eyeBallPositionChangeCompleted)
+                                this.eyeBallPositionChangeCompleted();
+                        }
+                    }
+
                     if(this.shineChange) {
                         parent.shine.currentV = fast.f(easing.process(this.shineChange));
                         parent.leftEye.shine.currentV = parent.shine.currentV;
@@ -76,8 +112,10 @@ class EyeScene extends Scene {
                                 this.shineChange = undefined;
                                 parent.leftEye.shine.currentV = 0;
                                 parent.rightEye.shine.currentV = 0;
-                                this.closeOpenEyes();
-                                return;
+                                //this.closeOpenEyes();
+
+                                this.eyeBallMove(this.eyeBallMoveCount % 2 == 0 ? new V2(70,35) : new V2(50,35), 5)
+                                //return;
                             }
                             if(this.shineChangeIndex == 1) this.shineChangeIndex = 0; else this.shineChangeIndex = 1;
                             this.shineChange = easing.createProps(getRandomInt(30,60), parent.shine.currentV, parent.shine.vClamps[this.shineChangeIndex], 'quad', 'inOut');   
@@ -125,13 +163,13 @@ class Eye extends GO {
         let angle = getRandomInt(0,360);
         let r = degreeToRadians(angle);
         let start = new V2(
-            fast.r(this.eyeBall.position.x + (this.eyeBall.radius.x-1) * Math.cos(r)),
-            fast.r(this.eyeBall.position.y + (this.eyeBall.radius.y-1) * Math.sin(r))
+            fast.r(0*this.eyeBall.position.x + (this.eyeBall.radius.x-1) * Math.cos(r)),
+            fast.r(0*this.eyeBall.position.y + (this.eyeBall.radius.y-1) * Math.sin(r))
         );
 
         let end = new V2(
-            fast.r(this.eyeBall.position.x + this.eyeBall.centerRadius.x * Math.cos(r)),
-            fast.r(this.eyeBall.position.y + this.eyeBall.centerRadius.y * Math.sin(r))
+            fast.r(0*this.eyeBall.position.x + this.eyeBall.centerRadius.x * Math.cos(r)),
+            fast.r(0*this.eyeBall.position.y + this.eyeBall.centerRadius.y * Math.sin(r))
         );
 
         this.dots.items[this.dots.items.length] = {
@@ -366,7 +404,7 @@ class Eye extends GO {
                         for(let i = 0; i < this.dots.items.length; i++){
                             hlp
                             .setFillColor(hsvToHex({hsv: this.dots.hsv.map((el, _i) => _i == 2 ? this.dots.items[i].v : el)}))
-                            .dot(this.dots.items[i].current.x, this.dots.items[i].current.y)
+                            .dot(this.eyeBall.position.x + this.dots.items[i].current.x, this.eyeBall.position.y + this.dots.items[i].current.y)
                         }
                     });
                     ctx.drawImage(eyeBall, 0,0)
