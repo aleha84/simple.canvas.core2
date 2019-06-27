@@ -3,7 +3,9 @@ SCG.main = {
 		currentSecond: 0,
 		fps: 0,
 		currentSecondFps: 0,
-		frameLengthInMilliseconds: 0
+		frameLengthInMilliseconds: 0,
+		threshold: [], 
+		thresholdMaxCount: 10
 	},
 	cycle: {
 		process(){ //main work cycle, never stops
@@ -52,7 +54,15 @@ SCG.main = {
 			p.currentSecondFps++;
 
 			if(_as.debug.enabled && _as.debug.showFrameTimeLeft){
-				p.frameLengthInMilliseconds = performance.now() - tStart;
+				if(p.threshold.length < p.thresholdMaxCount){
+					p.threshold[p.threshold.length] = performance.now() - tStart;
+				}
+				else {
+					p.frameLengthInMilliseconds = p.threshold.reduce( ( p, c ) => p + c, 0 ) / p.threshold.length
+
+					p.threshold = [];					
+				}
+				
 			}
 		}
 	},

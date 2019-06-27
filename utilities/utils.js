@@ -566,7 +566,15 @@ function createCanvasHelper({ctx}){
       ctx.clearRect(x,y,w,h);return this;
     },
     dot(x,y){
-      this.rect(x,y,1,1);return this;
+      let _x = x; 
+      let _y = y;
+      
+      if(x instanceof V2){
+        _x = x.x;
+        _y = x.y;
+      }
+
+      this.rect(_x,_y,1,1);return this;
     },
     strokeRect(x,y,w,h,lineWidth = 1){
       this
@@ -575,6 +583,35 @@ function createCanvasHelper({ctx}){
         .rect(x+w-lineWidth,y,lineWidth,h)
         .rect(x,y+h-lineWidth,w,lineWidth);
 
+      return this;
+    },
+    сircle(center, radius){ 
+      for(let y = center.y-radius-1;y < center.y+radius+1;y++){
+          for(let x = center.x-radius-1;x < center.x+radius+1;x++){
+
+              let _p = new V2(x,y);
+              let distance = center.distance(_p);
+
+              if(distance < radius){
+                  ctx.fillRect(x,y,1,1);
+              }
+          }
+      }
+
+      return this;
+    },
+    elipsis(center, radius) {
+      let rxSq = radius.x*radius.x;
+      let rySq = radius.y*radius.y;
+
+      for(let y = center.y-radius.y-1;y < center.y+radius.y+1;y++){
+        for(let x = center.x-radius.x-1;x < center.x+radius.x+1;x++){
+          if((( (x-center.x)*(x-center.x) )/(rxSq)  + ( (y-center.y)*(y-center.y)  )/(rySq)) < 1){
+            ctx.fillRect(x,y,1,1);
+          }
+        }
+      }
+      
       return this;
     }
   }

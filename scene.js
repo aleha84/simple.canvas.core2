@@ -376,6 +376,10 @@ class Scene {
         return timer;
     }
 
+    regTimerDefault(delay, callback) {
+        return this.registerTimer(createTimer(delay, callback, this, true));
+    }
+
     unregTimer(timer) {
         let p = this.timers.indexOf(timer);
         if(p != -1)
