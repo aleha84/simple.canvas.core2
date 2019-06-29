@@ -32,6 +32,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     })); 
 
+    SCG.scenes.cacheScene(new Exp1Scene({
+        name:'exp1',
+        viewport: defaultViewpot
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();

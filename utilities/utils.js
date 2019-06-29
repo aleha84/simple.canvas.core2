@@ -600,6 +600,20 @@ function createCanvasHelper({ctx}){
 
       return this;
     },
+    strokeEllipsis(from = 0, to = 360, step = 0.1, origin, width, height) {
+      if(height == undefined)
+        height = width/2;
+
+      for(let angle = from; angle < to; angle+=step){
+          let r = degreeToRadians(angle);
+          let x = fast.r(origin.x + width * Math.cos(r));
+          let y = fast.r(origin.y + height * Math.sin(r));
+
+          this.dot(x,y);
+      }
+
+      return this;
+    },
     elipsis(center, radius) {
       let rxSq = radius.x*radius.x;
       let rySq = radius.y*radius.y;
