@@ -225,7 +225,7 @@ class GO {
     }
 
     beforeDead(){}
-    
+
     afterDead() {}
 
     setDead() {
@@ -821,10 +821,10 @@ class GO {
             this.timers.splice(p, 1);
     }
 
-    addProcessScriptDelay(time) {
+    addProcessScriptDelay(time, timerName = 'delayTimer') {
         return function(){
-            this.delayTimer = this.registerTimer(createTimer(time, () => {
-                this.unregTimer(this.delayTimer);
+            this[timerName] = this.registerTimer(createTimer(time, () => {
+                this.unregTimer(this[timerName]);
                 this.processScript();
             }, this, false));
         }
