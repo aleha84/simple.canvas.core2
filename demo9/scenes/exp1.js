@@ -231,6 +231,7 @@ class Exp1Scene extends Scene {
                 in: 20, 
                 out: 70,
                 waveColorChange: 50,
+                
             },
             random: {
                 changeClamps: [-2,2],
@@ -246,6 +247,7 @@ class Exp1Scene extends Scene {
                 this.segCounts = [5]
                 this.waves = [
                     {
+                        waveColorChangeMul: 1,
                         segCounts: this.segCounts[0],
                         xShift: this.imgSize.x + 20,
                         dots: this.createDots(this.segCounts[0]),
@@ -279,52 +281,144 @@ class Exp1Scene extends Scene {
                 //     d)
                 // ))
 
-                this.waves[0].xShiftChange = easing.createProps(30, this.waves[0].xShift, 0, 'quad', 'out');
-                this.waves[0].xShiftChange.direction = - 1;
+                
+                this.delayTimer = this.registerTimer(createTimer(2000, () => {
+                    this.unregTimer(this.delayTimer);
+                    this.delayTimer = undefined;
+                    
+                    this.waves[0].xShiftChange = easing.createProps(this.durations.in, this.waves[0].xShift, 0, 'quad', 'out');
+                    this.waves[0].xShiftChange.direction = - 1;
+    
+                    this.waves[0].additionalXChange = easing.createProps(this.durations.in*2, 0, -50, 'quad', 'out');
+                    this.waves[0].additionalOpacityChange = easing.createProps(this.durations.in*3, 0.75, 0, 'quad', 'in');
+
+                }, this, false));
+
+                
 
                 this.processPoints();
                 this.createImage();
 
+                this.counter = 10;
                 this.timer = this.regTimerDefault(30, () => {
                     for(let wIndex = 0; wIndex < this.waves.length; wIndex++){
                         let wave = this.waves[wIndex];
-                        wave.xShift = easing.process(wave.xShiftChange);
-                        wave.xShiftChange.time++;
+                        if(wave.xShiftChange) {
+                            wave.xShift = easing.process(wave.xShiftChange);
+                            wave.xShiftChange.time++;
+        
+                            if(wave.xShiftChange.time > wave.xShiftChange.duration){
+                                if(wave.xShiftChange.direction == 1){
+                                    this.counter--;
+                                    if(this.counter == 0){
+                                        wave.xShiftChange = undefined;
+                                        return;
+                                    }
+                                    wave.waveColorChangeMul = 1;
+                                    //wave.dots =  this.createDots(getRandomInt(wave.segCounts-1, wave.segCounts));
+                                    let sc = getRandomInt(this.segCounts[0]-1, this.segCounts[0]);
+                                    this.waves[wIndex] = assignDeep({}, this.waves[wIndex], {
+                                        segCounts: sc,
+                                        xShift: this.imgSize.x + 20,
+                                        dots: this.createDots(sc),
+                                        renderDots: [],
+                                        alterPositions: 
+                                            new Array(5).fill().map((_, i) => this.createDots(sc)),
+                                        alterPositionsOut:  this.createDots(sc, true)
+                                    });
     
-                        if(wave.xShiftChange.time > wave.xShiftChange.duration){
-                            if(wave.xShiftChange.direction == 1){
-                                //wave.dots =  this.createDots(getRandomInt(wave.segCounts-1, wave.segCounts));
-                                let sc = getRandomInt(this.segCounts[0]-1, this.segCounts[0]);
-                                this.waves[wIndex] = assignDeep({}, this.waves[wIndex], {
-                                    segCounts: sc,
-                                    xShift: this.imgSize.x + 20,
-                                    dots: this.createDots(sc),
-                                    renderDots: [],
-                                    alterPositions: 
-                                        new Array(5).fill().map((_, i) => this.createDots(sc)),
-                                    alterPositionsOut:  this.createDots(sc, true)
-                                });
-
-                                wave = this.waves[wIndex];
-
-                                let ch = wave.alterPositions[getRandomInt(0, wave.alterPositions.length-1)];
-                                wave.changes = ch.map((next, i) => (
-                                    this.createChange(
-                                        getRandomInt(this.random.durationClamps[0], this.random.durationClamps[1]),
-                                        wave.dots[i],
-                                        next
-                                    )
-                                ));
-
-                                wave.xShiftChange = easing.createProps(this.durations.in, wave.xShift, getRandomInt(-this.imgSize.x/3, 0), 'quad', 'out');
-                                wave.xShiftChange.direction = -1;
+                                    wave = this.waves[wIndex];
+    
+                                    let ch = wave.alterPositions[getRandomInt(0, wave.alterPositions.length-1)];
+                                    wave.changes = ch.map((next, i) => (
+                                        this.createChange(
+                                            getRandomInt(this.random.durationClamps[0], this.random.durationClamps[1]),
+                                            wave.dots[i],
+                                            next
+                                        )
+                                    ));
+    
+                                    wave.xShiftChange = easing.createProps(this.durations.in, wave.xShift, getRandomInt(-this.imgSize.x/3, 0), 'quad', 'out');
+                                    wave.xShiftChange.direction = -1;
+    
+                                    wave.additionalXChange = easing.createProps(this.durations.in*2, 0, -50, 'quad', 'out');
+                                    wave.additionalOpacityChange = easing.createProps(this.durations.in*3, 0.75, 0, 'quad', 'in');
+                                }
+                                else {
+                                    
+                                    wave.waveColorChangeMulChange = easing.createProps(this.durations.out, 1, 2, 'quad', 'out');
+                                    wave.xShiftChange = easing.createProps(this.durations.out, wave.xShift, this.imgSize.x + 20, 'quad', 'in');
+                                    wave.xShiftChange.direction = 1;
+                                    this.createWetSand = wave;
+                                }
                             }
-                            else {
-                                wave.xShiftChange = easing.createProps(this.durations.out, wave.xShift, this.imgSize.x + 20, 'quad', 'in');
-                                wave.xShiftChange.direction = 1;
-                                this.createWetSand = wave;
+
+                            for(let i = 0; i < wave.changes.length; i++){
+                                let c = wave.changes[i];
+                                let dot = wave.dots[i];
+        
+                                dot.x = fast.r(easing.process(c.x));
+                                dot.y = fast.r(easing.process(c.y));
+        
+                                c.x.time++;
+                                c.y.time++;
+        
+                                //this.pFormula = this.parentScene.getCubicSplineFunction(this.dots);
+                                
+        
+                                if(c.x.time > c.x.duration){
+                                    let d = wave.xShiftChange.direction == 1 ? this.random.alterDurationClamps : this.random.durationClamps;
+                                    wave.changes[i] =  this.createChange(
+                                        getRandomInt(d[0], d[1]), 
+                                        dot, 
+                                        wave.xShiftChange.direction == 1 
+                                            ?   wave.alterPositionsOut[i].clone()
+                                            :   wave.alterPositions[getRandomInt(0, wave.alterPositions.length-1)][i].clone()
+                                    )
+                                }
                             }
                         }
+                        
+
+                        if(wave.waveColorChangeMulChange){
+                            wave.waveColorChangeMul = easing.process(wave.waveColorChangeMulChange);
+                            wave.waveColorChangeMulChange.time++;
+                        
+                            if(wave.waveColorChangeMulChange.time > wave.waveColorChangeMulChange.duration){
+                                wave.waveColorChangeMulChange = undefined;
+                            }
+                        }
+
+                        if(wave.additionalXChange){
+                            wave.additionalX = fast.r(easing.process(wave.additionalXChange));
+                            wave.additionalXChange.time++;
+                        
+                            if(wave.additionalXChange.time > wave.additionalXChange.duration){
+                                wave.additionalXChange = undefined;
+                            }
+                        }
+
+                        if(wave.additionalXChange){
+                            wave.additionalX = fast.r(easing.process(wave.additionalXChange));
+                            wave.additionalXChange.time++;
+                        
+                            if(wave.additionalXChange.time > wave.additionalXChange.duration){
+                                wave.additionalXChange = undefined;
+                            }
+                        }
+
+                        if(wave.additionalOpacityChange){
+         
+                            wave.additionalOpacity = easing.process(wave.additionalOpacityChange);
+
+               
+                            wave.additionalOpacityChange.time++;
+                            if(wave.additionalOpacityChange.time > wave.additionalOpacityChange.duration){
+              
+                                wave.additionalOpacityChange = undefined;
+                            }
+                        }
+                        
 
                         if(this.wetSandShiftChange){
                             this.wetSandShift = fast.r(easing.process(this.wetSandShiftChange));
@@ -334,30 +428,7 @@ class Exp1Scene extends Scene {
                             }
                         }
     
-                        for(let i = 0; i < wave.changes.length; i++){
-                            let c = wave.changes[i];
-                            let dot = wave.dots[i];
-    
-                            dot.x = fast.r(easing.process(c.x));
-                            dot.y = fast.r(easing.process(c.y));
-    
-                            c.x.time++;
-                            c.y.time++;
-    
-                            //this.pFormula = this.parentScene.getCubicSplineFunction(this.dots);
-                            
-    
-                            if(c.x.time > c.x.duration){
-                                let d = wave.xShiftChange.direction == 1 ? this.random.alterDurationClamps : this.random.durationClamps;
-                                wave.changes[i] =  this.createChange(
-                                    getRandomInt(d[0], d[1]), 
-                                    dot, 
-                                    wave.xShiftChange.direction == 1 
-                                        ?   wave.alterPositionsOut[i].clone()
-                                        :   wave.alterPositions[getRandomInt(0, wave.alterPositions.length-1)][i].clone()
-                                )
-                            }
-                        }
+                        
                     }
 
                     this.processPoints();
@@ -393,7 +464,7 @@ class Exp1Scene extends Scene {
                         this.createWetSand.xShift + d
                     ));
 
-                    this.wetSandShiftChange = easing.createProps(this.durations.out*6, 0, this.imgSize.x, 'quad', 'in');
+                    this.wetSandShiftChange = easing.createProps(this.durations.out*3, 0, this.imgSize.x+100, 'quad', 'in');
 
                     this.createWetSand = undefined;
                 }
@@ -445,7 +516,7 @@ class Exp1Scene extends Scene {
 
                     if(!this.sandImg){
                         this.sandImg = createCanvas(size, (ctx, size, hlp) => {
-                            let hsvStart = [37,30,74];
+                            let hsvStart = [37,40,74];
                             let hsvEnd = [44,17,76];
 
                             let duration = fast.r(size.x*1.5);
@@ -530,11 +601,17 @@ class Exp1Scene extends Scene {
                             let xStart = fast.r(wave.xShift + wave.renderDots[y]);
 
                             //let ccWidth = wave.ccWidth[y];
-                            ctx.drawImage(this.waveColorChangeImg, xStart, y, this.durations.waveColorChange, 1);
+                            ctx.drawImage(this.waveColorChangeImg, xStart, y, fast.r(this.durations.waveColorChange*wave.waveColorChangeMul), 1);
 
-                            hlp.setFillColor('#80A7AF').rect(xStart + this.durations.waveColorChange , y, size.x - xStart + this.durations.waveColorChange, 1);
-
-                            //ctx.drawImage(this.waveColorChangeImg, xStart+100, y, this.durations.waveColorChange, 1);
+                            hlp.setFillColor('#80A7AF').rect(xStart + fast.r(this.durations.waveColorChange*wave.waveColorChangeMul) , y, size.x - xStart + this.durations.waveColorChange, 1);
+                            //if(wave.xShiftChange.direction == -1){
+                                ctx.globalAlpha = wave.additionalOpacity;
+                                ctx.drawImage(this.waveColorChangeImg, xStart+100 + wave.additionalX, y, this.durations.waveColorChange/4, 1);
+                                ctx.drawImage(this.waveColorChangeImg, xStart+150 + wave.additionalX, y, this.durations.waveColorChange/2, 1);
+                                ctx.drawImage(this.waveColorChangeImg, xStart+200 + wave.additionalX, y, this.durations.waveColorChange/1, 1);
+                                ctx.globalAlpha  = 1;
+                            //}
+                            
                         }
 
                         // if(!this.additionalImage){
