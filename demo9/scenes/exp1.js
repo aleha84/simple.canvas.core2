@@ -241,6 +241,8 @@ class Exp1Scene extends Scene {
                 if(this.imgSize == undefined)
                     this.imgSize = this.size.clone();
 
+                this.wetSandShift = 0;
+
                 this.segCounts = [5]
                 this.waves = [
                     {
@@ -291,7 +293,19 @@ class Exp1Scene extends Scene {
     
                         if(wave.xShiftChange.time > wave.xShiftChange.duration){
                             if(wave.xShiftChange.direction == 1){
-                                wave.dots =  this.createDots(wave.segCounts);
+                                //wave.dots =  this.createDots(getRandomInt(wave.segCounts-1, wave.segCounts));
+                                let sc = getRandomInt(this.segCounts[0]-1, this.segCounts[0]);
+                                this.waves[wIndex] = assignDeep({}, this.waves[wIndex], {
+                                    segCounts: sc,
+                                    xShift: this.imgSize.x + 20,
+                                    dots: this.createDots(sc),
+                                    renderDots: [],
+                                    alterPositions: 
+                                        new Array(5).fill().map((_, i) => this.createDots(sc)),
+                                    alterPositionsOut:  this.createDots(sc, true)
+                                });
+
+                                wave = this.waves[wIndex];
 
                                 let ch = wave.alterPositions[getRandomInt(0, wave.alterPositions.length-1)];
                                 wave.changes = ch.map((next, i) => (
@@ -308,6 +322,15 @@ class Exp1Scene extends Scene {
                             else {
                                 wave.xShiftChange = easing.createProps(this.durations.out, wave.xShift, this.imgSize.x + 20, 'quad', 'in');
                                 wave.xShiftChange.direction = 1;
+                                this.createWetSand = wave;
+                            }
+                        }
+
+                        if(this.wetSandShiftChange){
+                            this.wetSandShift = fast.r(easing.process(this.wetSandShiftChange));
+                            this.wetSandShiftChange.time++;
+                            if(this.wetSandShiftChange.time > this.wetSandShiftChange.duration){
+                                this.wetSandShiftChange = undefined;
                             }
                         }
     
@@ -355,6 +378,24 @@ class Exp1Scene extends Scene {
                         let y1 = x;
                         wave.renderDots[y1] = x1;
                     }
+                }
+
+                if(this.createWetSand){
+                    if(this.wetSandStart &&  this.wetSandStart[this.wetSandStart.length-1] + this.wetSandShift 
+                        < 
+                        this.createWetSand.renderDots[this.createWetSand.renderDots.length-1] + this.createWetSand.xShift
+                    ){
+                        this.createWetSand = undefined;
+                        return;
+                    }
+                    this.wetSandShift = 0;
+                    this.wetSandStart = this.createWetSand.renderDots.map(d => (
+                        this.createWetSand.xShift + d
+                    ));
+
+                    this.wetSandShiftChange = easing.createProps(this.durations.out*6, 0, this.imgSize.x, 'quad', 'in');
+
+                    this.createWetSand = undefined;
                 }
             },
 
@@ -412,7 +453,8 @@ class Exp1Scene extends Scene {
                             let sChange = easing.createProps(duration, hsvStart[1], hsvEnd[1], 'quad', 'in')
                             
                             let pp = new PerfectPixel({context: ctx});
-                            for(let x = 0;x < size.x*2; x++){
+                            let shift = fast.r(size.x*1.2);
+                            for(let x = 0;x < shift*2; x++){
                                 let t = x;
                                 if(t > duration) t=duration;
 
@@ -432,7 +474,7 @@ class Exp1Scene extends Scene {
                                     ]
                                 }));
 
-                                pp.line(x,0,x -size.x, size.y-1);
+                                pp.line(x,0,x -shift, size.y-1);
                             }
                         })
                     }
@@ -482,14 +524,34 @@ class Exp1Scene extends Scene {
                         // }
                         //hlp.setFillColor('#80A8B1');
                         for(let y = 0; y < size.y; y++){
-
+                            if(this.wetSandStart){
+                                 hlp.setFillColor('rgba(0,0,0,0.05)').rect(this.wetSandStart[y] + this.wetSandShift, y, size.x - this.wetSandStart[y], 1)
+                            }
                             let xStart = fast.r(wave.xShift + wave.renderDots[y]);
 
                             //let ccWidth = wave.ccWidth[y];
                             ctx.drawImage(this.waveColorChangeImg, xStart, y, this.durations.waveColorChange, 1);
 
                             hlp.setFillColor('#80A7AF').rect(xStart + this.durations.waveColorChange , y, size.x - xStart + this.durations.waveColorChange, 1);
+
+                            //ctx.drawImage(this.waveColorChangeImg, xStart+100, y, this.durations.waveColorChange, 1);
                         }
+
+                        // if(!this.additionalImage){
+                        //     this.additionalImage = createCanvas(size, (ctx, size, hlp) => {
+                        //         let dots = new Array(6).fill().map((_,i) => new V2(50 + i*100/5, getRandomInt(85, 115) + i*15))
+                        //         let pFormula = this.parentScene.getCubicSplineFunction(dots);
+                        //         for(let x = 50; x <150;x++){
+                        //             let y = fast.r(pFormula(x));
+                        //             let x1 = this.imgSize.x - y;
+                        //             let y1 = x;
+                        //             wave.renderDots[y1] = x1;
+                        //             hlp.setFillColor('white').dot(x1,y1);
+                        //         }
+                        //     })
+                        // }
+
+                        // ctx.drawImage(this.additionalImage, 0,0);
                     }
                 })
             }
