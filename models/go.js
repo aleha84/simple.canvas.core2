@@ -302,13 +302,19 @@ class GO {
         return effect;
     }
 
-    addChild(childGo, regEvents = false) {
+    addChild(childGo, regEvents = false, asFirst = false) {
         if(childGo == undefined || !(childGo instanceof GO)){
             console.warn('Can\'t add to children object isn\'t inherited from GO');
             return;
         }
     
-        this.childrenGO.push(childGo);
+        if(asFirst){
+            this.childrenGO.unshift(childGo);
+        }
+        else {
+            this.childrenGO.push(childGo);
+        }
+        
         childGo.parent = this;
 
         if(regEvents)
@@ -825,6 +831,7 @@ class GO {
         return function(){
             this[timerName] = this.registerTimer(createTimer(time, () => {
                 this.unregTimer(this[timerName]);
+                this[timerName] = undefined;
                 this.processScript();
             }, this, false));
         }
