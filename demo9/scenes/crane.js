@@ -15,7 +15,7 @@ class CraneScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault('#343434');
+        this.backgroundRenderDefault('#9DD0FF');
     }
 
     start() {
@@ -37,7 +37,8 @@ class Crane extends GO {
                 baseSize: new V2(30, 15),
                 cabinSize: new V2(10,12),
                 weightSize: new V2(20,10),
-                caretSize: new V2(10,5)
+                caretSize: new V2(10,5),
+                hookSize: new V2(10,10)
             },
             images: Object.keys(craneModels).reduce((r,c) => { r[c] = PP.createImage(craneModels[c]); return r }, {}),
             segmentsCount: {
@@ -141,13 +142,59 @@ class Crane extends GO {
             img: this.images.cabin,
         }))
 
+        
+
         this.caret = this.addChild(new GO({
             position: this.vStart.add(new V2(-this.componentSizes.vSegmentSize.x/2 - this.componentSizes.caretSize.x/2 - 5, -this.componentSizes.vSegmentSize.y/2+1)),
             size: this.componentSizes.caretSize,
             renderValuesRound: true,
             img: this.images.caret,
-        }))
+        }));
 
+        this.hook = this.addChild(new GO({
+            position: this.caret.position.add(new V2(0, 20)),
+            size: this.componentSizes.hookSize,
+            renderValuesRound: true,
+            img: this.images.hook,
+        })); 
+
+        this.hookRopes = this.addChild(new GO({
+            position: new V2(),
+            size: new V2(1,1),
+            renderValuesRound: true,
+            init() {
+                this.getImage();
+            },
+            getImage() {
+
+                let left = this.parent.hook.position.x >= this.parent.caret.position.x ? this.parent.caret : this.parent.hook;
+                let right = this.parent.hook.position.x >= this.parent.caret.position.x ? this.parent.hook : this.parent.caret;
+
+                this.size = new V2(
+                    (right.position.x + right.size.x/2) - (left.position.x - left.size.x/2),
+                    (this.parent.hook.position.y - this.parent.hook.size.y/2) - (this.parent.caret.position.y + this.parent.caret.size.y/2)
+                );
+
+                this.position = //this.parent.caret.position.add(this.parent.caret.position.direction(this.parent.hook.position).mul(this.parent.caret.position.distance(this.parent.hook.position)/2));
+                    new V2(
+                        (left.position.x - left.size.x/2) + this.size.x/2,
+                        (this.parent.caret.position.y + this.parent.caret.size.y/2) + this.size.y/2
+                        )
+
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    let pp = new PerfectPixel({context: ctx});
+                    hlp.setFillColor('#030303');
+                    if(this.parent.hook.position.x >= this.parent.caret.position.x){
+                        pp.line(1, 0, size.x - this.parent.hook.size.x + 1, size.y-1);
+                        pp.line(this.parent.caret.size.x - 2, 0, size.x - 2, size.y-1)
+                    }
+                    else {
+                        pp.line(size.x - this.parent.caret.size.x + 1, 0, 1, size.y-1);
+                        pp.line(size.x - 1, 0, this.parent.hook.size.x-1, size.y-1)
+                    }
+                })
+            }
+        }))
     }
 
     addVSegment() {
@@ -159,7 +206,8 @@ class Crane extends GO {
         }), false, true);
 
         let shiftedItems = [
-            ...this.hSegments, this.cabin, this.weight, this.vTopEnd, this.vSegments[this.vSegments.length-1], this.ropes
+            ...this.hSegments, this.cabin, this.weight, this.vTopEnd, this.vSegments[this.vSegments.length-1], this.ropes,
+            this.hook, this.caret,
         ]
 
         shiftedItems.forEach(x => x.originPosition = x.position.clone());
