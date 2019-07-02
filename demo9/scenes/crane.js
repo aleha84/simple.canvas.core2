@@ -181,20 +181,67 @@ class Crane extends GO {
                         (this.parent.caret.position.y + this.parent.caret.size.y/2) + this.size.y/2
                         )
 
+                this.needRecalcRenderProperties = true;
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    //hlp.setFillColor('green').rect(0,0,size.x, size.y)
                     let pp = new PerfectPixel({context: ctx});
                     hlp.setFillColor('#030303');
                     if(this.parent.hook.position.x >= this.parent.caret.position.x){
-                        pp.line(1, 0, size.x - this.parent.hook.size.x + 1, size.y-1);
-                        pp.line(this.parent.caret.size.x - 2, 0, size.x - 2, size.y-1)
+                        // pp.line(1, 0, size.x - this.parent.hook.size.x + 1, size.y-1);
+                        // pp.line(this.parent.caret.size.x - 2, 0, size.x - 2, size.y-1)
+                        pp.line(1, 0, size.x - 9, size.y-1)
+                        pp.line(8, 0, size.x - 2, size.y-1)
                     }
                     else {
-                        pp.line(size.x - this.parent.caret.size.x + 1, 0, 1, size.y-1);
-                        pp.line(size.x - 1, 0, this.parent.hook.size.x-1, size.y-1)
+                        // pp.line(size.x - this.parent.caret.size.x + 1, 0, 1, size.y-1);
+                        // pp.line(size.x - 1, 0, this.parent.hook.size.x-1, size.y-1)
+                        pp.line(size.x-9, 0, 1, size.y-1);
+                        pp.line(size.x - 2, 0, 8, size.y-1);
+                        
                     }
                 })
             }
         }))
+
+
+        this.timer = this.regTimerDefault(30, () => {
+            if(this.caretXChange){
+                this.caret.position.x = easing.process(this.caretXChange);
+                this.caret.needRecalcRenderProperties = true;
+                this.caretXChange.time++;
+
+                if(this.caretXChange.time > this.caretXChange.duration){
+                    this.caretXChange = undefined;
+                }
+
+                this.updateHookRomes = true;
+            }
+
+            if(this.hookXChange){
+                this.hook.position.x = easing.process(this.hookXChange);
+                this.hook.needRecalcRenderProperties = true;
+                this.hookXChange.time++;
+
+                if(this.hookXChange.time > this.hookXChange.duration){
+                    this.hookXChange = undefined;
+                }
+
+                this.updateHookRomes = true;
+            }
+
+            if(this.updateHookRomes) {
+                this.hookRopes.getImage();
+            }
+        })
+    }
+
+    moveCaret(duration, xChange){
+        this.caretXChange = easing.createProps(duration, this.caret.position.x, this.caret.position.x+xChange, 'quad', 'inOut');
+        this.hookXChangeCreateTimer = this.registerTimer(createTimer(100, () => {
+            this.hookXChange = easing.createProps(duration, this.hook.position.x, this.caret.position.x+xChange, 'quad', 'inOut');
+            this.unregTimer(this.hookXChangeCreateTimer);
+            this.hookXChangeCreateTimer = undefined;
+        }, this, false));
     }
 
     addVSegment() {
