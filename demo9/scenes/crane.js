@@ -33,80 +33,179 @@ class CraneScene extends Scene {
             img: PP.createImage(apartmentModels.panelBlock)
         }))
 
-        this.truck = this.addGo(new GO({
-            renderValuesRound: true,
-            position: this.sceneCenter.add(new V2(60, 0)),
+        
+        this.truck = this.addGo(new Truck({
+            position: this.sceneCenter.add(new V2(150, 0)),
             size: this.truckSize,
-            img: PP.createImage(truck.body),
-            wheelImg: truck.wheel.map(w => PP.createImage(w)),
             truckWheelSize: this.truckWheelSize,
-            currentWheelRotationDelay: 0,
-            startWheelAnimation() {
-                this.durationChange = easing.createProps(50, 500, 100, 'quad', 'inOut');
-            },
+        }), 2)
+
+        this.sceneManager = this.addGo(new GO({
+            position: new V2(), 
+            size: new V2(1,1),
             init() {
-                this.timer = this.regTimerDefault(30, () => {
-                    if(this.durationChange) {
-                        this.currentWheelRotationDelay = easing.process(this.durationChange);
+                let scene = this.parentScene;
 
-                        this.wheels.forEach(w => {
-                            w.updateTimer(this.currentWheelRotationDelay);
-                        })
+                // this.timer = this.regTimerDefault(30, () => {
+                //     if(this.truckXChange) {
+                //         scene.truck.position.x = easing.process(this.truckXChange);
+                //         scene.truck.needRecalcRenderProperties = true;
+                //         this.truckXChange.time++;
 
-                        this.durationChange.time++;
-                        if(this.durationChange.time > this.durationChange.duration){
-                            this.durationChange = undefined;
-                        }
-                    }
-                });
+                //         if(this.truckXChange.time > this.truckXChange.duration){
+                //             this.truckXChange.onComplete();
+                //             this.truckXChange = undefined;
+                //         }
+                //     }
+                // })
 
-                this.wheels = [new V2(-21.5, 9), new V2(11, 9), new V2(20,9)].map(p => this.addChild(new GO({
-                    renderValuesRound: true,
-                    position: p,
-                    size: this.truckWheelSize,
-                    wheelImg: this.wheelImg,
-                    //duration: 250,
-                    init() {
-                        this.wheelImgIndex = 0;
-                        this.img = this.wheelImg[this.wheelImgIndex++];
-                        // this.timer = this.regTimerDefault(this.duration, () => {
-                        //     this.img = this.wheelImg[this.wheelImgIndex++];
-
-                        //     if(this.wheelImgIndex == this.wheelImg.length){
-                        //         this.wheelImgIndex = 0;
-                        //     }
-                        // })
+                this.script.items = [
+                    this.addProcessScriptDelay(500),
+                    function() {
+                        scene.truck.moveIn(() => this.processScript())
                     },
-                    updateTimer(delay) {
-                        this.currentImgChangeDelayOrigin = delay;
+                    this.addProcessScriptDelay(3000),
+                    function() {
+                        scene.truck.moveOut(() => this.processScript())
+                    },
+                ]
 
-                        if(!this.timer) {
-                            this.currentImgChangeDelay = delay;
-                            this.timer = this.regTimerDefault(30, () => {
-                                this.currentImgChangeDelay-=30;
-                                if(this.currentImgChangeDelay < 0){
-                                    this.currentImgChangeDelay = this.currentImgChangeDelayOrigin;
-                                    this.img = this.wheelImg[this.wheelImgIndex++];
-                                    if(this.wheelImgIndex == this.wheelImg.length){
-                                        this.wheelImgIndex = 0;
-                                    }
-                                }
-    
-                                
-                            })
-                            // this.unregTimer(this.timer);
-                            // this.timer = undefined;
+                this.processScript();
+            }
+        }))
+    }
+
+
+}
+
+class Truck extends GO {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            renderValuesRound: true,
+            size: new V2(1,1),
+            bodyImg: PP.createImage(truck.body),
+            wheelImg: truck.wheel.map(w => PP.createImage(w)),
+            currentWheelRotationDelay: 0
+        }, options)
+
+        super(options);
+    }
+
+    init() {
+        this.timer = this.regTimerDefault(30, () => {
+            if(this.xChange) {
+                this.position.x = easing.process(this.xChange);
+                this.needRecalcRenderProperties = true;
+                this.xChange.time++;
+
+                if(this.xChange.time > this.xChange.duration){
+                    this.xChange.onComplete();
+                    this.xChange = undefined;
+                }
+            }
+
+            if(this.durationChange) {
+                this.currentWheelRotationDelay = easing.process(this.durationChange);
+
+                this.wheels.forEach(w => {
+                    w.updateTimer(this.currentWheelRotationDelay);
+                })
+
+                this.durationChange.time++;
+                if(this.durationChange.time > this.durationChange.duration){
+                    this.durationChange = undefined;
+                }
+            }
+        });
+
+        this.body = this.addChild(new GO({
+            renderValuesRound: true,
+            position: new V2(),
+            size: this.size.clone(),
+            img: this.bodyImg
+        }));
+
+        this.wheels = [new V2(-21.5, 9), new V2(11, 9), new V2(20,9)].map(p => this.addChild(new GO({
+            renderValuesRound: false,
+            position: p,
+            size: this.truckWheelSize,
+            wheelImg: this.wheelImg,
+            init() {
+                this.wheelImgIndex = 0;
+                this.img = this.wheelImg[this.wheelImgIndex++];
+            },
+            updateTimer(delay) {
+                this.currentImgChangeDelayOrigin = delay;
+
+                if(!this.timer) {
+                    this.currentImgChangeDelay = delay;
+                    this.timer = this.regTimerDefault(30, () => {
+                        this.currentImgChangeDelay-=30;
+                        if(this.currentImgChangeDelay < 0){
+                            this.currentImgChangeDelay = this.currentImgChangeDelayOrigin;
+                            this.img = this.wheelImg[this.wheelImgIndex++];
+                            if(this.wheelImgIndex == this.wheelImg.length){
+                                this.wheelImgIndex = 0;
+                            }
                         }
 
                         
-                    },
-                    stopAnimation() {
-                        this.unregTimer(this.timer);
-                        this.timer = undefined;
-                    }
-                }))) 
+                    })
+                }  
+            },
+            stopAnimation() {
+                this.unregTimer(this.timer);
+                this.timer = undefined;
             }
-        }),2)
+        })))
+    }
+
+    moveIn(callback) {
+        this.script.items = [
+            function() {
+                this.startWheelBreakAnimation(90);
+                this.xChange = easing.createProps(100, this.position.x, 160, 'quad', 'out');
+                this.xChange.onComplete = () => this.processScript();
+            },
+            function() {
+                this.stopWheelAnimation();
+                callback();
+                this.processScript();
+            },
+        ]
+
+        this.processScript();
+    }
+
+    moveOut(callback) {
+        this.script.items = [
+            function() {
+                this.startWheelAccelerateAnimation(90);
+                this.xChange = easing.createProps(100, this.position.x, 0, 'quad', 'in');
+                this.xChange.onComplete = () => this.processScript();
+            },
+            function() {
+                this.stopWheelAnimation();
+                callback();
+                this.processScript();
+            }
+        ]
+
+        this.processScript();
+    }
+
+    startWheelAccelerateAnimation(duration) {
+        this.durationChange = easing.createProps(duration, 300, 100, 'quad', 'in');
+    }
+
+    startWheelBreakAnimation(duration) {
+        this.durationChange = easing.createProps(duration, 100, 300, 'quad', 'out');
+    }
+
+    stopWheelAnimation() {
+        this.wheels.forEach(w => {
+            w.stopAnimation();
+        })
     }
 }
 
