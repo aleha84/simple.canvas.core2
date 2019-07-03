@@ -19,9 +19,94 @@ class CraneScene extends Scene {
     }
 
     start() {
+        this.panelBlockSize = new V2(30,20)
+        this.truckSize = new V2(60,20);
+        this.truckWheelSize = new V2(7,7)
+        
         this.crane = this.addGo(new Crane({
             position: this.sceneCenter.clone(),
         }))
+
+        this.addGo(new GO({
+            position: this.sceneCenter.add(new V2(-40, 0)),
+            size: this.panelBlockSize,
+            img: PP.createImage(apartmentModels.panelBlock)
+        }))
+
+        this.truck = this.addGo(new GO({
+            renderValuesRound: true,
+            position: this.sceneCenter.add(new V2(60, 0)),
+            size: this.truckSize,
+            img: PP.createImage(truck.body),
+            wheelImg: truck.wheel.map(w => PP.createImage(w)),
+            truckWheelSize: this.truckWheelSize,
+            currentWheelRotationDelay: 0,
+            startWheelAnimation() {
+                this.durationChange = easing.createProps(50, 500, 100, 'quad', 'inOut');
+            },
+            init() {
+                this.timer = this.regTimerDefault(30, () => {
+                    if(this.durationChange) {
+                        this.currentWheelRotationDelay = easing.process(this.durationChange);
+
+                        this.wheels.forEach(w => {
+                            w.updateTimer(this.currentWheelRotationDelay);
+                        })
+
+                        this.durationChange.time++;
+                        if(this.durationChange.time > this.durationChange.duration){
+                            this.durationChange = undefined;
+                        }
+                    }
+                });
+
+                this.wheels = [new V2(-21.5, 9), new V2(11, 9), new V2(20,9)].map(p => this.addChild(new GO({
+                    renderValuesRound: true,
+                    position: p,
+                    size: this.truckWheelSize,
+                    wheelImg: this.wheelImg,
+                    //duration: 250,
+                    init() {
+                        this.wheelImgIndex = 0;
+                        this.img = this.wheelImg[this.wheelImgIndex++];
+                        // this.timer = this.regTimerDefault(this.duration, () => {
+                        //     this.img = this.wheelImg[this.wheelImgIndex++];
+
+                        //     if(this.wheelImgIndex == this.wheelImg.length){
+                        //         this.wheelImgIndex = 0;
+                        //     }
+                        // })
+                    },
+                    updateTimer(delay) {
+                        this.currentImgChangeDelayOrigin = delay;
+
+                        if(!this.timer) {
+                            this.currentImgChangeDelay = delay;
+                            this.timer = this.regTimerDefault(30, () => {
+                                this.currentImgChangeDelay-=30;
+                                if(this.currentImgChangeDelay < 0){
+                                    this.currentImgChangeDelay = this.currentImgChangeDelayOrigin;
+                                    this.img = this.wheelImg[this.wheelImgIndex++];
+                                    if(this.wheelImgIndex == this.wheelImg.length){
+                                        this.wheelImgIndex = 0;
+                                    }
+                                }
+    
+                                
+                            })
+                            // this.unregTimer(this.timer);
+                            // this.timer = undefined;
+                        }
+
+                        
+                    },
+                    stopAnimation() {
+                        this.unregTimer(this.timer);
+                        this.timer = undefined;
+                    }
+                }))) 
+            }
+        }),2)
     }
 }
 
@@ -224,6 +309,9 @@ class Crane extends GO {
 
                 if(this.hookXChange.time > this.hookXChange.duration){
                     this.hookXChange = undefined;
+                    if(this.hookXChanges.length){
+                        this.hookXChange = this.hookXChanges.shift();
+                    }
                 }
 
                 this.updateHookRomes = true;
@@ -238,7 +326,19 @@ class Crane extends GO {
     moveCaret(duration, xChange){
         this.caretXChange = easing.createProps(duration, this.caret.position.x, this.caret.position.x+xChange, 'quad', 'inOut');
         this.hookXChangeCreateTimer = this.registerTimer(createTimer(100, () => {
-            this.hookXChange = easing.createProps(duration, this.hook.position.x, this.caret.position.x+xChange, 'quad', 'inOut');
+            let hookPositionXChange = this.caret.position.x+xChange;
+            let out = xChange/15;
+            if(Math.abs(out) > 1){
+                hookPositionXChange+=out;
+            }
+            this.hookXChanges = [
+                easing.createProps(duration, this.hook.position.x, hookPositionXChange, 'quad', 'inOut')
+            ]
+            if(Math.abs(out) > 1){
+                this.hookXChanges[this.hookXChanges.length] = easing.createProps(fast.r(duration/3), hookPositionXChange, this.caret.position.x+xChange, 'quad', 'inOut')
+            }
+
+            this.hookXChange = this.hookXChanges.shift();//easing.createProps(duration, this.hook.position.x, this.caret.position.x+xChange, 'quad', 'inOut');
             this.unregTimer(this.hookXChangeCreateTimer);
             this.hookXChangeCreateTimer = undefined;
         }, this, false));
