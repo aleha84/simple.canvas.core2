@@ -156,6 +156,27 @@ class CraneScene extends Scene {
                             let delta = -8 + (position.y - origin.y);
                             scene.placingBlock.setRopePosition(fast.r(delta));
                         });
+                    },
+                    this.addProcessScriptDelay(20),
+                    function() {
+                        scene.crane.moveHook(40,(scene.crane.caret.position.y+10) - scene.crane.hook.position.y, () => this.processScript())
+                    },
+                    function() {
+                        scene.currentBlock++;
+                        if(scene.currentBlock == scene.maxBlocks){
+                            scene.currentBlock = 0;
+                            scene.currentFloor++;
+
+                            if(scene.currentFloor == scene.maxFloors){
+                                this.processScript();
+                            }
+                            else {
+                                scene.crane.addVSegment(() => this.workSequence());
+                            }
+                        }
+                        else {
+                            this.workSequence();
+                        }
                     }
                 ]
 
@@ -612,7 +633,7 @@ class Crane extends GO {
     }
 
     addPayload(go) {
-        go.position = new V2(-1, this.hook.size.y/2 + 8 + go.size.y/2 - 0.5);
+        go.position = new V2(-1, this.hook.size.y/2 + 8 + go.size.y/2 - 2);
         this.hook.payload = this.hook.addChild(go);
     }
 
@@ -630,7 +651,7 @@ class Crane extends GO {
         this.hookYChange.onChange = changeCallback;
     }
 
-    addVSegment() {
+    addVSegment(callback = () => {}) {
         this.vSegments[this.vSegments.length] = this.addChild(new GO({
             renderValuesRound: true,
             position: this.vSegments[this.vSegments.length-1].position.clone(),
@@ -659,6 +680,7 @@ class Crane extends GO {
                 this.yChange = undefined;
                 this.unregTimer(this.riseTimer);
                 this.riseTimer = undefined;
+                callback();
             }
         })
     }
