@@ -19,26 +19,32 @@ class CraneScene extends Scene {
     }
 
     start() {
+        this.currentFloor = 0;
+        this.currentBlock = 0;
+        this.maxFloors = 2;
+        this.maxBlocks = 2;
+
         this.panelBlockSize = new V2(30,20)
         this.truckSize = new V2(60,20);
         this.truckWheelSize = new V2(7,7)
         
         this.crane = this.addGo(new Crane({
-            position: this.sceneCenter.clone(),
-        }))
-
-        this.addGo(new GO({
-            position: this.sceneCenter.add(new V2(-40, 0)),
-            size: this.panelBlockSize,
-            img: PP.createImage(apartmentModels.panelBlock)
-        }))
+            position: this.sceneCenter.add(new V2(60, 5)),
+        }), 5)
 
         
+
         this.truck = this.addGo(new Truck({
-            position: this.sceneCenter.add(new V2(150, 0)),
+            position: new V2(this.viewport.x + this.truckSize.x/2, this.sceneCenter.y),
             size: this.truckSize,
             truckWheelSize: this.truckWheelSize,
-        }), 2)
+        }), 10)
+
+        this.truck.cargo(new PanelBlock({
+            position: new V2(),//this.sceneCenter.add(new V2(-40, 0)),
+            size: this.panelBlockSize,
+            panelImg: PP.createImage(apartmentModels.panelBlock)
+        }));
 
         this.sceneManager = this.addGo(new GO({
             position: new V2(), 
@@ -46,36 +52,166 @@ class CraneScene extends Scene {
             init() {
                 let scene = this.parentScene;
 
-                // this.timer = this.regTimerDefault(30, () => {
-                //     if(this.truckXChange) {
-                //         scene.truck.position.x = easing.process(this.truckXChange);
-                //         scene.truck.needRecalcRenderProperties = true;
-                //         this.truckXChange.time++;
+                this.script.items = [
+                    this.addProcessScriptDelay(500),
+                    function() {
+                        scene.crane.moveHook(40, -8, () => this.processScript(), (origin, position) => {
+                            let delta = position.y - origin.y;
+                            //console.log(delta);
+                            scene.truck.getCargo().setRopePosition(fast.r(delta));
+                        });
+                    },
+                    function() {
+                        scene.truck.removeCargo();
+                        scene.crane.addPayload(new PanelBlock({
+                            position: new V2(),//this.sceneCenter.add(new V2(-40, 0)),
+                            size: scene.panelBlockSize,
+                            panelImg: PP.createImage(apartmentModels.panelBlock),
+                            ropePosition: -8
+                        }));  
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(50),
+                    function() {
+                        scene.crane.moveHook(40, -20, () => this.processScript())
+                    }
+                    // function() {
+                    //     scene.truck.moveIn(() => this.processScript())
+                    // },
+                    // this.addProcessScriptDelay(3000),
+                    // function() {
+                    //     scene.truck.moveOut(() => this.processScript())
+                    // },
+                ]
 
-                //         if(this.truckXChange.time > this.truckXChange.duration){
-                //             this.truckXChange.onComplete();
-                //             this.truckXChange = undefined;
-                //         }
-                //     }
-                // })
+                //this.processScript();
+
+                this.workSequence();
+            },
+            workSequence() {
+                let scene = this.parentScene;
 
                 this.script.items = [
                     this.addProcessScriptDelay(500),
                     function() {
+                        scene.truck.position = new V2(scene.viewport.x + scene.truckSize.x/2, scene.sceneCenter.y);
                         scene.truck.moveIn(() => this.processScript())
                     },
-                    this.addProcessScriptDelay(3000),
                     function() {
-                        scene.truck.moveOut(() => this.processScript())
+                        scene.crane.moveCaret(60, -52 - scene.crane.caret.position.x, () => this.processScript());
                     },
+                    function() {
+                        scene.crane.moveHook(40, -25 - scene.crane.hook.position.y, () => this.processScript());
+                    },
+                    this.addProcessScriptDelay(50),
+                    function() {
+                        scene.crane.moveHook(40, -8, () => this.processScript(), (origin, position) => {
+                            let delta = position.y - origin.y;
+                            scene.truck.getCargo().setRopePosition(fast.r(delta));
+                        });
+                    },
+                    function() {
+                        scene.truck.removeCargo();
+                        scene.crane.addPayload(new PanelBlock({
+                            position: new V2(),//this.sceneCenter.add(new V2(-40, 0)),
+                            size: scene.panelBlockSize,
+                            panelImg: PP.createImage(apartmentModels.panelBlock),
+                            ropePosition: -8
+                        }));  
+                        scene.truck.moveOut();
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(50),
+                    function() {
+                        scene.crane.moveHook(40,(scene.crane.caret.position.y+10) - scene.crane.hook.position.y, () => this.processScript())
+                    },
+                    function() {
+                        scene.crane.moveCaret(60, -scene.panelBlockSize.x/2 - 5 + scene.currentBlock*scene.panelBlockSize.x, () => this.processScript());
+                    },
+                    //
+                    function() {
+                        scene.crane.moveHook(50, -25 - scene.crane.hook.position.y, () => this.processScript());
+                    },
+                    function() {
+                        let p = scene.crane.getPayload();
+                        let position = p.getAbsolutePosition();
+                        
+
+                        scene.placingBlock = scene.addGo(new PanelBlock({
+                            position: position,
+                            size: scene.panelBlockSize,
+                            panelImg: PP.createImage(apartmentModels.panelBlock),
+                            ropePosition: -8
+                        }));
+
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(20),
+                    function() {
+                        scene.crane.removePayload();
+                        this.processScript();
+                    },
+                    function() {
+                        scene.crane.moveHook(40, 9, () => this.processScript(), (origin, position) => {
+                            let delta = -8 + (position.y - origin.y);
+                            scene.placingBlock.setRopePosition(fast.r(delta));
+                        });
+                    }
                 ]
 
                 this.processScript();
             }
         }))
     }
+}
 
+class PanelBlock extends GO {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            renderValuesRound: true,
+            size: new V2(1,1),
+            ropePosition: 0
+        }, options)
 
+        super(options);
+    }
+
+    init() {
+        this.ropeSize =new V2(this.size.x, 8);
+        this.panel = this.addChild(new GO({
+            position: new V2(),
+            size: this.size,
+            img: this.panelImg
+        }))
+
+        this.rope = this.addChild(new GO({
+            position: new V2(0, -this.size.y/2 - this.ropeSize.y/2),
+            size: this.ropeSize,
+        }))
+
+        if(this.ropePosition < 0){
+            this.renderRope()
+        }
+    }
+
+    setRopePosition(ropePosition) {
+        this.ropePosition = ropePosition;
+        this.renderRope();
+    }
+
+    renderRope(){
+        this.rope.img = createCanvas(this.ropeSize, (ctx, size, hlp) => {
+            if(this.ropePosition > 0)
+                return;
+                
+            hlp.setFillColor('#343434');
+            let pp = new PerfectPixel({context: ctx});
+            let cX = fast.r(size.x/2);
+            let y = size.y + this.ropePosition;
+            pp.line(cX, y, 0,size.y-1);
+            pp.line(cX, y, size.x-1,size.y-1)
+        })
+    }
 }
 
 class Truck extends GO {
@@ -159,12 +295,21 @@ class Truck extends GO {
             }
         })))
     }
-
+    cargo(go){
+        go.position = new V2(22,3).add(go.size.mul(-0.5))
+        this.payload = this.addChild(go);
+    }
+    removeCargo() {
+        this.removeChild(this.payload);
+    }
+    getCargo() {
+        return this.payload;
+    }
     moveIn(callback) {
         this.script.items = [
             function() {
                 this.startWheelBreakAnimation(90);
-                this.xChange = easing.createProps(100, this.position.x, 160, 'quad', 'out');
+                this.xChange = easing.createProps(100, this.position.x, this.parentScene.sceneCenter.x, 'quad', 'out');
                 this.xChange.onComplete = () => this.processScript();
             },
             function() {
@@ -177,11 +322,11 @@ class Truck extends GO {
         this.processScript();
     }
 
-    moveOut(callback) {
+    moveOut(callback = () => {}) {
         this.script.items = [
             function() {
                 this.startWheelAccelerateAnimation(90);
-                this.xChange = easing.createProps(100, this.position.x, 0, 'quad', 'in');
+                this.xChange = easing.createProps(100, this.position.x, -this.size.x/2, 'quad', 'in');
                 this.xChange.onComplete = () => this.processScript();
             },
             function() {
@@ -330,13 +475,17 @@ class Crane extends GO {
 
         this.caret = this.addChild(new GO({
             position: this.vStart.add(new V2(-this.componentSizes.vSegmentSize.x/2 - this.componentSizes.caretSize.x/2 - 5, -this.componentSizes.vSegmentSize.y/2+1)),
+            //.add(new V2(-37, 0)),
             size: this.componentSizes.caretSize,
             renderValuesRound: true,
             img: this.images.caret,
         }));
 
+        
+
         this.hook = this.addChild(new GO({
             position: this.caret.position.add(new V2(0, 20)),
+            //.add(new V2(0,21)),
             size: this.componentSizes.hookSize,
             renderValuesRound: true,
             img: this.images.hook,
@@ -389,6 +538,20 @@ class Crane extends GO {
 
 
         this.timer = this.regTimerDefault(30, () => {
+            if(this.hookYChange){
+                this.hook.position.y = easing.process(this.hookYChange);
+                this.hookYChange.onChange(this.hook.originPosition, this.hook.position);
+                this.hook.needRecalcRenderProperties = true;
+                this.hookYChange.time++;
+
+                if(this.hookYChange.time > this.hookYChange.duration){
+                    this.hookYChange.onComplete();
+                    this.hookYChange = undefined;
+                }
+
+                this.updateHookRopes = true;
+            }
+
             if(this.caretXChange){
                 this.caret.position.x = easing.process(this.caretXChange);
                 this.caret.needRecalcRenderProperties = true;
@@ -398,7 +561,7 @@ class Crane extends GO {
                     this.caretXChange = undefined;
                 }
 
-                this.updateHookRomes = true;
+                this.updateHookRopes = true;
             }
 
             if(this.hookXChange){
@@ -407,22 +570,25 @@ class Crane extends GO {
                 this.hookXChange.time++;
 
                 if(this.hookXChange.time > this.hookXChange.duration){
+                    if(this.hookXChange.onComplete)
+                        this.hookXChange.onComplete();
+
                     this.hookXChange = undefined;
                     if(this.hookXChanges.length){
                         this.hookXChange = this.hookXChanges.shift();
                     }
                 }
 
-                this.updateHookRomes = true;
+                this.updateHookRopes = true;
             }
 
-            if(this.updateHookRomes) {
+            if(this.updateHookRopes) {
                 this.hookRopes.getImage();
             }
         })
     }
 
-    moveCaret(duration, xChange){
+    moveCaret(duration, xChange, completeCallback = () => {}){
         this.caretXChange = easing.createProps(duration, this.caret.position.x, this.caret.position.x+xChange, 'quad', 'inOut');
         this.hookXChangeCreateTimer = this.registerTimer(createTimer(100, () => {
             let hookPositionXChange = this.caret.position.x+xChange;
@@ -437,10 +603,31 @@ class Crane extends GO {
                 this.hookXChanges[this.hookXChanges.length] = easing.createProps(fast.r(duration/3), hookPositionXChange, this.caret.position.x+xChange, 'quad', 'inOut')
             }
 
+            this.hookXChanges[this.hookXChanges.length-1].onComplete = completeCallback;
+
             this.hookXChange = this.hookXChanges.shift();//easing.createProps(duration, this.hook.position.x, this.caret.position.x+xChange, 'quad', 'inOut');
             this.unregTimer(this.hookXChangeCreateTimer);
             this.hookXChangeCreateTimer = undefined;
         }, this, false));
+    }
+
+    addPayload(go) {
+        go.position = new V2(-1, this.hook.size.y/2 + 8 + go.size.y/2 - 0.5);
+        this.hook.payload = this.hook.addChild(go);
+    }
+
+    getPayload() {
+        return this.hook.payload;
+    }
+    removePayload() {
+        this.hook.removeChild(this.hook.payload);
+    }
+
+    moveHook(duration, yChange, completeCallback = () => {}, changeCallback = () => {}){
+        this.hook.originPosition = this.hook.position.clone();
+        this.hookYChange = easing.createProps(duration, this.hook.position.y, this.hook.position.y+yChange, 'quad', 'inOut');
+        this.hookYChange.onComplete = completeCallback;
+        this.hookYChange.onChange = changeCallback;
     }
 
     addVSegment() {
