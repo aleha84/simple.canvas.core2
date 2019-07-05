@@ -15,24 +15,70 @@ class CraneScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault('#9DD0FF');
+        this.backgroundRenderDefault('#41B7E9');
     }
 
     start() {
         this.currentFloor = 0;
         this.currentBlock = 0;
-        this.maxFloors = 2;
+        this.maxFloors = 5;
         this.maxBlocks = 2;
 
         this.panelBlockSize = new V2(30,20)
         this.truckSize = new V2(60,20);
-        this.truckWheelSize = new V2(7,7)
-        
+        this.truckWheelSize = new V2(7,7);
+
+        this.apartmentsBlocks = [];
+        this.addGo(new GO({
+            position: new V2(this.sceneCenter.x, this.sceneCenter.y+65),
+            size: new V2(this.viewport.x, 100),
+            img: createCanvas(new V2(1,1), (_, __, hlp) => {
+                hlp.setFillColor('#3E2231').dot(0,0);
+            })
+        }), 0)
+        this.addGo(new GO({
+            position: new V2(this.sceneCenter.x, this.sceneCenter.y+15),
+            size: new V2(this.viewport.x, 14),
+            img: createCanvas(new V2(this.viewport.x, 14), (ctx, size, hlp) => {
+                hlp.setFillColor('#57CBFA').rect(0,0,size.x, 4);
+                hlp.setFillColor('#51AC5F').rect(0,4,size.x, 4).setFillColor('#314347').rect(0,8,size.x,1).setFillColor('#221E2C').rect(0,9,size.x, 5);
+                hlp.setFillColor('#B1CA55');
+                let x = -10;
+                while(x < size.x){hlp.dot(x, 4); x+=getRandomInt(2,4); }
+                x = -10;
+                while(x < size.x){hlp.dot(x, 5); x+=getRandomInt(4,7); }
+
+                hlp.setFillColor('#316B6D');
+                x = -10;
+                while(x < size.x){hlp.dot(x, 6); x+=getRandomInt(4,7); }
+                x = -10;
+                while(x < size.x){hlp.dot(x, 7); x+=getRandomInt(2,4); }
+                hlp.setFillColor('#272331');
+                x = -10;
+                while(x < size.x){hlp.dot(x, 8); x+=getRandomInt(2,4); }
+                hlp.setFillColor('#6D3D26');
+                x = -10;
+                while(x < size.x){hlp.dot(x, 9); x+=getRandomInt(2,4); }
+                hlp.setFillColor('#48282B');
+                x = -10;
+                while(x < size.x){hlp.dot(x, 9); x+=getRandomInt(4,8); }
+                x = -10;
+                while(x < size.x){hlp.rect(x, 10, 2,1); x+=getRandomInt(2,4); }
+                hlp.setFillColor('#3E2231');
+                x = -10;
+                while(x < size.x){hlp.dot(x, 10); x+=getRandomInt(4,8); }
+                x = -10;
+                while(x < size.x){hlp.dot(x, 11); x+=getRandomInt(2,4); }
+                x = -10;
+                while(x < size.x){hlp.dot(x, 12); x+=getRandomInt(3,6); }
+                x = -10;
+                while(x < size.x){hlp.dot(x, 13); x+=getRandomInt(4,8); }
+            })
+        }), 1)
+
         this.crane = this.addGo(new Crane({
             position: this.sceneCenter.add(new V2(60, 5)),
         }), 5)
-
-        
 
         this.truck = this.addGo(new Truck({
             position: new V2(this.viewport.x + this.truckSize.x/2, this.sceneCenter.y),
@@ -40,11 +86,11 @@ class CraneScene extends Scene {
             truckWheelSize: this.truckWheelSize,
         }), 10)
 
-        this.truck.cargo(new PanelBlock({
-            position: new V2(),//this.sceneCenter.add(new V2(-40, 0)),
-            size: this.panelBlockSize,
-            panelImg: PP.createImage(apartmentModels.panelBlock)
-        }));
+        // this.truck.cargo(new PanelBlock({
+        //     position: new V2(),//this.sceneCenter.add(new V2(-40, 0)),
+        //     size: this.panelBlockSize,
+        //     panelImg: PP.createImage(apartmentModels.panelBlock)
+        // }));
 
         this.sceneManager = this.addGo(new GO({
             position: new V2(), 
@@ -75,37 +121,57 @@ class CraneScene extends Scene {
                     function() {
                         scene.crane.moveHook(40, -20, () => this.processScript())
                     }
-                    // function() {
-                    //     scene.truck.moveIn(() => this.processScript())
-                    // },
-                    // this.addProcessScriptDelay(3000),
-                    // function() {
-                    //     scene.truck.moveOut(() => this.processScript())
-                    // },
+
                 ]
 
-                //this.processScript();
+                this.startDelay = this.registerTimer(createTimer(3000, () => {
+                    this.unregTimer(this.startDelay);
+                    this.startDelay = undefined;
+                    this.workSequence();    
+                }, this, false));
 
-                this.workSequence();
+                
             },
             workSequence() {
                 let scene = this.parentScene;
-
+                let isDoor = false;
+                let vChange = easing.createProps(scene.maxFloors-1, 41, 60, 'linear', 'base');
                 this.script.items = [
-                    this.addProcessScriptDelay(500),
-                    function() {
+                    function() {          
+                        let model = apartmentModels.panelBlock;
+                        if(scene.currentFloor == 0){
+                            model = scene.currentBlock == 0 ? apartmentModels.groundFloorDoor : apartmentModels.groundFloorBlock;
+                            isDoor = scene.currentBlock == 0;
+                        }
+                        else if(scene.currentFloor == scene.maxFloors-1) {
+                            model = scene.currentBlock == 0 ? apartmentModels.lastFloorLeft : apartmentModels.lastFloorRight;
+                        }
+                        else {
+                            model = scene.currentBlock == 0 ? apartmentModels.panelBlockLeft : apartmentModels.panelBlockRight;
+                        }
+                        
+                        model = model();
+                        vChange.time = scene.currentFloor;
+                        model.main.layers[0].fillColor = hsvToHex({hsv: [48,29,fast.r(easing.process(vChange))]});
+
+                        scene.currentApartmentsImgModel = model;
+                        scene.truck.cargo(new PanelBlock({
+                            position: new V2(),//this.sceneCenter.add(new V2(-40, 0)),
+                            size: scene.panelBlockSize,
+                            panelImg: PP.createImage(scene.currentApartmentsImgModel)
+                        }));
                         scene.truck.position = new V2(scene.viewport.x + scene.truckSize.x/2, scene.sceneCenter.y);
                         scene.truck.moveIn(() => this.processScript())
                     },
                     function() {
-                        scene.crane.moveCaret(60, -52 - scene.crane.caret.position.x, () => this.processScript());
+                        scene.crane.moveCaret(25, -52 - scene.crane.caret.position.x, () => this.processScript());
                     },
                     function() {
-                        scene.crane.moveHook(40, -25 - scene.crane.hook.position.y, () => this.processScript());
+                        scene.crane.moveHook(15 + scene.currentFloor*5, -25 - scene.crane.hook.position.y, () => this.processScript());
                     },
                     this.addProcessScriptDelay(50),
                     function() {
-                        scene.crane.moveHook(40, -8, () => this.processScript(), (origin, position) => {
+                        scene.crane.moveHook(15, -8, () => this.processScript(), (origin, position) => {
                             let delta = position.y - origin.y;
                             scene.truck.getCargo().setRopePosition(fast.r(delta));
                         });
@@ -115,7 +181,7 @@ class CraneScene extends Scene {
                         scene.crane.addPayload(new PanelBlock({
                             position: new V2(),//this.sceneCenter.add(new V2(-40, 0)),
                             size: scene.panelBlockSize,
-                            panelImg: PP.createImage(apartmentModels.panelBlock),
+                            panelImg: PP.createImage(scene.currentApartmentsImgModel),
                             ropePosition: -8
                         }));  
                         scene.truck.moveOut();
@@ -123,26 +189,28 @@ class CraneScene extends Scene {
                     },
                     this.addProcessScriptDelay(50),
                     function() {
-                        scene.crane.moveHook(40,(scene.crane.caret.position.y+10) - scene.crane.hook.position.y, () => this.processScript())
+                        scene.crane.moveHook(15+ scene.currentFloor*5,(scene.crane.caret.position.y+10) - scene.crane.hook.position.y, () => this.processScript())
                     },
                     function() {
-                        scene.crane.moveCaret(60, -scene.panelBlockSize.x/2 - 5 + scene.currentBlock*scene.panelBlockSize.x, () => this.processScript());
+                        scene.crane.moveCaret(25, -scene.panelBlockSize.x/2 - 5 + scene.currentBlock*scene.panelBlockSize.x, () => this.processScript());
                     },
                     //
                     function() {
-                        scene.crane.moveHook(50, -25 - scene.crane.hook.position.y, () => this.processScript());
+                        scene.crane.moveHook(15+ scene.currentFloor*2, -23 - (scene.panelBlockSize.y*scene.currentFloor) - scene.crane.hook.position.y, () => this.processScript());
                     },
                     function() {
                         let p = scene.crane.getPayload();
                         let position = p.getAbsolutePosition();
                         
-
                         scene.placingBlock = scene.addGo(new PanelBlock({
                             position: position,
                             size: scene.panelBlockSize,
-                            panelImg: PP.createImage(apartmentModels.panelBlock),
-                            ropePosition: -8
-                        }));
+                            panelImg: PP.createImage(scene.currentApartmentsImgModel),
+                            ropePosition: -8,
+                            model: scene.currentApartmentsImgModel
+                        }),2);
+
+                        scene.apartmentsBlocks[scene.apartmentsBlocks.length] = scene.placingBlock;
 
                         this.processScript();
                     },
@@ -152,14 +220,14 @@ class CraneScene extends Scene {
                         this.processScript();
                     },
                     function() {
-                        scene.crane.moveHook(40, 9, () => this.processScript(), (origin, position) => {
+                        scene.crane.moveHook(15, 9, () => this.processScript(), (origin, position) => {
                             let delta = -8 + (position.y - origin.y);
                             scene.placingBlock.setRopePosition(fast.r(delta));
                         });
                     },
                     this.addProcessScriptDelay(20),
                     function() {
-                        scene.crane.moveHook(40,(scene.crane.caret.position.y+10) - scene.crane.hook.position.y, () => this.processScript())
+                        scene.crane.moveHook(15+ scene.currentFloor*2,(scene.crane.caret.position.y+10) - scene.crane.hook.position.y, () => this.processScript())
                     },
                     function() {
                         scene.currentBlock++;
@@ -177,7 +245,58 @@ class CraneScene extends Scene {
                         else {
                             this.workSequence();
                         }
-                    }
+                    },
+                    this.addProcessScriptDelay(200),
+                    function() {
+                        let currentBlock = 1;
+                        this.blockLightTimer = this.regTimerDefault(50, () => {
+                            let b = scene.apartmentsBlocks[currentBlock];
+
+                            let model = b.model;
+                            model.main.layers[1].fillColor = '#FEEF92';
+                            model.main.layers[2].visible = false;
+                            model.main.layers[3].visible = false;
+                            b.panel.img = PP.createImage(model);
+
+                            currentBlock++;
+
+                            if(currentBlock == scene.apartmentsBlocks.length){
+                                this.unregTimer(this.blockLightTimer);
+                                this.blockLightTimer = undefined;
+                                this.processScript();
+                            }
+                        })
+                    },
+                    this.addProcessScriptDelay(400),
+                    function() {
+                        this.xChange = easing.createProps(20, 0, -250, 'quad', 'in');
+                        scene.apartmentsBlocks.forEach(b => { b.originX = b.position.x });
+                        this.moveOutTimer = this.regTimerDefault(30, () => {
+                            let xDelta = easing.process(this.xChange);
+                            scene.apartmentsBlocks.forEach(b => { 
+                                b.position.x = b.originX + xDelta;
+                                b.needRecalcRenderProperties = true;
+                            });
+
+                            this.xChange.time++;
+
+                            if(this.xChange.time > this.xChange.duration){
+                                this.unregTimer(this.moveOutTimer);
+                                this.moveOutTimer = undefined;
+                                this.processScript();
+                            }
+                        });
+                    },
+                    ...new Array(scene.maxFloors-1).fill().map((_,i) => (function(){
+                        scene.crane.removeVSegment(() => this.processScript());
+                    })),
+                    this.addProcessScriptDelay(20),
+                    function() {
+                        scene.crane.moveHook(15,scene.crane.hook.initialY - scene.crane.hook.position.y, () => this.processScript())
+                    },
+                    function() {
+                        scene.crane.moveCaret(25,scene.crane.caret.initialX - scene.crane.caret.position.x, () => this.processScript())
+                    },
                 ]
 
                 this.processScript();
@@ -229,8 +348,8 @@ class PanelBlock extends GO {
             let pp = new PerfectPixel({context: ctx});
             let cX = fast.r(size.x/2);
             let y = size.y + this.ropePosition;
-            pp.line(cX, y, 0,size.y-1);
-            pp.line(cX, y, size.x-1,size.y-1)
+            pp.line(cX, y, 1,size.y-1);
+            pp.line(cX, y, size.x-2,size.y-1)
         })
     }
 }
@@ -329,8 +448,8 @@ class Truck extends GO {
     moveIn(callback) {
         this.script.items = [
             function() {
-                this.startWheelBreakAnimation(90);
-                this.xChange = easing.createProps(100, this.position.x, this.parentScene.sceneCenter.x, 'quad', 'out');
+                this.startWheelBreakAnimation(40);
+                this.xChange = easing.createProps(50, this.position.x, this.parentScene.sceneCenter.x, 'quad', 'out');
                 this.xChange.onComplete = () => this.processScript();
             },
             function() {
@@ -346,8 +465,8 @@ class Truck extends GO {
     moveOut(callback = () => {}) {
         this.script.items = [
             function() {
-                this.startWheelAccelerateAnimation(90);
-                this.xChange = easing.createProps(100, this.position.x, -this.size.x/2, 'quad', 'in');
+                this.startWheelAccelerateAnimation(40);
+                this.xChange = easing.createProps(50, this.position.x, -this.size.x/2, 'quad', 'in');
                 this.xChange.onComplete = () => this.processScript();
             },
             function() {
@@ -361,11 +480,11 @@ class Truck extends GO {
     }
 
     startWheelAccelerateAnimation(duration) {
-        this.durationChange = easing.createProps(duration, 300, 100, 'quad', 'in');
+        this.durationChange = easing.createProps(duration, 150, 50, 'quad', 'in');
     }
 
     startWheelBreakAnimation(duration) {
-        this.durationChange = easing.createProps(duration, 100, 300, 'quad', 'out');
+        this.durationChange = easing.createProps(duration, 50, 150, 'quad', 'out');
     }
 
     stopWheelAnimation() {
@@ -501,7 +620,8 @@ class Crane extends GO {
             renderValuesRound: true,
             img: this.images.caret,
         }));
-
+        
+        this.caret.initialX = this.caret.position.x;
         
 
         this.hook = this.addChild(new GO({
@@ -511,6 +631,8 @@ class Crane extends GO {
             renderValuesRound: true,
             img: this.images.hook,
         })); 
+
+        this.hook.initialY = this.hook.position.y;
 
         this.hookRopes = this.addChild(new GO({
             position: new V2(),
@@ -591,8 +713,11 @@ class Crane extends GO {
                 this.hookXChange.time++;
 
                 if(this.hookXChange.time > this.hookXChange.duration){
-                    if(this.hookXChange.onComplete)
+                    if(this.hookXChange.onComplete){
+                        this.hook.position.x = this.caret.position.x;
                         this.hookXChange.onComplete();
+                    }
+                        
 
                     this.hookXChange = undefined;
                     if(this.hookXChanges.length){
@@ -611,8 +736,9 @@ class Crane extends GO {
 
     moveCaret(duration, xChange, completeCallback = () => {}){
         this.caretXChange = easing.createProps(duration, this.caret.position.x, this.caret.position.x+xChange, 'quad', 'inOut');
-        this.hookXChangeCreateTimer = this.registerTimer(createTimer(100, () => {
-            let hookPositionXChange = this.caret.position.x+xChange;
+        let hookPositionXChange = this.caret.position.x+xChange;
+        this.hookXChangeCreateTimer = this.registerTimer(createTimer(50, () => {
+            
             let out = xChange/15;
             if(Math.abs(out) > 1){
                 hookPositionXChange+=out;
@@ -621,10 +747,11 @@ class Crane extends GO {
                 easing.createProps(duration, this.hook.position.x, hookPositionXChange, 'quad', 'inOut')
             ]
             if(Math.abs(out) > 1){
-                this.hookXChanges[this.hookXChanges.length] = easing.createProps(fast.r(duration/3), hookPositionXChange, this.caret.position.x+xChange, 'quad', 'inOut')
+                this.hookXChanges[this.hookXChanges.length] = easing.createProps(fast.r(duration/3), hookPositionXChange, hookPositionXChange-out, 'quad', 'inOut')
             }
 
             this.hookXChanges[this.hookXChanges.length-1].onComplete = completeCallback;
+            //this.hookXChanges[this.hookXChanges.length-1].targetX = this.caret.position.x+xChange;
 
             this.hookXChange = this.hookXChanges.shift();//easing.createProps(duration, this.hook.position.x, this.caret.position.x+xChange, 'quad', 'inOut');
             this.unregTimer(this.hookXChangeCreateTimer);
@@ -651,6 +778,35 @@ class Crane extends GO {
         this.hookYChange.onChange = changeCallback;
     }
 
+    removeVSegment(callback = () => {}) {
+        let toRemove = this.vSegments.shift();
+        let shiftedItems = [
+            ...this.hSegments, this.cabin, this.weight, this.vTopEnd, ...this.vSegments, this.ropes,
+            this.hook, this.caret, this.hookRopes
+        ]
+
+        shiftedItems.forEach(x => x.originPosition = x.position.clone());
+
+        this.yChange = easing.createProps(25, 0, this.componentSizes.vSegmentSize.y, 'quad', 'inOut');
+        this.riseTimer = this.regTimerDefault(30, () => {
+            let yShift = fast.r(easing.process(this.yChange));
+
+            shiftedItems.forEach(x => {
+                x.position.y = x.originPosition.y+yShift;
+                x.needRecalcRenderProperties = true;
+            });
+            this.yChange.time++
+
+            if(this.yChange.time > this.yChange.duration){
+                this.yChange = undefined;
+                this.unregTimer(this.riseTimer);
+                this.riseTimer = undefined;
+                this.removeChild(toRemove);
+                callback();
+            }
+        })
+    }
+
     addVSegment(callback = () => {}) {
         this.vSegments[this.vSegments.length] = this.addChild(new GO({
             renderValuesRound: true,
@@ -661,7 +817,7 @@ class Crane extends GO {
 
         let shiftedItems = [
             ...this.hSegments, this.cabin, this.weight, this.vTopEnd, this.vSegments[this.vSegments.length-1], this.ropes,
-            this.hook, this.caret,
+            this.hook, this.caret,this.hookRopes
         ]
 
         shiftedItems.forEach(x => x.originPosition = x.position.clone());
