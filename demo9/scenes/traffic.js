@@ -155,7 +155,7 @@ class TrafficScene extends Scene {
         let sideBackFrontOuline = {         
             "order": 13, "type": "lines", "strokeColor": c2, "fillColor": c2, "closePath": false, "fill": false, "visible": true, "clear": false,
             "points": [         
-                { "point": { "x": 6, "y": 16 } }, { "point": { "x": 0, "y": 16 }, "point": { "x": 0, "y": 17 } }
+                { "point": { "x": 6, "y": 16 } }, { "point": { "x": 1, "y": 16 } }, {"point": { "x": 0, "y": 17 } }
             ]
         }
 
@@ -206,12 +206,76 @@ class TrafficScene extends Scene {
 
     start(){
         this.wheelImg = PP.createImage({"general":{"originalSize":{"x":6,"y":5},"size":{"x":6,"y":5},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#222036","fillColor":"#222036","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":0}},{"point":{"x":4,"y":0}},{"point":{"x":5,"y":1}},{"point":{"x":5,"y":3}},{"point":{"x":4,"y":4}},{"point":{"x":1,"y":4}},{"point":{"x":0,"y":3}},{"point":{"x":0,"y":1}}]},{"order":1,"type":"dots","strokeColor":"#686A69","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":2}},{"point":{"x":3,"y":2}}]},{"order":2,"type":"dots","strokeColor":"#5E5A5B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":1}},{"point":{"x":3,"y":1}}]},{"order":3,"type":"dots","strokeColor":"#84838B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":2}},{"point":{"x":2,"y":3}},{"point":{"x":3,"y":3}},{"point":{"x":4,"y":2}}]},{"order":4,"type":"dots","strokeColor":"#393B3A","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":1}},{"point":{"x":4,"y":1}}]},{"order":5,"type":"dots","strokeColor":"#464644","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":3}},{"point":{"x":4,"y":3}}]}]}})
+        // this.wheelImages = [
+        //     PP.createImage({"general":{"originalSize":{"x":6,"y":5},"size":{"x":6,"y":5},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#222036","fillColor":"#222036","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":0}},{"point":{"x":4,"y":0}},{"point":{"x":5,"y":1}},{"point":{"x":5,"y":3}},{"point":{"x":4,"y":4}},{"point":{"x":1,"y":4}},{"point":{"x":0,"y":3}},{"point":{"x":0,"y":1}}]},{"order":1,"type":"dots","strokeColor":"#686A69","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":2}},{"point":{"x":3,"y":2}}]},{"order":2,"type":"dots","strokeColor":"#5E5A5B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":1}},{"point":{"x":3,"y":1}}]},{"order":3,"type":"dots","strokeColor":"#84838B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":2}},{"point":{"x":2,"y":3}},{"point":{"x":3,"y":3}},{"point":{"x":4,"y":2}}]},{"order":4,"type":"dots","strokeColor":"#393B3A","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":1}},{"point":{"x":4,"y":1}}]},{"order":5,"type":"dots","strokeColor":"#464644","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":3}},{"point":{"x":4,"y":3}}]}]}}),
+        //     PP.createImage({"general":{"originalSize":{"x":6,"y":5},"size":{"x":6,"y":5},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#222036","fillColor":"#222036","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":0}},{"point":{"x":4,"y":0}},{"point":{"x":5,"y":1}},{"point":{"x":5,"y":3}},{"point":{"x":4,"y":4}},{"point":{"x":1,"y":4}},{"point":{"x":0,"y":3}},{"point":{"x":0,"y":1}}]},{"order":1,"type":"dots","strokeColor":"#686A69","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":2}},{"point":{"x":3,"y":2}}]},{"order":2,"type":"dots","strokeColor":"#5E5A5B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":1}},{"point":{"x":3,"y":1}}]},{"order":3,"type":"dots","strokeColor":"#84838B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":2}},{"point":{"x":2,"y":3}},{"point":{"x":3,"y":3}},{"point":{"x":4,"y":2}}]},{"order":4,"type":"dots","strokeColor":"#393B3A","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":1}},{"point":{"x":4,"y":1}},{"point":{"x":2,"y":1}}]},{"order":5,"type":"dots","strokeColor":"#464644","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":3}},{"point":{"x":4,"y":3}},{"point":{"x":3,"y":3}}]}]}}),
+        //     //PP.createImage({"general":{"originalSize":{"x":6,"y":5},"size":{"x":6,"y":5},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#222036","fillColor":"#222036","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":0}},{"point":{"x":4,"y":0}},{"point":{"x":5,"y":1}},{"point":{"x":5,"y":3}},{"point":{"x":4,"y":4}},{"point":{"x":1,"y":4}},{"point":{"x":0,"y":3}},{"point":{"x":0,"y":1}}]},{"order":1,"type":"dots","strokeColor":"#686A69","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":2}},{"point":{"x":3,"y":2}}]},{"order":2,"type":"dots","strokeColor":"#5E5A5B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":1}},{"point":{"x":4,"y":1}}]},{"order":3,"type":"dots","strokeColor":"#84838B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":3}},{"point":{"x":4,"y":3}}]},{"order":4,"type":"dots","strokeColor":"#393B3A","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":1}},{"point":{"x":3,"y":1}}]},{"order":5,"type":"dots","strokeColor":"#464644","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":3}},{"point":{"x":3,"y":3}},{"point":{"x":1,"y":2}},{"point":{"x":4,"y":2}}]}]}}),
+        //     PP.createImage({"general":{"originalSize":{"x":6,"y":5},"size":{"x":6,"y":5},"zoom":10,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#222036","fillColor":"#222036","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":0}},{"point":{"x":4,"y":0}},{"point":{"x":5,"y":1}},{"point":{"x":5,"y":3}},{"point":{"x":4,"y":4}},{"point":{"x":1,"y":4}},{"point":{"x":0,"y":3}},{"point":{"x":0,"y":1}}]},{"order":1,"type":"dots","strokeColor":"#686A69","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":2}},{"point":{"x":3,"y":2}}]},{"order":2,"type":"dots","strokeColor":"#5E5A5B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":1}},{"point":{"x":3,"y":1}}]},{"order":3,"type":"dots","strokeColor":"#84838B","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":2}},{"point":{"x":2,"y":3}},{"point":{"x":3,"y":3}},{"point":{"x":4,"y":2}}]},{"order":4,"type":"dots","strokeColor":"#393B3A","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":1}},{"point":{"x":4,"y":1}},{"point":{"x":3,"y":1}}]},{"order":5,"type":"dots","strokeColor":"#464644","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":3}},{"point":{"x":4,"y":3}},{"point":{"x":2,"y":3}}]}]}}),
+        //     ]
 
-        this.demoCar = this.addGo(new TrafficItemGO({
-            position: this.sceneCenter.clone(),
-            bodyImg: this.carBodyGenerator(),
-            wheelImg: this.wheelImg
-        }))
+        // this.demoCar = this.addGo(new TrafficItemGO({
+        //     position: this.sceneCenter.clone(),
+        //     bodyImg: this.carBodyGenerator(),
+        //     wheelImg: this.wheelImg,
+        //     //wheelImages: this.wheelImages
+        // }))
+
+        this.cars = [];
+        this.totalCars = 10;
+        this.carSpeed = 3;
+        this.carMaxX = this.viewport.x+40;
+        this.cleanUpCounter = 50;
+        this.totalLineNums = 4;
+
+        this.carCreatorTimer = this.regTimerDefault(50, () => {
+
+            if(getRandomBool()){
+                let lineNumsLeft = new Array(this.totalLineNums).fill().map((_, i) => i);
+                let y = undefined;
+                while(lineNumsLeft.length > 0){
+                    let lineNum = lineNumsLeft[getRandomInt(0,lineNumsLeft.length-1)];
+
+                    if(this.cars.filter(c => c.lineNum == lineNum &&  c.position.x <= 10).length == 0){
+                        y = fast.r(this.sceneCenter.y + 20*lineNum);
+
+                        this.cars[this.cars.length] = this.addGo(new TrafficItemGO({
+                            position: new V2(-40,y),//getRandomInt(-40,-20), y),
+                            bodyImg: this.carBodyGenerator(),
+                            wheelImg: this.wheelImg,
+                            lineNum,
+                            speed: this.carSpeed,
+                            maxX: this.carMaxX
+                        }), 10 + lineNum*10 ); 
+
+                        break;
+                    }
+
+                    let index = lineNumsLeft.indexOf(lineNum);
+                    lineNumsLeft.splice(index,1);
+                }
+            }
+
+            
+
+            
+            //fast.r(this.sceneCenter.y + 8*(isUpper ? -1 : 1));
+            
+
+            this.cleanUpCounter--;
+
+            if(this.cleanUpCounter <= 0){
+                this.cleanUpCounter = 50;
+
+                let i = this.cars.length;
+                while (i--) {
+                    if(!this.cars[i].alive){
+                        this.cars.splice(i,1);
+                    }
+                }
+            }
+
+            this.debug.additional[2] = 'cars.length: '  + this.cars.length;
+        });
     }
 }
 
@@ -226,11 +290,11 @@ class TrafficItemGO extends GO {
     }
 
     init() {
-        
         this.wheels = [new V2(-13, 10), new V2(12, 10)].map(p => this.addChild(new GO({
             size: new V2(6,5),
             position: p,
-            img: this.wheelImg
+            img: this.wheelImg,
+            renderValuesRound: false,
         })));
 
         this.body = this.addChild(new GO({
@@ -239,7 +303,32 @@ class TrafficItemGO extends GO {
             img: this.bodyImg,
             position: new V2()
         }));
-        //body
-        //wheels
+        
+         this.wheelImgIndex = 0;
+        // this.wheels.forEach(w => {
+        //     w.img = this.wheelImages[this.wheelImgIndex++];
+        // })
+
+        // this.wheelTimer = this.regTimerDefault(500, () => {
+        //     this.wheels.forEach(w => {
+        //         w.img = this.wheelImages[this.wheelImgIndex];
+        //     });
+
+        //     this.wheelImgIndex++;
+
+        //     if(this.wheelImgIndex == this.wheelImages.length){
+        //         this.wheelImgIndex = 0;
+        //     }
+        // })
+    }
+
+    internalUpdate(now){
+        this.position.x += this.speed;
+        this.needRecalcRenderProperties = true;
+
+        if(this.position.x > this.maxX){
+            this.setDead();
+        }
+
     }
 }
