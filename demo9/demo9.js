@@ -42,6 +42,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     })); 
 
+    SCG.scenes.cacheScene(new TrafficScene({
+        name:'traffic',
+        viewport: defaultViewpot
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();

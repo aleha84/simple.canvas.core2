@@ -601,6 +601,9 @@ var colors = {
         white: 'rgba(255,255,255, 1)',
         black: 'rgba(0,0,0,1)',
     },
+    hsvToHex(hsv) {
+        return hsvToHex({hsv});
+    },
     rgbToString({value, isObject = false, opacity = 1}) {
         if(isObject)
             return `rgba(${value.r}, ${value.g}, ${value.b}, ${opacity})`;

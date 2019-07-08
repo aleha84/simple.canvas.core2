@@ -1,0 +1,66 @@
+{
+	// Place your simple.canvas.core2 workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+
+	"SceneClass": {
+		"scope": "javascript",
+		"prefix": "createScene",
+		"body": [
+			"class ${1:name}Scene extends Scene {",
+			"\tconstructor(options = {}) {",
+			"\t\toptions = assignDeep({}, {",
+			"\t\t\tdebug: {",
+			"\t\t\t\tenabled: true,",
+			"\t\t\t\tshowFrameTimeLeft: true,",
+			"\t\t\t\tadditional: [],",
+			"\t\t\t},",
+			"\t\t}, options)",
+			"\t\tsuper(options);",
+			"\t}",
+			"",
+			"\tbackgroundRender() {",
+			"\t\tthis.backgroundRenderDefault();",
+			"\t}",
+			"",
+			"\tstart(){",
+			"\t\t//$2",
+			"\t}",
+			"}"
+		],
+		"description": "Create scene class boilerplate"
+	},
+
+	"GOClass": {
+		"scope": "javascript",
+		"prefix": "createGO",
+		"description": "Create GO class boilerplate",
+		"body": [
+			"class ${1:name}GO extends GO {",
+			"\tconstructor(options = {}) {",
+			"\t\toptions = assignDeep({}, {",
+			"\t\t}, options)",
+			"",
+			"\t\tsuper(options);",
+			"\t}",
+			"",
+			"\tinit() {",
+			"\t\t//$2",
+			"\t}",
+			"}"
+		]
+	}
+}
