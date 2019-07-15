@@ -57,6 +57,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     })); 
 
+    SCG.scenes.cacheScene(new GlassScene({
+        name:'glass',
+        viewport: verticalDefaultViewport
+    })); 
+
     sceneSelectByHashValue();
     
     SCG.main.start();
