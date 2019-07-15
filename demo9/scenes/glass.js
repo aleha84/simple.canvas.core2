@@ -23,9 +23,30 @@ class GlassScene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
+                this.flowWidth = 20
+                this.flowTime = 0;
+                this.flowTimeDelta = 5;
+                this.timer = this.regTimerDefault(30, () => {
+
+                    this.flowTime+=this.flowTimeDelta;
+                    if(this.flowTime > 360){
+                        this.flowTime-=360;
+                    }
+                    else if(this.flowTime < -360){
+                        this.flowTime+=360;
+                    }
+                    
+                    this.createImg();
+                })
+            },
+            createImg(){
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    for(let x = 137; x < 200; x++){
-                        hlp.setFillColor('red').dot(x, Math.pow((x-size.x+35), 2)/40 -50)
+                    for(let x = 137; x < 210; x+=0.1){
+                        let y = fast.r(Math.pow((x-size.x+35), 2)/40 -50);
+                        
+                        let xShift = Math.sin(degreeToRadians((y-this.flowTime)*3))*5;
+                        let xShift2 = Math.sin(degreeToRadians((y-this.flowTime)*2))*6;
+                        hlp.setFillColor('#EEEEEE').rect(fast.r(x+xShift), y, fast.r(this.flowWidth - xShift +xShift2), 1)
                     }
                 })
             }
