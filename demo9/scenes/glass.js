@@ -18,6 +18,18 @@ class GlassScene extends Scene {
         this.glass = this.addGo(new GlassSceneItemGO({
             position: this.sceneCenter.clone(),
         }))
+
+        this.flow = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    for(let x = 137; x < 200; x++){
+                        hlp.setFillColor('red').dot(x, Math.pow((x-size.x+35), 2)/40 -50)
+                    }
+                })
+            }
+        }), 10)
     }
 }
 
@@ -41,10 +53,13 @@ class GlassSceneItemGO extends GO {
 
         this.createBodyImage();
 
-        this.splash1Change = easing.createProps(15, 60, 30, 'linear', 'base');
+        //this.splash1Change = easing.createProps(15, 60, 30, 'linear', 'base');
         this.splash1XTo = 60;
+        this.wavesTime = 0;
+        this.wavesTimeDelta = 0.5;
 
-        this.timer = this.regTimerDefault(30, () => {
+
+        this.timer = this.regTimerDefault(15, () => {
             if(this.splash1Change){
                 this.splash1XTo = fast.r(easing.process(this.splash1Change));
                 this.splash1Change.time++;
@@ -52,6 +67,14 @@ class GlassSceneItemGO extends GO {
                 if(this.splash1Change.time > this.splash1Change.duration){
                     this.splash1Change = undefined;
                 }
+            }
+
+            this.wavesTime+=this.wavesTimeDelta;
+            if(this.wavesTime > 360){
+                this.wavesTime-=360;
+            }
+            else if(this.wavesTime < -360){
+                this.wavesTime+=360;
             }
             
             this.createBodyImage();
@@ -96,6 +119,19 @@ class GlassSceneItemGO extends GO {
                 let y = fast.r(80+Math.pow((x-size.x/2 - 15),2)/15);
                 hlp.сircle(new V2(x,y), fast.r(easing.process(radiusChange)));
                 //hlp.dot(x, y)
+            }
+
+            for(let x = 0; x < size.x; x++){
+                let y1 = fast.r(Math.sin(degreeToRadians(x+this.wavesTime)*7)*3 + 50);
+                let y2 = fast.r(Math.cos(degreeToRadians(x+this.wavesTime)*7)*6 + 4+ 50);
+
+                if(y2 > y1){
+                    hlp.setFillColor('#CCCCCC').rect(x,y1, 1, y2-y1)
+                    // ctx.fillStyle = c1;
+                    // ctx.fillRect(x, y, 1, y1-y)
+                }
+
+                hlp.setFillColor('#EEEEEE').rect(x,y2,1,size.y);
             }
             
             // for(let x = 0; x < size.x; x++){
