@@ -15,6 +15,26 @@ class GlassScene extends Scene {
     }
 
     start(){
+        this.sceneManager = this.addGo(new GO({
+            position: new V2(),
+            size: new V2(1,1),
+            init(){
+
+            },
+            startSequence() {
+                let scene = this.parentScene;
+                this.script.items = [
+                    function() {
+                        scene.flow.startFlow(() => this.processScript());
+                    },
+                    function() {
+                        scene.glass.startFilling(() => this.processScript());
+                    }
+                ]
+                this.processScript();
+            }
+        }))
+
         this.glass = this.addGo(new GlassSceneItemGO({
             position: this.sceneCenter.clone(),
         }))
@@ -24,31 +44,87 @@ class GlassScene extends Scene {
             size: this.viewport.clone(),
             init() {
                 this.flowWidth = 20
+                this.flowWidthMultiplierFromTo = [0.1,0.3];
                 this.flowTime = 0;
-                this.flowTimeDelta = 5;
+                this.flowTimeDelta = 10;
+                this.flowEnabled = false;
+                this.flowFromX = 210;
+                this.flowToX = 210;
+                this.startFlowDuration = 40;
                 this.timer = this.regTimerDefault(30, () => {
-
-                    this.flowTime+=this.flowTimeDelta;
-                    if(this.flowTime > 360){
-                        this.flowTime-=360;
-                    }
-                    else if(this.flowTime < -360){
-                        this.flowTime+=360;
+                    if(this.flowEnabled){
+                        this.flowTime+=this.flowTimeDelta;
+                        if(this.flowTime > 360){
+                            this.flowTime-=360;
+                        }
+                        else if(this.flowTime < -360){
+                            this.flowTime+=360;
+                        }
                     }
                     
+                    if(this.flowFromXChange){
+                        this.flowFromX = fast.r(easing.process(this.flowFromXChange));
+                        this.flowFromXChange.time++;
+                        if(this.flowFromXChange.time>this.flowFromXChange.duration){
+                            this.flowFromXChange = undefined;
+                            this.startFlowCompleteCallback();
+                        }
+                    }
+
+                    if(this.flowWidthMultiplierToChange){
+                        this.flowWidthMultiplierFromTo[1] = easing.process(this.flowWidthMultiplierToChange);
+                        this.flowWidthMultiplierToChange.time++;
+                        if(this.flowWidthMultiplierToChange.time>this.flowWidthMultiplierToChange.duration){
+                            this.flowWidthMultiplierToChange = undefined;
+                            this.flowWidthMultiplierFromChange = easing.createProps(this.startFlowDuration, 0.25, 1, 'quad', 'in');
+                        }
+                    }
+
+                    if(this.flowWidthMultiplierFromChange){
+                        this.flowWidthMultiplierFromTo[0] = easing.process(this.flowWidthMultiplierFromChange);
+                        this.flowWidthMultiplierFromChange.time++;
+                        if(this.flowWidthMultiplierFromChange.time>this.flowWidthMultiplierFromChange.duration){
+                            this.flowWidthMultiplierFromChange = undefined;
+                            
+                        }
+                    }
+                    
+
                     this.createImg();
                 })
             },
             createImg(){
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    for(let x = 137; x < 210; x+=0.1){
+                    let flowWidthMultiplierChange = undefined;
+                    let flowXLength = this.flowToX - this.flowFromX;
+                    if(flowXLength > 0){
+                        flowWidthMultiplierChange = easing.createProps(flowXLength, this.flowWidthMultiplierFromTo[0], this.flowWidthMultiplierFromTo[1], 'linear', 'base');
+                    }
+                    for(let x = this.flowFromX; x < this.flowToX; x+=0.1){
+                        let flowWidth = this.flowWidth;
+                        
+
                         let y = fast.r(Math.pow((x-size.x+35), 2)/40 -50);
                         
                         let xShift = Math.sin(degreeToRadians((y-this.flowTime)*3))*5;
                         let xShift2 = Math.sin(degreeToRadians((y-this.flowTime)*2))*6;
-                        hlp.setFillColor('#EEEEEE').rect(fast.r(x+xShift), y, fast.r(this.flowWidth - xShift +xShift2), 1)
+                        flowWidth = flowWidth - xShift +xShift2;
+
+                        if(flowWidthMultiplierChange){
+                            flowWidthMultiplierChange.time = x-this.flowFromX;
+                            let flowWidthMultiplier = easing.process(flowWidthMultiplierChange);
+                            flowWidth*=flowWidthMultiplier;
+                        }
+
+                        hlp.setFillColor('#EEEEEE').rect(fast.r(x+xShift), y, fast.r(flowWidth), 1)
                     }
                 })
+            },
+            startFlow(callback) {
+                this.flowFromXChange = easing.createProps(this.startFlowDuration, 210, 137, 'quad', 'in');
+                this.flowWidthMultiplierToChange = easing.createProps(this.startFlowDuration, 0.25, 1, 'quad', 'in');
+                this.flowEnabled = true;
+                this.startFlowCompleteCallback = callback;
             }
         }), 10)
     }
@@ -77,17 +153,75 @@ class GlassSceneItemGO extends GO {
         //this.splash1Change = easing.createProps(15, 60, 30, 'linear', 'base');
         this.splash1XTo = 60;
         this.wavesTime = 0;
+        this.wavesHeight = 10//110;
         this.wavesTimeDelta = 0.5;
+        this.splashYDivider = 10;
+        this.fillingDuration = 500;
+        this.wavesAmplitudeModifier = 1;
+        this.yShiftModifier = 2;
+        this.waves = false;
 
+        this.y1Shift = easing.createProps(this.size.x, 0,10, 'linear', 'base');
+        this.y2Shift = easing.createProps(this.size.x, -10,0, 'linear', 'base');
+
+        this.yShiftChange = easing.createProps(100, 0,10, 'quad', 'inOut');
 
         this.timer = this.regTimerDefault(15, () => {
-            if(this.splash1Change){
-                this.splash1XTo = fast.r(easing.process(this.splash1Change));
-                this.splash1Change.time++;
+            if(this.wavesHeightChange){
+                this.wavesHeight = fast.r(easing.process(this.wavesHeightChange));
+                this.wavesHeightChange.time++;
 
-                if(this.splash1Change.time > this.splash1Change.duration){
-                    this.splash1Change = undefined;
+                if(this.wavesHeightChange.time > this.wavesHeightChange.duration){
+                    this.wavesHeightChange = undefined;
+                    this.fillingCompleteCallback();
                 }
+            }
+
+            if(this.splashYDividerChange){
+                this.splashYDivider = fast.r(easing.process(this.splashYDividerChange));
+                this.splashYDividerChange.time++;
+
+                if(this.splashYDividerChange.time > this.splashYDividerChange.duration){
+                    this.splashYDividerChange = undefined;
+                }
+            }
+
+            if(this.wavesAmplitudeModifierChange){
+                this.wavesAmplitudeModifier = easing.process(this.wavesAmplitudeModifierChange);
+                this.wavesAmplitudeModifierChange.time++;
+
+                if(this.wavesAmplitudeModifierChange.time > this.wavesAmplitudeModifierChange.duration){
+                    this.wavesAmplitudeModifierChange = undefined;
+                }
+            }
+
+            if(this.wavesTimeDeltaChnage){
+                this.wavesTimeDelta = easing.process(this.wavesTimeDeltaChnage);
+                this.wavesTimeDeltaChnage.time++;
+
+                if(this.wavesTimeDeltaChnage.time > this.wavesTimeDeltaChnage.duration){
+                    this.wavesTimeDeltaChnage = undefined;
+                }
+            }
+
+            if(this.yShiftModifierChange){
+                this.yShiftModifier = easing.process(this.yShiftModifierChange);
+                this.yShiftModifierChange.time++;
+
+                if(this.yShiftModifierChange.time > this.yShiftModifierChange.duration){
+                    this.yShiftModifierChange = undefined;
+                }
+            }
+
+            let yShiftCurrent = fast.r(easing.process(this.yShiftChange));
+            this.y1Shift = easing.createProps(this.size.x, 0+yShiftCurrent,10-yShiftCurrent, 'linear', 'base');
+            this.y2Shift = easing.createProps(this.size.x, -10+yShiftCurrent,0-yShiftCurrent, 'linear', 'base');
+
+            this.yShiftChange.time++;
+            if(this.yShiftChange.time > this.yShiftChange.duration){
+                this.yShiftChange.change*=-1;
+                this.yShiftChange.time = 0;
+                this.yShiftChange.startValue = yShiftCurrent;
             }
 
             this.wavesTime+=this.wavesTimeDelta;
@@ -100,6 +234,16 @@ class GlassSceneItemGO extends GO {
             
             this.createBodyImage();
         })
+    }
+
+    startFilling(callback){
+        this.wavesHeightChange = easing.createProps(this.fillingDuration, 130, 15, 'quad', 'out')
+        this.splashYDividerChange = easing.createProps(this.fillingDuration, 10, 100, 'quad', 'out')
+        this.wavesAmplitudeModifierChange = easing.createProps(this.fillingDuration, 1, 0.5, 'quad', 'out')
+        this.wavesTimeDeltaChnage = easing.createProps(this.fillingDuration, 1, 0.25, 'quad', 'out')
+        this.yShiftModifierChange = easing.createProps(this.fillingDuration, 2, 1, 'quad', 'out')
+        this.waves = true;
+        this.fillingCompleteCallback = callback;
     }
 
     createBodyImage(){
@@ -128,36 +272,38 @@ class GlassSceneItemGO extends GO {
             ctx.drawImage(this.bodyBackgroundImg, 0,0)
             ctx.globalCompositeOperation = 'source-atop';
             hlp.setFillColor('red').strokeRect(0,0, size.x, size.y);
-            hlp.setFillColor('green');
-            
-            let xFrom = 60; 
-            let xTo = 30;
-            let deltaX = xFrom-xTo;
-            let radiusChange = easing.createProps(deltaX, 5,10, 'quad', 'in');
 
-            for(let x = xFrom; x > this.splash1XTo; x--){
-                radiusChange.time = xFrom-x;
-                let y = fast.r(80+Math.pow((x-size.x/2 - 15),2)/15);
-                hlp.сircle(new V2(x,y), fast.r(easing.process(radiusChange)));
-                //hlp.dot(x, y)
-            }
+            if(this.waves){
+                for(let x = 0; x < size.x; x++){
 
-            for(let x = 0; x < size.x; x++){
-                let y1 = fast.r(Math.sin(degreeToRadians(x+this.wavesTime)*7)*3 + 50);
-                let y2 = fast.r(Math.cos(degreeToRadians(x+this.wavesTime)*7)*6 + 4+ 50);
-
-                if(y2 > y1){
-                    hlp.setFillColor('#CCCCCC').rect(x,y1, 1, y2-y1)
-                    // ctx.fillStyle = c1;
-                    // ctx.fillRect(x, y, 1, y1-y)
+                    //let splashY = fast.r( -Math.pow(x - size.x/2, 2)/this.splashYDivider + this.wavesHeight+20 );
+                    let splashY = undefined;
+    
+                    this.y1Shift.time = x;
+                    this.y2Shift.time = x;
+    
+    
+                    let y1 = fast.r(Math.sin(degreeToRadians(x+this.wavesTime)*7)*3*this.wavesAmplitudeModifier + this.wavesHeight)//  - easing.process(this.y1Shift)*this.yShiftModifier);
+                    let y2 = fast.r(Math.cos(degreeToRadians(x+this.wavesTime)*7)*4*this.wavesAmplitudeModifier + 4+ this.wavesHeight)//+ easing.process(this.y2Shift)*this.yShiftModifier);
+    
+                    if(splashY){
+                        y1 = fast.r((y1+splashY)/2);
+                        y2 = fast.r((y2+splashY)/2);
+                    }
+    
+                    if(y2 > y1){
+                        hlp.setFillColor('#CCCCCC').rect(x,y1, 1, y2-y1)
+                        // ctx.fillStyle = c1;
+                        // ctx.fillRect(x, y, 1, y1-y)
+                    }
+    
+                    hlp.setFillColor('#EEEEEE').rect(x,y2,1,size.y);
+    
+                    //hlp.setFillColor('green').dot(x, splashY)
                 }
-
-                hlp.setFillColor('#EEEEEE').rect(x,y2,1,size.y);
             }
-            
-            // for(let x = 0; x < size.x; x++){
-            //     hlp.dot(x, fast.r(80+Math.pow((x-size.x/2 - 15),2)/15))
-            // }
+        
+
         })
     }
 }
