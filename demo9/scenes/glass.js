@@ -161,10 +161,10 @@ class GlassSceneItemGO extends GO {
         this.yShiftModifier = 2;
         this.waves = false;
 
-        this.y1Shift = easing.createProps(this.size.x, 0,10, 'linear', 'base');
-        this.y2Shift = easing.createProps(this.size.x, -10,0, 'linear', 'base');
+        this.y1Shift = easing.createProps(this.body.imgSize.x, -10,10, 'linear', 'base');
+        this.y2Shift = easing.createProps(this.body.imgSize.x, -10,10, 'linear', 'base');
 
-        this.yShiftChange = easing.createProps(100, 0,10, 'quad', 'inOut');
+        this.yShiftChange = easing.createProps(100, 0,20, 'quad', 'inOut');
 
         this.timer = this.regTimerDefault(15, () => {
             if(this.wavesHeightChange){
@@ -214,8 +214,8 @@ class GlassSceneItemGO extends GO {
             }
 
             let yShiftCurrent = fast.r(easing.process(this.yShiftChange));
-            this.y1Shift = easing.createProps(this.size.x, 0+yShiftCurrent,10-yShiftCurrent, 'linear', 'base');
-            this.y2Shift = easing.createProps(this.size.x, -10+yShiftCurrent,0-yShiftCurrent, 'linear', 'base');
+            this.y1Shift = easing.createProps(this.body.imgSize.x, -10+yShiftCurrent,10-yShiftCurrent, 'linear', 'base');
+            this.y2Shift = easing.createProps(this.body.imgSize.x, -10+yShiftCurrent,10-yShiftCurrent, 'linear', 'base');
 
             this.yShiftChange.time++;
             if(this.yShiftChange.time > this.yShiftChange.duration){
@@ -237,11 +237,11 @@ class GlassSceneItemGO extends GO {
     }
 
     startFilling(callback){
-        this.wavesHeightChange = easing.createProps(this.fillingDuration, 130, 15, 'quad', 'out')
+        this.wavesHeightChange = easing.createProps(this.fillingDuration, 120, 15, 'quad', 'out')
         this.splashYDividerChange = easing.createProps(this.fillingDuration, 10, 100, 'quad', 'out')
         this.wavesAmplitudeModifierChange = easing.createProps(this.fillingDuration, 1, 0.5, 'quad', 'out')
         this.wavesTimeDeltaChnage = easing.createProps(this.fillingDuration, 1, 0.25, 'quad', 'out')
-        this.yShiftModifierChange = easing.createProps(this.fillingDuration, 2, 1, 'quad', 'out')
+        this.yShiftModifierChange = easing.createProps(this.fillingDuration, 4, 0.5, 'quad', 'out')
         this.waves = true;
         this.fillingCompleteCallback = callback;
     }
@@ -250,7 +250,7 @@ class GlassSceneItemGO extends GO {
         if(!this.bodyBackgroundImg){
             this.bodyBackgroundImg = createCanvas(this.body.imgSize, (ctx, size, hlp) => {
                 hlp.setFillColor('#5D9EA6');
-                let points = [new V2(0,0), new V2(size.x-1, 0), new V2(fast.r(size.x*0.8-1), size.y-1), new V2(fast.r(size.x*0.2-1), size.y-1)];
+                let points = [new V2(0,0), new V2(size.x-1, 0), new V2(fast.r(size.x*0.9-1), size.y-1), new V2(fast.r(size.x*0.1-1), size.y-1)];
                 let pp = new PerfectPixel({context: ctx});
                 let filledPixels = [];
 
@@ -282,10 +282,12 @@ class GlassSceneItemGO extends GO {
                     this.y1Shift.time = x;
                     this.y2Shift.time = x;
     
+                    let yShift = easing.process(this.y1Shift)*this.yShiftModifier;
+                    let y1 = fast.r(Math.sin(degreeToRadians(x+this.wavesTime)*7)*3*this.wavesAmplitudeModifier + this.wavesHeight - yShift)//  - easing.process(this.y1Shift)*this.yShiftModifier);
+                    let y2 = fast.r(Math.cos(degreeToRadians(x+this.wavesTime)*7)*4*this.wavesAmplitudeModifier + 4+ this.wavesHeight + yShift)//+ easing.process(this.y2Shift)*this.yShiftModifier);
     
-                    let y1 = fast.r(Math.sin(degreeToRadians(x+this.wavesTime)*7)*3*this.wavesAmplitudeModifier + this.wavesHeight)//  - easing.process(this.y1Shift)*this.yShiftModifier);
-                    let y2 = fast.r(Math.cos(degreeToRadians(x+this.wavesTime)*7)*4*this.wavesAmplitudeModifier + 4+ this.wavesHeight)//+ easing.process(this.y2Shift)*this.yShiftModifier);
-    
+                    
+
                     if(splashY){
                         y1 = fast.r((y1+splashY)/2);
                         y2 = fast.r((y2+splashY)/2);
@@ -299,6 +301,9 @@ class GlassSceneItemGO extends GO {
     
                     hlp.setFillColor('#EEEEEE').rect(x,y2,1,size.y);
     
+                    // hlp.setFillColor('green').dot(x, y1-easing.process(this.y1Shift)*this.yShiftModifier)
+                    // hlp.setFillColor('blue').dot(x, y2+ easing.process(this.y1Shift)*this.yShiftModifier)
+
                     //hlp.setFillColor('green').dot(x, splashY)
                 }
             }
