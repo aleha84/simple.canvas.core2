@@ -600,7 +600,7 @@ function createCanvasHelper({ctx}){
 
       return this;
     },
-    strokeEllipsis(from = 0, to = 360, step = 0.1, origin, width, height) {
+    strokeEllipsis(from = 0, to = 360, step = 0.1, origin, width, height, dots = undefined) {
       if(height == undefined)
         height = width/2;
 
@@ -610,6 +610,9 @@ function createCanvasHelper({ctx}){
           let y = fast.r(origin.y + height * Math.sin(r));
 
           this.dot(x,y);
+          
+          if(dots)
+            dots.push({x,y})
       }
 
       return this;
