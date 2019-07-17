@@ -11,11 +11,11 @@ class GlassScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault('#999999');
+        this.backgroundRenderDefault('#7F7F7F');
     }
 
     start(){
-        this.backGroundColor = '#ECF0EF';
+        this.backGroundColor = '#D4D6D5';
         this.wavesColorMain = '#86BC26';
         this.wavesColorSecondary = '#CAD83D';
 
