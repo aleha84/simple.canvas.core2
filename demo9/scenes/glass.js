@@ -60,14 +60,31 @@ class GlassScene extends Scene {
                         scene.glassForeground.originY = scene.glassForeground.position.y;
                         this.positionYChange.onComplete = () => this.processScript()
                     },
+                    function() {
+                        this.positionYChange = easing.createProps(5, 0, -20, 'cubic', 'out');
+                        scene.glass.originY = scene.glass.position.y;
+                        scene.glassForeground.originY = scene.glassForeground.position.y;
+                        this.positionYChange.onComplete = () => this.processScript()
+                    },
+                    function() {
+                        this.positionYChange = easing.createProps(5, 0, 20, 'cubic', 'in');
+                        scene.glass.originY = scene.glass.position.y;
+                        scene.glassForeground.originY = scene.glassForeground.position.y;
+                        this.positionYChange.onComplete = () => this.processScript()
+                    },
                     this.addProcessScriptDelay(250),
                     function() {
                         scene.flow.startFlow(() => this.processScript());
                     },
+                    //this.addProcessScriptDelay(5000),
                     function() {
-                        scene.flow.moveFlow();
+                        //
                         scene.glass.startFilling(
                             (props) => {
+                                if(props.time == 20){
+                                    scene.flow.moveFlow();
+                                }
+
                                 if(props.time == (scene.glass.fillingDuration - scene.flow.startFlowDuration*3)){
                                     this.processScript();
                                 }
@@ -110,7 +127,7 @@ class GlassScene extends Scene {
             position: new V2(85, -140),
             size: new V2(115, 90),
             img: createCanvas(new V2(45,35), (ctx, size) => {
-                let originalImage = PP.createImage({"general":{"originalSize":{"x":45,"y":35},"size":{"x":45,"y":35},"zoom":6,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#FFF363","fillColor":"#FFF363","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":0,"y":10}},{"point":{"x":3,"y":6}},{"point":{"x":10,"y":2}},{"point":{"x":14,"y":1}},{"point":{"x":21,"y":0}},{"point":{"x":27,"y":1}},{"point":{"x":31,"y":3}},{"point":{"x":36,"y":5}},{"point":{"x":39,"y":9}},{"point":{"x":41,"y":13}},{"point":{"x":42,"y":19}},{"point":{"x":43,"y":24}},{"point":{"x":42,"y":29}},{"point":{"x":40,"y":34}}]},{"order":1,"type":"lines","strokeColor":"#FFCD00","fillColor":"#FFCD00","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":1,"y":11}},{"point":{"x":38,"y":33}},{"point":{"x":40,"y":29}},{"point":{"x":41,"y":23}},{"point":{"x":40,"y":19}},{"point":{"x":39,"y":15}},{"point":{"x":38,"y":12}},{"point":{"x":36,"y":9}},{"point":{"x":31,"y":5}},{"point":{"x":26,"y":3}},{"point":{"x":23,"y":2}},{"point":{"x":15,"y":3}},{"point":{"x":9,"y":5}},{"point":{"x":4,"y":8}}]},{"order":2,"type":"lines","strokeColor":"#EFC636","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":38,"y":33}},{"point":{"x":40,"y":29}},{"point":{"x":41,"y":25}},{"point":{"x":41,"y":21}},{"point":{"x":39,"y":14}},{"point":{"x":37,"y":10}},{"point":{"x":34,"y":7}},{"point":{"x":29,"y":4}},{"point":{"x":24,"y":2}},{"point":{"x":14,"y":3}}]},{"order":3,"type":"lines","strokeColor":"#FFF363","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":9,"y":5}},{"point":{"x":18,"y":21}}]},{"order":4,"type":"lines","strokeColor":"#FFF363","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":27,"y":3}},{"point":{"x":20,"y":22}}]},{"order":5,"type":"lines","strokeColor":"#FFF363","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":38,"y":12}},{"point":{"x":22,"y":23}}]},{"order":6,"type":"lines","strokeColor":"#FFF363","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":41,"y":26}},{"point":{"x":23,"y":24}}]}]}});
+                let originalImage = PP.createImage({"general":{"originalSize":{"x":45,"y":35},"size":{"x":45,"y":35},"zoom":6,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#FFF363","fillColor":"#FFF363","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":0,"y":10}},{"point":{"x":3,"y":6}},{"point":{"x":10,"y":2}},{"point":{"x":14,"y":1}},{"point":{"x":21,"y":0}},{"point":{"x":27,"y":1}},{"point":{"x":31,"y":3}},{"point":{"x":36,"y":5}},{"point":{"x":39,"y":9}},{"point":{"x":41,"y":13}},{"point":{"x":42,"y":19}},{"point":{"x":43,"y":24}},{"point":{"x":42,"y":29}},{"point":{"x":40,"y":34}}]},{"order":1,"type":"lines","strokeColor":"#FFCD00","fillColor":"#FFCD00","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":2,"y":12}},{"point":{"x":37,"y":32}},{"point":{"x":38,"y":29}},{"point":{"x":39,"y":25}},{"point":{"x":39,"y":21}},{"point":{"x":38,"y":16}},{"point":{"x":37,"y":13}},{"point":{"x":36,"y":10}},{"point":{"x":31,"y":6}},{"point":{"x":26,"y":4}},{"point":{"x":23,"y":3}},{"point":{"x":16,"y":4}},{"point":{"x":10,"y":6}},{"point":{"x":5,"y":8}}]},{"order":2,"type":"lines","strokeColor":"#EFC636","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":37,"y":32}},{"point":{"x":39,"y":29}},{"point":{"x":39,"y":25}},{"point":{"x":39,"y":21}},{"point":{"x":37,"y":12}},{"point":{"x":34,"y":8}},{"point":{"x":29,"y":5}},{"point":{"x":24,"y":3}},{"point":{"x":22,"y":3}},{"point":{"x":12,"y":5}}]},{"order":3,"type":"lines","strokeColor":"#FFF363","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":9,"y":5}},{"point":{"x":18,"y":21}}]},{"order":4,"type":"lines","strokeColor":"#FFF363","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":27,"y":3}},{"point":{"x":20,"y":22}}]},{"order":5,"type":"lines","strokeColor":"#FFF363","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":38,"y":12}},{"point":{"x":22,"y":23}}]},{"order":6,"type":"lines","strokeColor":"#FFF363","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":41,"y":26}},{"point":{"x":23,"y":24}}]}]}});
                 ctx.translate(size.x, 0);
                 ctx.scale(-1, 1);
                 ctx.drawImage(originalImage, 0, 0);
@@ -203,13 +220,13 @@ class GlassScene extends Scene {
                 this.flowEnabled = false;
                 this.flowFromX = 210;
                 this.flowToX = 210;
-                this.startFlowDuration = 40;
+                this.startFlowDuration = 20;
                 this.stopFlowDuration = 20;
-                this.moveTo = 170
+                this.moveTo = 165
                 this.timer = this.regTimerDefault(30, () => {
                     
                     
-                    easing.commonProcess({context: this, targetpropertyName: 'flowFromX', propsName:'flowFromXChange', round: true});
+                    easing.commonProcess({context: this, targetpropertyName: 'flowFromX', propsName:'flowFromXChange', round: false});
                     easing.commonProcess({context: this, targetpropertyName: 'flowToX', propsName:'flowToXChange', round: true});
                     easing.commonProcess({context: this, setter: (value) => this.flowWidthMultiplierFromTo[1] = value, propsName:'flowWidthMultiplierToChange'});
                     easing.commonProcess({context: this, setter: (value) => this.flowWidthMultiplierFromTo[0] = value, propsName:'flowWidthMultiplierFromChange'});
@@ -333,10 +350,10 @@ class GlassSceneItemGO extends GO {
                     }
                     this.addChild(new GO({
                         renderValuesRound: true,
-                        position: new V2(getRandomInt(-30,-5), y),
+                        position: new V2(getRandomInt(-30,this.wavesHeight > 30 ? -10: 5), y),
                         size: new V2(12,12),
                         img: createCanvas(new V2(24,24), (ctx, size, hlp) => {
-                            hlp.setFillColor('#CEE89D').сircle(new V2(size.x/2,size.y/2), getRandomInt(6,12))
+                            hlp.setFillColor('#CEE89D').сircle(new V2(size.x/2,size.y/2), getRandomInt(2,10))
                         }),
                         init() {
                             this.deltaY = getRandom(2,4);
