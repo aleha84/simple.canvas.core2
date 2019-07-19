@@ -585,6 +585,9 @@ function createCanvasHelper({ctx}){
 
       return this;
     },
+    circle(center, radius) {
+      return this.сircle(center, radius);
+    },
     сircle(center, radius){ 
       for(let y = center.y-radius-1;y < center.y+radius+1;y++){
           for(let x = center.x-radius-1;x < center.x+radius+1;x++){
