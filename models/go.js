@@ -248,6 +248,10 @@ class GO {
 
         this.alive = false;
 
+        if(this.parent){
+            this.parent.removeChild(this);
+        }
+
         this.console('setDead completed.');
     }
 
