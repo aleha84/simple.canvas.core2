@@ -65,7 +65,12 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.scenes.cacheScene(new Waterfall2Scene({
         name:'waterfall',
         viewport: defaultViewpot
-    })); 
+    }));
+    
+    SCG.scenes.cacheScene(new SphereProgressScene({
+        name:'sphere',
+        viewport: verticalDefaultViewport
+    }));
 
     sceneSelectByHashValue();
     
