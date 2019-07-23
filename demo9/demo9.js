@@ -72,6 +72,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     }));
 
+    SCG.scenes.cacheScene(new MountainsParallaxScene({
+        name:'mountains',
+        viewport: defaultViewpot
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
