@@ -80,6 +80,21 @@ class MountainsParallaxScene extends Scene {
     start(){
         this.mountainsLayers = [
             ...this.createMountainsLayer({
+                sharp: true,
+                dotsCount: 13,
+                randomiseDots: true,
+                initialYMultiplier: 0.5,
+                xDeviation: [-25,25],
+                evenYDeviationMultiplier: [0.7, 0.8],
+                oddYDeviationMultiplier: [0.2, 0.3],
+                colorChangeHeight: 50,
+                position: new V2(this.sceneCenter.x, fast.r(this.viewport.y/4) + 5),
+                color: {
+                    h: 35, s: [13, 11], v: [85, 80],
+                },
+                layerIndex: 0
+            }),
+            ...this.createMountainsLayer({
 
                 dotsCount: 9,
                 randomiseDots: true,
@@ -92,7 +107,7 @@ class MountainsParallaxScene extends Scene {
                 color: {
                     h: 36, s: [35, 44], v: [72, 65],
                 },
-                layerIndex: 0
+                layerIndex: 1
             }),
             ...this.createMountainsLayer({
                 sharp: true,
@@ -107,7 +122,7 @@ class MountainsParallaxScene extends Scene {
                 color: {
                     h: 35, s: [13, 36], v: [97, 90],
                 },
-                layerIndex: 1
+                layerIndex: 2
             }),
             ...this.createMountainsLayer({
                 dotsCount: 13,
@@ -121,7 +136,7 @@ class MountainsParallaxScene extends Scene {
                 color: {
                     h: 36, s: [32, 48], v: [72, 60],
                 },
-                layerIndex: 2
+                layerIndex: 3
             }),
             ...this.createMountainsLayer({
                 dotsCount: 15,
@@ -135,7 +150,7 @@ class MountainsParallaxScene extends Scene {
                 color: {
                     h: 36, s: [37, 56], v: [72, 58],
                 },
-                layerIndex: 3
+                layerIndex: 4
             })
         ];
 
