@@ -11,7 +11,7 @@ class BookScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault();
+        this.backgroundRenderDefault('#8BD7EA');
     }
 
     start(){
