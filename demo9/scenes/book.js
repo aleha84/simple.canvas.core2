@@ -20,6 +20,8 @@ class BookScene extends Scene {
         	size: new V2(150,100)
         }))
     }
+
+
 }
 
 class BookGO extends GO {
@@ -31,6 +33,37 @@ class BookGO extends GO {
     }
 
     init() {
+
+        this.shadow = this.addChild(new GO({
+            size: this.size.mul(2),
+            position: this.size.divide(2).add(new V2(0,14)).toInt(),
+            img: createCanvas(this.size.mul(2), (ctx, size, hlp) => {
+                let pp = new PerfectPixel({context: ctx});
+                hlp.setFillColor('rgba(0,0,0,0)');
+                let points = pp.line(0,70,60, 150)
+                
+                //hlp.setFillColor('blue')
+                let vChange = easing.createProps(80, 83, 91, 'linear', 'base');
+                for(let x = 0; x < 149; x++){
+                    for(let i = 0; i < points.length; i++){
+                        vChange.time = points[i].y-70;
+                        
+                        hlp.setFillColor(colors.hsvToHex([191, 40, easing.process(vChange)])).dot(new V2(points[i].x + x, points[i].y))
+                    }
+                }
+
+                for(let y = 0; y < 73; y++){
+                    for(let i = 0; i < points.length; i++){
+                        vChange.time = points[i].y-70;
+                        hlp.setFillColor(colors.hsvToHex([191, 40, easing.process(vChange)])).dot(new V2(points[i].x + 150, fast.r(points[i].y - 70 + y)))
+                    }
+                }
+                
+                //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y);
+
+    		})
+        }))
+
         this.cover = this.addChild(new GO({
     		size: this.size, 
     		position: new V2(0,0),
@@ -93,8 +126,14 @@ class BookGO extends GO {
         this.upperPage = this.addChild(new GO({
             size: new V2(fast.r(this.size.x*0.9) + 1, fast.r(this.size.y*0.95)), 
             position: new V2(0,-15),
-            duration: 5,
+            duration: 20,
             init() {
+                
+                this.slowCountMax = 2;
+                this.fastCountMax = 10;
+                this.currentCount = 2;
+                this.isSlow = true;
+
                 this.midX = fast.r(this.size.x/2)
                 this.maxWidth = fast.r(this.size.x/2);
                 this.currentWidth = this.maxWidth;
@@ -105,39 +144,74 @@ class BookGO extends GO {
                 this.direction = 1;
                 this.vClamps = [87, 96]
                 this.currentV = this.vClamps[1];
-                this.darkOpacityClamps = [0, 0.2];
+                this.darkOpacityClamps = [0, 0.15];
                 this.currentDarkOpacity = 0;
 
-                this.widthChange = easing.createProps(this.duration, this.maxWidth, 1, 'linear', 'base');
-                //this.widthChange.onComplete = () => { this.widthChange.time = 0 }
-                this.radiusChange = easing.createProps(this.duration, this.maxRadius, 1, 'linear', 'base');
-                //this.radiusChange.onComplete = () => { this.radiusChange.time = 0 }
-                this.yShiftChange = easing.createProps(this.duration, 0, this.maxYShift, 'linear', 'base');
-                this.vChange = easing.createProps(this.duration-1, this.vClamps[1], this.vClamps[0], 'linear', 'base');
-               // this.yShiftChange.onComplete = () => { this.yShiftChange.time = 0 }
+                this.lineWidthMax = 40;
+                this.currentLineWidth = this.lineWidthMax;
+                this.lineVClamp = [83, 87]
+                this.currentLineV = this.lineVClamp[1];
+                this.lineXShiftMax = -25;
+                this.currentLineXShift = 0;
+                this.totalSlowCount = 1;
 
-                let debugTimer = 2;
-                this.direction = 1;
-                // this.widthChange = easing.createProps(this.duration, 1, this.maxWidth, 'linear', 'base');
-                // this.radiusChange = easing.createProps(this.duration,  1, this.maxRadius,'linear', 'base');
-                // this.yShiftChange = easing.createProps(this.duration, this.maxYShift, 0,  'linear', 'base');
-                // this.darkOpacityChange = easing.createProps(this.duration, this.darkOpacityClamps[0], this.darkOpacityClamps[1],  'linear', 'base');
+            //     this.widthChange = easing.createProps(this.duration, this.maxWidth, 1, 'linear', 'base');
+            //     //this.widthChange.onComplete = () => { this.widthChange.time = 0 }
+            //     this.radiusChange = easing.createProps(this.duration, this.maxRadius, 1, 'linear', 'base');
+            //     //this.radiusChange.onComplete = () => { this.radiusChange.time = 0 }
+            //     this.yShiftChange = easing.createProps(this.duration, 0, this.maxYShift, 'linear', 'base');
+            //     this.vChange = easing.createProps(this.duration-1, this.vClamps[1], this.vClamps[0], 'linear', 'base');
+            //     this.lineWidthChange = easing.createProps(this.duration, this.lineWidthMax, 1, 'linear', 'base');
+            //     this.lineVChange = easing.createProps(this.duration, this.lineVClamp[1], this.lineVClamp[0], 'linear', 'base');
+            //     this.lineXShiftChange = easing.createProps(this.duration, 0, this.lineXShiftMax, 'linear', 'base');
+            //    // this.yShiftChange.onComplete = () => { this.yShiftChange.time = 0 }
+
+            //     let debugTimer = 5;
+            //     this.direction = 1;
+            //     if(this.direction < 0) {
+            //         this.widthChange = undefined;
+            //         this.radiusChange = undefined;                
+            //         this.yShiftChange = undefined;
+            //         this.vChange = undefined;
+            //         this.lineVChange = undefined;
+            //         this.widthChange = easing.createProps(this.duration, 1, this.maxWidth, 'linear', 'base');
+            //         this.radiusChange = easing.createProps(this.duration,  1, this.maxRadius,'linear', 'base');
+            //         this.yShiftChange = easing.createProps(this.duration, this.maxYShift, 0,  'linear', 'base');
+            //         this.darkOpacityChange = easing.createProps(this.duration, this.darkOpacityClamps[0], this.darkOpacityClamps[1],  'linear', 'base');
+            //         this.lineWidthChange = easing.createProps(this.duration, 1, this.lineWidthMax, 'linear', 'base');
+            //         this.lineXShiftChange = easing.createProps(this.duration, 0, -6,'linear', 'base');
+            //         this.currentV = 98;
+            //         this.currentLineV = 87;
+            //     }
+                
                
-                this.widthChange.time = debugTimer;
-                this.radiusChange.time = debugTimer;
-                this.yShiftChange.time = debugTimer;
-                if(this.vChange)
-                    this.vChange.time = debugTimer;
+            //     this.widthChange.time = debugTimer;
+            //     this.radiusChange.time = debugTimer;
+            //     this.yShiftChange.time = debugTimer;
+            //     this.lineWidthChange.time = debugTimer;
+            //     this.lineXShiftChange.time = debugTimer;
+            //     if(this.vChange)
+            //         this.vChange.time = debugTimer;
 
-                if(this.darkOpacityChange) 
-                    this.darkOpacityChange.time = debugTimer;
-                this.process();
+            //     if(this.darkOpacityChange) 
+            //         this.darkOpacityChange.time = debugTimer;
+
+            //     if(this.lineVChange)
+            //         this.lineVChange.time = debugTimer;
+
+            //     this.process();
 
                 this.createImage();
-                // this.turnPart1();
-                // this.timer = this.regTimerDefault(30, () => {
-                //     this.process();
-                // })
+                this.delayTimer = this.regTimer(createTimer(2000, () => {
+                    this.unregTimer(this.delayTimer);
+                    this.delayTimer = undefined;
+
+                    this.turnPart1();
+                    this.timer = this.regTimerDefault(30, () => {
+                        this.process();
+                    })
+                }, this, false));
+                
                 
             },
             turnPart1(){
@@ -147,28 +221,42 @@ class BookGO extends GO {
                 this.vChange = undefined;
                 this.darkOpacityChange = undefined;
 
-                this.widthChange = easing.createProps(this.duration, this.maxWidth, 1, 'quad', 'in');
+                let type = 'quad';
+                let method = 'in'
+
+                this.widthChange = easing.createProps(this.duration, this.maxWidth, 1, type, method);
                 this.widthChange.onComplete = () => { this.turnPart2() }
-                this.radiusChange = easing.createProps(this.duration, this.maxRadius, 1, 'quad', 'in');                
-                this.yShiftChange = easing.createProps(this.duration, 0, this.maxYShift, 'quad', 'in');
-                this.vChange = easing.createProps(this.duration, this.vClamps[1], this.vClamps[0], 'quad', 'in');
+                this.radiusChange = easing.createProps(this.duration, this.maxRadius, 1, type, method);                
+                this.yShiftChange = easing.createProps(this.duration, 0, this.maxYShift, type, method);
+                this.vChange = easing.createProps(this.duration, this.vClamps[1], this.vClamps[0], type, method);
+                this.lineWidthChange = easing.createProps(this.duration, this.lineWidthMax, 1, type, method);
+                this.lineVChange = easing.createProps(this.duration, this.lineVClamp[1], this.lineVClamp[0], type, method);
+                this.lineXShiftChange = easing.createProps(this.duration, 0, this.lineXShiftMax, type, method);
             },
             turnPart2(){
+
+                let type = 'quad';
+                let method = 'out'
+
                 this.widthChange = undefined;
                 this.radiusChange = undefined;                
                 this.yShiftChange = undefined;
                 this.vChange = undefined;
+                this.lineVChange = undefined;
 
                 this.direction = -1;
                 this.currentV = 98;
-                this.widthChange = easing.createProps(this.duration, 1, this.maxWidth, 'quad', 'out');
+                this.currentLineV = 87;
+                this.widthChange = easing.createProps(this.duration, 1, this.maxWidth, type, method);
                 this.widthChange.onComplete = () => { this.reset() }
-                this.radiusChange = easing.createProps(this.duration,  1, this.maxRadius,'quad', 'out');
-                this.yShiftChange = easing.createProps(this.duration, this.maxYShift, 0,  'quad', 'out');
-                this.darkOpacityChange = easing.createProps(this.duration, this.darkOpacityClamps[0], this.darkOpacityClamps[1],  'quad', 'out');
+                this.radiusChange = easing.createProps(this.duration,  1, this.maxRadius,type, method);
+                this.yShiftChange = easing.createProps(this.duration, this.maxYShift, 0,  type, method);
+                this.darkOpacityChange = easing.createProps(this.duration, this.darkOpacityClamps[0], this.darkOpacityClamps[1],  type, method);
+                this.lineWidthChange = easing.createProps(this.duration, 0, this.lineWidthMax, type, method);
+                this.lineXShiftChange = easing.createProps(this.duration, 0, -6, type, method);
             },
             reset(){
-                this.delayTimer = this.regTimer(createTimer(250, () => {
+                this.delayTimer = this.regTimer(createTimer(15, () => {
                     this.unregTimer(this.delayTimer);
                     this.delayTimer = undefined;
 
@@ -177,7 +265,30 @@ class BookGO extends GO {
                     this.currentYShift = 0;
                     this.currentDarkOpacity = 0;
                     this.direction = 1;
-                    this.turnPart1();
+                    // if(this.completeCallback){
+                    //     this.completeCallback();
+                    // }
+
+                    this.currentCount--;
+                    if(this.currentCount == 0){
+                        this.isSlow = !this.isSlow;
+                        if(this.isSlow){
+                            this.duration = 20;
+                            this.currentCount = this.slowCountMax;
+                            this.stop = true;
+                        }
+                        else {
+                            this.prestop = true;
+                            this.duration = 5;
+                            this.currentCount = this.fastCountMax;
+                        }
+                    }
+                    
+                    if(!this.stop)
+                        this.turnPart1();
+                    else {
+                        this.isVisible = false;
+                    }
                 }, this, false));
                 
             },
@@ -187,6 +298,10 @@ class BookGO extends GO {
                 easing.commonProcess({context: this, targetpropertyName: 'currentYShift', propsName: 'yShiftChange', round: true});
                 easing.commonProcess({context: this, targetpropertyName: 'currentV', propsName: 'vChange', round: true});
                 easing.commonProcess({context: this, targetpropertyName: 'currentDarkOpacity', propsName: 'darkOpacityChange', round: false});
+                easing.commonProcess({context: this, targetpropertyName: 'currentLineWidth', propsName: 'lineWidthChange', round: true});
+                easing.commonProcess({context: this, targetpropertyName: 'currentLineV', propsName: 'lineVChange', round: true});
+                easing.commonProcess({context: this, targetpropertyName: 'currentLineXShift', propsName: 'lineXShiftChange', round: true});
+
                 this.createImage();
             },
             createImage() {
@@ -230,8 +345,8 @@ class BookGO extends GO {
                             hlp.rect(upperDots[i].x, upperDots[i].y, 1, lowerDots[i].y - upperDots[i].y);
                         }
     
-                        let y1 = fromY + this.maxRadius - 1;
-                        let y2 = toY - this.maxRadius + 1;
+                        let y1 = fromY + this.maxRadius-1 ;
+                        let y2 = toY - this.maxRadius +1;
     
                         circle(new V2(fromX, y1), this.maxRadius, 0, 90)
                         circle(new V2(fromX, y2), this.maxRadius, 89, 180)
@@ -261,15 +376,15 @@ class BookGO extends GO {
                     let pp = new PerfectPixel({context: ctx});
                     
                     if(this.direction > 0) {
-                        let upperDots = pp.line(fromX, fromY, toX, fromY - this.currentYShift);
-                        let lowerDots = pp.line(fromX, toY, toX, toY + this.currentYShift);
+                        let upperDots = pp.line(fromX, fromY+1, toX, fromY - this.currentYShift+1);
+                        let lowerDots = pp.line(fromX, toY-1, toX, toY + this.currentYShift-1);
 
                         for(let i = 0; i<upperDots.length; i++){
                             hlp.rect(upperDots[i].x, upperDots[i].y, 1, lowerDots[i].y - upperDots[i].y);
                         }
 
-                        let y1 = fromY - this.currentYShift + this.currentRadius - 1;
-                        let y2 = toY + this.currentYShift - this.currentRadius + 1;
+                        let y1 = fromY - this.currentYShift + this.currentRadius ;
+                        let y2 = toY + this.currentYShift - this.currentRadius ;
 
                         hlp
                             .circle(new V2(toX, y1), this.currentRadius)  
@@ -287,8 +402,8 @@ class BookGO extends GO {
                             hlp.rect(upperDots[i].x, upperDots[i].y, 1, lowerDots[i].y - upperDots[i].y);
                         }
 
-                        let y1 = fromY - this.currentYShift + this.currentRadius - 1;
-                        let y2 = toY + this.currentYShift - this.currentRadius + 1;
+                        let y1 = fromY - this.currentYShift + this.currentRadius-1;
+                        let y2 = toY + this.currentYShift - this.currentRadius+1;
 
                         hlp
                             .circle(new V2(fromX, y1), this.currentRadius)  
@@ -297,8 +412,47 @@ class BookGO extends GO {
                         hlp.rect(fromX - this.currentRadius + 1, y1, this.currentRadius, y2 - y1)
                     }
 
+                    let startX = 25 + this.currentLineXShift;
+                    if(this.direction < 0) {
+                        startX = fromX - this.currentLineXShift;
+                    }
+                    let topY = 18;
+                    if(this.direction< 0){
+                        //topY = 19;
+                    }
+
+                    let yGap = 11;
+                    let lineWidth = this.currentLineWidth;
+                    let dLines = 5;
+
+                    if(this.direction < 0 ){
+                        // lineWidth -= 4;
+                        // if(lineWidth < 0)
+                        //     lineWidth = 0;
+                        if(startX+lineWidth >= toX){
+                            lineWidth = toX-startX;
+                        }
+                    }
+
+                    if(lineWidth > 0){
+                        hlp.setFillColor(colors.hsvToHex([0,0,this.currentLineV]))
+                        for(let i = 0; i < 6; i++){
+                            for(let y = 0; y < dLines; y++){
+                                let w = lineWidth;
+                                let sx = fast.r(startX+(this.direction > 0 ? 1 : 0)*(size.x/2 - startX/2));
+                                if(y == 0 || y == dLines-1){
+                                    sx+=1;
+                                    w-=2;
+                                }
+                                hlp.rect(sx,topY + i*yGap + y, w, 1);    
+                            }
+                            
+                        }  
+                    }
+                    
+
                     //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y);
-                    hlp.setFillColor('blue').rect(this.midX, 0, 1, size.y)
+                    //hlp.setFillColor('blue').rect(this.midX, 0, 1, size.y)
                 })
             }
         }));
