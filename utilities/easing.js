@@ -22,7 +22,7 @@ var easing = {
     createProps(duration, start, end, type, method) {
         return { time: 0, duration, change: end - start , type, method, startValue: start, useCache: false, onComplete: undefined, onChange: undefined }
     },
-    commonProcess({context, targetpropertyName, propsName, round = false, setter}) {
+    commonProcess({context, targetpropertyName, propsName, round = false, setter, removePropsOnComplete = true}) {
         if(context[propsName]){
             let props = context[propsName];
             if(props == undefined)
@@ -46,8 +46,10 @@ var easing = {
 
             if(props.time>props.duration){
                 let onComplete = props.onComplete;
-                context[propsName] = undefined;
-
+                if(removePropsOnComplete){
+                    context[propsName] = undefined;
+                }
+                
                 if(onComplete)
                     onComplete();
             }
