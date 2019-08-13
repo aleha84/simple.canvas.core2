@@ -16,6 +16,7 @@ class Waterfall3Scene extends Scene {
 
     start(){
 
+        this.yChangeMax = 0.1;
         this.shiftLength = 300;
         this.vChange = easing.createProps(this.shiftLength, 100, 0, 'quad', 'in'),
 
@@ -47,8 +48,8 @@ class Waterfall3Scene extends Scene {
 
         this.direction = new V2(-1, -0.1);
         
-        this.sizeChange = easing.createProps(this.shiftLength, 2, 1, 'quad', 'in'),
-        this.mfKoefChange = easing.createProps(this.shiftLength, 1.1, 0.8, 'quad', 'in'),
+        this.sizeChange = easing.createProps(this.shiftLength, 2, 1, 'quad', 'in');
+        this.mfKoefChange = easing.createProps(this.shiftLength, 1.1, 0.8, 'quad', 'in');
 
         this.generatorTimer = this.regTimerDefault(50, () => {
             for(let i = 0; i < 3; i++){
@@ -59,25 +60,43 @@ class Waterfall3Scene extends Scene {
                 this.mfKoefChange.time = distance;
 
                 let s = easing.process(this.sizeChange);
-                let position = new V2(this.viewport.x+200, fast.r(this.viewport.y/5)).add(shift);
+                let position = new V2(this.viewport.x+220, fast.r(this.viewport.y/5)).add(shift);
+                let yChange = easing.createProps(20, 0, -1, 'quad', 'inOut');
+                yChange.direction = -1;
+
                 this.items.push(this.addGo(new Waterfall3Item({
                     position,
                     shift,
                     size: new V2(s,s),
                     mfKoef: easing.process(this.mfKoefChange),
                     img: this.images[fast.r(position.y)][fast.f(distance/10)],
+                    yChange,
                     distance
-                }), distance))
+                }), distance+10))
             }
             
         })
 
-        // let shift = this.direction.mul(this.shiftLength);
+        // let distance = fast.r(getRandomGaussian(0,this.shiftLength));
+        //         let shift = this.direction.mul(distance);
+        //         this.vChange.time = distance;
+        //         this.sizeChange.time = distance;
+        //         this.mfKoefChange.time = distance;
 
-        //     this.items.push(this.addGo(new Waterfall3Item({
-        //         position: new V2(this.viewport.x, fast.r(this.viewport.y/3)).add(shift),
-        //         shift
-        //     })))
+        //         let s = easing.process(this.sizeChange);
+        //         let position = new V2(this.viewport.x+200, fast.r(this.viewport.y/5)).add(shift);
+        //         let yChange = easing.createProps(20, 0, -this.yChangeMax, 'quad', 'inOut');
+        //         yChange.direction = -1;
+
+        //         this.items.push(this.addGo(new Waterfall3Item({
+        //             position,
+        //             shift,
+        //             size: new V2(s,s),
+        //             mfKoef: easing.process(this.mfKoefChange),
+        //             img: this.images[fast.r(position.y)][fast.f(distance/10)],
+        //             yChange,
+        //             distance
+        //         }), distance))
 
         this.timer = this.regTimerDefault(15, () => {
             for(let i = 0; i < this.items.length;i++){
@@ -87,8 +106,9 @@ class Waterfall3Scene extends Scene {
             let alive = this.items.filter((item) => item.alive);
             this.items = alive;
 
-            this.debug.additional[2] = 'items.length: ' + this.items.length;
+            //this.debug.additional[2] = 'items.length: ' + this.items.length;
         })
+        
     }
 
     /**
@@ -126,6 +146,18 @@ class Waterfall3Scene extends Scene {
         }
 
         item.position.add(item.speed, true);
+
+        if(!item.falling && !item.ascenting){
+            item.position.y+=easing.process(item.yChange);
+            item.yChange.time++;
+            if(item.yChange.time > item.yChange.duration){
+                let direction = -item.yChange.direction;
+                item.yChange = easing.createProps(20, 0, direction*this.yChangeMax, 'quad', 'inOut');
+                item.yChange.direction = direction;
+            }
+        }
+        
+
         let imagesByHeight = this.images[fast.r(item.position.y)];
         if(imagesByHeight){
             item.img = imagesByHeight[fast.f(item.distance/10)];
