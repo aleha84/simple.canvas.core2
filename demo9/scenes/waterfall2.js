@@ -1,0 +1,189 @@
+class Waterfall3Scene extends Scene {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            debug: {
+                enabled: true,
+                showFrameTimeLeft: true,
+                additional: [],
+            },
+        }, options)
+        super(options);
+    }
+
+    backgroundRender() {
+        this.backgroundRenderDefault();
+    }
+
+    start(){
+
+        this.shiftLength = 300;
+        this.vChange = easing.createProps(this.shiftLength, 100, 0, 'quad', 'in'),
+
+        this.sChange1 = easing.createProps(this.viewport.y/2, 75, 0, 'quad', 'out');
+        this.sChange2 = easing.createProps(this.viewport.y/2, 0, 75, 'quad', 'out');
+        this.images = [];
+
+        for(let i = 0; i < this.viewport.y; i++){
+            let change = this.sChange1
+            let h = 200;
+            change.time = i;
+            if(i > this.viewport.y/2){
+                change = this.sChange2;
+                h = 20;
+                change.time = i-this.viewport.y/2;
+            }
+
+            this.images[i] = [];
+            for(let j = 0; j < this.shiftLength/10; j++){
+                this.vChange.time = j*10;
+                this.images[i][j] = createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    hlp.setFillColor(colors.hsvToHex([h, easing.process(change), fast.r(easing.process(this.vChange))])).dot(0,0);
+                })
+            }
+        }
+
+        this.items = [];
+        this.falls = [{x: 380, height: 60}, {x: 430, height: 30}, {x: 500, height: 100}]                                                                                                
+
+        this.direction = new V2(-1, -0.1);
+        
+        this.sizeChange = easing.createProps(this.shiftLength, 2, 1, 'quad', 'in'),
+        this.mfKoefChange = easing.createProps(this.shiftLength, 1.1, 0.8, 'quad', 'in'),
+
+        this.generatorTimer = this.regTimerDefault(50, () => {
+            for(let i = 0; i < 3; i++){
+                let distance = fast.r(getRandomGaussian(0,this.shiftLength));
+                let shift = this.direction.mul(distance);
+                this.vChange.time = distance;
+                this.sizeChange.time = distance;
+                this.mfKoefChange.time = distance;
+
+                let s = easing.process(this.sizeChange);
+                let position = new V2(this.viewport.x+200, fast.r(this.viewport.y/5)).add(shift);
+                this.items.push(this.addGo(new Waterfall3Item({
+                    position,
+                    shift,
+                    size: new V2(s,s),
+                    mfKoef: easing.process(this.mfKoefChange),
+                    img: this.images[fast.r(position.y)][fast.f(distance/10)],
+                    distance
+                }), distance))
+            }
+            
+        })
+
+        // let shift = this.direction.mul(this.shiftLength);
+
+        //     this.items.push(this.addGo(new Waterfall3Item({
+        //         position: new V2(this.viewport.x, fast.r(this.viewport.y/3)).add(shift),
+        //         shift
+        //     })))
+
+        this.timer = this.regTimerDefault(15, () => {
+            for(let i = 0; i < this.items.length;i++){
+                this.itemProcesser(this.items[i]);
+            }
+
+            let alive = this.items.filter((item) => item.alive);
+            this.items = alive;
+
+            this.debug.additional[2] = 'items.length: ' + this.items.length;
+        })
+    }
+
+    /**
+     * @param {Waterfall3Item} item 
+     */
+    itemProcesser(item){
+        if(item.position.x < 10 || item.position.y >= this.viewport.y){
+            item.setDead();
+            
+            return;
+        }
+              
+        for(let i = 0; i < this.falls.length;i++){
+            let fall = this.falls[i];
+            if(item.position.x < (fall.x+item.shift.x) && item.triggeredFalls.indexOf(fall.x) == -1){
+                item.triggerFall(fall);
+                break;
+            }
+        }
+
+        if(item.falling){
+            item.speed.y+=item.currentSpeedYDelta;
+
+            if(item.position.y >= (item.fallStop)){
+                item.stopFall();
+            }
+        }
+
+        if(item.ascenting){
+            item.speed.y-=(item.currentSpeedYDelta*1.5);
+
+            if(item.position.y <= (item.ascentStop)){
+                item.stopAscent();
+            }
+        }
+
+        item.position.add(item.speed, true);
+        let imagesByHeight = this.images[fast.r(item.position.y)];
+        if(imagesByHeight){
+            item.img = imagesByHeight[fast.f(item.distance/10)];
+        }
+        
+
+        item.needRecalcRenderProperties = true;
+    }
+}
+
+class Waterfall3Item extends GO {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            mainFlow: new V2(-1, 0.1),
+            mfKoef: 1,
+            shift: new V2(),
+            color: '#FFFFFF',
+            colorHSV: [0,0,100],
+            v: 100,
+            size: new V2(2,2),
+            renderValuesRound: true,
+            triggeredFalls: [],
+            speedYDelta: 0.05
+        }, options)
+
+        super(options);
+    }
+
+    init() {
+        this.speed = this.mainFlow.mul(this.mfKoef);
+        this.currentSpeedYDelta = this.speedYDelta;
+
+    }
+
+    triggerFall(fall){
+        this.fall = fall;
+        this.triggeredFalls.push(fall.x);
+
+        this.falling = true;
+        this.ascenting = false;
+        this.fallStop = this.position.y + fall.height;
+
+        //console.log('fall triggered: ' + fall.x);
+    }
+
+    ascent() {
+        this.ascentStop = this.position.y - fast.r(this.fall.height/20);
+        this.ascenting = true;
+    }
+
+    stopAscent(){
+        this.ascenting = false;
+        this.speed = this.mainFlow.mul(this.mfKoef);
+    }
+
+    stopFall(){
+        this.falling = false;
+        this.speed = this.mainFlow.mul(this.mfKoef);
+        this.ascent();
+    }
+}
