@@ -2,7 +2,7 @@ class Waterfall3Scene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -15,6 +15,10 @@ class Waterfall3Scene extends Scene {
     }
 
     start(){
+
+        this.redImg =  createCanvas(new V2(1,1), (ctx, size, hlp) => {
+            hlp.setFillColor('#FF0000').dot(0,0);
+        })
 
         this.yChangeMax = 0.1;
         this.shiftLength = 300;
@@ -52,27 +56,46 @@ class Waterfall3Scene extends Scene {
         this.mfKoefChange = easing.createProps(this.shiftLength, 1.1, 0.8, 'quad', 'in');
 
         this.generatorTimer = this.regTimerDefault(50, () => {
-            for(let i = 0; i < 3; i++){
+            for(let i = 0; i < 5; i++){
                 let distance = fast.r(getRandomGaussian(0,this.shiftLength));
                 let shift = this.direction.mul(distance);
                 this.vChange.time = distance;
                 this.sizeChange.time = distance;
                 this.mfKoefChange.time = distance;
 
+                let ignoreFall = false;
                 let s = easing.process(this.sizeChange);
                 let position = new V2(this.viewport.x+220, fast.r(this.viewport.y/5)).add(shift);
                 let yChange = easing.createProps(20, 0, -1, 'quad', 'inOut');
+                let mfKoef = easing.process(this.mfKoefChange)
+                let layer = distance+10;
                 yChange.direction = -1;
+
+                if(i == 3){
+                    ignoreFall = true;
+                    distance = 0;
+                    position.y+=190;
+                    mfKoef = 1.1;
+                    layer = 1000;
+                }
+                else if(i == 4){
+                    ignoreFall = true;
+                    distance = this.shiftLength-100;
+                    position.y+=155;
+                    mfKoef = 0.9;
+                    layer = 1;
+                }
 
                 this.items.push(this.addGo(new Waterfall3Item({
                     position,
                     shift,
                     size: new V2(s,s),
-                    mfKoef: easing.process(this.mfKoefChange),
+                    mfKoef,
                     img: this.images[fast.r(position.y)][fast.f(distance/10)],
                     yChange,
-                    distance
-                }), distance+10))
+                    distance,
+                    ignoreFall
+                }), layer))
             }
             
         })
@@ -120,12 +143,14 @@ class Waterfall3Scene extends Scene {
             
             return;
         }
-              
-        for(let i = 0; i < this.falls.length;i++){
-            let fall = this.falls[i];
-            if(item.position.x < (fall.x+item.shift.x) && item.triggeredFalls.indexOf(fall.x) == -1){
-                item.triggerFall(fall);
-                break;
+          
+        if(!item.ignoreFall){
+            for(let i = 0; i < this.falls.length;i++){
+                let fall = this.falls[i];
+                if(item.position.x < (fall.x+item.shift.x) && item.triggeredFalls.indexOf(fall.x) == -1){
+                    item.triggerFall(fall);
+                    break;
+                }
             }
         }
 
@@ -157,12 +182,14 @@ class Waterfall3Scene extends Scene {
             }
         }
         
-
         let imagesByHeight = this.images[fast.r(item.position.y)];
         if(imagesByHeight){
             item.img = imagesByHeight[fast.f(item.distance/10)];
         }
         
+        // if(item.ignoreFall){
+        //     item.img= this.redImg;
+        // }
 
         item.needRecalcRenderProperties = true;
     }
@@ -180,7 +207,8 @@ class Waterfall3Item extends GO {
             size: new V2(2,2),
             renderValuesRound: true,
             triggeredFalls: [],
-            speedYDelta: 0.05
+            speedYDelta: 0.05,
+            ignoreFall: false,
         }, options)
 
         super(options);
