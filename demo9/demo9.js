@@ -87,6 +87,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new NightRainScene({
+        name:'nightrain',
+        viewport: defaultViewpot
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
