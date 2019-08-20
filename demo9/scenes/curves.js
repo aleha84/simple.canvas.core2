@@ -14,6 +14,33 @@ class CurvesScene extends Scene {
         this.backgroundRenderDefault();
     }
 
+    createBrick(hlp, currentX, currentY, brickSize) {
+        hlp.setFillColor(colors.palettes.fleja.colors[8]).rect(currentX, currentY, brickSize.x, brickSize.y);
+        hlp.setFillColor(colors.palettes.fleja.colors[7]).rect(currentX, currentY, 1, brickSize.y)
+                                                        .rect(currentX, currentY, brickSize.x, 1)
+        hlp.setFillColor(colors.palettes.fleja.colors[9]).rect(currentX+brickSize.x-1, currentY+1, 1, brickSize.y-1)
+                                                        .rect(currentX+1, currentY+brickSize.y-1, brickSize.x-2, 1)
+        
+
+        for(let x = 1; x < brickSize.x-1;x++){
+            if(x % 2 == 0){
+                hlp.setFillColor(colors.palettes.fleja.colors[7]).dot(currentX + x, currentY+1);
+                hlp.setFillColor(colors.palettes.fleja.colors[9]).dot(currentX + x, currentY+brickSize.y-2);
+            }
+        }
+
+        for(let y = 1; y < brickSize.y-1;y++){
+            if(y % 2 == 0){
+                hlp.setFillColor(colors.palettes.fleja.colors[7]).dot(currentX + 1, currentY+y);
+                hlp.setFillColor(colors.palettes.fleja.colors[9]).dot(currentX + brickSize.x - 2, currentY+y);
+            }
+        }
+
+        for(let i = 0; i < 20; i++){
+            hlp.setFillColor(colors.palettes.fleja.colors[getRandomBool() ? 7 : 9]).dot(currentX + getRandomInt(2, brickSize.x - 4), currentY + getRandomInt(2, brickSize.y - 4), )
+        }
+    }
+
     start(){
         this.flow = this.addGo(new Go({
             position: new V2(this.sceneCenter.x, this.sceneCenter.y - 75),
@@ -21,7 +48,7 @@ class CurvesScene extends Scene {
             init() {
                 this.wideLine =new Array(10).fill().map((_) => ({originPosition: fast.r(getRandomInt(this.size.x/5, this.size.x*4/5)), width: getRandomInt(4, 12)}))
                 this.lines = new Array(100).fill().map((_) => ({
-                    position: new V2(getRandomGaussian(-this.size.x/2, this.size.x*1.5), getRandomInt(0, this.size.y)).toInt(),
+                    position: new V2(getRandomGaussian(0, this.size.x), getRandomInt(0, this.size.y)).toInt(),
                     size: new V2(getRandomInt(2,4), getRandomInt(0,5) == 0 ? getRandomInt(4, 8) : getRandomInt(10, 40)),
                     color: colors.palettes.fleja.colors[getRandomInt(24,26)],
                     speed: new V2(0, 8)
@@ -40,7 +67,7 @@ class CurvesScene extends Scene {
 
                         if(line.position.y > this.size.y ){
                             line.position.y = -line.size.y;
-                            line.position.x = fast.r(getRandomGaussian(-this.size.x/2, this.size.x*1.5))
+                            line.position.x = fast.r(getRandomGaussian(0, this.size.x))
                             line.size = new V2(getRandomInt(2,4), getRandomInt(0,5) == 0 ? getRandomInt(4, 8) : getRandomInt(10, 40));
                         }
                     }
@@ -62,6 +89,7 @@ class CurvesScene extends Scene {
                     this.createImg();
                 })
             },
+            
             createImg() {
                 if(!this.bg){
                     let brickSize = new V2(60, 30)
@@ -74,54 +102,47 @@ class CurvesScene extends Scene {
                         for(let v = 0; v < vCount;v++){
                             let currentX = v%2 == 0 ? getRandomInt(-brickSize.x, -brickSize.x/2) : getRandomInt(-brickSize.x/2, 0)
                             for(let h = 0; h < hCount; h++){
-                                hlp.setFillColor(colors.palettes.fleja.colors[8]).rect(currentX, currentY, brickSize.x, brickSize.y);
-                                hlp.setFillColor(colors.palettes.fleja.colors[7]).rect(currentX, currentY, 1, brickSize.y)
-                                                                                .rect(currentX, currentY, brickSize.x, 1)
-                                hlp.setFillColor(colors.palettes.fleja.colors[9]).rect(currentX+brickSize.x-1, currentY+1, 1, brickSize.y-1)
-                                                                                .rect(currentX+1, currentY+brickSize.y-1, brickSize.x-2, 1)
-                                
-
-                                for(let x = 1; x < brickSize.x-1;x++){
-                                    if(x % 2 == 0){
-                                        hlp.setFillColor(colors.palettes.fleja.colors[7]).dot(currentX + x, currentY+1);
-                                        hlp.setFillColor(colors.palettes.fleja.colors[9]).dot(currentX + x, currentY+brickSize.y-2);
-                                    }
-                                }
-
-                                for(let y = 1; y < brickSize.y-1;y++){
-                                    if(y % 2 == 0){
-                                        hlp.setFillColor(colors.palettes.fleja.colors[7]).dot(currentX + 1, currentY+y);
-                                        hlp.setFillColor(colors.palettes.fleja.colors[9]).dot(currentX + brickSize.x - 2, currentY+y);
-                                    }
-                                }
-
-                                for(let i = 0; i < 20; i++){
-                                    hlp.setFillColor(colors.palettes.fleja.colors[getRandomBool() ? 7 : 9]).dot(currentX + getRandomInt(2, brickSize.x - 4), currentY + getRandomInt(2, brickSize.y - 4), )
-                                }
+                                this.parentScene.createBrick(hlp, currentX, currentY, brickSize);
 
                                 currentX+=(brickSize.x+2);
-
-                                
-
-                                // let brickBGFromX = startX + brickSize.x*h;
-                                // let brickBGFromY = startY + brickSize.y*v;
-
-                                // let brickFromX = startX + brickSize.x*h+1;
-                                // let brickFromY = startY + brickSize.y*v+1;
-                                // hlp.setFillColor(colors.palettes.fleja.colors[10]).rect(brickBGFromX,brickBGFromY, brickSize.x, brickSize.y)
-                                //     .setFillColor(colors.palettes.fleja.colors[8]).rect(brickFromX,brickFromY, brickSize.x-2, brickSize.y-2)
-                                //     .setFillColor(colors.palettes.fleja.colors[7])
-                                //         .rect(brickFromX,brickFromY, brickSize.x-2, 1)
-                                //         .rect(brickFromX,brickFromY, 1, brickSize.y-2)
-                                //     .setFillColor(colors.palettes.fleja.colors[9])
-                                //         .rect(brickFromX,brickFromY + brickSize.y - 1, brickSize.x-2, 1)
-                                //         .rect(brickFromX + brickSize.x - 1,brickFromY, 1, brickSize.y-2)
                             }
 
                             currentY+=(brickSize.y+2);
                         }
                     })
                 }
+
+                if(!this.fg){
+                    let brickSize = new V2(68, 34)
+                    this.fg = createCanvas(this.size, (ctx, size, hlp) => {
+                        let hCount = fast.c(size.x/brickSize.x)+1;
+                        let vCount = fast.c(size.y/brickSize.y)+1;
+
+                        let currentY = -brickSize.y/2;
+                        //hlp.setFillColor(colors.palettes.fleja.colors[10]).rect(0,0,size.x,size.y);
+                        for(let v = 0; v < vCount;v++){
+                            let currentX = v%2 == 0 ? getRandomInt(-brickSize.x, -brickSize.x/2) : getRandomInt(-brickSize.x/2, 0)
+                            for(let h = 0; h < hCount; h++){
+                                if(h < 2 || h > hCount-4){
+                                    if(h<2  ){
+                                        hlp.setFillColor('rgba(0,0,0,0.25').rect(currentX-1+fast.r(brickSize.x/10), currentY-1+fast.r(brickSize.y/10), brickSize.x+2,brickSize.y+2)
+                                    }
+                                    else if(h == hCount-3){
+                                        hlp.setFillColor('rgba(0,0,0,0.25').rect(currentX-1-fast.r(brickSize.x/10), currentY-1+fast.r(brickSize.y/10), brickSize.x+2,brickSize.y+2)
+                                    }
+                                    hlp.setFillColor(colors.palettes.fleja.colors[10]).rect(currentX-1,currentY-1,brickSize.x+2,brickSize.y+2);
+                                    this.parentScene.createBrick(hlp, currentX, currentY, brickSize);
+                                    
+                                }
+
+                                currentX+=(brickSize.x+2);
+                            }
+
+                            currentY+=(brickSize.y+2);
+                        }
+                    })
+                }
+
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
                     ctx.drawImage(this.bg, 0,0,size.x, size.y);
                     
@@ -141,10 +162,36 @@ class CurvesScene extends Scene {
                         hlp.setFillColor(line.color).rect(line.position.x, line.position.y, line.size.x, line.size.y);
                     }
 
-                    
+                    ctx.drawImage(this.fg, 0,0,size.x, size.y);
                 })
             }
         }),1)
+
+        this.frontalBricks = this.addGo(new GO({
+            position: new V2(this.sceneCenter.x, this.sceneCenter.y),
+            size: new V2(this.viewport.x, 60),
+            init() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    //hlp.setFillColor('red').rect(0,0,size.x, size.y)
+                    let brickSize = new V2(60, 60)
+                    let hCount = fast.c(size.x/brickSize.x)+1;
+                    let vCount = fast.c(size.y/brickSize.y)+1;
+
+                    let currentY = 0;
+                    //hlp.setFillColor(colors.palettes.fleja.colors[10]).rect(0,0,size.x,size.y);
+                    for(let v = 0; v < vCount;v++){
+                        let currentX = v%2 == 0 ? getRandomInt(-brickSize.x, -brickSize.x/2) : getRandomInt(-brickSize.x/2, 0)
+                        for(let h = 0; h < hCount; h++){
+                            this.parentScene.createBrick(hlp, currentX, currentY, brickSize);
+
+                            currentX+=(brickSize.x);
+                        }
+
+                        currentY+=(brickSize.y+2);
+                    }
+                 })
+            }
+        }), 3)
 
         this.waterLine = this.addGo(new GO({
             position: this.sceneCenter.clone(),
