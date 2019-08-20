@@ -1,4 +1,57 @@
 var mathUtils = {
+    getCurvePoints ({ start, end, midPoints, startMethod = 'out', endMethod = 'in', midPointsDefaultMethod = 'inOut' }) {
+        let direction = start.direction(end);
+        let angle =  direction.angleTo(V2.right);
+
+        let endRotated = end.substract(start).rotate(angle).add(start)
+
+        let distance = start.distance(endRotated);
+        let dv = start.direction(endRotated).mul(distance);
+
+        let dots = [];
+        for(let i = 0; i <= midPoints.length;i++){
+            let length = 0
+            let startValue = 0;
+            let endValue = 0;
+            let type = 'quad';
+            let method = '';
+            let startX = 0;
+
+            if(i == 0){
+                startX = start.x;
+                length = fast.r(distance*midPoints[0].distance);
+                startValue = start.y;
+                endValue = startValue+midPoints[0].yChange;
+                method = startMethod
+            }
+            else if(i == midPoints.length){
+                length = fast.r(distance - distance*midPoints[midPoints.length-1].distance);
+                startX = endRotated.x - length;
+                startValue = start.y+midPoints[midPoints.length-1].yChange;
+                endValue = start.y;
+                method = endMethod
+            }
+            else {
+                startX = fast.r(start.x + distance*midPoints[i-1].distance);
+                length = fast.r(distance*midPoints[i].distance - distance*midPoints[i-1].distance);
+                startValue = start.y+midPoints[i-1].yChange;
+                endValue = start.y+midPoints[i].yChange;
+                method = midPointsDefaultMethod
+            }
+
+            let yChange = easing.createProps(length, startValue, endValue, type, method);
+
+            for(let i = 0; i < length; i++){
+                yChange.time = i;
+                let y = fast.r(easing.process(yChange));
+                let x = startX + i;
+                let dot = new V2(x,y).substract(start).rotate(-angle).add(start);
+                dots.push(dot);
+            }
+        }
+
+        return dots;
+    },
     //https://rosettacode.org/wiki/Reduced_row_echelon_form#JavaScript
     reducedRowEchelonForm: function(mat) {
       let lead = 0;
