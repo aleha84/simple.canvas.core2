@@ -69,6 +69,7 @@ class CurvesScene extends Scene {
                             line.position.y = -line.size.y;
                             line.position.x = fast.r(getRandomGaussian(0, this.size.x))
                             line.size = new V2(getRandomInt(2,4), getRandomInt(0,5) == 0 ? getRandomInt(4, 8) : getRandomInt(10, 40));
+                            line.hasLightSide = getRandomBool();
                         }
                     }
 
@@ -160,6 +161,10 @@ class CurvesScene extends Scene {
                     for(let i = 0; i < this.lines.length; i++){
                         let line = this.lines[i];
                         hlp.setFillColor(line.color).rect(line.position.x, line.position.y, line.size.x, line.size.y);
+
+                        // if(true){
+                        //     hlp.setFillColor('rgba(255,255,255, 0.5)').rect(line.position.x+line.size.x-1,line.position.y, 1, line.size.y)
+                        // }
                     }
 
                     ctx.drawImage(this.fg, 0,0,size.x, size.y);
@@ -168,12 +173,12 @@ class CurvesScene extends Scene {
         }),1)
 
         this.frontalBricks = this.addGo(new GO({
-            position: new V2(this.sceneCenter.x, this.sceneCenter.y),
-            size: new V2(this.viewport.x, 60),
+            position: new V2(this.sceneCenter.x, this.sceneCenter.y+20),
+            size: new V2(this.viewport.x, 50),
             init() {
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
                     //hlp.setFillColor('red').rect(0,0,size.x, size.y)
-                    let brickSize = new V2(60, 60)
+                    let brickSize = new V2(60, 50)
                     let hCount = fast.c(size.x/brickSize.x)+1;
                     let vCount = fast.c(size.y/brickSize.y)+1;
 
@@ -188,6 +193,38 @@ class CurvesScene extends Scene {
                         }
 
                         currentY+=(brickSize.y+2);
+                    }
+                 })
+            }
+        }), 5)
+
+        this.lowerBricks = this.addGo(new GO({
+            position: new V2(this.sceneCenter.x, 240),
+            size: new V2(this.viewport.x, 140),
+            init() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    //hlp.setFillColor('red').rect(0,0,size.x, size.y)
+                    let brickSize = new V2(30, 20)
+                    let hCount = fast.c(size.x/brickSize.x)+1;
+                    let vCount = fast.c(size.y/brickSize.y)+1;
+
+                    let currentY = 0;
+                    hlp.setFillColor(colors.palettes.fleja.colors[10]).rect(0,0,size.x,size.y);
+                    for(let v = 0; v < vCount;v++){
+                        let currentX = v%2 == 0 ? getRandomInt(-brickSize.x, -brickSize.x/2) : getRandomInt(-brickSize.x/2, 0)
+                        for(let h = 0; h < hCount; h++){
+                            this.parentScene.createBrick(hlp, currentX, currentY, brickSize);
+
+                            currentX+=(brickSize.x+1);
+                        }
+
+                        currentY+=(brickSize.y+1);
+                    }
+
+                    hlp.setFillColor('rgba(0,0,0,0.2)').rect(0,0,size.x, size.y)
+                    //.rect(0,0,size.x, brickSize.y).rect(0,0,size.x, brickSize.y*2);
+                    for(let i = 0; i < 5; i++){
+                        hlp.rect(0,0,size.x, (brickSize.y+1)*(i+1))
                     }
                  })
             }
