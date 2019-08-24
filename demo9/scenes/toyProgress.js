@@ -15,6 +15,9 @@ class ToyProgressScene extends Scene {
     }
 
     start(){
+        this.backgroundImage = PP.createImage(toyProgressModels.background);
+        this.backgroundImageSize = new V2(250, 50);
+
         this.treeSize = new V2(20,20);
         this.treeYChange = easing.createProps(29, 0, this.treeSize.y, 'quad', 'out');
         this.treeWChange = easing.createProps(19, 0, 9, 'quad', 'out');
@@ -63,17 +66,49 @@ class ToyProgressScene extends Scene {
             }))
         ]
         this.bannerCarImg = PP.createImage(toyProgressModels.bannerCar);
+        this.background = this.addGo(new GO({
+            position: new V2(this.sceneCenter.x+25, this.sceneCenter.y-30),
+            size: this.backgroundImageSize,
+            //img: this.backgroundImage,
+            init() {
+                this.ropes = [
+                    this.addChild(new Go({
+                        position: new V2( -75, -100 ),
+                        size: new V2(4, 200),
+                        img: createCanvas(new V2(4,1), (ctx, size, hlp) => {
+                            hlp.setFillColor('#63635F').rect(0,0,size.x, size.y).setFillColor('#2A2A28').rect(size.x-1, 0,1, size.y)
+                        })
+                    })),
+                    this.addChild(new Go({
+                        position: new V2( 75, -100 ),
+                        size: new V2(4, 200),
+                        img: createCanvas(new V2(4,1), (ctx, size, hlp) => {
+                            hlp.setFillColor('#63635F').rect(0,0,size.x, size.y).setFillColor('#2A2A28').rect(size.x-1, 0,1, size.y)
+                        })
+                    }))
+                ]
+                this.image = this.addChild(new Go({
+                    position: new V2(),
+                    size: this.size, 
+                    img: this.parentScene.backgroundImage
+                }))
+            }
+        }))
 
         this.basement = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: new V2(250,150),
             init() {
-                this.trees = [{
-                    animated: true,
+                this.uTrees = [new V2(60,50), new V2(100,50), new V2(140,50), new V2(180,50)].map(p => ({animated: false,
+                    triggered: false,
                     currentFrame: 0,
-                    position: new V2(50,50)
-                }]
+                    position: p})) 
+                this.lTrees = [new V2(40,62), new V2(80,62), new V2(120,62), new V2(160,62)].map(p => ({animated: false,
+                    triggered: false,
+                    currentFrame: 0,
+                    position: p})) 
 
+                
                 this.initialWidth = 0;
                 this.width = this.initialWidth;
                 this.height = 20;
@@ -86,13 +121,18 @@ class ToyProgressScene extends Scene {
                 this.createImage();
 
                 //this.makeWider();
-                //this.showCar();
+                this.showCar();
+                
                 this.growTrees();
+            },
+            addBackground() {
+
             },
             growTrees() {
                 this.treeTimer = this.regTimerDefault(15, () => {
-                    for(let i = 0; i < this.trees.length; i++){
-                        let tree = this.trees[i];
+                    let trees = [...this.uTrees, ...this.lTrees];
+                    for(let i = 0; i < trees.length; i++){
+                        let tree = trees[i];
 
                         if(!tree.animated){
                             continue;
@@ -104,7 +144,7 @@ class ToyProgressScene extends Scene {
                         }
                     }
 
-                    this.createImage();
+                    //this.createImage();
                 })
             },
             makeWider() {
@@ -159,7 +199,7 @@ class ToyProgressScene extends Scene {
                         angle: easing.createProps(30, 180, -30, 'quad', 'inOut'),
                         hStickWidth: easing.createProps(20, 0, 10, 'quad', 'out'),
                         bannerHeight: easing.createProps(20, 0, 12, 'quad', 'out'),
-                        positionX: easing.createProps(250, this.startX + this.xShift, this.startX + this.xShift+this.width - 4, 'quad', 'inOut'),
+                        positionX: easing.createProps(300, this.startX + this.xShift, this.startX + this.xShift+this.width - 4, 'sin', 'inOut'),
                         //positionY: easing.createProps(20, 0, 2, 'quad', 'inOut'),
                     }
                 }
@@ -230,6 +270,13 @@ class ToyProgressScene extends Scene {
                     let cy = this.car.change.positionY;
                     this.car.position.x = easing.process(cx);
                     this.car.yShift.current = fast.r(easing.process(cy));
+
+                    let notTriggeredTrees = [...this.uTrees, ...this.lTrees].filter(t => !t.triggered && t.position.x <= this.car.position.x+15);
+                    if(notTriggeredTrees.length > 0){
+                        notTriggeredTrees = notTriggeredTrees[0];
+                        notTriggeredTrees.triggered = true;
+                        notTriggeredTrees.animated = true;
+                    }
 
                     this.car.vStick.position.x = this.car.position.x;
                     this.car.position.toInt();
@@ -324,10 +371,10 @@ class ToyProgressScene extends Scene {
                         .rect(this.startX + this.xShift+1, midY-1, this.width,1)
                         .dot(this.startX + this.xShift - 1, midY)
 
-                    for(let i = 0; i < this.trees.length; i++){
-                        let tree = this.trees[i];
-                        //hlp.setFillColor('red').strokeRect(tree.position.x, tree.position.y, this.parentScene.treeSize.x, this.parentScene.treeSize.y)
-                        ctx.drawImage(this.parentScene.treeFrames[tree.currentFrame], tree.position.x, tree.position.y, this.parentScene.treeSize.x, this.parentScene.treeSize.y);
+                    for(let i = 0; i < this.uTrees.length; i++){
+                        let tree = this.uTrees[i];
+                        if(tree.triggered)
+                            ctx.drawImage(this.parentScene.treeFrames[tree.currentFrame], tree.position.x, tree.position.y, this.parentScene.treeSize.x, this.parentScene.treeSize.y);
                     }
 
                     if(this.car) {
@@ -381,8 +428,14 @@ class ToyProgressScene extends Scene {
                         }
                         //hlp.setFillColor('red').rect()
                     }
+
+                    for(let i = 0; i < this.lTrees.length; i++){
+                        let tree = this.lTrees[i];
+                        if(tree.triggered)
+                            ctx.drawImage(this.parentScene.treeFrames[tree.currentFrame], tree.position.x, tree.position.y, this.parentScene.treeSize.x, this.parentScene.treeSize.y);
+                    }
                 })
             }
-        }))
+        }), 10)
     }
 }
