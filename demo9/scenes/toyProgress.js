@@ -20,7 +20,7 @@ class ToyProgressScene extends Scene {
 
         this.treeSize = new V2(20,20);
         this.treeYChange = easing.createProps(29, 0, this.treeSize.y, 'quad', 'out');
-        this.treeWChange = easing.createProps(19, 0, 9, 'quad', 'out');
+        this.treeWChange = easing.createProps(19, 0, 8, 'quad', 'out');
         this.treeFrames = [
             ...new Array(30).fill().map((_, i) => createCanvas(this.treeSize, (ctx, size, hlp) => {
                 this.treeYChange.time = i;
@@ -32,16 +32,16 @@ class ToyProgressScene extends Scene {
                 let pp = new PerfectPixel({context: ctx});
                 let w = easing.process(this.treeWChange);
                 hlp.setFillColor('#50872C')
-                let dots = pp.line(fast.r(size.x/2), fast.r(size.y/2), fast.r(size.x/2-w), size.y-1)
+                let dots = pp.line(fast.r(size.x/2), fast.r(size.y/2), fast.r(size.x/2-w), size.y-2)
                 for(let i = 0; i < dots.length;i++){
-                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, size.y - dots[i].y-1)
+                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, size.y - dots[i].y-2)
                 }
-                hlp.setFillColor('#50872C').rect(fast.r(size.x/2-w), size.y-1, w, 1)
-                dots = pp.line(fast.r(size.x/2), fast.r(size.y/2), fast.r(size.x/2+w), size.y-1)
+                hlp.setFillColor('#50872C').rect(fast.r(size.x/2-w), size.y-2, w, 1)
+                dots = pp.line(fast.r(size.x/2), fast.r(size.y/2), fast.r(size.x/2+w), size.y-2)
                 for(let i = 0; i < dots.length;i++){
-                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, size.y - dots[i].y-1)
+                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, size.y - dots[i].y-2)
                 }
-                hlp.setFillColor('#50872C').rect(fast.r(size.x/2), size.y-1, w, 1)
+                hlp.setFillColor('#50872C').rect(fast.r(size.x/2), size.y-2, w, 1)
                 dots = pp.line(fast.r(size.x/2), fast.r(size.y/4), fast.r(size.x/2-w/2)-1, size.y/2)
                 for(let i = 0; i < dots.length;i++){
                     hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, fast.r(size.y/2 - dots[i].y))
@@ -70,6 +70,8 @@ class ToyProgressScene extends Scene {
             position: new V2(this.sceneCenter.x+25, this.sceneCenter.y-30),
             size: this.backgroundImageSize,
             //img: this.backgroundImage,
+            targetPosition: new V2(this.sceneCenter.x+25, this.sceneCenter.y-30),
+            initialPosition: new V2(this.sceneCenter.x+25, -30),
             init() {
                 this.ropes = [
                     this.addChild(new Go({
@@ -92,6 +94,44 @@ class ToyProgressScene extends Scene {
                     size: this.size, 
                     img: this.parentScene.backgroundImage
                 }))
+            },
+            moveIn() {
+                this.yChange1 = easing.createProps(40, this.initialPosition.y, this.targetPosition.y+20, 'quad', 'out');
+                this.yChange2 = easing.createProps(20, this.targetPosition.y+20, this.targetPosition.y, 'quad', 'inOut');
+                this.yChange1.onComplete = () => {
+                    this.yChange = this.yChange2;
+                }
+                this.yChange2.onComplete = () => {
+                    this.unregTimer(this.timer);
+                    this.timer = undefined;
+                }
+
+                this.yChange = this.yChange1;
+                this.timer = this.regTimerDefault(15, () => {
+                    easing.commonProcess({ context: this, propsName: 'yChange', round: true, removePropsOnComplete: true, setter: (value) => {
+                        this.position.y = value;
+                        this.needRecalcRenderProperties = true;
+                    } })
+                })
+            },
+            moveOut() {
+                this.yChange1 = easing.createProps(20, this.targetPosition.y, this.targetPosition.y+20, 'quad', 'inOut');
+                this.yChange2 = easing.createProps(40, this.targetPosition.y+20, this.initialPosition.y, 'quad', 'in');
+                this.yChange1.onComplete = () => {
+                    this.yChange = this.yChange2;
+                }
+                this.yChange2.onComplete = () => {
+                    this.unregTimer(this.timer);
+                    this.timer = undefined;
+                }
+
+                this.yChange = this.yChange1;
+                this.timer = this.regTimerDefault(15, () => {
+                    easing.commonProcess({ context: this, propsName: 'yChange', round: true, removePropsOnComplete: true, setter: (value) => {
+                        this.position.y = value;
+                        this.needRecalcRenderProperties = true;
+                    } })
+                })
             }
         }))
 
@@ -128,11 +168,48 @@ class ToyProgressScene extends Scene {
             addBackground() {
 
             },
-            growTrees() {
+            removeTrees() {
+                this.treesRemovementIndex = 0;
+                let tick = 10;
+                let trees = [...this.uTrees, ...this.lTrees].sort((a,b) => {return a.position.x-b.position.x})
                 this.treeTimer = this.regTimerDefault(15, () => {
-                    let trees = [...this.uTrees, ...this.lTrees];
+                    for(let i = 0; i < trees.length; i++){
+                        if(i < this.treesRemovementIndex){
+                            let tree = trees[i];
+                            if(tree.currentFrame > 0)
+                                tree.currentFrame--;
+                            else {
+                                tree.triggered = false;
+                            }
+                        }
+    
+                    }
+
+                    if(this.treesRemovementIndex < trees.length && tick-- == 0){
+                        tick = 10;
+                        this.treesRemovementIndex++;
+                    }
+
+                    if(trees.filter(t => t.currentFrame > 0).length == 0){
+                        this.unregTimer(this.treeTimer)
+                        this.treeTimer = undefined;
+                        trees.forEach(t => t.triggered = false);
+                        alert('trees removed')
+                    }
+
+                    this.createImage();
+                })
+            },
+            growTrees() {
+                let trees = [...this.uTrees, ...this.lTrees];
+                this.treeTimer = this.regTimerDefault(15, () => {
+                    
                     for(let i = 0; i < trees.length; i++){
                         let tree = trees[i];
+
+                        if(tree.removing!=undefined){
+                            tree.removing = undefined
+                        }
 
                         if(!tree.animated){
                             continue;
@@ -289,8 +366,10 @@ class ToyProgressScene extends Scene {
                     cx.time++;
                     cy.time++;
                     if(cx.time > cx.duration){
+                        this.unregTimer(this.treeTimer);
                         this.unregTimer(this.moveCarTimer);
                         this.moveCarTimer = undefined;
+                        this.treeTimer = undefined;
                         this.hideCar();
                     }
 
