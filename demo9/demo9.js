@@ -102,6 +102,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new LaserScene({
+        name:'laser',
+        viewport: verticalDefaultViewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
