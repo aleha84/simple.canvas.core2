@@ -600,10 +600,13 @@ class ToyProgressScene extends Scene {
                 this.startDelay = this.registerTimer(createTimer(1000, () => {
                     this.unregTimer(this.startDelay);
                     this.startDelay = undefined;
+                    //this.recorder = new Recorder(SCG.canvases.main);
                     this.workSequence();    
+                    //this.recorder.start();
                 }, this, false));
             },
             workSequence() {
+                
                 let b = this.parentScene.basement;
                 let bg = this.parentScene.background;
                 let next = () => this.processScript();
@@ -631,7 +634,8 @@ class ToyProgressScene extends Scene {
                         bg.moveOut();
                     },
                     function() {
-                        b.makeNarrower(next)
+                        b.makeNarrower(next);
+                        //this.recorder.stop();
                     }
                 ]
         
