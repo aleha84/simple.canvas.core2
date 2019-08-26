@@ -24,50 +24,52 @@ class ToyProgressScene extends Scene {
         this.treeFrames = [
             ...new Array(30).fill().map((_, i) => createCanvas(this.treeSize, (ctx, size, hlp) => {
                 this.treeYChange.time = i;
-                hlp.setFillColor('#50872C').rect(fast.r(size.x/2), size.y-1-easing.process(this.treeYChange), 1, size.y+1 )
+                hlp.setFillColor(colors.palettes.fleja.colors[18]).rect(fast.r(size.x/2), size.y-1-easing.process(this.treeYChange), 1, size.y+1 )
             })),
             ...new Array(20).fill().map((_, i) => createCanvas(this.treeSize, (ctx, size, hlp) => {
                 this.treeWChange.time = i;
                 
                 let pp = new PerfectPixel({context: ctx});
                 let w = easing.process(this.treeWChange);
-                hlp.setFillColor('#50872C')
+                let c1 = colors.palettes.fleja.colors[18];
+                let c2 = colors.palettes.fleja.colors[17];
+                hlp.setFillColor(c1)
                 let dots = pp.line(fast.r(size.x/2), fast.r(size.y/2), fast.r(size.x/2-w), size.y-2)
                 for(let i = 0; i < dots.length;i++){
-                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, size.y - dots[i].y-2)
+                    hlp.setFillColor(c2).rect(dots[i].x,dots[i].y+1, 1, size.y - dots[i].y-2)
                 }
-                hlp.setFillColor('#50872C').rect(fast.r(size.x/2-w), size.y-2, w, 1)
+                hlp.setFillColor(c1).rect(fast.r(size.x/2-w), size.y-2, w, 1)
                 dots = pp.line(fast.r(size.x/2), fast.r(size.y/2), fast.r(size.x/2+w), size.y-2)
                 for(let i = 0; i < dots.length;i++){
-                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, size.y - dots[i].y-2)
+                    hlp.setFillColor(c2).rect(dots[i].x,dots[i].y+1, 1, size.y - dots[i].y-2)
                 }
-                hlp.setFillColor('#50872C').rect(fast.r(size.x/2), size.y-2, w, 1)
+                hlp.setFillColor(c1).rect(fast.r(size.x/2), size.y-2, w, 1)
                 dots = pp.line(fast.r(size.x/2), fast.r(size.y/4), fast.r(size.x/2-w/2)-1, size.y/2)
                 for(let i = 0; i < dots.length;i++){
-                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, fast.r(size.y/2 - dots[i].y))
+                    hlp.setFillColor(c2).rect(dots[i].x,dots[i].y+1, 1, fast.r(size.y/2 - dots[i].y))
                 }
-                hlp.setFillColor('#50872C')
+                hlp.setFillColor(c1)
                 dots = pp.line(fast.r(size.x/2), fast.r(size.y/4), fast.r(size.x/2+w/2), size.y/2)
                 for(let i = 0; i < dots.length;i++){
-                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, fast.r(size.y/2 - dots[i].y))
+                    hlp.setFillColor(c2).rect(dots[i].x,dots[i].y+1, 1, fast.r(size.y/2 - dots[i].y))
                 }
-                hlp.setFillColor('#50872C')
+                hlp.setFillColor(c1)
                 dots = pp.line(fast.r(size.x/2), 1, fast.r(size.x/2-w/4)-1, size.y/4)
                 for(let i = 0; i < dots.length;i++){
-                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, fast.r(size.y/4 - dots[i].y))
+                    hlp.setFillColor(c2).rect(dots[i].x,dots[i].y+1, 1, fast.r(size.y/4 - dots[i].y))
                 }
-                hlp.setFillColor('#50872C')
+                hlp.setFillColor(c1)
                 dots = pp.line(fast.r(size.x/2), 1, fast.r(size.x/2+w/4)+1, size.y/4)
                 for(let i = 0; i < dots.length;i++){
-                    hlp.setFillColor('#69B239').rect(dots[i].x,dots[i].y+1, 1, fast.r(size.y/4 - dots[i].y))
+                    hlp.setFillColor(c2).rect(dots[i].x,dots[i].y+1, 1, fast.r(size.y/4 - dots[i].y))
                 }
                 
-                hlp.setFillColor('#50872C').rect(fast.r(size.x/2), 0, 1, size.y )
+                hlp.setFillColor(c1).rect(fast.r(size.x/2), 0, 1, size.y )
             }))
         ]
         this.bannerCarImg = PP.createImage(toyProgressModels.bannerCar);
         this.background = this.addGo(new GO({
-            position: new V2(this.sceneCenter.x+25, this.sceneCenter.y-30),
+            position: new V2(this.sceneCenter.x+25, -30),//new V2(this.sceneCenter.x+25, this.sceneCenter.y-30),
             size: this.backgroundImageSize,
             //img: this.backgroundImage,
             targetPosition: new V2(this.sceneCenter.x+25, this.sceneCenter.y-30),
@@ -95,15 +97,16 @@ class ToyProgressScene extends Scene {
                     img: this.parentScene.backgroundImage
                 }))
             },
-            moveIn() {
-                this.yChange1 = easing.createProps(40, this.initialPosition.y, this.targetPosition.y+20, 'quad', 'out');
-                this.yChange2 = easing.createProps(20, this.targetPosition.y+20, this.targetPosition.y, 'quad', 'inOut');
+            moveIn(callback = () => {}) {
+                this.yChange1 = easing.createProps(30, this.initialPosition.y, this.targetPosition.y+5, 'quad', 'out');
+                this.yChange2 = easing.createProps(15, this.targetPosition.y+5, this.targetPosition.y, 'quad', 'inOut');
                 this.yChange1.onComplete = () => {
                     this.yChange = this.yChange2;
                 }
                 this.yChange2.onComplete = () => {
                     this.unregTimer(this.timer);
                     this.timer = undefined;
+                    callback();
                 }
 
                 this.yChange = this.yChange1;
@@ -114,15 +117,16 @@ class ToyProgressScene extends Scene {
                     } })
                 })
             },
-            moveOut() {
-                this.yChange1 = easing.createProps(20, this.targetPosition.y, this.targetPosition.y+20, 'quad', 'inOut');
-                this.yChange2 = easing.createProps(40, this.targetPosition.y+20, this.initialPosition.y, 'quad', 'in');
+            moveOut(callback = () => {}) {
+                this.yChange1 = easing.createProps(15, this.targetPosition.y, this.targetPosition.y+5, 'quad', 'inOut');
+                this.yChange2 = easing.createProps(30, this.targetPosition.y+5, this.initialPosition.y, 'quad', 'in');
                 this.yChange1.onComplete = () => {
                     this.yChange = this.yChange2;
                 }
                 this.yChange2.onComplete = () => {
                     this.unregTimer(this.timer);
                     this.timer = undefined;
+                    callback();
                 }
 
                 this.yChange = this.yChange1;
@@ -157,20 +161,17 @@ class ToyProgressScene extends Scene {
                 this.xShift = 40;
                 this.maxWidth = this.size.x - 2*this.startX - 2*this.xShift;
                 
-                this.width = this.maxWidth;
+                //this.width = this.maxWidth;
                 this.createImage();
 
                 //this.makeWider();
-                this.showCar();
+                //this.showCar();
                 
-                this.growTrees();
+                //this.growTrees();
             },
-            addBackground() {
-
-            },
-            removeTrees() {
+            removeTrees(callback = () => {}) {
                 this.treesRemovementIndex = 0;
-                let tick = 10;
+                let tick = 3;
                 let trees = [...this.uTrees, ...this.lTrees].sort((a,b) => {return a.position.x-b.position.x})
                 this.treeTimer = this.regTimerDefault(15, () => {
                     for(let i = 0; i < trees.length; i++){
@@ -186,7 +187,7 @@ class ToyProgressScene extends Scene {
                     }
 
                     if(this.treesRemovementIndex < trees.length && tick-- == 0){
-                        tick = 10;
+                        tick = 3;
                         this.treesRemovementIndex++;
                     }
 
@@ -194,7 +195,8 @@ class ToyProgressScene extends Scene {
                         this.unregTimer(this.treeTimer)
                         this.treeTimer = undefined;
                         trees.forEach(t => t.triggered = false);
-                        alert('trees removed')
+                        //alert('trees removed')
+                        callback();
                     }
 
                     this.createImage();
@@ -224,11 +226,18 @@ class ToyProgressScene extends Scene {
                     //this.createImage();
                 })
             },
-            makeWider() {
-                this.widthChange = easing.createProps(60, this.initialWidth, this.maxWidth,'quad', 'inOut');
+            makeNarrower(callback = () => {}) {
+                this.changeWidth(easing.createProps(60, this.maxWidth, this.initialWidth,'quad', 'inOut'), callback);
+            },
+            makeWider(callback = () => {}) {
+                this.changeWidth(easing.createProps(60, this.initialWidth, this.maxWidth,'quad', 'inOut'), callback);
+            },
+            changeWidth(change, callback) {
+                this.widthChange = change;
                 this.widthChange.onComplete = () => {
                     this.unregTimer(this.timer);   
                     this.time = undefined; 
+                    callback();
                 }
                 this.widthChange.onChange = () => {
                     this.createImage();
@@ -238,11 +247,63 @@ class ToyProgressScene extends Scene {
                     easing.commonProcess({
                         context: this, 
                         propsName: 'widthChange',
-                        targetpropertyName: 'width'
+                        targetpropertyName: 'width', round: true
                     })
                 })
             },
-            showCar() {
+            hideCar(callback = () => {}) {
+                //console.log(performance.now() - this.start)
+                this.car.state = 'hiding';
+                this.car.subState = 'hideBanner';
+                this.car.change=  {
+                    angle: easing.createProps(30, 0, -180, 'quad', 'in'),
+                    hStickWidth: easing.createProps(20, 10, 0, 'quad', 'in'),
+                    bannerHeight: easing.createProps(20, 12, 0, 'quad', 'in'),
+                    //positionX: easing.createProps(300, this.startX + this.xShift, this.startX + this.xShift+this.width - 4, 'sin', 'inOut'),
+                    //positionY: easing.createProps(20, 0, 2, 'quad', 'inOut'),
+                }
+                //this.car = undefined;
+
+                this.hideCarTimer = this.regTimerDefault(15, () => {
+                    if(this.car.state == 'hiding'){
+                        if(this.car.subState == 'hideBanner'){
+                            let ch = this.car.change.bannerHeight;
+                            this.car.banner.height = easing.process(ch);
+
+                            ch.time++;
+                            if(ch.time > ch.duration){
+                                this.car.subState = 'hStickHide';
+                            }
+                        } else if(this.car.subState == 'hStickHide'){
+                            let cw = this.car.change.hStickWidth;
+                            this.car.hStick.width = easing.process(cw);
+                            this.car.hStick.leftEnd = this.car.vStick.position.add(new V2(-this.car.hStick.width, 0))
+                            this.car.hStick.rightEnd = this.car.vStick.position.add(new V2(this.car.hStick.width, 0))
+    
+                            cw.time++;
+                            if(cw.time > cw.duration){
+                                this.car.subState = 'fall';
+                            }
+                        }
+                        else if(this.car.subState == 'fall'){
+                            let ca = this.car.change.angle;
+                            this.car.angle = easing.process(ca);
+                            this.car.vStick.position = this.car.vStick.originPosition.rotate(this.car.angle).add(this.car.position);
+
+                            ca.time++;
+                            if(ca.time > ca.duration){
+                                this.unregTimer(this.hideCarTimer);
+                                this.hideCarTimer = undefined;
+                                this.car = undefined;
+                                callback();
+                            }
+                        }
+
+                        this.createImage();
+                    } 
+                })
+            },
+            showCar(callback = () => {}) {
                 this.car = {
                     state: 'appearing',
                     subState: 'rise',
@@ -256,14 +317,14 @@ class ToyProgressScene extends Scene {
                     vStick: {
                         originPosition: new V2(0, -15),
                         position: new V2(),
-                        color: '#CE7E73'
+                        color: colors.palettes.fleja.colors[8]
                     }, //Position: new V2(this.startX + this.xShift, fast.r(this.size.y/2) + 10),
                     hStick: {
                         width: 0,
                         maxWidth: 10,
                         leftEnd: new V2(),
                         rightEnd: new V2(),
-                        color: '#87382D'
+                        color: colors.palettes.fleja.colors[9]
                     },
                     banner: {
                         height: 0,
@@ -326,7 +387,8 @@ class ToyProgressScene extends Scene {
                                 this.car.subState = 'showBanner';
                                 this.unregTimer(this.showCarTimer);
                                 this.showCarTimer = undefined;
-                                this.move();
+                                //this.move();
+                                callback();
                             }
                         }
                     }
@@ -334,8 +396,7 @@ class ToyProgressScene extends Scene {
                     this.createImage();
                 })
             },
-            move() {
-                this.start = performance.now();
+            move(callback = () => {}) {
                 this.car.state = 'moving';
                 this.moveCarTimer = this.regTimerDefault(30, () => {
                     if(this.car.change.positionY == undefined) {
@@ -370,7 +431,8 @@ class ToyProgressScene extends Scene {
                         this.unregTimer(this.moveCarTimer);
                         this.moveCarTimer = undefined;
                         this.treeTimer = undefined;
-                        this.hideCar();
+                        //this.hideCar();
+                        callback();
                     }
 
                     if(cy.time > cy.duration){
@@ -388,11 +450,6 @@ class ToyProgressScene extends Scene {
 
                     this.createImage();
                 })
-            },
-            hideCar() {
-                console.log(performance.now() - this.start)
-                this.car.state = 'hiding';
-                //this.car = undefined;
             },
             createImage() {
                 if(!this.startImg) {
@@ -432,7 +489,7 @@ class ToyProgressScene extends Scene {
                 }
 
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
+                    //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
                     let pp = new PerfectPixel({context: ctx})
                     let midY = fast.r(size.y/2);
                     let heightHalf = fast.r(this.height/2);
@@ -444,11 +501,14 @@ class ToyProgressScene extends Scene {
 
                     ctx.drawImage(this.endImg, this.width,0, size.x, size.y);
 
-                    hlp.setFillColor('black') // hole in the middle
+                    if(this.width > 0){
+                        hlp.setFillColor('black') // hole in the middle
                         .rect(this.startX + this.xShift - 1, midY, this.width,1)
-                    hlp.setFillColor('#666666')
-                        .rect(this.startX + this.xShift+1, midY-1, this.width,1)
-                        .dot(this.startX + this.xShift - 1, midY)
+                        hlp.setFillColor('#666666')
+                            .rect(this.startX + this.xShift+1, midY-1, this.width,1)
+                            .dot(this.startX + this.xShift - 1, midY)
+                    }
+                    
 
                     for(let i = 0; i < this.uTrees.length; i++){
                         let tree = this.uTrees[i];
@@ -484,15 +544,30 @@ class ToyProgressScene extends Scene {
                             }
                         }
                         else if(this.car.state =='hiding') {
-                            hlp.setFillColor(this.car.vStick.color);
-                            pp.lineV2(this.car.position, this.car.vStick.position);
-                            pp.lineV2(this.car.position.add(new V2(1,0)), this.car.vStick.position.add(new V2(1,0)))
-                            hlp.setFillColor(this.car.hStick.color);
-                            pp.lineV2(this.car.hStick.leftEnd, this.car.hStick.rightEnd);
+                            if(this.car.subState == 'hideBanner'){
+                                hlp.setFillColor(this.car.vStick.color);
+                                pp.lineV2(this.car.position, this.car.vStick.position);
+                                pp.lineV2(this.car.position.add(new V2(1,0)), this.car.vStick.position.add(new V2(1,0)))
+                                hlp.setFillColor(this.car.hStick.color);
+                                pp.lineV2(this.car.hStick.leftEnd, this.car.hStick.rightEnd);
 
-                            hlp.setFillColor(this.car.banner.color).rect(this.car.banner.position.x, this.car.banner.position.y, this.car.banner.width, this.car.banner.height)
-                            ctx.drawImage(this.parentScene.bannerCarImg, 0,0,this.car.banner.width, this.car.banner.height, this.car.banner.position.x, this.car.banner.position.y,this.car.banner.width, this.car.banner.height);
-                            hlp.setFillColor(this.car.hStick.color).strokeRect(this.car.banner.position.x-1, this.car.banner.position.y-1, this.car.banner.width+2, this.car.banner.height+2)
+                                hlp.setFillColor(this.car.banner.color).rect(this.car.banner.position.x, this.car.banner.position.y, this.car.banner.width, this.car.banner.height);
+                                ctx.drawImage(this.parentScene.bannerCarImg, 0,0,this.car.banner.width, this.car.banner.height, this.car.banner.position.x, this.car.banner.position.y,this.car.banner.width, this.car.banner.height);
+                                hlp.setFillColor(this.car.hStick.color).strokeRect(this.car.banner.position.x-1, this.car.banner.position.y-1, this.car.banner.width+2, this.car.banner.height+2)
+                            }
+                            else if(this.car.subState == 'hStickHide'){
+                                hlp.setFillColor(this.car.vStick.color);
+                                pp.lineV2(this.car.position, this.car.vStick.position)
+                                pp.lineV2(this.car.position.add(new V2(1,0)), this.car.vStick.position.add(new V2(1,0)))
+                                hlp.setFillColor(this.car.hStick.color);
+                                pp.lineV2(this.car.hStick.leftEnd, this.car.vStick.position)
+                                pp.lineV2(this.car.vStick.position, this.car.hStick.rightEnd);
+                            }
+                            else if(this.car.subState == 'fall' && this.car.angle >= -90){
+                                hlp.setFillColor(this.car.vStick.color);
+                                pp.lineV2(this.car.position, this.car.vStick.position)
+                                pp.lineV2(this.car.position.add(new V2(1,0)), this.car.vStick.position.add(new V2(1,0)))
+                            }
                         }
                         else if(this.car.state =='moving') {
                             hlp.setFillColor(this.car.vStick.color);
@@ -516,5 +591,53 @@ class ToyProgressScene extends Scene {
                 })
             }
         }), 10)
+
+
+        this.sceneManager = this.addGo(new GO({
+            position: new V2(), 
+            size: new V2(1,1),
+            init() {
+                this.startDelay = this.registerTimer(createTimer(1000, () => {
+                    this.unregTimer(this.startDelay);
+                    this.startDelay = undefined;
+                    this.workSequence();    
+                }, this, false));
+            },
+            workSequence() {
+                let b = this.parentScene.basement;
+                let bg = this.parentScene.background;
+                let next = () => this.processScript();
+                this.script.items = [
+                    function() {
+                        b.makeWider(next);
+                    },
+                    this.addProcessScriptDelay(250),
+                    function() {
+                        bg.moveIn(next);
+                    },
+                    function() {
+                        b.showCar(next);
+                        b.growTrees();
+                    },
+                    function() {
+                        b.move(next);
+                    },
+                    this.addProcessScriptDelay(250),
+                    function() {
+                        b.hideCar(next);
+                    },
+                    function() {
+                        b.removeTrees(next);
+                        bg.moveOut();
+                    },
+                    function() {
+                        b.makeNarrower(next)
+                    }
+                ]
+        
+                this.processScript();
+            }
+        }));
+        
     }
 }
