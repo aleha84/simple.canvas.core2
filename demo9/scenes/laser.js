@@ -22,7 +22,7 @@ class LaserScene extends Scene {
                 //this.sparks.color = colors.palettes.fleja.colors[13];
                 this.lowerLine = { begin: new V2(-this.size.x, this.size.y), end: new V2(this.size.x*2, this.size.y) }
                 this.endsCache = [];
-                this.direction = new V2(-0.8,0.5);
+                this.direction = new V2(-0.8,0.4);
                 this.width = fast.r(this.size.x*0.7);
                 this.ls = new Array(this.width).fill(220);
                 this.startFrom = new V2(fast.r(this.size.x*2/3), fast.r(this.size.y/3))
@@ -69,12 +69,26 @@ class LaserScene extends Scene {
                     hlp.setFillColor(colors.palettes.fleja.colors[4]).rect(firstPoint.x, firstPoint.y+1, this.width-1, this.planeHeight)
                     hlp.setFillColor(colors.palettes.fleja.colors[5]).rect(firstPoint.x, firstPoint.y+1, this.width-1, 1).rect(firstPoint.x, firstPoint.y+1, 1, this.planeHeight)
 
-                    hlp.setFillColor(colors.palettes.fleja.colors[1]);
+                    //hlp.setFillColor(colors.palettes.fleja.colors[1]);
                     //pp.lineV2(this.starts[last].add(new V2(0,this.planeHeight)), this.starts[last].add(this.getEnd(this.ls[last])).add(new V2(0,this.planeHeight)))
+                });
+
+                this.lineImg = createCanvas(new V2(this.size.x*2, 40), (ctx, size, hlp) => {
+                    let pp = new PerfectPixel({context: ctx});
+                    hlp.setFillColor('gray').rect(0,0,size.x, size.y);
+                    let gap = 20;
+                    let lowerPoint = raySegmentIntersectionVector2(new V2(0,0), this.direction, {begin: new V2(-100,size.y), end: new V2(100, size.y)});
+                    let count = fast.r(size.x/gap);
+                    hlp.setFillColor('lightgray')
+                    for(let i = 0;i<count;i++){
+                        pp.lineV2(new V2(0,0).add(new V2(i*gap, 0)), lowerPoint.add(new V2(i*gap, 0)));
+                    }
                 });
 
                 this.currentPlaneX = 0//-this.size.x;
                 this.planeImg = this.defaultPlaneImg;
+                this.cuttedEdgePositionX = 0;
+                this.currentLineX = 0;
 
                 this.createImage();
                 this.moveIn();
@@ -149,6 +163,9 @@ class LaserScene extends Scene {
                     let firstPoint = this.cuts[0].position;
 
                      hlp.setFillColor(colors.palettes.fleja.colors[13]).rect(firstPoint.x, firstPoint.y+1, this.width-1, this.planeHeight)
+
+                     hlp.setFillColor(colors.palettes.fleja.colors[12]).rect(firstPoint.x, firstPoint.y+this.planeHeight-2, this.width-1, 3)
+                     hlp.setFillColor(colors.palettes.fleja.colors[11]).rect(firstPoint.x, firstPoint.y+this.planeHeight, this.width-1, 1)
                     // hlp.setFillColor(colors.palettes.fleja.colors[5]).rect(firstPoint.x, firstPoint.y+1, this.width-1, 1).rect(firstPoint.x, firstPoint.y+1, 1, this.planeHeight)
 
                     // hlp.setFillColor(colors.palettes.fleja.colors[1]);
@@ -161,6 +178,24 @@ class LaserScene extends Scene {
                     for(let i = 0; i< this.starts.length;i++){
                         pp.lineV2(this.cuts[i].position.add(this.direction.mul(1)), this.starts[i].add(this.getEnd(this.ls[i])));
                     }
+
+                    hlp.setFillColor(colors.palettes.fleja.colors[13])
+                        .rect(this.cuts[0].position.x, this.cuts[0].position.y, this.width, 1)
+
+                    hlp.setFillColor(colors.palettes.fleja.colors[3]);
+                    let last = this.starts.length-1;
+                    for(let i = 1; i < this.planeHeight+1; i++){
+                        pp.lineV2(this.cuts[last].position.add(new V2(0,i)), this.starts[last].add(this.getEnd(this.ls[last])).add(new V2(0,i)));
+                    }
+
+                    pp.lineV2(this.cuts[0].position.add(this.direction.mul(1)), this.starts[0].add(this.getEnd(this.ls[0])));
+                    let firstPoint = this.starts[0].add(this.getEnd(this.ls[0]));
+                    
+                    hlp.setFillColor(colors.palettes.fleja.colors[4]).rect(firstPoint.x, firstPoint.y+1, this.width-1, this.planeHeight)
+                    hlp.setFillColor(colors.palettes.fleja.colors[5]).rect(firstPoint.x, firstPoint.y+1, this.width-1, 1).rect(firstPoint.x, firstPoint.y+1, 1, this.planeHeight)
+
+                    
+                        //.rect(this.cuts[last].position.x, this.cuts[last].position.y, 1, this.planeHeight)
                 });
 
                 this.cuts = [];
@@ -168,11 +203,12 @@ class LaserScene extends Scene {
                 this.cutEdgeFall();
             },
             cutEdgeFall() {
-                this.cuttedEdgePositionYChange = easing.createProps(20, 0, 50, 'quad', 'in');
+                this.cuttedEdgePositionYChange = easing.createProps(15, 0, 50, 'quad', 'in');
                 this.cuttedEdgePositionYChange.onComplete = () => {
                     this.unregTimer(this.cuttedEdgeMoveInTimer);
                     this.cuttedEdgeMoveInTimer = undefined;
                     //this.laserStart();
+                    this.cutRemove();
                 }
 
                 this.cuttedEdgePositionYChange.onChange = () => {
@@ -181,6 +217,30 @@ class LaserScene extends Scene {
 
                 this.cuttedEdgeMoveInTimer = this.regTimerDefault(15, () => {
                     easing.commonProcess({context: this, propsName: 'cuttedEdgePositionYChange', round: true, removePropsOnComplete: true, targetpropertyName: 'cuttedEdgePositionY'})
+                })
+            },
+            cutRemove() {
+                this.currentLineX = 0;
+                let speedX = -2;
+                let stopLine = false;
+                this.lineMoveTimer = this.regTimerDefault(15, () => {
+                    this.currentLineX+=speedX;
+                    this.cuttedEdgePositionX+=speedX;
+                    if(this.currentLineX == -20){
+                        this.currentLineX = 0;
+                        if(stopLine){
+                            this.unregTimer(this.lineMoveTimer);
+                            this.lineMoveTimer = undefined;
+                            alert('completed')
+                            return;
+                        }
+                    }
+
+                    if(this.cuttedEdgePositionX<= -this.size.x){
+                        stopLine = true;
+                    }
+
+                    this.createImage();
                 })
             },
             getEnd(length) {
@@ -195,6 +255,8 @@ class LaserScene extends Scene {
                     hlp.setFillColor(colors.palettes.fleja.colors[4]).rect(0,fast.r(size.y/2-50), size.x, 14)
                     hlp.setFillColor(colors.palettes.fleja.colors[3]).rect(0,fast.r(size.y/2-53), size.x, 3)
                     hlp.setFillColor(colors.palettes.fleja.colors[5]).rect(0,fast.r(size.y/2-36), size.x, 1);
+
+                    ctx.drawImage(this.lineImg, this.currentLineX,fast.r(size.y*11.25/20))
 
                     let pp = new PerfectPixel({context: ctx});
                                         
@@ -235,7 +297,7 @@ class LaserScene extends Scene {
                     }
 
                     if(this.cuttedEdgeImg){
-                        ctx.drawImage(this.cuttedEdgeImg, 0,this.cuttedEdgePositionY,this.size.x, this.size.y);
+                        ctx.drawImage(this.cuttedEdgeImg, this.cuttedEdgePositionX,this.cuttedEdgePositionY,this.size.x, this.size.y);
                     }
                     
                 })
