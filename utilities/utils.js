@@ -492,6 +492,12 @@ function fastFloorWithPrecision(num, _prec = 0){
   return Math.floor(num * _precision + 1e-14) / _precision ;
 }
 
+var fast = {
+  r: fastRoundWithPrecision,
+  c: fastCeilWithPrecision,
+  f: fastFloorWithPrecision
+};
+
 function createTimer(delay, method, context, startNow = true) {
   return {
       lastTimeWork: new Date,
@@ -543,9 +549,92 @@ function createCanvas(size, contextProcesser) {
   ctx.imageSmoothingEnabled = false;
 
   if(contextProcesser && isFunction(contextProcesser))
-      contextProcesser(ctx, size);
+      contextProcesser(ctx, size, createCanvasHelper({ctx}));
 
   return canvas;
+}
+
+function createCanvasHelper({ctx}){
+  return {
+    setFillColor(color){
+      ctx.fillStyle = color;return this;
+    },
+    rect(x,y,w,h) {
+      ctx.fillRect(x,y,w,h);return this;
+    },
+    clear(x,y,w=1,h=1){
+      ctx.clearRect(x,y,w,h);return this;
+    },
+    dot(x,y){
+      let _x = x; 
+      let _y = y;
+      
+      if(x instanceof V2){
+        _x = x.x;
+        _y = x.y;
+      }
+
+      this.rect(_x,_y,1,1);return this;
+    },
+    strokeRect(x,y,w,h,lineWidth = 1){
+      this
+        .rect(x,y,w,lineWidth)
+        .rect(x,y,lineWidth,h)
+        .rect(x+w-lineWidth,y,lineWidth,h)
+        .rect(x,y+h-lineWidth,w,lineWidth);
+
+      return this;
+    },
+    circle(center, radius) {
+      return this.сircle(center, radius);
+    },
+    сircle(center, radius){ 
+      for(let y = center.y-radius-1;y < center.y+radius+1;y++){
+          for(let x = center.x-radius-1;x < center.x+radius+1;x++){
+
+              let _p = new V2(x,y);
+              let distance = center.distance(_p);
+
+              if(distance < radius){
+                  ctx.fillRect(x,y,1,1);
+              }
+          }
+      }
+
+      return this;
+    },
+    strokeEllipsis(from = 0, to = 360, step = 0.1, origin, width, height, dots = undefined) {
+      if(height == undefined)
+        height = width/2;
+
+      for(let angle = from; angle < to; angle+=step){
+          let r = degreeToRadians(angle);
+          let x = fast.r(origin.x + width * Math.cos(r));
+          let y = fast.r(origin.y + height * Math.sin(r));
+
+          this.dot(x,y);
+          
+          if(dots)
+            dots.push({x,y})
+      }
+
+      return this;
+    },
+    elipsis(center, radius) {
+      let rxSq = radius.x*radius.x;
+      let rySq = radius.y*radius.y;
+
+      for(let y = center.y-radius.y-1;y < center.y+radius.y+1;y++){
+        for(let x = center.x-radius.x-1;x < center.x+radius.x+1;x++){
+          if((( (x-center.x)*(x-center.x) )/(rxSq)  + ( (y-center.y)*(y-center.y)  )/(rySq)) < 1){
+            ctx.fillRect(x,y,1,1);
+          }
+        }
+      }
+      
+      return this;
+    }
+  }
 }
 
 function hexToRgb(hex, asArray = false, asObject = false) {
@@ -615,7 +704,11 @@ function hsvToHex({hsv, hsvAsObject = false }) {
   return '#' + rgbToHex(hsvToRgb(init[0]/360, init[1]/100, init[2]/100, true));
 }
 
-function hsvToRgb(h, s, v, asArray = false) {
+function hsvToRgb(h, s, v, asArray = false, hsvAsInt = false) {
+  if(hsvAsInt){
+    h/=360;s/=100;v/=100;
+  }
+  
   var r, g, b, i, f, p, q, t;
   if (arguments.length === 1) {
       s = h.s, v = h.v, h = h.h;
@@ -663,3 +756,5 @@ function distinct(array, keyCreator){
     return true;
   })
 }
+
+

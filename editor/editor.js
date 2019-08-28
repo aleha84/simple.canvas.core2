@@ -40,11 +40,13 @@ class Editor {
                 },
                 main: {
                     element: undefined,
+                    currentId: 1,
                     layers: [
                         {
                             order: 0,
                             selected: false,
                             id: 'main_0',
+                            clear: false,
                             strokeColor: '#FF0000',
                             fillColor: '#FF0000',
                             fill: false,
@@ -59,16 +61,7 @@ class Editor {
                                 //     order: 0,
                                 //     point: {x: 1, y: 1},
                                 // },
-                                // {
-                                //     id: 'main_0_point_1',
-                                //     order: 1,
-                                //     point: {x: 9, y: 4},
-                                // },
-                                // {
-                                //     id: 'main_0_point_2',
-                                //     order: 2,
-                                //     point: {x: 3, y: 8},
-                                // }
+
                             ]
                         }
 /* layer props
@@ -152,6 +145,7 @@ points: [{
                 closePath: l.closePath,
                 fill: l.fill,
                 visible: l.visible,
+                clear: l.clear,
                 points: l.points.map((p) => {
                     return {
                         point: new V2(p.point),
@@ -195,8 +189,13 @@ points: [{
                 }),
                 addPointCallback(p) {
                     let callback = that.updateEditor.bind(that);
+                    
+                    if(l.currentId == undefined){
+                        l.currentId = 0;
+                    }
+
                     l.points.push({
-                        id: `${l.id}_point_${l.points.length}`,
+                        id: `${l.id}_point_${l.currentId++}`,
                         order: l.points.length,
                         point: {x: p.x, y: p.y},
                     })
@@ -270,10 +269,12 @@ points: [{
                         image.general.element = that.image.general.element;
                         image.general.zoom =  {current: 10, max: 10, min: 1, step: 1};
 
+                        image.main.currentId = image.main.layers.length;
                         image.main.layers = image.main.layers.map((l,i) => assignDeep({}, {
                             selected: false,
                             order: i,
                             id: `main_${i}`,
+                            clear: false,
                             strokeColor: '#FF0000',
                             fillColor: '#FF0000',
                             fill: false,
@@ -282,6 +283,7 @@ points: [{
                             pointsEl: undefined,
                             pointEl: undefined,
                             visible: true,
+                            currentId: l.points.length
                         }, 
                         {...l, points: l.points.map((p,j) => assignDeep({}, {
                             id: `main_${i}_point_${j}`,
@@ -549,12 +551,36 @@ points: [{
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
                     that.editor.setModeState(false, 'edit');
                 },
+                move(select, direction) {
+                    let selectedValue = select.value;
+                    let l = main.layers.filter(l => l.id == selectedValue); 
+                    if(!l.length)
+                        return;
+                    else 
+                        l = l[0];
+
+                    let currentIndex = main.layers.indexOf(l);
+                    if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == main.layers.length-1))
+                        return;
+
+                    components.array_move(main.layers, currentIndex, currentIndex + direction);
+                    main.layers.forEach((l, i) => l.order = i);
+
+                    select.options.length = 0;
+                    for(let l of main.layers){
+                        select.options[select.options.length] = new Option(l.id, l.id);
+                    }
+
+                    select.value = selectedValue;
+                    that.updateEditor.call(that);
+                },
                 add: function(e, select){
                     main.layers.forEach(l => l.selected = false);
                     let layer = {
                         selected: true,
                         order: main.layers.length,
-                        id: `main_${main.layers.length}`,
+                        id: `main_${main.currentId++}`,
+                        clear: false,
                         strokeColor: '#FF0000',
                         fillColor: '#FF0000',
                         fill: false,

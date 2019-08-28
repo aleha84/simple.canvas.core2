@@ -595,11 +595,57 @@ var colorTransitionHelper = {
 }
 
 var colors = {
+    palettes: {
+        fleja: {
+            colors: ['#1f1833',//0
+                '#2b2e42',//1
+                '#414859',//2
+                '#68717a',//3
+                '#90a1a8',//4
+                '#b6cbcf',//5
+                '#ffffff',//6
+                '#fcbf8a',//7
+                '#b58057',//8
+                '#8a503e',//9
+                '#5c3a41',//10
+                '#c93038',//11
+                '#de6a38',//12
+                '#ffad3b',//13
+                '#ffe596',//14
+                '#fcf960',//15
+                '#b4d645',//16
+                '#51c43f',//17
+                '#309c63',//18
+                '#236d7a',//19
+                '#264f6e',//20
+                '#233663',//21
+                '#417291',//22
+                '#4c93ad',//23
+                '#63c2c9',//24
+                '#94d2d4',//25
+                '#b8fdff',//26
+                '#3c2940',//27
+                '#46275c',//28
+                '#826481',//29
+                '#f7a48b',//30
+                '#c27182',//31
+                '#852d66']//32
+        }
+    },
     rgba: {
         transparentWhite: 'rgba(255,255,255, 0)',
         transparentBlack: 'rgba(0,0,0, 0)',
         white: 'rgba(255,255,255, 1)',
         black: 'rgba(0,0,0,1)',
+    },
+    hsvToHex(hsv) {
+        return hsvToHex({hsv});
+    },
+    rgbToString({value, isObject = false, opacity = 1}) {
+        if(isObject)
+            return `rgba(${value.r}, ${value.g}, ${value.b}, ${opacity})`;
+
+        return `rgba(${value[0]}, ${value[1]}, ${value[2]}, ${opacity})`;
     },
     toHsv({initialValue, isRgb = false, resultAsArray = false, asInt = false}){
         let rgb = undefined;

@@ -17,6 +17,8 @@ class Scene {
                 textAlign: 'left',
                 fillStyle: 'red',
                 position: new V2(20*SCG.viewport.scale, 20*SCG.viewport.scale),
+                showFrameTimeLeft: false,
+                estimatedFrameLength: 1000/60,
                 additional: []
             },
             collisionDetection: {
@@ -248,8 +250,11 @@ class Scene {
         return go;
     }
 
-    clearGo() {
-        this.goLayers = [];
+    clearGo(layerIndex) {
+        if(layerIndex === undefined)
+            this.goLayers = [];
+        else 
+            this.goLayers[layerIndex] = [];
     }
 
     addGo(go, layerIndex = 0, regEvents = false) { // must be called instead of adding go directly
@@ -272,17 +277,36 @@ class Scene {
         return go;
     }
 
-    changeLayer(go, layerIndex, regEvents) {
+    removeGo(go, regEvents = false){
         let goIndex = this.goLayers[go.layerIndex].indexOf(go);
         if(goIndex == -1){
-            console.log('failed to change layer for GO. Not found in layer');
-            return;
+            return false;
         }
 
         if(regEvents)
             go.unRegEvents();
 
         this.goLayers[go.layerIndex].splice(goIndex,1);
+
+        return true;
+    }
+
+    changeLayer(go, layerIndex, regEvents) {
+        if(!this.removeGo(go, regEvents)){
+            console.log('failed to change layer for GO. Not found in layer');
+            return;
+        }
+
+        // let goIndex = this.goLayers[go.layerIndex].indexOf(go);
+        // if(goIndex == -1){
+        //     console.log('failed to change layer for GO. Not found in layer');
+        //     return;
+        // }
+
+        // if(regEvents)
+        //     go.unRegEvents();
+
+        // this.goLayers[go.layerIndex].splice(goIndex,1);
          
         go.changeLayerIndex = undefined;
         this.addGo(go, layerIndex, regEvents);
@@ -352,6 +376,10 @@ class Scene {
         return timer;
     }
 
+    regTimerDefault(delay, callback) {
+        return this.registerTimer(createTimer(delay, callback, this, true));
+    }
+
     unregTimer(timer) {
         let p = this.timers.indexOf(timer);
         if(p != -1)
@@ -376,12 +404,16 @@ class Scene {
                 goLayer[i].update(now);
                 goLayer[i].render();
         
-                if(SCG.frameCounter && goLayer[i].renderPosition!=undefined){
-                    SCG.frameCounter.visibleCount++;
-                }
+                // if(SCG.frameCounter && goLayer[i].renderPosition!=undefined){
+                //     SCG.frameCounter.visibleCount++;
+                // }
         
                 if(!goLayer[i].alive){
                     var deleted = goLayer.splice(i,1);
+                    if(deleted.length){
+                        deleted[0].afterDead();
+                    }
+                    
                 }
             }
         }
@@ -399,6 +431,12 @@ class Scene {
             ctx.fillStyle = this.debug.fillStyle;
             
             ctx.fillText(SCG.main.performance.fps, this.debug.position.x, this.debug.position.y);
+
+            if(this.debug.showFrameTimeLeft){
+                let flROunded = SCG.main.performance.frameLengthInMilliseconds;
+                this.debug.additional[0] = 'Frame performance load (%): ' + fastRoundWithPrecision(100* flROunded/this.debug.estimatedFrameLength,1);
+                this.debug.additional[1] = 'Frame time (ms): ' + fastRoundWithPrecision(SCG.main.performance.frameLengthInMilliseconds,1);
+            }
 
             let p = this.debug.position.y;
             for(let debugData of this.debug.additional){

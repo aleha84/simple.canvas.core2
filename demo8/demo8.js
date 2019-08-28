@@ -76,6 +76,75 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     })); 
 
+    SCG.scenes.cacheScene(new Experiments3Scene({
+        name:'experiments3',
+        viewport: defaultViewpot
+    })); 
+
+    SCG.scenes.cacheScene(new Experiments4Scene({
+        name:'experiments4',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new DestrScene({
+        name:'destr',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new FlyScene({
+        name:'fly',
+        viewport: defaultViewpot
+    })); 
+
+    SCG.scenes.cacheScene(new OceanScene({
+        name:'ocean',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new SpiderScene({
+        name:'spider',
+        viewport: defaultViewpot
+    })); 
+    SCG.scenes.cacheScene(new WhirlpoolScene({
+        name:'whirl',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new WaterfallScene({
+        name:'waterfall',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new PerfScene({
+        name:'perf',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new CloudScene({
+        name:'cloud',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new BatteryScene({
+        name:'battery',
+        viewport: verticalDefaultViewport.mul(0.5)
+    })); 
+
+    SCG.scenes.cacheScene(new DropScene({
+        name:'drop',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new HouseScene({
+        name:'house',
+        viewport: verticalDefaultViewport
+    })); 
+
+    SCG.scenes.cacheScene(new Whirlpool2Scene({
+        name:'whirl2',
+        viewport: verticalDefaultViewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();

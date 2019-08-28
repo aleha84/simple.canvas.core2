@@ -303,6 +303,10 @@ var components = {
         }
 
         layerEl.appendChild(htmlUtils.createElement('div', { text: layerProps.id }))
+        layerEl.appendChild(this.createCheckBox(layerProps.clear, 'Clear', (value) =>{
+            layerProps.clear = value;
+            changeCallback();
+        }));
 
         let strokeColor = this.createColorPicker(layerProps.strokeColor, 'Stroke color', (color) => {
             layerProps.strokeColor = color;
@@ -434,8 +438,13 @@ var components = {
                     changeCallback();
                 },
                 add: function(e, select) {
+                    
+                    if(layerProps.currentId == undefined){
+                        layerProps.currentId = 0;
+                    }
+
                     points.push({
-                        id: `${layerProps.id}_point_${points.length}`,
+                        id: `${layerProps.id}_point_${layerProps.currentId++}`,
                         order: points.length,
                         point: {x: 0, y: 0},
                     })

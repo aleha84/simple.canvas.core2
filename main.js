@@ -2,7 +2,10 @@ SCG.main = {
 	performance: {
 		currentSecond: 0,
 		fps: 0,
-		currentSecondFps: 0
+		currentSecondFps: 0,
+		frameLengthInMilliseconds: 0,
+		threshold: [], 
+		thresholdMaxCount: 10
 	},
 	cycle: {
 		process(){ //main work cycle, never stops
@@ -10,12 +13,17 @@ SCG.main = {
 			requestAnimationFrame(SCG.main.cycle.process);
 		},
 		draw(){ // drawing on canvas based on current selected scene
-			if(SCG.scenes.activeScene === undefined || SCG.scenes.activeScene.goLayers == undefined)
+			var _as = SCG.scenes.activeScene;
+			if(_as === undefined || _as.goLayers == undefined)
 				throw 'Active scene corrupted!';
 	
 			var now = new Date;
 
 			let p = SCG.main.performance;
+			if(_as.debug.enabled){
+				
+			}
+
 			let second = now.getSeconds();
 			if(p.currentSecond != second){
 				p.fps = p.currentSecondFps;
@@ -25,22 +33,37 @@ SCG.main = {
 	
 			SCG.logics.doPauseWork(now);
 	
-			var as = SCG.scenes.activeScene;
-	
 			//SCG.viewport.camera.update(now);
 		
-			as.cycleWork(now);	
-	
+			let tStart;
+			if(_as.debug.enabled && _as.debug.showFrameTimeLeft){
+				tStart = performance.now();
+			}
+
+			_as.cycleWork(now);	
+
 			if(SCG.logics.isPausedStep)
 				SCG.logics.isPausedStep =false;
 	
-			if(SCG.frameCounter)
-				SCG.frameCounter.doWork(now);
+			// if(SCG.frameCounter)
+			// 	SCG.frameCounter.doWork(now);
 		
 			if(SCG.audio)
 				SCG.audio.update(now);
-				
+
 			p.currentSecondFps++;
+
+			if(_as.debug.enabled && _as.debug.showFrameTimeLeft){
+				if(p.threshold.length < p.thresholdMaxCount){
+					p.threshold[p.threshold.length] = performance.now() - tStart;
+				}
+				else {
+					p.frameLengthInMilliseconds = p.threshold.reduce( ( p, c ) => p + c, 0 ) / p.threshold.length
+
+					p.threshold = [];					
+				}
+				
+			}
 		}
 	},
 	loader: {

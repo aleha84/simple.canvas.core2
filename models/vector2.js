@@ -213,6 +213,23 @@ class Vector2 {
             return this;
         }
     }
+
+    round(precision = 0, inner = false){
+        let x = fastRoundWithPrecision(this.x, precision);
+        let y = fastRoundWithPrecision(this.y, precision);
+        if(!inner){
+            return new V2(x, y);
+        }
+
+        this.x = x;
+        this.y = y;
+
+        return this;
+    }
+
+    toInt(inner = false){
+        return this.round(0, inner);
+    }
     
     static average(vectors){
         if(!isArray(vectors) || isEmpty(vectors)){
@@ -258,6 +275,10 @@ class Vector2 {
 
     static get downRight() {
         return new Vector2(1,1);
+    }
+
+    static get zero() {
+        return new V2();
     }
 }
 

@@ -19,6 +19,42 @@ var easing = {
 
         return m[key];
     },
+    createProps(duration, start, end, type, method) {
+        return { time: 0, duration, change: end - start , type, method, startValue: start, useCache: false, onComplete: undefined, onChange: undefined }
+    },
+    commonProcess({context, targetpropertyName, propsName, round = false, setter, removePropsOnComplete = true}) {
+        if(context[propsName]){
+            let props = context[propsName];
+            if(props == undefined)
+                throw `Props ${propsName} not found`;
+
+            let value = this.process(props);
+            if(round){
+                value = fast.r(value);
+            }
+
+            if(setter) {
+                setter(value);
+            }
+            else {
+                context[targetpropertyName] = value;
+            }
+
+            props.time++;
+            if(props.onChange)
+                props.onChange(props);
+
+            if(props.time>props.duration){
+                let onComplete = props.onComplete;
+                if(removePropsOnComplete){
+                    context[propsName] = undefined;
+                }
+                
+                if(onComplete)
+                    onComplete();
+            }
+        }
+    },
     process(props){
         let group = this[props.type];
         if(!group) {
