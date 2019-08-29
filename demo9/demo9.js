@@ -107,6 +107,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     }));
 
+    SCG.scenes.cacheScene(new SmokeScene({
+        name:'smoke',
+        viewport: defaultViewpot
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
