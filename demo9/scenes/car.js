@@ -21,14 +21,92 @@ class CarCommissionScene extends Scene {
             size: this.viewport.clone(),
             init() {
                 this.sky = {
-                    color: 'black'
+                    colorTo: [282, 13, 19],
+                    colorFrom: [282, 37, 3],
+                    yTo: 200
                 }
+
+                
+                this.colorsChange = {
+                    s: easing.createProps(this.sky.yTo, this.sky.colorFrom[1], this.sky.colorTo[1], 'quad', 'in'),
+                    v: easing.createProps(this.sky.yTo, this.sky.colorFrom[2], this.sky.colorTo[2], 'quad', 'in')
+                }
+
+                this.bgImg = createCanvas(this.size, (ctx, size, hlp) => {
+                	for(let y = 0; y <=this.sky.yTo; y++){
+                		this.colorsChange.s.time = y;
+                		this.colorsChange.v.time = y;
+
+                		let s = fast.r(easing.process(this.colorsChange.s));
+                		let v = fast.r(easing.process(this.colorsChange.v));
+                		hlp.setFillColor(colors.hsvToHex([this.sky.colorTo[0], s,v])).rect(0,y,size.x, 1);
+                	}
+
+                	hlp.rect(0, this.sky.yTo, size.x, size.y);
+                })
+
+                this.bGen = ({hlp, leftX = 10,
+                                	//, topY = 150,
+                                	width = 50,
+                                	height = 150,
+                                	windowSize = new V2(3, 2),
+                                	windowGap = 1,
+                                	fillColor = '#000000',
+                                	redLight = '#C04000',
+                                	windowColorMain = '#006080',
+                                    windowColorSecondary = '#004060',
+                                    sideColorMain = '#000020',
+                                    sideColorSecondary = '#000040'}) =>  {
+
+                	let topY = this.size.y - height;
+					hlp.setFillColor(fillColor).rect(leftX, topY, width, height)
+                	hlp.setFillColor(redLight).rect(leftX+5, topY-1, 1, 1).rect(leftX+width-5, topY-1, 1,1);
+					hlp.setFillColor(sideColorMain).rect(leftX + width - 3,topY + 1, 2, height);		
+                	let currentY = 4;
+                	let sideSecondary = true;
+                	while(currentY < height){
+                		let currentX = 2;
+                		while(currentX < (width-(windowSize.x + windowGap))){
+                			if(getRandomInt(0,4) != 0){
+                				hlp.setFillColor(windowColorMain).rect(currentX+leftX,currentY+topY, windowSize.x, 1)
+                				.setFillColor(windowColorSecondary).rect(currentX+leftX,currentY+topY+1, windowSize.x, 1)
+
+                			}
+
+                			currentX+=windowSize.x + windowGap;
+                		}
+
+                		if(sideSecondary){
+                			hlp.setFillColor(sideColorSecondary).rect(leftX + width - 3,topY + 1 + currentY, 2, 2)
+                		}
+
+                		sideSecondary = !sideSecondary;
+
+                		currentY+=4;
+                	}
+                }
+
+                this.farBuildingLayerImg = createCanvas(this.size, (ctx, size, hlp) => {
+                	let currentX = 5; 
+                	
+                	while(currentX < this.size.x){
+                		let width = getRandomInt(4, 8)*10;
+                		if(currentX+width > this.size.x)
+                			break;
+                		
+                		this.bGen({hlp,leftX: currentX, width, height: getRandomInt(10,15)*10 })
+                		currentX+=(width + getRandomInt(4,8));
+                	}
+                	
+                })
 
                 this.img = this.createImage();
             },
             createImage() {
                 return createCanvas(this.size, (ctx, size, hlp) => {
-                    hlp.setFillColor(this.sky.color).rect(0,0,size.x,size.y)
+                    ctx.drawImage(this.bgImg, 0,0);
+
+                    ctx.drawImage(this.farBuildingLayerImg, 0,0);
                 })
             }
         }), 1)
@@ -188,7 +266,7 @@ class CarCommissionScene extends Scene {
                 }
                 this.wheelModel = () => 
                 	(
-                		{"general":{"originalSize":{"x":50,"y":55},"size":{"x":50,"y":55},"zoom":5,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#000000","fillColor":"#000000","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":33}},{"point":{"x":49,"y":40}},{"point":{"x":49,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#202020","fillColor":"#202020","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":17,"y":15}},{"point":{"x":18,"y":54}},{"point":{"x":32,"y":54}},{"point":{"x":35,"y":53}},{"point":{"x":37,"y":51}},{"point":{"x":41,"y":44}},{"point":{"x":41,"y":35}},{"point":{"x":41,"y":32}},{"point":{"x":41,"y":28}},{"point":{"x":39,"y":22}},{"point":{"x":36,"y":19}},{"point":{"x":34,"y":17}},{"point":{"x":30,"y":15}}]},{"order":2,"type":"lines","strokeColor":"#2C2C2C","fillColor":"#2C2C2C","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":14,"y":16}},{"point":{"x":11,"y":18}},{"point":{"x":9,"y":21}},{"point":{"x":7,"y":26}},{"point":{"x":6,"y":30}},{"point":{"x":6,"y":36}},{"point":{"x":7,"y":42}},{"point":{"x":9,"y":48}},{"point":{"x":11,"y":51}},{"point":{"x":14,"y":54}},{"point":{"x":22,"y":54}},{"point":{"x":26,"y":51}},{"point":{"x":28,"y":48}},{"point":{"x":30,"y":43}},{"point":{"x":30,"y":37}},{"point":{"x":30,"y":33}},{"point":{"x":30,"y":30}},{"point":{"x":29,"y":25}},{"point":{"x":28,"y":22}},{"point":{"x":26,"y":19}},{"point":{"x":24,"y":17}},{"point":{"x":21,"y":15}},{"point":{"x":16,"y":15}}]},{"order":3,"type":"lines","strokeColor":"#555555","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":19}},{"point":{"x":12,"y":17}},{"point":{"x":14,"y":16}},{"point":{"x":15,"y":15}},{"point":{"x":21,"y":15}},{"point":{"x":22,"y":16}},{"point":{"x":23,"y":16}},{"point":{"x":26,"y":19}},{"point":{"x":24,"y":17}},{"point":{"x":21,"y":16}},{"point":{"x":15,"y":16}},{"point":{"x":14,"y":17}},{"point":{"x":12,"y":18}}]},{"order":4,"type":"dots","strokeColor":"#555555","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":28,"y":22}},{"point":{"x":28,"y":23}},{"point":{"x":9,"y":21}},{"point":{"x":9,"y":22}},{"point":{"x":8,"y":23}}]},{"order":5,"type":"lines","strokeColor":"#000000","fillColor":"#000000","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":26,"y":15}},{"point":{"x":32,"y":18}},{"point":{"x":37,"y":22}},{"point":{"x":40,"y":27}},{"point":{"x":42,"y":33}},{"point":{"x":41,"y":17}},{"point":{"x":34,"y":15}}]},{"order":6,"type":"lines","strokeColor":"#515151","fillColor":"#515151","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":33}},{"point":{"x":10,"y":31}},{"point":{"x":10,"y":29}},{"point":{"x":12,"y":23}},{"point":{"x":15,"y":20}},{"point":{"x":18,"y":20}},{"point":{"x":21,"y":20}},{"point":{"x":24,"y":22}},{"point":{"x":25,"y":23}},{"point":{"x":26,"y":25}},{"point":{"x":27,"y":29}},{"point":{"x":27,"y":31}},{"point":{"x":27,"y":33}},{"point":{"x":22,"y":33}},{"point":{"x":16,"y":33}},{"point":{"x":13,"y":33}}]},{"order":7,"type":"lines","strokeColor":"#D8D8D8","fillColor":"#D8D8D8","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":34}},{"point":{"x":10,"y":38}},{"point":{"x":11,"y":43}},{"point":{"x":13,"y":47}},{"point":{"x":15,"y":49}},{"point":{"x":17,"y":50}},{"point":{"x":20,"y":50}},{"point":{"x":23,"y":49}},{"point":{"x":25,"y":46}},{"point":{"x":26,"y":43}},{"point":{"x":27,"y":40}},{"point":{"x":27,"y":38}},{"point":{"x":27,"y":36}},{"point":{"x":27,"y":34}}]},{"order":8,"type":"lines","strokeColor":"#888888","fillColor":"#888888","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":13,"y":33}},{"point":{"x":13,"y":29}},{"point":{"x":14,"y":26}},{"point":{"x":16,"y":24}},{"point":{"x":18,"y":23}},{"point":{"x":22,"y":24}},{"point":{"x":24,"y":26}},{"point":{"x":25,"y":29}},{"point":{"x":25,"y":32}},{"point":{"x":25,"y":35}},{"point":{"x":25,"y":38}},{"point":{"x":25,"y":42}},{"point":{"x":24,"y":45}},{"point":{"x":22,"y":47}},{"point":{"x":19,"y":48}},{"point":{"x":17,"y":47}},{"point":{"x":15,"y":45}},{"point":{"x":14,"y":42}},{"point":{"x":13,"y":39}},{"point":{"x":13,"y":36}}]}]}}
+                		{"general":{"originalSize":{"x":50,"y":55},"size":{"x":50,"y":55},"zoom":4,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#000000","fillColor":"#000000","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":33}},{"point":{"x":49,"y":40}},{"point":{"x":49,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#202020","fillColor":"#202020","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":17,"y":15}},{"point":{"x":18,"y":54}},{"point":{"x":32,"y":54}},{"point":{"x":35,"y":53}},{"point":{"x":37,"y":51}},{"point":{"x":41,"y":44}},{"point":{"x":41,"y":35}},{"point":{"x":41,"y":32}},{"point":{"x":41,"y":28}},{"point":{"x":39,"y":22}},{"point":{"x":36,"y":19}},{"point":{"x":34,"y":17}},{"point":{"x":30,"y":15}}]},{"order":2,"type":"lines","strokeColor":"#2C2C2C","fillColor":"#2C2C2C","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":14,"y":16}},{"point":{"x":11,"y":18}},{"point":{"x":9,"y":21}},{"point":{"x":7,"y":26}},{"point":{"x":6,"y":30}},{"point":{"x":6,"y":36}},{"point":{"x":7,"y":42}},{"point":{"x":9,"y":48}},{"point":{"x":11,"y":51}},{"point":{"x":14,"y":54}},{"point":{"x":22,"y":54}},{"point":{"x":26,"y":51}},{"point":{"x":28,"y":48}},{"point":{"x":30,"y":43}},{"point":{"x":30,"y":37}},{"point":{"x":30,"y":33}},{"point":{"x":30,"y":30}},{"point":{"x":29,"y":25}},{"point":{"x":28,"y":22}},{"point":{"x":26,"y":19}},{"point":{"x":24,"y":17}},{"point":{"x":21,"y":15}},{"point":{"x":16,"y":15}}]},{"order":3,"type":"lines","strokeColor":"#555555","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":19}},{"point":{"x":12,"y":17}},{"point":{"x":14,"y":16}},{"point":{"x":15,"y":15}},{"point":{"x":21,"y":15}},{"point":{"x":22,"y":16}},{"point":{"x":23,"y":16}},{"point":{"x":26,"y":19}},{"point":{"x":24,"y":17}},{"point":{"x":21,"y":16}},{"point":{"x":15,"y":16}},{"point":{"x":14,"y":17}},{"point":{"x":12,"y":18}}]},{"order":4,"type":"dots","strokeColor":"#555555","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":28,"y":22}},{"point":{"x":28,"y":23}},{"point":{"x":9,"y":21}},{"point":{"x":9,"y":22}},{"point":{"x":8,"y":23}}]},{"order":5,"type":"lines","strokeColor":"#000000","fillColor":"#000000","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":26,"y":15}},{"point":{"x":32,"y":18}},{"point":{"x":37,"y":22}},{"point":{"x":40,"y":27}},{"point":{"x":42,"y":33}},{"point":{"x":41,"y":17}},{"point":{"x":34,"y":15}}]},{"order":6,"type":"lines","strokeColor":"#515151","fillColor":"#515151","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":33}},{"point":{"x":10,"y":31}},{"point":{"x":10,"y":29}},{"point":{"x":12,"y":23}},{"point":{"x":15,"y":20}},{"point":{"x":18,"y":20}},{"point":{"x":21,"y":20}},{"point":{"x":24,"y":22}},{"point":{"x":25,"y":23}},{"point":{"x":26,"y":25}},{"point":{"x":27,"y":29}},{"point":{"x":27,"y":31}},{"point":{"x":27,"y":43}},{"point":{"x":21,"y":41}},{"point":{"x":16,"y":36}},{"point":{"x":13,"y":33}}]},{"order":7,"type":"lines","strokeColor":"#D8D8D8","fillColor":"#D8D8D8","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":34}},{"point":{"x":10,"y":38}},{"point":{"x":11,"y":43}},{"point":{"x":13,"y":47}},{"point":{"x":15,"y":49}},{"point":{"x":17,"y":50}},{"point":{"x":20,"y":50}},{"point":{"x":23,"y":49}},{"point":{"x":25,"y":46}},{"point":{"x":26,"y":44}},{"point":{"x":24,"y":43}},{"point":{"x":22,"y":42}},{"point":{"x":19,"y":40}},{"point":{"x":12,"y":31}}]},{"order":8,"type":"lines","strokeColor":"#888888","fillColor":"#888888","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":13,"y":33}},{"point":{"x":13,"y":29}},{"point":{"x":14,"y":26}},{"point":{"x":16,"y":24}},{"point":{"x":18,"y":23}},{"point":{"x":22,"y":24}},{"point":{"x":24,"y":26}},{"point":{"x":25,"y":29}},{"point":{"x":25,"y":32}},{"point":{"x":25,"y":35}},{"point":{"x":25,"y":38}},{"point":{"x":25,"y":42}},{"point":{"x":24,"y":45}},{"point":{"x":22,"y":47}},{"point":{"x":19,"y":48}},{"point":{"x":17,"y":47}},{"point":{"x":15,"y":45}},{"point":{"x":14,"y":42}},{"point":{"x":13,"y":39}},{"point":{"x":13,"y":36}}]}]}}
                 		)
 
 				this.backWheelModel = 
