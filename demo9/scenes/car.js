@@ -172,7 +172,7 @@ class CarCommissionScene extends Scene {
 
         //car
         this.car = this.addGo(new GO({
-            position: new V2(200, 240),
+            position: new V2(200, 230),
             size: new V2(290, 100),
             init() {
                 this.colors = {
@@ -186,6 +186,13 @@ class CarCommissionScene extends Scene {
                     fWindowFill: '#2B2B2B',
                     lowerLine: '#2D2D2D'
                 }
+                this.wheelModel = () => 
+                	(
+                		{"general":{"originalSize":{"x":50,"y":55},"size":{"x":50,"y":55},"zoom":5,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#000000","fillColor":"#000000","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":33}},{"point":{"x":49,"y":40}},{"point":{"x":49,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#202020","fillColor":"#202020","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":17,"y":15}},{"point":{"x":18,"y":54}},{"point":{"x":32,"y":54}},{"point":{"x":35,"y":53}},{"point":{"x":37,"y":51}},{"point":{"x":41,"y":44}},{"point":{"x":41,"y":35}},{"point":{"x":41,"y":32}},{"point":{"x":41,"y":28}},{"point":{"x":39,"y":22}},{"point":{"x":36,"y":19}},{"point":{"x":34,"y":17}},{"point":{"x":30,"y":15}}]},{"order":2,"type":"lines","strokeColor":"#2C2C2C","fillColor":"#2C2C2C","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":14,"y":16}},{"point":{"x":11,"y":18}},{"point":{"x":9,"y":21}},{"point":{"x":7,"y":26}},{"point":{"x":6,"y":30}},{"point":{"x":6,"y":36}},{"point":{"x":7,"y":42}},{"point":{"x":9,"y":48}},{"point":{"x":11,"y":51}},{"point":{"x":14,"y":54}},{"point":{"x":22,"y":54}},{"point":{"x":26,"y":51}},{"point":{"x":28,"y":48}},{"point":{"x":30,"y":43}},{"point":{"x":30,"y":37}},{"point":{"x":30,"y":33}},{"point":{"x":30,"y":30}},{"point":{"x":29,"y":25}},{"point":{"x":28,"y":22}},{"point":{"x":26,"y":19}},{"point":{"x":24,"y":17}},{"point":{"x":21,"y":15}},{"point":{"x":16,"y":15}}]},{"order":3,"type":"lines","strokeColor":"#555555","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":19}},{"point":{"x":12,"y":17}},{"point":{"x":14,"y":16}},{"point":{"x":15,"y":15}},{"point":{"x":21,"y":15}},{"point":{"x":22,"y":16}},{"point":{"x":23,"y":16}},{"point":{"x":26,"y":19}},{"point":{"x":24,"y":17}},{"point":{"x":21,"y":16}},{"point":{"x":15,"y":16}},{"point":{"x":14,"y":17}},{"point":{"x":12,"y":18}}]},{"order":4,"type":"dots","strokeColor":"#555555","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"clear":false,"points":[{"point":{"x":28,"y":22}},{"point":{"x":28,"y":23}},{"point":{"x":9,"y":21}},{"point":{"x":9,"y":22}},{"point":{"x":8,"y":23}}]},{"order":5,"type":"lines","strokeColor":"#000000","fillColor":"#000000","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":26,"y":15}},{"point":{"x":32,"y":18}},{"point":{"x":37,"y":22}},{"point":{"x":40,"y":27}},{"point":{"x":42,"y":33}},{"point":{"x":41,"y":17}},{"point":{"x":34,"y":15}}]},{"order":6,"type":"lines","strokeColor":"#515151","fillColor":"#515151","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":33}},{"point":{"x":10,"y":31}},{"point":{"x":10,"y":29}},{"point":{"x":12,"y":23}},{"point":{"x":15,"y":20}},{"point":{"x":18,"y":20}},{"point":{"x":21,"y":20}},{"point":{"x":24,"y":22}},{"point":{"x":25,"y":23}},{"point":{"x":26,"y":25}},{"point":{"x":27,"y":29}},{"point":{"x":27,"y":31}},{"point":{"x":27,"y":33}},{"point":{"x":22,"y":33}},{"point":{"x":16,"y":33}},{"point":{"x":13,"y":33}}]},{"order":7,"type":"lines","strokeColor":"#D8D8D8","fillColor":"#D8D8D8","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":10,"y":34}},{"point":{"x":10,"y":38}},{"point":{"x":11,"y":43}},{"point":{"x":13,"y":47}},{"point":{"x":15,"y":49}},{"point":{"x":17,"y":50}},{"point":{"x":20,"y":50}},{"point":{"x":23,"y":49}},{"point":{"x":25,"y":46}},{"point":{"x":26,"y":43}},{"point":{"x":27,"y":40}},{"point":{"x":27,"y":38}},{"point":{"x":27,"y":36}},{"point":{"x":27,"y":34}}]},{"order":8,"type":"lines","strokeColor":"#888888","fillColor":"#888888","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":13,"y":33}},{"point":{"x":13,"y":29}},{"point":{"x":14,"y":26}},{"point":{"x":16,"y":24}},{"point":{"x":18,"y":23}},{"point":{"x":22,"y":24}},{"point":{"x":24,"y":26}},{"point":{"x":25,"y":29}},{"point":{"x":25,"y":32}},{"point":{"x":25,"y":35}},{"point":{"x":25,"y":38}},{"point":{"x":25,"y":42}},{"point":{"x":24,"y":45}},{"point":{"x":22,"y":47}},{"point":{"x":19,"y":48}},{"point":{"x":17,"y":47}},{"point":{"x":15,"y":45}},{"point":{"x":14,"y":42}},{"point":{"x":13,"y":39}},{"point":{"x":13,"y":36}}]}]}}
+                		)
+
+				this.backWheelModel = 
+				{"general":{"originalSize":{"x":40,"y":45},"size":{"x":40,"y":45},"zoom":2,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#000","fillColor":"#000","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":0,"y":17}},{"point":{"x":0,"y":22}},{"point":{"x":1,"y":31}},{"point":{"x":1,"y":34}},{"point":{"x":3,"y":37}},{"point":{"x":5,"y":39}},{"point":{"x":6,"y":40}},{"point":{"x":8,"y":42}},{"point":{"x":13,"y":44}},{"point":{"x":26,"y":44}},{"point":{"x":30,"y":43}},{"point":{"x":33,"y":40}},{"point":{"x":35,"y":38}},{"point":{"x":36,"y":37}},{"point":{"x":38,"y":33}},{"point":{"x":38,"y":31}},{"point":{"x":39,"y":28}},{"point":{"x":39,"y":17}},{"point":{"x":39,"y":4}},{"point":{"x":0,"y":4}}]}]}}
 
                 this.bodyModel = {"general":{"originalSize":this.size,"size":this.size,"zoom":10,"showGrid":false},
                 "main": {
@@ -206,13 +213,13 @@ class CarCommissionScene extends Scene {
                             new V2(197,77), new V2(149, 80), new V2(59, 80), new V2(22,73),new V2(13,70), new V2(8, 67), new V2(4,64), new V2(2, 60)
                         ].map(point => ({point}))
                         },
-                        {"order":2,"type":"lines","strokeColor":this.colors.black,"fillColor":this.colors.black,"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                        {"order":2,"type":"lines","strokeColor":this.colors.black,"fillColor":this.colors.black,"closePath":true,"fill":true,"visible":true,"clear":true,"points":[
                             new V2(22,73), new V2(26,56), new V2(36,48),new V2(45,48), new V2(50,54), new V2(59,80)
                             
                         ].map(point => ({point}))
                         },
-                        {"order":3,"type":"lines","strokeColor":this.colors.black,"fillColor":this.colors.black,"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
-                            new V2(149,80), new V2(150,65), new V2(155,54),new V2(165,48), new V2(173,49), new V2(182,54), new V2(190, 70), new V2(197, 77)
+                        {"order":300,"type":"lines","strokeColor":this.colors.black,"fillColor":this.colors.black,"closePath":true,"fill":true,"visible":true,"clear":true,"points":[
+                            new V2(149,82), new V2(150,65), new V2(155,54),new V2(165,48), new V2(173,49), new V2(182,54), new V2(190, 70), new V2(197, 77), new V2(197, 82)
                             
                         ].map(point => ({point}))
                         },
@@ -292,7 +299,19 @@ class CarCommissionScene extends Scene {
             createImage() {
                 return createCanvas(this.size, (ctx, size, hlp) => {
                     //hlp.setFillColor(this.colors.base);//.rect(0,0,size.x, size.y)
+                    ctx.drawImage(PP.createImage(this.backWheelModel), 233, 50);
+                    ctx.drawImage(PP.createImage(this.backWheelModel), 105, 50);
+
+                     hlp.setFillColor('#000').rect(40, size.y-6, size.x-70, 1)
+                    ctx.drawImage(PP.createImage(this.wheelModel()), 20, 40);
+                    let fW = this.wheelModel();
+                    fW.main.layers[0].points[1].point.y = 42
+                    fW.main.layers[0].points[2].point.y = 42
+                    ctx.drawImage(PP.createImage(fW), 148, 40);
+                    
                     ctx.drawImage(PP.createImage(this.bodyModel), 0,0)
+
+                    hlp.setFillColor('#000').rect(15, size.y-5, size.x-30, 1)
                 })
             }
         }), 50)
