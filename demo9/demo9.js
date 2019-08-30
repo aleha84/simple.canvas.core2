@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.globals.version = 0.1;
 
     SCG.src = {
-        
 	}
 
     debugger;
