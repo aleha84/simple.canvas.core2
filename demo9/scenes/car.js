@@ -45,18 +45,182 @@ class CarCommissionScene extends Scene {
                 	hlp.rect(0, this.sky.yTo, size.x, size.y);
                 })
 
-                this.bGen = ({hlp, leftX = 10,
-                                	//, topY = 150,
-                                	width = 50,
-                                	height = 150,
-                                	windowSize = new V2(3, 2),
-                                	windowGap = 1,
-                                	fillColor = '#000000',
-                                	redLight = '#C04000',
-                                	windowColorMain = '#006080',
-                                    windowColorSecondary = '#004060',
-                                    sideColorMain = '#000020',
-                                    sideColorSecondary = '#000040'}) =>  {
+				this.layer3BGen = ({ hlp,  leftX = 10, width = 50, height = 200 })=> {
+					let topY = this.size.y - height;
+					if(width%3 != 0){
+                        width+= width%3;
+                    }
+					
+					hlp.setFillColor('#C04000').dot(leftX-1, topY-1).dot(leftX+width, topY-1).dot(leftX+width+4, topY+2)
+					hlp.setFillColor('#000020').rect(leftX, topY, width, height).rect(leftX-1, topY, 1, height)
+					.rect(leftX+width, topY, 1, height)
+					.setFillColor('#000040').rect(leftX+width+1, topY+1, 1, height)
+					.setFillColor('#000020').rect(leftX+width+2, topY+2, 1, height)
+					.setFillColor('#000040').rect(leftX+width+3, topY+3, 1, height)
+
+					let count = fast.r(height/8);
+                    let currentY = 0;
+                    for(let i = 0; i< count;i++){
+                        hlp.setFillColor('#002040').rect(leftX+width+1, topY+currentY + 1+1, 1,4).rect(leftX+width+1, topY+currentY + 1+6, 1,2)
+                        hlp.setFillColor('#002040').rect(leftX+width+3, topY+currentY + 3+1, 1,4).rect(leftX+width+3, topY+currentY + 3+6, 1,2)
+
+                        currentY+=8;
+                    }
+
+					count = fast.r(width/3);
+					currentY = 1;
+					while(currentY < height){
+						//hlp.setFillColor('#000040').rect(leftX, topY+currentY+1, width, 1)
+						let currentX = 0;
+						for(let i = 0; i<count;i++){
+
+							if(getRandomInt(0,2) == 0){
+								hlp.setFillColor('#002040').rect(leftX+currentX, topY+currentY, 2, 2)
+							}
+
+							if(getRandomBool()){
+								hlp.setFillColor('#004060').rect(leftX+currentX, topY+currentY, getRandomInt(1,2), 1)
+							}
+
+							currentX+=3;
+						}
+						
+						currentY+=2;
+					}
+				}
+
+                this.layer2BGen = ({ hlp,  leftX = 10, width = 50, height = 200 })=> {
+                    let topY = this.size.y - height;
+                    if(width%4 != 0){
+                        width+= width%4;
+                    }
+                    let windowColors1 = {
+                        upper: '#A06020', lower: '#604040', corner: '#C0C080'
+                    }
+
+                    let windowColors2 = {
+                        upper: '#008080', lower: '#006080', corner: '#008080'
+                    }
+
+                    let c1Height = fast.r(height*0.1);
+
+                    hlp.setFillColor('#002040').rect(leftX, topY, width, height)
+                    .setFillColor('#006080').rect(leftX+width, topY,1,height)
+                    .setFillColor('#002040').rect(leftX+width+1, topY,1,height)
+                    .setFillColor('#000040').rect(leftX+width+2, topY+1,1,height)
+                    .setFillColor('#000').rect(leftX+width+3, topY+1,1,height)
+                    .setFillColor('#000020').rect(leftX+width+4, topY+2,1,height)
+                    .setFillColor('#000').rect(leftX+width+5, topY+2,1,height)
+                    .setFillColor('#000020').rect(leftX+width+6, topY+3,1,height)
+                    .setFillColor('#000').rect(leftX+width+7, topY+3,1,height)
+                    .setFillColor('#C04000').dot(leftX+1, topY-1, 1,1).dot(leftX+width-1, topY-1).dot(leftX+fast.r(width/2)-2, topY-1).dot(leftX+fast.r(width/2)+2, topY-1).dot(leftX+width+7, topY+2)
+
+                    let count = fast.r(height/8);
+                    let currentY = 0;
+                    for(let i = 0; i< count;i++){
+                        hlp.setFillColor('#004060').rect(leftX+width+2, topY+currentY + 2, 1,1).rect(leftX+width+2, topY+currentY + 6, 1,1)
+                        .setFillColor('#002040').rect(leftX+width+2, topY+currentY + 3, 1,1).rect(leftX+width+2, topY+currentY + 5, 1,1)
+
+                        hlp.setFillColor('#002040').rect(leftX+width+4, topY+currentY + 2, 1,1).rect(leftX+width+4, topY+currentY + 2 + 2, 1,4)
+
+                        hlp.setFillColor('#000040').rect(leftX+width+6, topY+currentY + 3, 1,2).rect(leftX+width+6, topY+currentY + 4 + 3, 1,1)
+                        currentY+=8;
+                    }
+
+                    currentY = getRandomInt(2,3)*2;
+                    while(currentY < height){
+                        let currentX = 1;
+                        let count = width/4;
+                        for(let i = 0; i < count;i++){
+                            if(getRandomInt(0,4) > 0){
+                                let colorGroup = currentY <= c1Height ? windowColors1 : windowColors2;
+                                hlp.setFillColor(colorGroup.lower).rect(currentX + leftX, currentY + topY, 3, 2)
+
+                                if(getRandomInt(0,6) == 0){
+                                    colorGroup = windowColors1
+                                }
+
+                                hlp.setFillColor(colorGroup.upper).rect(currentX + leftX, currentY + topY, 3, 1)
+                                hlp.setFillColor(colorGroup.corner).rect(currentX + leftX, currentY + topY, 1, 1)
+                            }
+
+                            currentX+=4;
+                        }
+
+                        currentY+=4;
+                    }
+                }
+                
+                this.frontalBGen = ({ hlp,  leftX = 10, width = 50, height = 100 }) => {
+                    let mainWindowColors = ['#A06020', '#C0C080']
+                    let secondaryWindowColors = ['#604040', '#002040']
+                    let topY = this.size.y - height;
+                    let secondPartTy = topY + getRandomInt(2,5)*2
+                    hlp.setFillColor('#000').rect(leftX, topY, width, height)
+                        .rect(leftX + fast.r(width/2), secondPartTy, fast.r(width), height);
+                    
+                    if(getRandomBool()) {
+                        hlp.rect(leftX + 2, topY-1, width+getRandomInt(-6, 6), height)
+                    }
+
+                    let _c = getRandomInt(0,5);
+                    for(let i = 0; i < _c;i++){
+                        let tx = leftX + getRandomInt(4, width*1.5 - 4);
+                        let ty = topY - getRandomInt(3,6);
+                        
+                        if(tx > leftX+width){
+                            ty = secondPartTy - getRandomInt(3,6)
+                        }
+
+                        let w = getRandomInt(1,3);
+                        hlp.rect(tx, ty, w, height)
+                        .rect(tx+fast.r(w/2), ty+getRandomInt(2,4), getRandomInt(1,3), height );
+                    }
+
+                    let currentY = getRandomInt(1,5)*2;
+                    let rowGroups = [1, 2];
+                    let currentRowGroup = {index: 0, count: rowGroups[0]};
+
+                    while(currentY < height){
+                        let currentX = 2;
+                        
+                        for(let i = 0; i < 6;i++){
+                            let colorGroup = getRandomInt(0, 4) == 0? secondaryWindowColors : mainWindowColors;
+                            let color = colorGroup[getRandomInt(0, colorGroup.length-1)];
+                            if(getRandomInt(0,3) != 0)
+                                hlp.setFillColor(color).rect(leftX + currentX, currentY+topY, 1,1)
+
+                            currentX+=2;
+                            if(i == 2){
+                                currentX++;
+                            }
+                        }
+
+                        hlp.setFillColor(secondaryWindowColors[0]).rect(leftX+ width*3/2 - 4, topY + currentY + 1 + 10, 1,1)
+
+                        currentRowGroup.count--;
+
+                        if(currentRowGroup.count == 0){
+                            currentRowGroup.index++;
+                            if(currentRowGroup.index >= rowGroups.length){
+                                currentRowGroup.index = 0;
+                            }
+
+                            currentRowGroup.count = rowGroups[currentRowGroup.index];
+                            currentY+=4;
+                        }
+                        else {
+                            currentY+=2;
+                        }
+
+                        
+                    }
+                }
+
+                this.bGen = ({hlp, leftX = 10, width = 50, height = 150, windowSize = new V2(3, 2), windowGap = 1, fillColor = '#000000',
+                              redLight = '#C04000', windowColorMain = '#006080', windowColorSecondary = '#004060', sideColorMain = '#000020', sideColorSecondary = '#000040'}
+                    ) =>  {
+                              
 
                 	let topY = this.size.y - height;
 					hlp.setFillColor(fillColor).rect(leftX, topY, width, height)
@@ -86,27 +250,118 @@ class CarCommissionScene extends Scene {
                 	}
                 }
 
+                this.frontalBLayerImg =  createCanvas(this.size, (ctx, size, hlp) => {
+                    let buildings = [{x: 10, height: getRandomInt(100, 140), width: 20}, {x: 45, height: getRandomInt(100, 140), width: 30},
+                        {x: 100, height: getRandomInt(100, 140), width: 25}, {x: 150, height: getRandomInt(120, 160), width: 30}, {x: 185, height: getRandomInt(100, 140), width: 35},
+                        {x: 245, height: getRandomInt(100, 140), width: 22}, {x: 295, height: getRandomInt(130, 170), width: 25}, {x: 335, height: getRandomInt(110, 130), width: 20},
+                        {x: 390, height: getRandomInt(90, 120), width: 25}, {x: 440, height: getRandomInt(100, 140), width: 30}]
+
+                    for(let i = 0; i < buildings.length; i++){
+                        let b = buildings[i];
+                        this.frontalBGen({ hlp, leftX: b.x, width: b.width, height: b.height})
+                    }
+                });
+
+                this.buildingLayer2Img =  createCanvas(this.size, (ctx, size, hlp) => {
+                    let buildings = [{x: 30, height: getRandomInt(150, 200), width: 40},{x: 120, height: getRandomInt(150, 200), width: 50},
+                    {x: 200, height: getRandomInt(150, 200), width: 50}, {x: 320, height: getRandomInt(150, 220), width: 60},{x: 420, height: getRandomInt(150, 220), width: 40}
+                        ]
+
+                    for(let i = 0; i < buildings.length; i++){
+                        let b = buildings[i];
+                        this.layer2BGen({ hlp, leftX: b.x, width: b.width, height: b.height})
+                    }
+                });
+
+                this.buildingLayer3Img =  createCanvas(this.size, (ctx, size, hlp) => {
+                    let buildings = [{x: 60, height: getRandomInt(180, 250), width: 20}, {x: 250, height: getRandomInt(180, 250), width: 20}, {x: 380, height: getRandomInt(180, 250), width: 20}
+                        ]
+
+                    for(let i = 0; i < buildings.length; i++){
+                        let b = buildings[i];
+                        this.layer3BGen({ hlp, leftX: b.x, width: b.width, height: b.height})
+                    }
+                });
+
                 this.farBuildingLayerImg = createCanvas(this.size, (ctx, size, hlp) => {
                 	let currentX = 5; 
                 	
                 	while(currentX < this.size.x){
                 		let width = getRandomInt(4, 8)*10;
-                		if(currentX+width > this.size.x)
-                			break;
-                		
-                		this.bGen({hlp,leftX: currentX, width, height: getRandomInt(10,15)*10 })
+                		if(currentX+width > this.size.x) {
+                            width = this.size.x - currentX - 5;
+                            if(width < 10) break;
+                        }
+
+                		this.bGen({hlp,leftX: currentX, width, height: getRandomInt(13,18)*10 })
                 		currentX+=(width + getRandomInt(4,8));
                 	}
                 	
                 })
 
-                this.img = this.createImage();
+                // this.frameCount = 10;
+                // this.img = this.createImage();
+
+                //this.framesCount = 20;
+
+                this.totalFramesCount = 360;
+                this.framesCountByLayers = [this.totalFramesCount, this.totalFramesCount/2, this.totalFramesCount/4, this.totalFramesCount/8];
+
+                this.fXChangeByLayers = this.framesCountByLayers.map(l => easing.createProps(l-1, 0, -this.size.x, 'linear', 'base')) 
+
+                this.frames = [];
+                
+                for(let i = 0;i < this.totalFramesCount; i++){
+                    // this.fXChange.time = i;
+                    // let currentX = fast.r(easing.process(this.fXChange));
+
+                    let currentXByLayers = this.fXChangeByLayers.map((change, i) => {
+                		let result = easing.process(change);
+
+                    	change.time++;
+                    	if(change.time > change.duration){
+                    		console.log(`Layer ${i} recreated`)
+                    		change.time = 0;
+                    		//this.fXChangeByLayers = easing.createProps(this.framesCountByLayers[i]-1, 0, -this.size.x, 'linear', 'base') 
+                    	}
+
+                    	return result;
+                    })
+
+                    this.frames[i] = createCanvas(this.size, (ctx, size, hlp) => {
+                        // ctx.drawImage(this.asp.img, currentX, 0);
+                        // ctx.drawImage(this.asp.img, currentX+this.size.x, 0)
+
+                        ctx.drawImage(this.bgImg, 0,0);
+
+						ctx.drawImage(this.buildingLayer3Img, currentXByLayers[0],0);ctx.drawImage(this.buildingLayer3Img, currentXByLayers[0]+this.size.x,0);
+	                    ctx.drawImage(this.farBuildingLayerImg, currentXByLayers[1],0);ctx.drawImage(this.farBuildingLayerImg, currentXByLayers[1]+this.size.x,0);
+	                    ctx.drawImage(this.buildingLayer2Img, currentXByLayers[2],0);ctx.drawImage(this.buildingLayer2Img, currentXByLayers[2]+this.size.x,0);
+	                    ctx.drawImage(this.frontalBLayerImg, currentXByLayers[3],0);ctx.drawImage(this.frontalBLayerImg, currentXByLayers[3]+this.size.x,0);
+	                    
+	                    hlp.setFillColor('#000').rect(0,220, size.x, 100);
+                    })
+                }
+
+                this.currentFrame = 0;
+                this.timer = this.regTimerDefault(30, () => {
+                    this.img = this.frames[this.currentFrame++];
+                    if(this.currentFrame == this.frames.length-1){
+                        this.currentFrame = 0;
+                    }
+                })
             },
             createImage() {
                 return createCanvas(this.size, (ctx, size, hlp) => {
                     ctx.drawImage(this.bgImg, 0,0);
 
+					ctx.drawImage(this.buildingLayer3Img, 0,0);
                     ctx.drawImage(this.farBuildingLayerImg, 0,0);
+                    ctx.drawImage(this.buildingLayer2Img, 0,0);
+                    ctx.drawImage(this.frontalBLayerImg, 0,0);
+                    
+
+                    hlp.setFillColor('#000').rect(0,220, size.x, 100);
                 })
             }
         }), 1)
