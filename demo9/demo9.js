@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.globals.version = 0.1;
 
     SCG.src = {
-        
 	}
 
     debugger;
@@ -105,6 +104,16 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.scenes.cacheScene(new LaserScene({
         name:'laser',
         viewport: verticalDefaultViewport
+    }));
+
+    SCG.scenes.cacheScene(new SmokeScene({
+        name:'smoke',
+        viewport: defaultViewpot
+    }));
+
+    SCG.scenes.cacheScene(new CarCommissionScene({
+        name:'car',
+        viewport: defaultViewpot
     }));
 
     sceneSelectByHashValue();
