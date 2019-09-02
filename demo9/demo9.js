@@ -116,6 +116,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new DollarScene({
+        name:'dollar',
+        viewport: verticalDefaultViewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
