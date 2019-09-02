@@ -11,7 +11,7 @@ class DollarScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault('#808080');
+        this.backgroundRenderDefault('#000');
     }
 
     start(){
@@ -19,21 +19,70 @@ class DollarScene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
-                this.imgSize = new V2(64,130);
+                
+                this.start = new V2(this.size.x/2, this.size.y/3);
+                this.end = new V2(this.size.x/2, this.size.y)
+                this.midPoints = [{distance: 1/60, yChange: -10}, {distance: 2/20, yChange: 20}, {distance: 5/20, yChange: -70}, {distance: 8/20, yChange: 100}, {distance: 15/20, yChange: -100}]
+                
+                this.pathDots = mathUtils.getCurvePoints({start: this.start, end: this.end, midPoints: this.midPoints});    
+                this.points = [];
+                createCanvas(new V2(1,1), (ctx) => {
+                    let pp = new PerfectPixel({context: ctx});
+                    for(let i = 1; i < this.pathDots.length; i++){
+                        this.points = [...this.points, ...pp.lineV2(this.pathDots[i-1], this.pathDots[i])];
+                    }
 
-                this.colors = {
-                    bgLight: '#6CBA30',
-                    bgDark: '#5A9527',
-                    outLineLight: '#00736C',
-                    outLineDark: '#006B65',
-                    cornerLight: '#045E5F',
-                    cornerDark: '#005E5E'
-                }
-                this.createImage();
+                    this.points = distinct(this.points, (p) => p.x+'_'+p.y);
+                })
+
+                this.items = [];
+
+                this.itemsGeneratorTimer = this.regTimerDefault(30, () => {
+                    let time = this.points.length*5;
+                    this.items.push({
+                        indexChange: easing.createProps(time, this.points.length-1, 0, 'quad', 'out'),
+                        xShiftChange: easing.createProps(time, getRandomInt(10,50), 1, 'quad', 'out'),
+                        alive: true
+                    })
+                });
+
+                this.itemsProcesserTimer = this.regTimerDefault(15, () => {
+                    for(let i = 0; i < this.items.length; i++){
+                        let item = this.items[i];
+                        if(item.index == 0){
+                            item.alive = false;
+                            continue;
+                        }
+
+                        // item.index = easing.process(item.indexChange);
+                        // item.xShift = easing.process(item.xShiftChange);                            
+                        easing.commonProcess({context: item, targetpropertyName: 'index', propsName: 'indexChange', round: true})
+                        easing.commonProcess({context: item, targetpropertyName: 'xShift', propsName: 'xShiftChange', round: true})
+
+                    }
+                    this.items = this.items.filter(item => item.alive);       
+
+                    this.img = this.createImage();                 
+                });
             },
             createImage() {
-                return createCanvas(this.imgSize, (ctx, size, hlp) => {
-                    
+                if(!this.pathImg){
+                    this.pathImg= createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor('gray');
+                        for(let i = 0; i < this.points.length;i++){
+                            hlp.dot(this.points[i].x, this.points[i].y)
+                        }
+                    })
+                }
+                return createCanvas(this.size, (ctx, size, hlp) => {
+                    //let dots = mathUtils.getCurvePoints({start: this.start, end: this.end, midPoints: this.midPoints});    
+                    ctx.drawImage(this.pathImg, 0,0)
+
+                    for(let i = 0; i < this.items.length; i++){
+                        let item = this.items[i];
+                        let pathDot = this.points[item.index];
+                        hlp.setFillColor('red').dot(pathDot.x + item.xShift, pathDot.y)
+                    }
                 })
             }
         }))

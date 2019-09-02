@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new DollarScene({
         name:'dollar',
-        viewport: verticalDefaultViewport
+        viewport: defaultViewpot
     }));
 
     sceneSelectByHashValue();
