@@ -37,8 +37,18 @@ class DollarScene extends Scene {
 
                 this.items = [];
 
+                this.angle = 0;
+                this.originPoints = [...this.points];
+                this.pathChangeTimer = this.regTimerDefault(15, () => {
+                    this.points = this.originPoints.map(op => new V2(op).substract(this.start).rotate(this.angle).add(this.start).toInt())
+                    this.angle+=1;
+                    if(this.angle > 360){
+                        this.angle-=360;
+                    }
+                })
+
                 this.itemsGeneratorTimer = this.regTimerDefault(30, () => {
-                    let time = this.points.length*5;
+                    let time = fast.r(this.points.length*0.5);
                     this.items.push({
                         indexChange: easing.createProps(time, this.points.length-1, 0, 'quad', 'out'),
                         xShiftChange: easing.createProps(time, getRandomInt(10,50), 1, 'quad', 'out'),
@@ -66,17 +76,17 @@ class DollarScene extends Scene {
                 });
             },
             createImage() {
-                if(!this.pathImg){
-                    this.pathImg= createCanvas(this.size, (ctx, size, hlp) => {
-                        hlp.setFillColor('gray');
-                        for(let i = 0; i < this.points.length;i++){
-                            hlp.dot(this.points[i].x, this.points[i].y)
-                        }
-                    })
-                }
+                // if(!this.pathImg){
+                //     this.pathImg= createCanvas(this.size, (ctx, size, hlp) => {
+                //         hlp.setFillColor('gray');
+                //         for(let i = 0; i < this.points.length;i++){
+                //             hlp.dot(this.points[i].x, this.points[i].y)
+                //         }
+                //     })
+                // }
                 return createCanvas(this.size, (ctx, size, hlp) => {
                     //let dots = mathUtils.getCurvePoints({start: this.start, end: this.end, midPoints: this.midPoints});    
-                    ctx.drawImage(this.pathImg, 0,0)
+                    //ctx.drawImage(this.pathImg, 0,0)
 
                     for(let i = 0; i < this.items.length; i++){
                         let item = this.items[i];
