@@ -43,7 +43,7 @@ var mathUtils = {
 
             for(let i = 0; i < length; i++){
                 yChange.time = i;
-                let y = fast.r(easing.process(yChange));
+                let y = easing.process(yChange);
                 let x = startX + i;
                 let dot = new V2(x,y).substract(start).rotate(-angle).add(start);
                 dots.push(dot);
