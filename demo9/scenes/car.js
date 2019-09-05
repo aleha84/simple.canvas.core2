@@ -613,15 +613,46 @@ class CarCommissionScene extends Scene {
                         ].map(point => ({point}))
                         },
                         {"order":42,"type":"lines","strokeColor":this.colors.black,"fillColor":this.colors.black,"closePath":true,"fill":true,"visible":true,"clear":true,"points":[
-                            new V2(22,73), new V2(26,56), new V2(36,48),new V2(45,48), new V2(50,54), new V2(59,80)
+                            new V2(22,73), new V2(26,56), new V2(30,52), new V2(36,48),new V2(45,48), new V2(50,54), new V2(59,80)
                             
                         ].map(point => ({point}))
                         },
+                        // светлый выступ над задним колесом
+                        {"order":43,"type":"lines","strokeColor":'#7B4282',"fillColor":'#7B4282',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(28,53), new V2(32,47), new V2(37,45), new V2(45,46), new V2(49,49), new V2(53,58), new V2(50,53), new V2(45,48), new V2(36,47), new V2(31,50)
+                            
+                        ].map(point => ({point}))
+                        },
+                        {"order":44,"type":"lines","strokeColor":this.colors.baseStroke,"fillColor":'#663669',"closePath":false,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(26,56), new V2(22,73),
+                        ].map(point => ({point}))
+                        },
+                        {"order":301,"type":"lines","strokeColor":'#663669',"fillColor":'#663669',"closePath":false,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(28,53), new V2(32,47), new V2(37,45), new V2(45,46), new V2(49,49), new V2(53,58)
+                        ].map(point => ({point}))
+                        },
+                        // темная арка над передним колесом
                         {"order":300,"type":"lines","strokeColor":this.colors.black,"fillColor":this.colors.black,"closePath":true,"fill":true,"visible":true,"clear":true,"points":[
                             new V2(149,82), new V2(150,65), new V2(155,54),new V2(165,48), new V2(173,49), new V2(182,54), new V2(190, 70), new V2(197, 77), new V2(197, 82)
                             
                         ].map(point => ({point}))
                         },
+                        // светлый выступ над передним колесом
+                        {"order":301,"type":"lines","strokeColor":'#723D79',"fillColor":'#723D79',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(150,65), new V2(155,54),new V2(165,48), new V2(173,49), new V2(182,54), new V2(190, 70), new V2(185,55), new V2(179,48), new V2(174,46), new V2(167,46), new V2(159,49)
+                            
+                        ].map(point => ({point}))
+                        },
+                        {"order":301,"type":"lines","strokeColor":'#663669',"fillColor":'#663669',"closePath":false,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(190, 70), new V2(185,55), new V2(179,48), new V2(174,46), new V2(167,46), new V2(159,49)
+                            
+                        ].map(point => ({point}))
+                        },
+                        {"order":302,"type":"lines","strokeColor":this.colors.baseStroke,"fillColor":'#663669',"closePath":false,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(149, 80), new V2(150,64),
+                        ].map(point => ({point}))
+                        },
+                        //
                         {"order":44,"type":"lines","strokeColor":this.colors.faceFill,"fillColor":this.colors.faceFill,"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
                             new V2(202,45), new V2(212,44), new V2(287,44),new V2(288,59), new V2(284,66), new V2(279,67), new V2(212,67), new V2(206,64), new V2(202,57)
                             
@@ -759,6 +790,51 @@ class CarCommissionScene extends Scene {
                             new V2(216,60), new V2(282,60)
                         ].map(point => ({point}))
                         },
+                        // решетка радиатора
+                        {"order":61,"type":"lines","strokeColor":'#070907',"fillColor":'#070907',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(234,46), new V2(263,46)
+                        ].map(point => ({point}))
+                        },
+                         {"order":61,"type":"lines","strokeColor":'#020202',"fillColor":'#020202',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(234,47), new V2(263,47)
+                        ].map(point => ({point}))
+                        },
+
+                        {"order":61,"type":"lines","strokeColor":'#070907',"fillColor":'#070907',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(234,50), new V2(263,50)
+                        ].map(point => ({point}))
+                        },
+                         {"order":61,"type":"lines","strokeColor":'#020202',"fillColor":'#020202',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(234,51), new V2(263,51)
+                        ].map(point => ({point}))
+                        },
+
+                        {"order":61,"type":"lines","strokeColor":'#070907',"fillColor":'#070907',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(234,54), new V2(263,54)
+                        ].map(point => ({point}))
+                        },
+                         {"order":61,"type":"lines","strokeColor":'#020202',"fillColor":'#020202',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(234,55), new V2(263,55)
+                        ].map(point => ({point}))
+                        },
+                        {"order":61,"type":"lines","strokeColor":'#2A2A2A',"fillColor":'#2A2A2A',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(250,46), new V2(250,57), new V2(251,57), new V2(251,46),
+                        ].map(point => ({point}))
+                        },
+                        
+                        // дверная ручка
+                        {"order":60,"type":"lines","strokeColor":'#CFD1CE',"fillColor":'#CFD1CE',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(87,34), new V2(94,34), new V2(94,37), new V2(87,36)
+                        ].map(point => ({point}))
+                        },
+                        {"order":61,"type":"lines","strokeColor":'#989E97',"fillColor":'#989E97',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(85,35), new V2(92,36), new V2(92,37), new V2(85,36)
+                        ].map(point => ({point}))
+                        },
+                        {"order":62,"type":"lines","strokeColor":'#736C72',"fillColor":'#736C72',"closePath":false,"fill":true,"visible":true,"clear":false,"points":[
+                            new V2(92,37), new V2(89,37), new V2(87,36)
+                        ].map(point => ({point}))
+                        },
                         //сидение
                         {"order":-2,"type":"lines","strokeColor":'#3D4044',"fillColor":'#36393D',"closePath":true,"fill":true,"visible":true,"clear":false,"points":[
                             new V2(76,32), new V2(84,17), new V2(97,17),new V2(103,32)
@@ -806,7 +882,26 @@ class CarCommissionScene extends Scene {
                 this.bodyDy = 0;
                 this.bodyDyDirection = 1;
                 this.tracksToggle = true;
+                this.lightLine1 = {
+                    from: new V2(109,35),
+                    to: new V2(136,36)
+                }
+                this.currentLightLine2 = 0;
+                this.lightLine2 = [{
+                    from: new V2(173, 9), to: new V2(194,29), w: 10
+                },
+                {
+                    from: new V2(160, 7), to: new V2(179,31), w: 13
+                },
+                {
+                    from: new V2(145, 7), to: new V2(160,31), w: 14
+                },
+                {
+                    from: new V2(135, 7), to: new V2(142,32), w: 12
+                }]
+
                 for(let i = 0; i < 4; i++){
+                    this.currentLightLine2 = i;
                 	this.frames.push(this.createImage())
                 	this.bodyDy+=this.bodyDyDirection;
                 	if(this.bodyDy == 2 || this.bodyDy == 0){
@@ -814,6 +909,11 @@ class CarCommissionScene extends Scene {
                 	}
 
                 	this.tracksToggle = !this.tracksToggle;
+
+                    this.lightLine1.from.x-=25;
+                    this.lightLine1.from.y-=1.5;
+                    this.lightLine1.to.x-=20;
+                    this.lightLine1.to.y-=1;
                 }
                 //this.img = this.createImage();
                 //this.img = SCG.images['c'];
@@ -828,6 +928,8 @@ class CarCommissionScene extends Scene {
             },
             createImage() {
                 return createCanvas(this.size, (ctx, size, hlp) => {
+                    let pp = new PP({context: ctx});
+
                     //hlp.setFillColor(this.colors.base);//.rect(0,0,size.x, size.y)
                     ctx.drawImage(PP.createImage(this.backWheelModel), 233, 50);
                     ctx.drawImage(PP.createImage(this.backWheelModel), 105, 50);
@@ -874,6 +976,16 @@ class CarCommissionScene extends Scene {
 
                     hlp.setFillColor('#444').rect(5, size.y-5, size.x-10, 1)
                     .setFillColor('#000').rect(15-this.bodyDy*5, size.y-5, size.x-30+this.bodyDy*10, 1)
+
+                    hlp.setFillColor('#D392C9')
+                    pp.lineV2(this.lightLine1.from, this.lightLine1.to)
+                    pp.lineV2(this.lightLine1.from.add(new V2(5,1)), this.lightLine1.to.add(new V2(5,1)))
+
+                    let lightLine2 = this.lightLine2[this.currentLightLine2];
+                    hlp.setFillColor('#F0F0F0');
+                    for(let i = 0; i < lightLine2.w;i++){
+                        pp.lineV2(lightLine2.from.add(new V2(i, +this.bodyDy)), lightLine2.to.add(new V2(i, +this.bodyDy)))
+                    }
                 })
             }
         }), 50)
