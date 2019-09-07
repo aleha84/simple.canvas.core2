@@ -121,6 +121,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: defaultViewpot
     }));
 
+    SCG.scenes.cacheScene(new Demo9Exp2Scene({
+        name:'exp2',
+        viewport: verticalDefaultViewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
