@@ -36,6 +36,7 @@ class Demo9MetroScene extends Scene {
                 }
 
                 this.ellipsis = [];
+                this.ellipsisCounter = 2;
 
                 this.from = new V2(this.size.x/2 - 25, 200).toInt();
                 this.to = new V2(0, this.size.y+100).toInt();
@@ -52,9 +53,10 @@ class Demo9MetroScene extends Scene {
                 this.addMidPoint(this.right);
 
                 this.timer = this.regDefaultTimer(15, () => {
-                    if(getRandomInt(0, 20) == 0){
+                    if(this.ellipsisCounter <= 0 && getRandomInt(0, 2) == 0){
+                        this.ellipsisCounter = 7;
                         let wh = getRandomInt(10,30);
-                        this.ellipsis.push({ alive: true, position: new V2(this.size.x/2 + 5, 210), width: 5, height: 5, from: getRandomInt(0, 10), to: getRandomInt(90, 120),
+                        this.ellipsis.push({ alive: true, position: new V2(this.size.x/2 + 5, 210), width: 5, height: 5, from: getRandomInt(-45, -35), to: getRandomInt(90, 120),
                         change: {
                             positionY: easing.createProps(this.time, 210, this.size.y + 100, 'linear', 'base'),
                             positionX: easing.createProps(this.time, this.size.x/2 + 1, this.size.x/2 + getRandomInt(0,40), 'linear', 'base'),
@@ -79,6 +81,7 @@ class Demo9MetroScene extends Scene {
                     }
 
                     this.ellipsis = this.ellipsis.filter(e => e.alive);
+                    this.ellipsisCounter--;
 
                     this.processMidpoints(this.left);
                     this.processMidpoints(this.right);
@@ -154,6 +157,8 @@ class Demo9MetroScene extends Scene {
                         .strokeEllipsis(e.from, e.to, 1, e.position.toInt(), fast.r(e.width)-1, fast.r(e.height)-1)
                         hlp.setFillColor('#BABABA').strokeEllipsis(e.from+2, e.to-2, 1, e.position.toInt(), fast.r(e.width)-2, fast.r(e.height)-2)
                         .strokeEllipsis(e.from+2, e.to-2, 1, e.position.toInt(), fast.r(e.width)-3, fast.r(e.height)-3)
+                        // hlp.setFillColor('#D8D8D8').strokeEllipsis(e.from+4, e.to-4, 1, e.position.toInt(), fast.r(e.width)-4, fast.r(e.height)-4)
+                        // .strokeEllipsis(e.from+4, e.to-4, 1, e.position.toInt(), fast.r(e.width)-5, fast.r(e.height)-5)
                     }
                     
                 })
