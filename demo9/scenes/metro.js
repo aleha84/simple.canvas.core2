@@ -35,6 +35,8 @@ class Demo9MetroScene extends Scene {
                     yChangeDirection: -1,
                 }
 
+                this.ellipsis = [];
+
                 this.from = new V2(this.size.x/2 - 25, 200).toInt();
                 this.to = new V2(0, this.size.y+100).toInt();
                 this.midPoints = [];
@@ -50,6 +52,34 @@ class Demo9MetroScene extends Scene {
                 this.addMidPoint(this.right);
 
                 this.timer = this.regDefaultTimer(15, () => {
+                    if(getRandomInt(0, 20) == 0){
+                        let wh = getRandomInt(10,30);
+                        this.ellipsis.push({ alive: true, position: new V2(this.size.x/2 + 5, 210), width: 5, height: 5, from: getRandomInt(0, 10), to: getRandomInt(90, 120),
+                        change: {
+                            positionY: easing.createProps(this.time, 210, this.size.y + 100, 'linear', 'base'),
+                            positionX: easing.createProps(this.time, this.size.x/2 + 1, this.size.x/2 + getRandomInt(0,40), 'linear', 'base'),
+                            width: easing.createProps(this.time, 2, wh, 'linear', 'base'),
+                            height: easing.createProps(this.time, 2, wh, 'linear', 'base'),
+                        }})
+                    }
+
+                    for(let i = 0; i < this.ellipsis.length; i++){
+                        let e = this.ellipsis[i];
+                        e.position.x = easing.process(e.change.positionX);
+                        e.position.y = easing.process(e.change.positionY);
+                        e.width = easing.process(e.change.width);
+                        e.height = easing.process(e.change.height);
+                        
+                        e.change.positionX.time++;
+                        e.change.positionY.time++;
+                        e.change.width.time++;
+                        e.change.height.time++;
+
+                        e.alive = e.change.positionX.time <= e.change.positionX.duration
+                    }
+
+                    this.ellipsis = this.ellipsis.filter(e => e.alive);
+
                     this.processMidpoints(this.left);
                     this.processMidpoints(this.right);
                     this.img = this.createImage();
@@ -105,13 +135,27 @@ class Demo9MetroScene extends Scene {
                         let pl = pointsLeft[i];
                         let pr = pointsRight[i];
                         if(pl && pr){
-                            hlp.setFillColor('#CCC').rect(fast.r(pl.x), fast.r(pl.y),fast.r(pr.x - pl.x), 2);
-                            hlp.setFillColor('#DDD').rect(fast.r(pl.x), fast.r(pl.y),fast.r((pr.x - pl.x)/3), 2);
-                            hlp.setFillColor('#EEE').rect(fast.r(pl.x), fast.r(pl.y),fast.r((pr.x - pl.x)/5), 2);
-                            hlp.setFillColor('#FFF').rect(fast.r(pl.x), fast.r(pl.y),2, 2);
+                            let plx = fast.r(pl.x);
+                            let ply = fast.r(pl.y);
+                            let deltaX = fast.r(pr.x - pl.x);
+                            hlp.setFillColor('#CCC').rect(plx, ply,deltaX, 2);
+                            hlp.setFillColor('#DDD').rect(plx, ply,fast.r(deltaX/3), 2);
+                            hlp.setFillColor('#EEE').rect(plx, ply,fast.r(deltaX/5), 2);
+                            hlp.setFillColor('#FFF').rect(plx, ply,2, 2);
+                            hlp.setFillColor('#AAA').rect(plx + deltaX - 2, ply, 2, 2)
                         }
                             
                     }
+
+                    for(let i = 0; i < this.ellipsis.length; i++){
+                        let e = this.ellipsis[i];
+
+                        hlp.setFillColor('#AAA').strokeEllipsis(e.from, e.to, 1, e.position.toInt(), fast.r(e.width), fast.r(e.height))
+                        .strokeEllipsis(e.from, e.to, 1, e.position.toInt(), fast.r(e.width)-1, fast.r(e.height)-1)
+                        hlp.setFillColor('#BABABA').strokeEllipsis(e.from+2, e.to-2, 1, e.position.toInt(), fast.r(e.width)-2, fast.r(e.height)-2)
+                        .strokeEllipsis(e.from+2, e.to-2, 1, e.position.toInt(), fast.r(e.width)-3, fast.r(e.height)-3)
+                    }
+                    
                 })
             }
         }))
