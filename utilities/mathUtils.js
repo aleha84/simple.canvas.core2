@@ -1,5 +1,5 @@
 var mathUtils = {
-    getCurvePoints ({ start, end, midPoints, startMethod = 'out', endMethod = 'in', midPointsDefaultMethod = 'inOut' }) {
+    getCurvePoints ({ start, end, midPoints, startMethod = 'out', endMethod = 'in', midPointsDefaultMethod = 'inOut', type = 'quad' }) {
         let direction = start.direction(end);
         let angle =  direction.angleTo(V2.right);
 
@@ -13,7 +13,7 @@ var mathUtils = {
             let length = 0
             let startValue = 0;
             let endValue = 0;
-            let type = 'quad';
+            //let type = 'quad';
             let method = '';
             let startX = 0;
 
