@@ -45,22 +45,23 @@ class Demo9MetroScene extends Scene {
         })
 
         let bgItems = [];
+        this.bg = {
+            index: 0,
+            totalFrames: 15,
+            frames: []
+        }
         for(let i = 0; i < 500; i++){
             bgItems.push({
                 p: new V2(getRandomInt(-2, this.viewport.x), getRandomInt(0,this.viewport.y)),
                 color: getRandomBool()?'#F0F0F0':'#9BD7FF',
-                state: getRandomInt(0,8)
+                state: getRandomInt(0,this.bg.totalFrames-1)
             });
             //hlp.rect(p.x, p.y, 3, 1)
         }
 
         //let bgTotalFrames = 9;
         
-        this.bg = {
-            index: 0,
-            totalFrames: 9,
-            frames: []
-        }
+        
 
         for(let i = 0; i < this.bg.totalFrames;i++){
             this.bg.frames[i] = createCanvas(this.viewport, (ctx, size, hlp) => {
@@ -70,33 +71,30 @@ class Demo9MetroScene extends Scene {
                     let bgi = bgItems[i];
                     ctx.globalAlpha = 0;
 
-                    if(bgi.state == 0 || bgi.state == 8){
+                    if(bgi.state == 0 || bgi.state == (this.bg.totalFrames-1)){
                         ctx.globalAlpha = 1;
                     }
 
-                    if(bgi.state == 1 || bgi.state == 7){
+                    if(bgi.state == 1 || bgi.state == (this.bg.totalFrames-2)){
+                        ctx.globalAlpha = 0.75;
+                    }
+
+                    if(bgi.state == 2 || bgi.state == (this.bg.totalFrames-3)){
                         ctx.globalAlpha = 0.5;
+                    }
+
+                    if(bgi.state == 3 || bgi.state == (this.bg.totalFrames-4)){
+                        ctx.globalAlpha = 0.25;
                     }
 
                     hlp.setFillColor(bgi.color).rect(bgi.p.x, bgi.p.y, 3, 1)
 
                     bgi.state++;
-                    if(bgi.state == 9){
+                    if(bgi.state == this.bg.totalFrames){
                         bgi.state = 0;
                     }
                 }
-                // hlp.setFillColor('#F0F0F0');
-                // for(let i = 0; i < 200; i++){
-                //     let p = new V2(getRandomInt(-2, size.x), getRandomInt(0,size.y));
-                //     hlp.rect(p.x, p.y, 3, 1)
-                // }
-    
-                // hlp.setFillColor('#9BD7FF');
-                // for(let i = 0; i < 200; i++){
-                //     let p = new V2(getRandomInt(-2, size.x), getRandomInt(0,size.y));
-                //     hlp.rect(p.x, p.y, 3, 1)
-                // }
-    
+
     
             });
         }
@@ -124,10 +122,8 @@ class Demo9MetroScene extends Scene {
             position: new V2(this.sceneCenter.x, 170),
             size: new V2(20, 60),
             init() {
-                
-
-                
-
+                this.bodyFrames = rocketModels.bodyFrames.map(bf => PP.createImage(bf));
+                this.currentBodyFrame = 0;
                 this.flameYOrigin = 40;
                 this.flameYDelta = 0;
 
@@ -138,6 +134,11 @@ class Demo9MetroScene extends Scene {
                     this.flameYDelta--;
                     if(this.flameYDelta < -3){
                         this.flameYDelta = 0;
+                    }
+
+                    this.body.img = this.bodyFrames[this.currentBodyFrame];
+                    if(++this.currentBodyFrame == this.bodyFrames.length){
+                        this.currentBodyFrame = 0;
                     }
                 })
 
@@ -154,11 +155,12 @@ class Demo9MetroScene extends Scene {
                 this.body = this.addChild(new GO({
                     position: new V2(0, 0),
                     size: this.size,
-                    init() {
-                        this.img = PP.createImage(
-                            rocketModels.body
-                        )
-                    }
+                    img: this.bodyFrames[this.currentBodyFrame]
+                    // init() {
+                    //     this.img = PP.createImage(
+                    //         rocketModels.body
+                    //     )
+                    // }
                 }))
             }
         }), 11)
