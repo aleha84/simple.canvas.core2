@@ -30,6 +30,7 @@ SCG.controls = {
             movingDirection: new V2(),
             movingDelta: new V2(),
             downTriggered: false,
+            //rightDownTriggered: false,
             doEventCheck(eventType){
                 if(!eventType)
                     return;

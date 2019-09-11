@@ -1,6 +1,10 @@
 class EditorScene extends Scene {
     constructor(options = {}){
         options = assignDeep({}, {
+            scrollOptions: {
+                enabled: true,
+                restrictBySpace: false
+            },
         }, options);
 
         super(options)

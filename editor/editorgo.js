@@ -5,28 +5,31 @@ class EditorGO extends GO {
             renderValuesRound: true,
             img: undefined,
             preventDiving: true,
+            dots: [],
             drag: {
                 disable() {
                     this.started = false;
                     this.downOn = undefined;
+                    SCG.viewport.scrollOptions.enabled = true;
                 },
                 downOn: undefined,
                 started: false,
             },
             handlers: {
                 move:function (relativePosition) {
+                    relativePosition = relativePosition.add(SCG.viewport.shift);
                     this.moveEventTriggered = true;
                     this.model.editor.index = new V2(
                         fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
                         fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0));
 
+                    let d = this.drag;
                     let index = this.model.editor.index;
 
                     if(this.model.editor.mode == 'edit'){  
-                        let d = this.drag;
                         if(d.downOn){
                             d.started = true;
-                            
+                            SCG.viewport.scrollOptions.enabled = false;
                             if(!d.downOn.index.equal(index)){
                                 d.downOn.indexChanged = true;
                                 d.downOn.index = index;
@@ -35,6 +38,25 @@ class EditorGO extends GO {
                             }
                         }
                     }
+                    else if(this.model.editor.mode == 'movelayer'){
+                        if(d.downOn){
+                            SCG.viewport.scrollOptions.enabled = false;
+                            if(!d.downOn.index.equal(index)){
+                                d.started = true;
+                                //console.log('need update points', )
+                                let direction = d.downOn.index.direction(index).toInt();
+                                this.dots.forEach(p => {
+                                    p.index.add(direction, true);
+                                    p.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.index.y)
+                                    p.needRecalcRenderProperties = true;
+                                })
+
+                                d.downOn.index = index;
+                                d.downOn.indexChanged = true;
+                            }
+                        }
+                        
+                    }
 
                     this.parentScene.pointerDataLabel.invalidate();
 
@@ -42,10 +64,20 @@ class EditorGO extends GO {
                         preventDiving: this.preventDiving
                     };
                 },
-                
+                down: function(relativePosition) {
+                    if(this.model.editor.mode == 'movelayer'){
+                        console.log('down movelayer', this.model.editor.selectedLayer.points);
+                        this.drag.downOn = {
+                            index: new V2(
+                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
+                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0)
+                                )
+                        }
+                    }
+                },
                 up: function(){
+                    let d = this.drag;
                     if(this.model.editor.mode == 'edit'){
-                        let d = this.drag;
                         if(d.started && d.downOn.indexChanged){
                             d.downOn.pointModel.changeCallback(d.downOn.index);
                         }
@@ -60,14 +92,25 @@ class EditorGO extends GO {
 
                         e.selectedLayer.addPointCallback(e.index);
                     }
+                    else if(this.model.editor.mode == 'movelayer'){
+                        if(d.started && d.downOn.indexChanged){
+                            this.dots.forEach(p => {
+                                p.pointModel.changeCallback(p.index, true);
+                            })
+
+                            this.model.editor.selectedLayer.changeCallback();
+                        }
+                        d.disable();
+                    }
                     
                 },
                 out: function(e) {
                     this.moveEventTriggered = false; 
                     this.highlightChild();
+                    let d = this.drag;
 
                     if(this.model.editor.mode == 'edit'){
-                        let d = this.drag;
+                        
                         let os  = this.model.general.originalSize;
                         if(d.started && d.downOn.indexChanged){
                             let index = d.downOn.index;
@@ -76,6 +119,16 @@ class EditorGO extends GO {
                             if(index.x >= os.x) index.x = os.x-1;
                             if(index.y >= os.y) index.y = os.y-1;
                             d.downOn.pointModel.changeCallback(index);
+                        }
+                        d.disable();
+                    }
+                    else if(this.model.editor.mode == 'movelayer'){
+                        if(d.started && d.downOn.indexChanged){
+                            this.dots.forEach(p => {
+                                p.pointModel.changeCallback(p.index, true);
+                            })
+
+                            this.model.editor.selectedLayer.changeCallback();
                         }
                         d.disable();
                     }
@@ -154,8 +207,9 @@ class EditorGO extends GO {
             if(selectedLayer.length){
                 selectedLayer = selectedLayer[0];
                 this.model.editor.selectedLayer = selectedLayer;
+                this.dots = [];
                 selectedLayer.points.forEach(p => {
-                    this.addChild(new Dot({
+                    this.dots.push(this.addChild(new Dot({
                         size: this.itemSize,
                         pointModel: p,
                         selected: p.selected,
@@ -174,7 +228,7 @@ class EditorGO extends GO {
                             ctx.strokeRect(0,0, size.x-1, size.y-1);
                         })
                     }), true)
-                })
+                )})
             }
         }
         

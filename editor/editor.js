@@ -10,24 +10,34 @@ class Editor {
                 mode: {
                     value: 'edit',
                     element: undefined,
+                    moveLayerElement: undefined,
                     stateElement: undefined,
                     setValue(value) {
                         value = value || this.value;
                         this.value = value
+                        let text = '';
 
-                        if(value == 'add'){
-                            this.stateElement.innerText = '"Add points" mode';
+                        switch(value){
+                            case 'add':
+                                text = '"Add points" mode'; break;
+                            case 'edit':
+                                text = '"Edit points" mode'; break;
+                            case 'movelayer':
+                                text = '"Move layer" move'; break;
                         }
-                        else if(value == 'edit') {
-                            this.stateElement.innerText = '"Edit points" mode';
-                        }
+                        
+                        this.stateElement.innerText = text;
                     },
                     toggle() {
                         this.setValue(this.value == 'add' ? 'edit' : 'add');
+                    },
+                    toggleMoveLayer() {
+                        this.setValue(this.value == 'movelayer' ? 'edit' : 'movelayer');
                     }
                 },
                 setModeState(buttonState, modeValue){
                     this.mode.element.disabled = !buttonState;
+                    this.mode.moveLayerElement.disabled = !buttonState;
                     this.mode.setValue(modeValue);
                 }
             },
@@ -146,11 +156,14 @@ points: [{
                 fill: l.fill,
                 visible: l.visible,
                 clear: l.clear,
+                changeCallback() {
+                    that.updateEditor.bind(that)();
+                },
                 points: l.points.map((p) => {
                     return {
                         point: new V2(p.point),
                         selected: p.selected,
-                        changeCallback(value) {
+                        changeCallback(value, skipEventDispatch = false) {
                             p.point.x = value.x;
                             p.point.y = value.y;
                             //console.log(this, value)
@@ -166,7 +179,8 @@ points: [{
                                     }
                                 }
 
-                                select.dispatchEvent(new Event('change'));
+                                if(!skipEventDispatch)
+                                    select.dispatchEvent(new Event('change'));
                             }
                             
                             l.points.forEach(_p => p.selected = false);
@@ -472,6 +486,8 @@ points: [{
 
         let editorlEl = htmlUtils.createElement('div', { className: 'editorBlock' });
         let modeSwitch = htmlUtils.createElement('div', { className: 'modeSwitch' });
+        let moveLayer = htmlUtils.createElement('div', { className: 'moveLayer' });
+
         let modeSwitchButton = htmlUtils.createElement('input', { 
             value: 'Toggle mode', 
             attributes: { type: 'button' }, 
@@ -484,12 +500,30 @@ points: [{
             }
         })
 
+        let moveLayerSwitchButton = htmlUtils.createElement('input', { 
+            value: 'Toggle move layer', 
+            attributes: { type: 'button' }, 
+            props: {disabled: true},
+            events: {
+                click: () => {
+                    that.editor.mode.toggleMoveLayer();
+                    that.updateEditor();
+                }
+            }
+        });
+
         modeSwitch.appendChild(modeSwitchButton);
-        editorlEl.appendChild(modeSwitch)
+
+        moveLayer.appendChild(moveLayerSwitchButton)
+
+        editorlEl.appendChild(modeSwitch);
+        editorlEl.appendChild(moveLayer)
         
         editor.element = editorlEl;
         
         editor.mode.element = modeSwitchButton;
+        editor.mode.moveLayerElement = moveLayerSwitchButton;
+
         editor.mode.stateElement = htmlUtils.createElement('span', { className: 'stateName', text: '"Edit points" mode' });
         modeSwitch.appendChild(editor.mode.stateElement);
         this.parentElement.appendChild(editor.element);
