@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }));
 
     SCG.scenes.cacheScene(new Demo9MetroScene({
-        name:'metro',
+        name:'rocket',
         viewport: verticalDefaultViewport
     }));
 

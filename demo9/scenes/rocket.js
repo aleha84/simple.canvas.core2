@@ -2,7 +2,7 @@ class Demo9MetroScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -14,10 +14,70 @@ class Demo9MetroScene extends Scene {
         this.backgroundRenderDefault('cornflowerblue');
     }
 
+    cloudImgGen(size) {
+
+    }
+
     start(){
         this.bgPositionDelta = 0.1;
         this.bgFrameChangeCounter = 10;
-        
+        this.smallCloudsImages = [];
+        for(let i = 0; i < 10; i++){
+            let size = new V2(getRandomInt(6,9)*10, getRandomInt(12,16)*10);
+            let layer = {
+                r:1/4,
+                steps: 10,
+            }
+            let speed = 5;
+            let img = createCanvas(size, (ctx, size, hlp) => {
+                        
+                //let layer = this.layer;
+
+                let allDots = [];
+                let origin = new V2(size.x/2, size.y/2).toInt();
+                let radius = new V2(size.x*layer.r, size.y*layer.r).toInt();
+                hlp.setFillColor('white')//.rect(0,0,size.x, size.y)
+                .elipsis(origin, radius, allDots)
+
+                let step = 360/layer.steps;
+                for(let i = 0; i < layer.steps; i++){
+                    let d = [];
+                    let r = degreeToRadians(i*step);
+                    let x = fast.r(origin.x + radius.x * Math.cos(r));
+                    let y = fast.r(origin.y + radius.y * Math.sin(r));
+
+                    hlp.circle(new V2(x, y), getRandomInt(5, size.x*layer.r), d);
+                    allDots = [...allDots, ...d];
+                }
+
+                let rows = [];
+                for(let i = 0; i < allDots.length; i++){
+                    if(!rows[allDots[i].y]){
+                        rows[allDots[i].y] = [];
+                    }
+
+                    rows[allDots[i].y].push(allDots[i].x);
+                }
+
+                for(let y = 0; y< rows.length;y++){
+                    let row = rows[y];
+                    if(row){
+                        let maxX = Math.max.apply(null, row);
+                        let minX = Math.min.apply(null, row);
+                        hlp.setFillColor('#CCC').dot(maxX, y).dot(minX, y);
+                        hlp.setFillColor('#DDD').dot(maxX-1, y).dot(minX+1, y);
+                        hlp.setFillColor('#EEE').dot(maxX-2, y).dot(minX+2, y);
+                    }
+                }
+                
+            })
+            
+            this.smallCloudsImages.push({
+                img, speed,  size
+            }) 
+        }
+        this.clouds = [];
+
         this.timer = this.regTimerDefault(15, () => {
             
 
@@ -42,6 +102,19 @@ class Demo9MetroScene extends Scene {
 
                 this.bgFrameChangeCounter = 10;
             }
+
+            for(let i = 0; i < this.clouds.length; i++){
+                let cloud = this.clouds[i];
+                cloud.position.y += cloud.speed;
+
+                if(cloud.position.y > this.viewport.y + cloud.size.y/2){
+                    cloud.setDead();
+                }
+
+                cloud.needRecalcRenderProperties = true;
+            }
+
+            this.clouds = this.clouds.filter(c => c.alive);
         })
 
         let bgItems = [];
@@ -54,7 +127,8 @@ class Demo9MetroScene extends Scene {
             bgItems.push({
                 p: new V2(getRandomInt(-2, this.viewport.x), getRandomInt(0,this.viewport.y)),
                 color: getRandomBool()?'#F0F0F0':'#9BD7FF',
-                state: getRandomInt(0,this.bg.totalFrames-1)
+                state: getRandomInt(0,this.bg.totalFrames-1),
+                width: getRandomInt(3,5)
             });
             //hlp.rect(p.x, p.y, 3, 1)
         }
@@ -87,7 +161,7 @@ class Demo9MetroScene extends Scene {
                         ctx.globalAlpha = 0.25;
                     }
 
-                    hlp.setFillColor(bgi.color).rect(bgi.p.x, bgi.p.y, 3, 1)
+                    hlp.setFillColor(bgi.color).rect(bgi.p.x, bgi.p.y, bgi.width, 1)
 
                     bgi.state++;
                     if(bgi.state == this.bg.totalFrames){
@@ -117,6 +191,21 @@ class Demo9MetroScene extends Scene {
         // this.ellipsisImages = {
 
         // }
+
+        this.cloudGenTimer = this.regTimerDefault(300, () => {
+            let smallCloudProps = this.smallCloudsImages[getRandomInt(0, this.smallCloudsImages.length-1)];
+
+            let size = smallCloudProps.size;
+
+            this.clouds.push(this.addGo(new GO({
+                position: new V2(getRandomInt(0, this.viewport.x), -size.y/2),//this.sceneCenter.clone().add(new V2(-100, -100)),
+                size: size,
+                speed: smallCloudProps.speed,
+                img: smallCloudProps.img
+            }), 1));
+        })
+
+        
 
         this.addGo(new GO({
             position: new V2(this.sceneCenter.x, 170),
@@ -272,44 +361,44 @@ class Demo9MetroScene extends Scene {
             },
             createImage() {
                 return createCanvas(this.size, (ctx, size, hlp) => {
-                    // let points = mathUtils.getCurvePoints({ start: this.from, end: this.to, midPoints: this.midPoints })
-                    // hlp.setFillColor('#CCC');
-                    // for(let i = 0; i < points.length; i++){
-                    //     let p = points[i].toInt()
-                    //     hlp.dot(p.x, p.y);
-                    // }
                     let pointsLeft = mathUtils.getCurvePoints({ start: this.left.from, end: this.left.to, midPoints: this.left.midPoints, type: 'cubic' })
                     hlp.setFillColor('#CCC');
 
 
                     let pointsRight = mathUtils.getCurvePoints({ start: this.right.from, end: this.right.to, midPoints: this.right.midPoints, type: 'cubic'  })
                     //hlp.setFillColor('#CCC');
+
+                    let distance = this.right.from.distance(this.right.to);
+                    let midY = this.right.midPoints.filter(mp => mp.yChange > 0).map(mp => ({ len: mp.yChange, y: fast.r(this.right.from.y + distance*mp.distance)}));
+
+
                     for(let i = 0; i < pointsLeft.length; i++){
                         let pl = pointsLeft[i];
                         let pr = pointsRight[i];
                         if(pl && pr){
                             let plx = fast.r(pl.x);
                             let ply = fast.r(pl.y);
+                            let prx = fast.r(pr.x);
+
                             let deltaX = fast.r(pr.x - pl.x);
                             hlp.setFillColor('#CCC').rect(plx, ply,deltaX, 2);
                             hlp.setFillColor('#DDD').rect(plx, ply,fast.r(deltaX/3), 2);
                             hlp.setFillColor('#EEE').rect(plx, ply,fast.r(deltaX/5), 2);
                             hlp.setFillColor('#FFF').rect(plx, ply,2, 2);
                             hlp.setFillColor('#AAA').rect(plx + deltaX - 2, ply, 2, 2)
+
+                            let ds = midY.map(mp => ({len: mp.len, d: Math.abs( mp.y - ply)})).filter(mp => mp.d >= 0 && mp.d < 15);
+                            if(ds.length){
+                                ds = ds[0];
+                                //let len = (ds.len - ds.len*ds.d/15)*2
+                                let change = easing.createProps(15, ds.len, 0,'quad', 'in');
+                                change.time = ds.d;
+
+                                let len = fast.r(easing.process(change)*2);
+                                hlp.setFillColor('#999').rect(prx-len, ply, len, 2)
+                            }
                         }
-                            
                     }
-
-                    // for(let i = 0; i < this.ellipsis.length; i++){
-                    //     let e = this.ellipsis[i];
-
-                    //     hlp.setFillColor('#AAA').strokeEllipsis(e.from, e.to, 1, e.position.toInt(), fast.r(e.width), fast.r(e.height))
-                    //     .strokeEllipsis(e.from, e.to, 1, e.position.toInt(), fast.r(e.width)-1, fast.r(e.height)-1)
-                    //     hlp.setFillColor('#BABABA').strokeEllipsis(e.from+2, e.to-2, 1, e.position.toInt(), fast.r(e.width)-2, fast.r(e.height)-2)
-                    //     .strokeEllipsis(e.from+2, e.to-2, 1, e.position.toInt(), fast.r(e.width)-3, fast.r(e.height)-3)
-                    //     // hlp.setFillColor('#D8D8D8').strokeEllipsis(e.from+4, e.to-4, 1, e.position.toInt(), fast.r(e.width)-4, fast.r(e.height)-4)
-                    //     // .strokeEllipsis(e.from+4, e.to-4, 1, e.position.toInt(), fast.r(e.width)-5, fast.r(e.height)-5)
-                    // }
                     
                 })
             }

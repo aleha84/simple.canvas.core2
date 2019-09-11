@@ -585,10 +585,10 @@ function createCanvasHelper({ctx}){
 
       return this;
     },
-    circle(center, radius) {
-      return this.сircle(center, radius);
+    circle(center, radius, dots = undefined) {
+      return this.сircle(center, radius, dots);
     },
-    сircle(center, radius){ 
+    сircle(center, radius, dots = undefined){ 
       for(let y = center.y-radius-1;y < center.y+radius+1;y++){
           for(let x = center.x-radius-1;x < center.x+radius+1;x++){
 
@@ -597,6 +597,9 @@ function createCanvasHelper({ctx}){
 
               if(distance < radius){
                   ctx.fillRect(x,y,1,1);
+
+                  if(dots)
+                    dots.push({x,y})
               }
           }
       }
@@ -620,7 +623,7 @@ function createCanvasHelper({ctx}){
 
       return this;
     },
-    elipsis(center, radius) {
+    elipsis(center, radius, dots = undefined) {
       let rxSq = radius.x*radius.x;
       let rySq = radius.y*radius.y;
 
@@ -628,6 +631,9 @@ function createCanvasHelper({ctx}){
         for(let x = center.x-radius.x-1;x < center.x+radius.x+1;x++){
           if((( (x-center.x)*(x-center.x) )/(rxSq)  + ( (y-center.y)*(y-center.y)  )/(rySq)) < 1){
             ctx.fillRect(x,y,1,1);
+
+            if(dots)
+                dots.push({x,y})
           }
         }
       }
