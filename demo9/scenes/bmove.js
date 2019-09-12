@@ -30,6 +30,23 @@ class Demo9BMoveScene extends Scene {
         c.positionX.enabled = false;
     }
 
+    togglePositionYChange(go) {
+        let c = go.change;
+        let from = this.boxChange.positionYClamps[0];
+        let to = this.boxChange.positionYClamps[1];
+        let direction = c.positionY.direction;
+        direction*=-1;
+        if(direction < 0){
+            from = this.boxChange.positionYClamps[1];
+            to = this.boxChange.positionYClamps[0];
+        }
+
+        c.positionY = easing.createProps(fast.r(this.boxChange.time/4), from, to, 'quad', 'out')
+        c.positionY.direction = direction;
+        c.positionY.enabled = false;
+    }
+
+
     toggleSizeXChange(go){
         let c = go.change;
         let from = this.boxChange.sizeXClamps[0];
@@ -50,9 +67,10 @@ class Demo9BMoveScene extends Scene {
 
     start(){
         this.boxChange = {
+            positionYClamps: [this.sceneCenter.y - 40, this.sceneCenter.y],
             positionXClamps: [50, 250],
             sizeXClamps: [20, 50],
-            time: 50
+            time: 25
         }
 
         this.sceneManager = this.addGo(new GO({
@@ -82,7 +100,15 @@ class Demo9BMoveScene extends Scene {
                     function(){
                         for(let i = 0; i < scene.boxes.length; i++){
                             let box = scene.boxes[i]
+                            box.startPositionYChange(() => this.checkProcessScript());
+                        }
+                    },
+                    this.addProcessScriptDelay(50),
+                    function(){
+                        for(let i = 0; i < scene.boxes.length; i++){
+                            let box = scene.boxes[i]
                             scene.togglePositionXChange(box);
+                            scene.togglePositionYChange(box);
                             scene.toggleSizeXChange(box);
                             box.startPositionXChange(() => this.checkProcessScript());
                         }
@@ -102,6 +128,20 @@ class Demo9BMoveScene extends Scene {
                 let box = this.boxes[i];
 
                 let c = box.change;
+
+                if(c.positionY.enabled){
+                    box.position.y = easing.process(c.positionY);
+                    c.positionY.time++;
+
+                    if(c.positionY.time > c.positionY.duration) {
+                        c.positionY.enabled = false;
+                        if(box.currentCallback) {
+                            box.currentCallback();
+                            box.currentCallback = undefined;
+                        }
+                    }
+                }
+
                 if(c.positionX.enabled){
                     box.position.x = easing.process(c.positionX);
                     c.positionX.time++;
@@ -136,6 +176,7 @@ class Demo9BMoveScene extends Scene {
             size: new V2(this.boxChange.sizeXClamps[0], this.boxChange.sizeXClamps[0]),
             change: {
                 positionX: easing.createProps(this.boxChange.time, this.boxChange.positionXClamps[0], this.boxChange.positionXClamps[1], 'expo', 'inOut'),
+                positionY: easing.createProps(fast.r(this.boxChange.time/4), this.boxChange.positionYClamps[0], this.boxChange.positionYClamps[1], 'quad', 'out'),
                 sizeX: easing.createProps(fast.r(this.boxChange.time/2), this.boxChange.sizeXClamps[0], this.boxChange.sizeXClamps[1], 'expo', 'in'),
             },
             startPositionXChange(callback) {
@@ -144,10 +185,16 @@ class Demo9BMoveScene extends Scene {
                 this.change.sizeX.enabled = true;
                 this.currentCallback = callback;
             },
+            startPositionYChange(callback) {
+                this.change.positionY.enabled = true;
+                this.currentCallback = callback;
+            },
             init() {
                 this.change.positionX.direction = 1;
+                this.change.positionY.direction = 1;
                 this.change.sizeX.direction = 1;
                 this.change.positionX.enabled = false;
+                this.change.positionY.enabled = false;
                 this.change.sizeX.enabled = false;
                 this.img = createCanvas(new V2(1,1), (ctx, size, hlp) => {
                     hlp.setFillColor('white').dot(0,0);
@@ -160,7 +207,12 @@ class Demo9BMoveScene extends Scene {
             size: new V2(this.boxChange.sizeXClamps[0], this.boxChange.sizeXClamps[0]),
             change: {
                 positionX: easing.createProps(this.boxChange.time, this.boxChange.positionXClamps[1], this.boxChange.positionXClamps[0], 'expo', 'inOut'),
+                positionY: easing.createProps(fast.r(this.boxChange.time/4), this.boxChange.positionYClamps[1], this.boxChange.positionYClamps[0], 'quad', 'inOut'),
                 sizeX: easing.createProps(fast.r(this.boxChange.time/2), this.boxChange.sizeXClamps[0], this.boxChange.sizeXClamps[1], 'expo', 'in'),
+            },
+            startPositionYChange(callback) {
+                this.change.positionY.enabled = true;
+                this.currentCallback = callback;
             },
             startPositionXChange(callback) {
                 this.change.positionX.enabled = true;
@@ -170,8 +222,10 @@ class Demo9BMoveScene extends Scene {
             },
             init() {
                 this.change.positionX.direction = -1;
+                this.change.positionY.direction = -1;
                 this.change.sizeX.direction = 1;
                 this.change.positionX.enabled = false;
+                this.change.positionY.enabled = false;
                 this.change.sizeX.enabled = false;
                 this.img = createCanvas(new V2(1,1), (ctx, size, hlp) => {
                     hlp.setFillColor('white').dot(0,0);
