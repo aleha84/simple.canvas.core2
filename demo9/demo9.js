@@ -131,6 +131,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9BMoveScene({
+        name:'bmove',
+        viewport: verticalDefaultViewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
