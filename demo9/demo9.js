@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     let defaultViewpot = new V2(500,300);
     let verticalDefaultViewport = new V2(300,500);
+    let squareDefaultViewport = new V2(300,300);
     
     SCG.scenes.cacheScene(new RotationScene({
         name:'rotation',
@@ -134,6 +135,11 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.scenes.cacheScene(new Demo9BMoveScene({
         name:'bmove',
         viewport: verticalDefaultViewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9WindowScene({
+        name:'window',
+        viewport: squareDefaultViewport
     }));
 
     sceneSelectByHashValue();
