@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo9WindowScene({
         name:'window',
-        viewport: squareDefaultViewport
+        viewport: new V2(300, 400)
     }));
 
     sceneSelectByHashValue();
