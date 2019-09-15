@@ -150,6 +150,12 @@ class Demo9WindowScene extends Scene {
                         let row = circlesProps[1].rows[circlesProps[1].rows.length-delta];
                         hlp.setFillColor(colors.hsvToHex(hsv)).rect(row.min, y-1, row.max - row.min, 1);
                     }
+
+                    for(let i = 0; i < 500; i++){
+                        hlp.setFillColor('rgba(0,0,0,0.1)').rect(
+                        fast.r(getRandomGaussian(0, size.x)), 
+                        getRandomInt(circlesProps[1].rows.length+1, size.y),  getRandomInt(10, 30), 1);   
+                    }
                 })
             }
         }), 20)
