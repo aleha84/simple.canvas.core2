@@ -18,7 +18,11 @@ class Demo9WindowScene extends Scene {
         this.circlesProps = [
             {
                 r: fast.r(this.viewport.x*0.75/2),
-                color: '#151728'
+                color: '#1D233A'
+            },
+            {
+                r: fast.r(this.viewport.x*0.76/2),
+                color: '#0D0E19'//'#151728'
             },
             {
                 r: fast.r(this.viewport.x*0.8/2),
@@ -135,8 +139,8 @@ class Demo9WindowScene extends Scene {
                     
                     let vChange = easing.createProps(50, 14, 0, 'quad', 'out');
                     let hsv = [212,12,14];
-                    for(let y = circlesProps[1].rows.length+1; y < size.y; y++){
-                        let delta = y - circlesProps[1].rows.length;
+                    for(let y = circlesProps[2].rows.length+1; y < size.y; y++){
+                        let delta = y - circlesProps[2].rows.length;
                         if(delta <= 50){
                             vChange.time = delta;
                             let v =  easing.process(vChange);
@@ -147,14 +151,14 @@ class Demo9WindowScene extends Scene {
                             hsv[2] = 0;
                         }
                         
-                        let row = circlesProps[1].rows[circlesProps[1].rows.length-delta];
+                        let row = circlesProps[2].rows[circlesProps[2].rows.length-delta];
                         hlp.setFillColor(colors.hsvToHex(hsv)).rect(row.min, y-1, row.max - row.min, 1);
                     }
 
                     for(let i = 0; i < 500; i++){
                         hlp.setFillColor('rgba(0,0,0,0.1)').rect(
                         fast.r(getRandomGaussian(0, size.x)), 
-                        getRandomInt(circlesProps[1].rows.length+1, size.y),  getRandomInt(10, 30), 1);   
+                        getRandomInt(circlesProps[2].rows.length+1, size.y),  getRandomInt(10, 30), 1);   
                     }
                 })
             }
@@ -169,18 +173,27 @@ class Demo9WindowScene extends Scene {
                 this.rainDropItems = [];
                 this.rainDropLayers = [
                     {
-                        speed: 20,
+                        speed: 5,
+                        v: 30,
+                        color: 'rgba(76,76,76,0.25)',
+                        count: 5,
+                    },
+                    {
+                        speed: 10,
                         v: 40,
+                        color: 'rgba(102,102,102,0.5)',
                         count: 3,
                     },
                     {
-                        speed: 25,
+                        speed: 20,
                         v: 60,
+                        color: 'rgba(153,153,153,0.5)',
                         count: 2
                     },
                     {
                         speed: 30,
                         v: 70,
+                        color: 'rgba(178,178,178,0.5)',
                         count: 1
                     }
                 ]
@@ -209,7 +222,9 @@ class Demo9WindowScene extends Scene {
                     for(let i = 0; i < this.rainDropItems.length; i++){
                         let rd = this.rainDropItems[i];
 
-                        hlp.setFillColor(colors.hsvToHex([0,0,rd.layer.v])).rect(rd.p.x, rd.p.y, 1, rd.layer.speed);
+
+                        //hlp.setFillColor(colors.hsvToHex([0,0,rd.layer.v])).rect(rd.p.x, rd.p.y, 1, rd.layer.speed);
+                        hlp.setFillColor(rd.layer.color).rect(rd.p.x, rd.p.y, 1, rd.layer.speed);
 
                         rd.p.y+=rd.layer.speed;
                         rd.alive = rd.p.y < (size.y + rd.layer.speed);
@@ -230,17 +245,35 @@ class Demo9WindowScene extends Scene {
                 this.highlightBoxes = [
                 ]
 
-                this.highlightBoxes[0] = new Box(new V2(130, 135), new V2(100, 45));
+                this.highlightBoxes[0] = new Box(new V2(130, 135), new V2(100, 55));
                 this.highlightBoxes[0].hColor = [49,226,120]
 
-                // this.highlightBoxes[1] = new Box(new V2(148, 152), new V2(60, 22));
-                // this.highlightBoxes[1].hColor = [234,56,39]
+                
 
-                this.highlightBoxes[2] = new Box(new V2(130, 185), new V2(90, 40));
-                this.highlightBoxes[2].hColor = [217,235,82]
+                this.highlightBoxes[1] = new Box(new V2(130, 185), new V2(90, 40));
+                this.highlightBoxes[1].hColor = [217,235,82]
+
+                // this.highlightBoxes[2] = new Box(new V2(55, 100), new V2(40, 20));
+                // this.highlightBoxes[2].hColor = [158,102,127]
+                this.highlightBoxes[3] = new Box(new V2(40, 120), new V2(70, 20));
+                this.highlightBoxes[3].hColor = [216,140,175]
+                this.highlightBoxes[4] = new Box(new V2(25, 140), new V2(102, 100));
+                this.highlightBoxes[4].hColor = [216,140,175]
+
+                this.highlightBoxes[5] = new Box(new V2(40, 15), new V2(40, 20));
+                this.highlightBoxes[5].hColor = [78,237,209]
+                this.highlightBoxes[6] = new Box(new V2(20, 35), new V2(80, 70));
+                this.highlightBoxes[6].hColor = [78,237,209]
+                this.highlightBoxes[7] = new Box(new V2(30, 105), new V2(60, 20));
+                this.highlightBoxes[7].hColor = [78,237,209]
+
+                this.highlightBoxes[8] = new Box(new V2(148, 152), new V2(60, 22));
+                this.highlightBoxes[8].hColor = [234,56,39]
+
+                this.showHB = false;
 
                 this.maxTtl = 50;
-                this.defaultOpacity = 0.75;
+                this.defaultOpacity = 0.5;
 
                 this.dropsTimer = this.regTimerDefault(30, () => {
                     for(let i = 0; i < 5; i++){
@@ -248,22 +281,33 @@ class Demo9WindowScene extends Scene {
                         let angle = getRandomInt(0, 360);
                         let p = V2.up.rotate(angle).mul(r).add(this.center).toInt();
     
-                        let hitted = this.drops.filter(d => d.p.distance(p) <= 1.42);
+                        let hitted = this.drops.filter(d => /*!d.trail &&*/ d.p.distance(p) <= 1.42);
                         let fall = false;
                         if(hitted.length){
-                            fall = true;
+                            fall = getRandomInt(0,4) == 0;
                             for(let i = 0; i < hitted.length; i++){
                                 hitted[i].alive = false;
                             }
                         }
                         
                         let color = (getRandomBool() ? getRandomInt(2,6) : getRandomInt(20,24))*10;
+                        let hBoxes = this.highlightBoxes.filter(hb => hb.isPointInside(p));
+                        let hb = undefined;
+                        let rgba = `rgba(${color}, ${color},${color}, ${this.defaultOpacity})`;
+                        if(hBoxes.length > 0 && getRandomInt(0,2) != 0){
+                            let index = getRandomInt(0, hBoxes.length-1);
+                            hb = hBoxes[index];
+                            rgba = `rgba(${hb.hColor[0]}, ${hb.hColor[1]},${hb.hColor[2]}, ${this.defaultOpacity})`
+                        }
+
                         this.drops.push({
                             p, 
                             fall,
                             color,
-                            rgba: `rgba(${color}, ${color},${color}, ${this.defaultOpacity})`,
+                            opacity: this.defaultOpacity,
+                            rgba,
                             alive: true,
+                            hBox: hb
                         });
                     }
                     
@@ -277,55 +321,67 @@ class Demo9WindowScene extends Scene {
             },
             createImage() {
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
-                    //hlp.setFillColor('#DAEA49').strokeRect(130, 185, 90, 40)
+                    if(this.showHB){
+                        this.highlightBoxes.forEach(hb => {
+                            hlp.setFillColor(`rgba(${hb.hColor[0]}, ${hb.hColor[1]},${hb.hColor[2]}, 1)`)
+                            .strokeRectV2(hb.topLeft, hb.size);
+                        })    
+                    }
+                    
+                    
                     let rds = this.parentScene.shadows.rainDropShadows;
                     rds.items = [];
 
+                    let trailsToAdd = [];
                     for(let i = 0; i < this.drops.length; i++){
                         let drop = this.drops[i];
-                        // let opacity = drop.ttl/this.maxTtl;
-                        // if(drop.fall){
-                        //     opacity = 0.75;
-                        // }
-                        //let opacity = 0.75;
+
                         
                         let color = drop.rgba;
-                        // if(this.highlightBox.isPointInside(drop.p)){
-                        //     if(this.highlightBox.innerBox.isPointInside(drop.p)){
-                        //         color = `rgba(${this.highlightBox.innerBox.hColor[0]}, ${this.highlightBox.innerBox.hColor[1]},${this.highlightBox.innerBox.hColor[2]}, ${this.defaultOpacity})`
+                        // if(drop.trail){
+                        //     drop.trailTtl--;
+                        //     if(drop.trailTtl <= 0){
+                        //         drop.alive = false;
+                        //         drop.opacity = 0;
                         //     }
                         //     else {
-                        //         color = `rgba(${this.highlightBox.hColor[0]}, ${this.highlightBox.hColor[1]},${this.highlightBox.hColor[2]}, ${this.defaultOpacity})`
+                        //         drop.opacity = drop.trailTtl/50;
                         //     }
                             
+                        //     color = `rgba(${drop.color}, ${drop.color},${drop.color}, ${drop.opacity})`;
                         // }
 
-                        let hBoxes = this.highlightBoxes.filter(hb => hb.isPointInside(drop.p));
+                        if(drop.fall){
+                            let hBoxes = this.highlightBoxes.filter(hb => hb.isPointInside(drop.p));
+                            if(hBoxes.length > 0){
+                                drop.hBox = hBoxes[0];
+                                color = `rgba(${drop.hBox.hColor[0]}, ${drop.hBox.hColor[1]},${drop.hBox.hColor[2]}, ${drop.opacity})`
+                            }
+                            else {
+                                drop.hBox = undefined;
+                                let color = drop.rgba;
+                            }
+                        }
                         
-                        if(hBoxes.length > 0){
-                            // if(!drop.hBox){
-                            //     let index = 0;    
-                            //     if(hBoxes.length > 1)
-                            //         index = getRandomInt(0, hBoxes.length-1);
+                        
+                        // if(hBoxes.length > 0){
 
-                            //     let hb = hBoxes[index];
-                            //     drop.hBox = hb;
-                                
-                            // }
-                            let index = 0;    
-                                if(hBoxes.length > 1)
-                                    index = getRandomInt(0, hBoxes.length-1);
+                        //     let index = 0;    
+                        //     if(!drop.fall){
+                        //         if(hBoxes.length > 1)
+                        //             index = getRandomInt(0, hBoxes.length-1);
 
-                                let hb = hBoxes[index];
-                                drop.hBox = hb;
-
-                            color = `rgba(${drop.hBox.hColor[0]}, ${drop.hBox.hColor[1]},${drop.hBox.hColor[2]}, ${this.defaultOpacity})`
+                        //         let hb = hBoxes[index];
+                        //         drop.hBox = hb;
+                        //     }
                             
-                        }
-                        else {
-                            drop.hBox = undefined;
-                        }
+
+                        //     color = `rgba(${drop.hBox.hColor[0]}, ${drop.hBox.hColor[1]},${drop.hBox.hColor[2]}, ${drop.opacity})`
+                            
+                        // }
+                        // else {
+                        //     drop.hBox = undefined;
+                        // }
 
                         hlp.setFillColor(color).rect(fast.r(drop.p.x), fast.r(drop.p.y),2,2);
 
@@ -335,6 +391,11 @@ class Demo9WindowScene extends Scene {
                         }
 
                         if(drop.fall){
+                            // if(!drop.prevTrail || (drop.p.y - drop.prevTrail.y >= 1.5)){
+                            //     trailsToAdd.push(drop.p.clone());
+                            //     drop.prevTrail = drop.p.clone();
+                            // }
+                            
                             drop.p.y+=getRandom(0,1.5);
                             if(getRandomInt(0,4) == 0){
                                 drop.p.x+=getRandom(-1,1);
@@ -342,15 +403,28 @@ class Demo9WindowScene extends Scene {
 
                             let p = drop.p.toInt();
 
-                            let hitted = this.drops.filter(d => d.p.distance(p) <= 1.42 );
+                            let hitted = this.drops.filter(d => /*!d.trail &&*/ d.p.distance(p) <= 1.42 );
                             for(let i = 0; i < hitted.length; i++){
                                 
-                                hitted[i].alive = (getRandomInt(0,5) == 0);
+                                hitted[i].alive = (getRandomInt(0,4) != 0);
                             }
                             
                             drop.alive = drop.p.distance(this.center) <  this.radius;
                         }
                     }
+
+                    // for(let i = 0; i < trailsToAdd.length; i++){
+                    //     let color = (getRandomBool() ? getRandomInt(2,6) : getRandomInt(20,24))*10;
+                    //     this.drops.push({
+                    //         p: trailsToAdd[i].clone(), 
+                    //         fall: false,
+                    //         color,
+                    //         rgba: `rgba(${color}, ${color},${color}, ${this.defaultOpacity})`,
+                    //         alive: true,
+                    //         trail: true,
+                    //         trailTtl: 50
+                    //     })
+                    // }
 
                     rds.createImage();
                 })
@@ -366,29 +440,21 @@ class Demo9WindowScene extends Scene {
                 this.radiation = this.addChild(new GO({
                     position: new V2(),
                     size: this.size.clone().mul(2),
-                    //img: PP.createImage(windowModel.label1)
                     init() {
                         this.img = createCanvas(this.size, (ctx, size, hlp) => {
                             let rgba = `rgba(${hexToRgb('#7CC470')},0.05)`;
-                            hlp.setFillColor(rgba)
-                            .rect(25,5,size.x-50, size.y-10)
 
-                            for(let i = 0; i < 100; i++){
-                                hlp.rect(getRandomInt(0, size.x), getRandomInt(0, size.y), getRandomInt(5,12), getRandomInt(2,10))
-                            }
+                            hlp.setFillColor(`rgba(${hexToRgb('#7CC470')},0.15)`)
+                                .rect(20, 5, 100, 50)
 
                             hlp.setFillColor(`rgba(${hexToRgb('#7CC470')},0.5)`)
                             .rect(47, 0, 3, 20).rect(95, 0, 3, 20)
                             .rect(47, 40, 3, 20).rect(95, 40, 3, 20)
                             .rect(20, 14, 120, 3).rect(10, 32, 30, 3)
 
-                            rgba = `rgba(${hexToRgb('#D36930')},0.05)`;
+                            rgba = `rgba(${hexToRgb('#D36930')},0.5)`;
                             hlp.setFillColor(rgba)
                             .rect(40,18,60, 24)
-
-                            for(let i = 0; i < 500; i++){
-                                hlp.rect(getRandomInt(37, 100), getRandomInt(18, 40), getRandomInt(5,10), getRandomInt(2,6))
-                            }
                         })
                     }
                 }))
@@ -409,27 +475,14 @@ class Demo9WindowScene extends Scene {
                 this.radiation = this.addChild(new GO({
                     position: new V2(),
                     size: this.size.clone().mul(1.5).toInt(),
-                    //img: PP.createImage(windowModel.label1)
                     init() {
                         this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                            let rgba = `rgba(${hexToRgb('#DAEA4E')},0.05)`;
+                            let rgba = `rgba(${hexToRgb('#DAEA4E')},0.15)`;
                             hlp.setFillColor(rgba)
-                            .rect(25,5,size.x-50, size.y-10)
-
-                            for(let i = 0; i < 200; i++){
-                                hlp.rect(getRandomInt(0, size.x), getRandomInt(0, size.y), getRandomInt(5,12), getRandomInt(5,10))
-                            }
+                            .rect(0,5,size.x, size.y-10)
 
                             hlp.setFillColor(`rgba(${hexToRgb('#DAEA4E')},0.5)`)
                             .rect(0, 20, 20, 3).rect(0, 39, 80, 3)
-
-                            // rgba = `rgba(${hexToRgb('#D36930')},0.05)`;
-                            // hlp.setFillColor(rgba)
-                            // .rect(40,18,60, 24)
-
-                            // for(let i = 0; i < 500; i++){
-                            //     hlp.rect(getRandomInt(37, 100), getRandomInt(18, 40), getRandomInt(5,10), getRandomInt(2,6))
-                            // }
                         })
                     }
                 }))
@@ -441,6 +494,134 @@ class Demo9WindowScene extends Scene {
                 }))
             }
         }), 2)
+
+        this.label3 = this.addGo(new GO({
+            position: new V2(115, 260),
+            size: new V2(10, 70),
+            init() {
+                this.radiation = this.addChild(new GO({
+                    position: new V2(),
+                    size: new V2(100, 150),
+                    init() {
+                        this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                            //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
+                            let rgba = `rgba(${hexToRgb('#956C94')},0.15)`;
+                            hlp.setFillColor(rgba)
+                            .rect(20,15,size.x-40, size.y-10)
+                            .rect(0,40,size.x, size.y-10)
+                            .rect(35,35,30, 70)
+                            .rect(40,40,20, 70)
+
+                            hlp.setFillColor(`rgba(${hexToRgb('#956C94')},0.5)`)
+                            .rect(20, 13, size.x-40, 3)
+                            .rect(10, 31, size.x-20, 3)
+                            .rect(0, 49, size.x, 3)
+                            .rect(0, 67, size.x, 3)
+                            .rect(0, 85, size.x, 3)
+                            .rect(10, 103, size.x-20, 3)
+                            .rect(10, 121, size.x-20, 3)
+                            .rect(31, 0, 3, size.y)
+                            .rect(79, 15, 3, size.y)
+                        })
+                    }
+                }))
+
+                this.body = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    img: PP.createImage(windowModel.label3)
+                }))
+            }
+        }),2)
+
+        this.label4 = this.addGo(new GO({
+            position: new V2(98, 160),
+            size: new V2(10, 70),
+            init() {
+                this.radiation = this.addChild(new GO({
+                    position: new V2(),
+                    size: new V2(80, 120),
+                    init() {
+                        this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                            //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
+                            let rgba = `rgba(${hexToRgb('#78C3AE')},0.15)`;
+                            hlp.setFillColor(rgba)
+                            .rect(20, 0, size.x -40, 20)
+                            .rect(10, 20, size.x -20, 10)
+                            .rect(0, 30, size.x, 60)
+                            .rect(10, 90, size.x-20, 10)
+                            .rect(20, 100, size.x-40, 20)
+                            .rect(25, 20, size.x-50, 80)
+                            .rect(30, 25, size.x-60, 70)
+
+                            hlp.setFillColor(`rgba(${hexToRgb('#78C3AE')},0.5)`)
+                            .rect(38, 0, 3, size.y)
+                            .rect(20, 8, size.x-40, 3)
+                            .rect(10, 26, size.x-20, 3)
+                            .rect(0, 44, size.x, 3)
+                            .rect(0, 62, size.x, 3)
+                            .rect(0, 80, size.x, 3)
+                            .rect(10, 98, size.x-20, 3)
+
+                        })
+                    }
+                }))
+
+                this.body = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    img: PP.createImage(windowModel.label4)
+                }))
+            }
+        }),3)
+
+        this.label5 = this.addGo(new GO({
+            position: new V2(230, 140),
+            size: new V2(50, 100),
+            init() {
+                // this.radiation = this.addChild(new GO({
+                //     position: new V2(),
+                //     size: new V2(80, 120),
+                //     init() {
+                //         this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                //             //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
+                //             let rgba = `rgba(${hexToRgb('#78C3AE')},0.15)`;
+                //             hlp.setFillColor(rgba)
+                //             .rect(20, 0, size.x -40, 20)
+                //             .rect(10, 20, size.x -20, 10)
+                //             .rect(0, 30, size.x, 60)
+                //             .rect(10, 90, size.x-20, 10)
+                //             .rect(20, 100, size.x-40, 20)
+                //             .rect(25, 20, size.x-50, 80)
+                //             .rect(30, 25, size.x-60, 70)
+
+                //             hlp.setFillColor(`rgba(${hexToRgb('#78C3AE')},0.5)`)
+                //             .rect(38, 0, 3, size.y)
+                //             .rect(20, 8, size.x-40, 3)
+                //             .rect(10, 26, size.x-20, 3)
+                //             .rect(0, 44, size.x, 3)
+                //             .rect(0, 62, size.x, 3)
+                //             .rect(0, 80, size.x, 3)
+                //             .rect(10, 98, size.x-20, 3)
+
+                //         })
+                //     }
+                // }))
+
+                this.body = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    img: 
+                    createCanvas(this.size, (ctx, size, hlp) => { 
+                        hlp.setFillColor('rgba(255,0,0,0.25)').rect(0,0,size.x, size.y) 
+                        ctx.drawImage(PP.createImage(windowModel.label5), 0,0)
+                        // for(let i = 0; i < 10; i++){
+                        //     hlp.rect(0,getRandomInt(0,size.y), size.x, 2)
+                        // }
+                    })//PP.createImage(windowModel.label4)
+                }))
+            }
+        }),3)
 
         this.man = this.addGo(new GO({
             position: new V2(this.sceneCenter.x, this.sceneCenter.y +70),
