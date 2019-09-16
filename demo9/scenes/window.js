@@ -270,10 +270,17 @@ class Demo9WindowScene extends Scene {
                 this.highlightBoxes[8] = new Box(new V2(148, 152), new V2(60, 22));
                 this.highlightBoxes[8].hColor = [234,56,39]
 
+                this.highlightBoxes[9] = new Box(new V2(150, 0), new V2(80, 110));
+                this.highlightBoxes[9].hColor = [224,42,48]
+                this.highlightBoxes[10] = new Box(new V2(170, 110), new V2(50, 20));
+                this.highlightBoxes[10].hColor = [224,42,48]
+
                 this.showHB = false;
 
                 this.maxTtl = 50;
                 this.defaultOpacity = 0.5;
+
+                this.imgCache = {};
 
                 this.dropsTimer = this.regTimerDefault(30, () => {
                     for(let i = 0; i < 5; i++){
@@ -283,6 +290,7 @@ class Demo9WindowScene extends Scene {
     
                         let hitted = this.drops.filter(d => /*!d.trail &&*/ d.p.distance(p) <= 1.42);
                         let fall = false;
+                        let img = undefined;
                         if(hitted.length){
                             fall = getRandomInt(0,4) == 0;
                             for(let i = 0; i < hitted.length; i++){
@@ -300,6 +308,17 @@ class Demo9WindowScene extends Scene {
                             rgba = `rgba(${hb.hColor[0]}, ${hb.hColor[1]},${hb.hColor[2]}, ${this.defaultOpacity})`
                         }
 
+                        if(!fall){
+                            if(this.imgCache[rgba] == undefined){
+                                this.imgCache[rgba] = createCanvas(new V2(2,2), (ctx, size, hlp) => {
+                                    hlp.setFillColor(rgba).rect(0,0,2,2);
+                                    hlp.setFillColor('rgba(0,0,0,0.4)').rect(0, 1,2,1)
+                                    hlp.setFillColor('rgba(255,255,255,0.25)').rect(0, 0,1,1)
+                                })
+                            }
+                            img = this.imgCache[rgba];
+                        }
+
                         this.drops.push({
                             p, 
                             fall,
@@ -307,7 +326,8 @@ class Demo9WindowScene extends Scene {
                             opacity: this.defaultOpacity,
                             rgba,
                             alive: true,
-                            hBox: hb
+                            hBox: hb,
+                            img
                         });
                     }
                     
@@ -333,6 +353,7 @@ class Demo9WindowScene extends Scene {
                     rds.items = [];
 
                     let trailsToAdd = [];
+                    //ctx.globalAlpha = 0.75;
                     for(let i = 0; i < this.drops.length; i++){
                         let drop = this.drops[i];
 
@@ -361,9 +382,26 @@ class Demo9WindowScene extends Scene {
                                 drop.hBox = undefined;
                                 let color = drop.rgba;
                             }
+
+                            // hlp.setFillColor(color).rect(fast.r(drop.p.x), fast.r(drop.p.y),2,2);
+                            // hlp.setFillColor('rgba(0,0,0,0.4)').rect(fast.r(drop.p.x), fast.r(drop.p.y)+1,2,1)
+                            // hlp.setFillColor('rgba(255,255,255,0.25)').rect(fast.r(drop.p.x), fast.r(drop.p.y),1,1)
+
+                            if(this.imgCache[color] == undefined){
+                                this.imgCache[color] = createCanvas(new V2(2,2), (ctx, size, hlp) => {
+                                    hlp.setFillColor(color).rect(0,0,2,2);
+                                    hlp.setFillColor('rgba(0,0,0,0.4)').rect(0, 1,2,1)
+                                    hlp.setFillColor('rgba(255,255,255,0.25)').rect(0, 0,1,1)
+                                })
+                            }
+                            drop.img = this.imgCache[color];
+                        }
+                        else {
+                            //ctx.drawImage(drop.img, drop.p.x, drop.p.y)
                         }
                         
-                        
+                        ctx.drawImage(drop.img, drop.p.x, drop.p.y)
+
                         // if(hBoxes.length > 0){
 
                         //     let index = 0;    
@@ -383,7 +421,8 @@ class Demo9WindowScene extends Scene {
                         //     drop.hBox = undefined;
                         // }
 
-                        hlp.setFillColor(color).rect(fast.r(drop.p.x), fast.r(drop.p.y),2,2);
+                        //hlp.setFillColor(color).rect(fast.r(drop.p.x), fast.r(drop.p.y),2,2);
+                        //hlp.setFillColor('rgba(0,0,0,0.5)').rect(fast.r(drop.p.x), fast.r(drop.p.y)+1,2,1)
 
                         let toBottom = size.y - drop.p.y;
                         if(toBottom < 60){
@@ -579,34 +618,32 @@ class Demo9WindowScene extends Scene {
             position: new V2(230, 140),
             size: new V2(50, 100),
             init() {
-                // this.radiation = this.addChild(new GO({
-                //     position: new V2(),
-                //     size: new V2(80, 120),
-                //     init() {
-                //         this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                //             //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
-                //             let rgba = `rgba(${hexToRgb('#78C3AE')},0.15)`;
-                //             hlp.setFillColor(rgba)
-                //             .rect(20, 0, size.x -40, 20)
-                //             .rect(10, 20, size.x -20, 10)
-                //             .rect(0, 30, size.x, 60)
-                //             .rect(10, 90, size.x-20, 10)
-                //             .rect(20, 100, size.x-40, 20)
-                //             .rect(25, 20, size.x-50, 80)
-                //             .rect(30, 25, size.x-60, 70)
+                this.radiation = this.addChild(new GO({
+                    position: new V2(),
+                    size: new V2(120, 160),
+                    init() {
+                        this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                            //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
+                            let rgba = `rgba(${hexToRgb('#DB575A')},0.25)`;
+                            hlp.setFillColor(rgba)
+                            .rect(10, 30, size.x, 110)
+                            .rect(30, 140, size.x-60, 20)
+                            .rect(25, 30, size.x-50, 110)
+                            .rect(30, 35, size.x-60, 100)
 
-                //             hlp.setFillColor(`rgba(${hexToRgb('#78C3AE')},0.5)`)
-                //             .rect(38, 0, 3, size.y)
-                //             .rect(20, 8, size.x-40, 3)
-                //             .rect(10, 26, size.x-20, 3)
-                //             .rect(0, 44, size.x, 3)
-                //             .rect(0, 62, size.x, 3)
-                //             .rect(0, 80, size.x, 3)
-                //             .rect(10, 98, size.x-20, 3)
+                            hlp.setFillColor(`rgba(${hexToRgb('#DB575A')},0.5)`)
+                            .rect(22, 0, 3, size.y-25)
+                            .rect(70, 0, 3, size.y)
+                            .rect(10, 48, size.x, 3)
+                            .rect(10, 66, size.x, 3)
+                            .rect(10, 84, size.x, 3).rect(10, 102, size.x, 3)
+                            .rect(10, 120, size.x, 3)
+                            .rect(20, 138, size.x, 3)
+                            
 
-                //         })
-                //     }
-                // }))
+                        })
+                    }
+                }))
 
                 this.body = this.addChild(new GO({
                     position: new V2(),
