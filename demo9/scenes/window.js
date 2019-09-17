@@ -22,7 +22,7 @@ class Demo9WindowScene extends Scene {
             },
             {
                 r: fast.r(this.viewport.x*0.76/2),
-                color: '#0D0E19'//'#151728'
+                color: '#0F111E'//'#151728'
             },
             {
                 r: fast.r(this.viewport.x*0.8/2),
@@ -127,6 +127,12 @@ class Demo9WindowScene extends Scene {
                                 hlp.setFillColor(cProps.color).rect(0,y, r.min, 1);
                                 hlp.setFillColor(cProps.color).rect(r.max,y, size.x, 1);
 
+                                // if(i == 1){
+                                //     if(y > 275 && y < 310){
+                                //         hlp.setFillColor('rgba(216,227,97,0.05)').rect(r.max, y, 20, 1)
+                                //     }
+                                // }
+
                                 if(i == 0){
                                     if(r.min != r.max){
                                         //'rgba(224,238,255,0.25)'
@@ -137,11 +143,11 @@ class Demo9WindowScene extends Scene {
                         }
                     }
                     
-                    let vChange = easing.createProps(50, 14, 0, 'quad', 'out');
+                    let vChange = easing.createProps(45, 40, 0, 'quad', 'out');
                     let hsv = [212,12,14];
                     for(let y = circlesProps[2].rows.length+1; y < size.y; y++){
                         let delta = y - circlesProps[2].rows.length;
-                        if(delta <= 50){
+                        if(delta <= 45){
                             vChange.time = delta;
                             let v =  easing.process(vChange);
                             v = fast.f(v/1)*1;
@@ -286,6 +292,9 @@ class Demo9WindowScene extends Scene {
                     for(let i = 0; i < 5; i++){
                         let r = getRandomInt(0, this.radius);
                         let angle = getRandomInt(0, 360);
+                        if(i > 2){
+                            angle = getRandomInt(90, 275);
+                        }
                         let p = V2.up.rotate(angle).mul(r).add(this.center).toInt();
     
                         let hitted = this.drops.filter(d => /*!d.trail &&*/ d.p.distance(p) <= 1.42);
@@ -665,6 +674,42 @@ class Demo9WindowScene extends Scene {
             size: new V2(50, 130),
             img: PP.createImage(windowModel.human)
         }), 25)
+
+        this.details = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: new V2(1, 5),
+            init() {
+                this.wires = this.addChild(new GO({
+                    position: new V2(0, -100),
+                    size: new V2(200, 60),
+                    init() {
+                        this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                            //hlp.setFillColor('red').strokeRect(0,0, size.x, size.y)
+                            hlp.setFillColor('black');
+                            for(let i = 0; i < 20; i++){
+                                hlp.strokeEllipsis(0,180,0.1, new V2(size.x/2, size.y/2 -1 ).add(new V2(getRandomInt(-50,50), getRandomInt(-30, 0))), size.x/2, getRandomInt(size.y/3,size.y/2))    
+                            }
+                            
+                        })
+                    }
+                }));
+
+                this.wires2 = this.addChild(new GO({
+                    position: new V2(80, -90),
+                    size: new V2(60, 100),
+                    init() {
+                        this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                            //hlp.setFillColor('red').strokeRect(0,0, size.x, size.y)
+                            hlp.setFillColor('black');
+                            for(let i = 0; i < 5; i++){
+                                hlp.strokeEllipsis(0,180,0.1, new V2(size.x/2, size.y/2 -1 ).add(new V2(0, getRandomInt(-50, 0))), getRandomInt(size.x/4,size.x/2), getRandomInt(size.y/2.5,size.y/2))    
+                            }
+                            
+                        })
+                    }
+                }))
+            }
+        }), 26);
 
         this.shadows = this.addGo(new GO({
             position: new V2(this.sceneCenter.x, this.sceneCenter.y +146),
