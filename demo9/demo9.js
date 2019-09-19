@@ -142,6 +142,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(300, 400)
     }));
 
+    SCG.scenes.cacheScene(new Demo9DotsScene({
+        name:'dots',
+        viewport: new V2(300, 300)
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
