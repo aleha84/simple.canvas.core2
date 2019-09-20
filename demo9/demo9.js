@@ -147,6 +147,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(300, 300)
     }));
 
+    SCG.scenes.cacheScene(new Demo9LabelScene({
+        name:'label',
+        viewport: new V2(300, 300)
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
