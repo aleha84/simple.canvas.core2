@@ -152,6 +152,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(300, 300)
     }));
 
+    SCG.scenes.cacheScene(new Demo9TeamScene({
+        name:'team',
+        viewport: new V2(250, 175)
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
