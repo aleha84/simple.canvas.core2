@@ -68,7 +68,7 @@ class Demo9LabelScene extends Scene {
                             //hlp.setFillColor('blue').strokeRect(0,0, size.x, size.y);
 
                             let radius = this.radius;
-                            let deep = 5;
+                            let deep = 3;
 
                             hlp.setFillColor(colors.palettes.fleja.colors[22])
                             .circle(new V2(radius+deep,radius), radius)
@@ -96,12 +96,12 @@ class Demo9LabelScene extends Scene {
                             // }
                             
 
-                            hlp.setFillColor(colors.palettes.fleja.colors[24])
-                            .rect(radius, radius, size.x-radius*2-deep, size.y-radius*2)
+                            // hlp.setFillColor(colors.palettes.fleja.colors[24])
+                            // .rect(radius, radius, size.x-radius*2-deep, size.y-radius*2)
 
-                            hlp.setFillColor(colors.palettes.fleja.colors[22])
-                                .rect(radius, radius, 1, size.y-radius*2)
-                                .rect(radius, radius, size.x-radius*2 -deep, 1)
+                            // hlp.setFillColor(colors.palettes.fleja.colors[22])
+                            //     .rect(radius, radius, 1, size.y-radius*2)
+                            //     .rect(radius, radius, size.x-radius*2 -deep, 1)
 
                             hlp.setFillColor(colors.palettes.fleja.colors[24])
                                 .rect(radius-5, 1, size.x-2*radius+radius/3-1, 1)
