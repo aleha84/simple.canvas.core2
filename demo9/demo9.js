@@ -162,10 +162,6 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(300, 200)
     }));
 
-    SCG.scenes.cacheScene(new Demo9RatnikScene({
-        name:'ratnik',
-        viewport: new V2(150, 150)
-    }));
 
     sceneSelectByHashValue();
     
