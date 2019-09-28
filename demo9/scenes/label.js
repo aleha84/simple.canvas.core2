@@ -223,6 +223,62 @@ this.sideWIndowError = this.addChild(new GO({
                         })
                     }
                 }))
+
+                this.led1 = this.addChild(new GO({
+                    position: new V2(6, 22),
+                    size: new V2(4, 14),
+                    init() {
+                        this.currentY = 0;
+                        this.createImage();
+
+                        this.timer = this.regTimerDefault(250, () => {
+                            if(this.currentY++ == this.size.y-2){
+                                this.currentY = 0;
+                            }
+                            
+                            this.createImage();
+                        })
+                    },
+                    createImage() {
+                        this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                            hlp.setFillColor('#26091C').rect(0,0,1, size.y-1)
+                            .dot(1,size.y-1)
+                            hlp.setFillColor('#485F96').rect(1,0, 1, size.y-1);
+                            hlp.setFillColor('#485F96').rect(2,1, 1, size.y-1);
+                            hlp.setFillColor('#3F0F2F').rect(3,1,1, size.y).dot(2,0)
+                            
+                            hlp.setFillColor('#5874B7').dot(1, this.currentY).dot(2, this.currentY+1)//rect(this.currentY == size.y-1 ? 2: 1,this.currentY, this.currentY == 0 || this.currentY == size.y-1 ? 1 : 2, 1)
+                        })
+                    }
+                }))
+
+                this.led2 = this.addChild(new GO({
+                    position: new V2(-79, 14),
+                    size: new V2(3, 11),
+                    init() {
+                        this.currentY = 3;
+                        this.createImage();
+
+                        this.timer = this.regTimerDefault(250, () => {
+                            if(this.currentY++ == this.size.y-2){
+                                this.currentY = 1;
+                            }
+                            
+                            this.createImage();
+                        })
+                    },
+                    createImage() {
+                        this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                            hlp.setFillColor('#26091C').rect(0,0,1, size.y-1)
+                            
+                            hlp.setFillColor('#485F96').rect(1,1, 1, size.y-2);
+                            //hlp.setFillColor('#485F96').rect(2,1, 1, size.y-1);
+                            hlp.setFillColor('#3F0F2F').rect(2,2,1, size.y)
+                            
+                            hlp.setFillColor('#5874B7').dot(1, this.currentY)//rect(this.currentY == size.y-1 ? 2: 1,this.currentY, this.currentY == 0 || this.currentY == size.y-1 ? 1 : 2, 1)
+                        })
+                    }
+                }))
             }
         }), 20)
 
@@ -365,6 +421,11 @@ this.sideWIndowError = this.addChild(new GO({
                         this.img = createCanvas(this.size, (ctx, size, hlp) => {
                             //473529
                             hlp.setFillColor('#473B35').rect(0,size.y/2-5,size.x, size.y);
+                             hlp.setFillColor('#191513').rect(0, size.y/2-5, size.x, 1)
+                            // hlp.setFillColor('#211B19').rect(0, size.y/2-5 + 2, size.x, 4)
+                            // hlp.setFillColor('#2B2320').rect(0, size.y/2-5 + 2 + 4, size.x, 8)
+                            // hlp.setFillColor('#352C28').rect(0, size.y/2-5 + 2 + 4 + 8, size.x, 14)
+                            
                             // hlp.setFillColor('#7A614D')//
                             // let dots = mathUtils.getCurvePoints({ start: new V2(0, size.y/2-5), end: new V2(100, size.y/2-5), midPoints: [{ distance: 0.2, yChange: -10 }] })
                             // for(let i = 0; i < dots.length; i++){
