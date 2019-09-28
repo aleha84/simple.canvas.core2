@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo9LabelScene({
         name:'label',
-        viewport: new V2(300, 300)
+        viewport: new V2(300, 150)
     }));
 
     SCG.scenes.cacheScene(new Demo9TeamScene({

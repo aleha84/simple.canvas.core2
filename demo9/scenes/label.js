@@ -2,7 +2,7 @@ class Demo9LabelScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -17,7 +17,7 @@ class Demo9LabelScene extends Scene {
     start(){
 
         this.carShadow = this.addGo(new GO({
-                    position: new V2(150,243),
+                    position: this.sceneCenter.add(new V2(0,3)),//new V2(150,243),
                     size: new V2(190,80),
                     img:  PP.createImage(
                             {"general":{"originalSize":{"x":190,"y":80},"size":{"x":190,"y":80},"zoom":2,"showGrid":false},"main":{"layers":[{"order":0,"type":"lines","strokeColor":"#282020","fillColor":"#282020","closePath":true,"fill":true,"visible":true,"clear":false,"points":[{"point":{"x":180,"y":75}},{"point":{"x":168,"y":77}},{"point":{"x":157,"y":78}},{"point":{"x":142,"y":79}},{"point":{"x":129,"y":79}},{"point":{"x":117,"y":79}},{"point":{"x":101,"y":78}},{"point":{"x":90,"y":76}},{"point":{"x":76,"y":73}},{"point":{"x":63,"y":71}},{"point":{"x":52,"y":70}},{"point":{"x":44,"y":69}},{"point":{"x":36,"y":68}},{"point":{"x":25,"y":67}},{"point":{"x":15,"y":65}},{"point":{"x":7,"y":62}},{"point":{"x":6,"y":58}},{"point":{"x":12,"y":55}},{"point":{"x":26,"y":53}},{"point":{"x":47,"y":52}},{"point":{"x":59,"y":52}},{"point":{"x":80,"y":52}},{"point":{"x":95,"y":53}},{"point":{"x":108,"y":54}},{"point":{"x":126,"y":56}},{"point":{"x":139,"y":59}},{"point":{"x":151,"y":62}},{"point":{"x":162,"y":65}},{"point":{"x":178,"y":69}},{"point":{"x":182,"y":72}}]}]}}
@@ -32,7 +32,7 @@ class Demo9LabelScene extends Scene {
                 }), 10);
 
         this.car = this.addGo(new GO({
-            position: new V2(150,240),
+            position: this.sceneCenter.clone(),//new V2(150,240),
             size: new V2(190,80),
             renderValuesRound: true,
             init() {
@@ -411,8 +411,8 @@ this.sideWIndowError = this.addChild(new GO({
         }), 10)
 
         this.ground = this.addGo(new GO({
-            position: new V2(150, 250),
-            size: new V2(300, 100),
+            position: this.sceneCenter.clone(),//new V2(150, 250),
+            size: this.viewport.clone(),//new V2(300, 100),
             init() {
                 this.floor = this.addChild(new GO({
                     position: new V2(),
@@ -420,8 +420,8 @@ this.sideWIndowError = this.addChild(new GO({
                     init() {
                         this.img = createCanvas(this.size, (ctx, size, hlp) => {
                             //473529
-                            hlp.setFillColor('#473B35').rect(0,size.y/2-5,size.x, size.y);
-                             hlp.setFillColor('#191513').rect(0, size.y/2-5, size.x, 1)
+                            hlp.setFillColor('#473B35').rect(0,size.y/2+5,size.x, size.y);
+                             hlp.setFillColor('#191513').rect(0, size.y/2+5, size.x, 1)
                             // hlp.setFillColor('#211B19').rect(0, size.y/2-5 + 2, size.x, 4)
                             // hlp.setFillColor('#2B2320').rect(0, size.y/2-5 + 2 + 4, size.x, 8)
                             // hlp.setFillColor('#352C28').rect(0, size.y/2-5 + 2 + 4 + 8, size.x, 14)
