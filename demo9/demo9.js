@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let defaultViewpot = new V2(500,300);
     let verticalDefaultViewport = new V2(300,500);
     let squareDefaultViewport = new V2(300,300);
+    let smallSquareDefaultViewport = new V2(200,200);
     
     SCG.scenes.cacheScene(new RotationScene({
         name:'rotation',
@@ -107,9 +108,9 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     }));
 
-    SCG.scenes.cacheScene(new SmokeScene({
-        name:'smoke',
-        viewport: defaultViewpot
+    SCG.scenes.cacheScene(new Demo9BMove2Scene({
+        name:'bmove2',
+        viewport: smallSquareDefaultViewport
     }));
 
     SCG.scenes.cacheScene(new CarCommissionScene({
