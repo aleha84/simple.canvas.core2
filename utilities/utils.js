@@ -585,6 +585,9 @@ function createCanvasHelper({ctx}){
 
       return this;
     },
+    strokeRectV2(topLeft,size,lineWidth = 1){
+      return this.strokeRect(topLeft.x, topLeft.y, size.x, size.y, lineWidth);
+    },
     circle(center, radius, dots = undefined) {
       return this.сircle(center, radius, dots);
     },

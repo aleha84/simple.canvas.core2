@@ -20,6 +20,8 @@ document.addEventListener("DOMContentLoaded", function() {
     
     let defaultViewpot = new V2(500,300);
     let verticalDefaultViewport = new V2(300,500);
+    let squareDefaultViewport = new V2(300,300);
+    let smallSquareDefaultViewport = new V2(200,200);
     
     SCG.scenes.cacheScene(new RotationScene({
         name:'rotation',
@@ -106,9 +108,9 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: verticalDefaultViewport
     }));
 
-    SCG.scenes.cacheScene(new SmokeScene({
-        name:'smoke',
-        viewport: defaultViewpot
+    SCG.scenes.cacheScene(new Demo9BMove2Scene({
+        name:'bmove2',
+        viewport: smallSquareDefaultViewport
     }));
 
     SCG.scenes.cacheScene(new CarCommissionScene({
@@ -130,6 +132,37 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'rocket',
         viewport: verticalDefaultViewport
     }));
+
+    SCG.scenes.cacheScene(new Demo9BMoveScene({
+        name:'bmove',
+        viewport: verticalDefaultViewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9WindowScene({
+        name:'window',
+        viewport: new V2(300, 400)
+    }));
+
+    SCG.scenes.cacheScene(new Demo9DotsScene({
+        name:'dots',
+        viewport: new V2(300, 300)
+    }));
+
+    SCG.scenes.cacheScene(new Demo9LabelScene({
+        name:'label',
+        viewport: new V2(300, 150)
+    }));
+
+    SCG.scenes.cacheScene(new Demo9TeamScene({
+        name:'team',
+        viewport: new V2(250, 175)
+    }));
+
+    SCG.scenes.cacheScene(new Demo9BRoadScene({
+        name:'broad',
+        viewport: new V2(300, 200)
+    }));
+
 
     sceneSelectByHashValue();
     

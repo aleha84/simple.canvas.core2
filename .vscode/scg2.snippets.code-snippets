@@ -16,6 +16,32 @@
 	// 	"description": "Log output to console"
 	// }
 
+	"AddGo": {
+		"scope": "javascript",
+		"prefix": "addgo",
+		"body": [
+			"this.addGo(new GO({",
+			"\tposition: ${1:new V2(0,0)},",
+			"\tsize: ${2:new V2(1,1)},",
+			"\tinit() {",
+			"\t\t$4//",
+			"\t}",
+			"}), ${3:1})"
+					
+		]
+	},
+
+
+	"CreateCanvas": {
+		"scope": "javascript",
+		"prefix": "_createCanvas",
+		"body": [
+			"createCanvas(${1:size}, (ctx, size, hlp) => {",
+			"\t//$2",
+			"})"
+		]
+	},
+
 	"SceneClass": {
 		"scope": "javascript",
 		"prefix": "createScene",

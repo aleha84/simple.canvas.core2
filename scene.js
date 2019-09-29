@@ -235,6 +235,10 @@ class Scene {
         SCG.contexts.background.fillRect(0,0,SCG.viewport.real.width,SCG.viewport.real.height);
     }
 
+    backgroundRenderImage(img) {
+        SCG.contexts.background.drawImage(img, 0,0, SCG.viewport.real.width,SCG.viewport.real.height);
+    }
+
     addUIGo(go) {
         if(go === undefined)
             throw 'No GO provided';

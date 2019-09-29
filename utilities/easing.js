@@ -19,10 +19,10 @@ var easing = {
 
         return m[key];
     },
-    createProps(duration, start, end, type, method) {
-        return { time: 0, duration, change: end - start , type, method, startValue: start, useCache: false, onComplete: undefined, onChange: undefined }
+    createProps(duration, start, end, type, method, onComplete = undefined, onChange = undefined) {
+        return { time: 0, duration, change: end - start , type, method, startValue: start, useCache: false,  onComplete, onChange }
     },
-    commonProcess({context, targetpropertyName, propsName, round = false, setter, removePropsOnComplete = true}) {
+    commonProcess({context, targetpropertyName, propsName, round = false, setter, removePropsOnComplete = true, setterUseContext = false}) {
         if(context[propsName]){
             let props = context[propsName];
             if(props == undefined)
@@ -34,7 +34,13 @@ var easing = {
             }
 
             if(setter) {
-                setter(value);
+                if(setterUseContext){
+                    setter.call(context, value);
+                }
+                else{
+                    setter(value);
+                }
+                
             }
             else {
                 context[targetpropertyName] = value;
