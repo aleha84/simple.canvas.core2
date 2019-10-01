@@ -53,6 +53,67 @@ class Demo9BikeScene extends Scene {
                     })
 
                 })
+
+                this.addChild(new GO({
+                    size: this.size, 
+                    position: new V2(),
+                    easingType: 'expo',
+                    method: 'in',
+                    time: 20,
+                    init() {
+                        this.dividers = [];
+                        this.dividersCalmdown = 0;
+                        this.perspectiveCenter = new V2(this.size.x/2, 0).toInt()
+                        this.dividerTargetPosition = new V2(this.size.x/2 - 50, this.size.y).toInt();
+                        this.dividerDirection = this.perspectiveCenter.direction(this.dividerTargetPosition);
+                        this.timer = this.regTimerDefault(30, () => {
+                            if(this.dividersCalmdown-- == 0){
+                                this.dividersCalmdown = 7;
+                                let d = {
+                                    alive: true,
+                                    position: new V2(),
+                                    width: 20,
+                                    length: 45,
+                                    color: '#DDD'
+                                };
+
+                                d.xChange = easing.createProps(this.time, this.perspectiveCenter.x, this.dividerTargetPosition.x, this.easingType, this.method, () => { d.alive = false; })
+                                d.yChange = easing.createProps(this.time, this.perspectiveCenter.y, this.dividerTargetPosition.y, this.easingType, this.method)
+                                d.widthChange = easing.createProps(this.time, 0, d.width, this.easingType, this.method)
+                                d.lengthChange = easing.createProps(this.time, 0, d.length, this.easingType, this.method)
+
+                                this.dividers.push(d)
+                            }
+
+                            for(let i = 0; i < this.dividers.length; i++){
+                                let d = this.dividers[i];
+                                easing.commonProcess({context: d, propsName: 'xChange', round: true, setter: (v) => d.position.x = v})
+                                easing.commonProcess({context: d, propsName: 'yChange', round: true, setter: (v) => d.position.y = v})
+
+                                easing.commonProcess({context: d, propsName: 'widthChange', round: true, targetpropertyName: 'width'})
+                                easing.commonProcess({context: d, propsName: 'lengthChange', round: true, targetpropertyName: 'length'})
+                            }
+
+                            this.dividers = this.dividers.filter(d => d.alive);
+
+                            this.createImage();        
+                        })
+                    },
+                    createImage() {
+                        this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                            let pp = new PerfectPixel({ctx})
+
+                            for(let i = 0; i < this.dividers.length; i++){
+                                let d = this.dividers[i];
+                                hlp.setFillColor(d.color);
+                                pp.lineV2(d.position, d.position.add(this.dividerDirection.mul(d.length)).toInt()).forEach(p => {
+                                    hlp.rect(p.x, p.y, d.width, 1);
+                                })
+                            }
+                        })
+                        
+                    }
+                }))
             }
         }), 1)
 
