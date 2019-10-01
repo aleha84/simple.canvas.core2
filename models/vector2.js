@@ -230,6 +230,10 @@ class Vector2 {
     toInt(inner = false){
         return this.round(0, inner);
     }
+
+    isNaN(){
+        return Number.isNaN(this.x) || Number.isNaN(this.y);
+    }
     
     static average(vectors){
         if(!isArray(vectors) || isEmpty(vectors)){
