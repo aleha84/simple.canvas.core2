@@ -37,7 +37,10 @@ class Demo9BikeScene extends Scene {
                     //.rect(size.x/3,size.y-12, size.x/3, 1)
                     hlp.setFillColor('#23416E')
                     .rect(0,size.y-2,size.x, 2)
-                    .rect(size.x/4,size.y-4,size.x/2, 1);                    
+                    .rect(size.x/4,size.y-4,size.x/2, 1);  
+                    
+                    hlp.setFillColor('#0E1B2D').rect(0,0,size.x, 80).rect(0,83,size.x, 2).rect(0,87,size.x, 1).rect(0,90,size.x, 1)
+                    hlp.setFillColor('#0B1523').rect(0,0,size.x, 30).rect(0,33, size.x, 3).rect(0,38, size.x, 2).rect(0,42, size.x, 1)
                 })
                 //#00003C
                 //#E79D56
@@ -240,24 +243,6 @@ class Demo9BikeScene extends Scene {
             }
         }), 1)
 
-        // this.rightFence = this.addGo(new GO({
-        //     position: new V2(this.viewport.x*3/4,this.viewport.y - this.roadHeight - 10),
-        //     size: new V2(this.viewport.x/2,20),
-        //     init() {
-        //         this.img = createCanvas(this.size, (ctx, size, hlp) => {
-        //             hlp.setFillColor('#0E171E')
-        //             let pp = new PerfectPixel({ctx});
-        //             let points = pp.lineV2(new V2(0,size.y), new V2(size.x, 0));
-        //             let sChange = easing.createProps(size.x, 0, 50, 'expo', 'out');
-        //             let hsv = [206,50,15];
-        //             for(let i = 0; i < points.length; i++){
-        //                 sChange.time = points[i].x;
-        //                 hlp.setFillColor(colors.hsvToHex([hsv[0], easing.process(sChange), hsv[2]])).rect(points[i].x, points[i].y, 1, size.y)
-        //             }
-        //         })
-        //     }
-        // }), 30)
-
         this.perspectiveRightSize = new V2(this.viewport.x/2, this.viewport.y-this.roadHeight).toInt();
 
         this.perspectiveLeft = this.addGo(new Demo9PerspectiveGO({
@@ -308,7 +293,7 @@ class Demo9BikeScene extends Scene {
                 return item;
             },
             itemGenerator() {
-                let tl = new V2(-100, 0);
+                let tl = new V2(-150, 0);
                 let item =  {
                     alive: true,
                     size: new V2(100, 200),
@@ -316,7 +301,7 @@ class Demo9BikeScene extends Scene {
                     parts: []
                 };
                 
-                let p1Y = getRandomInt(-200,-100);
+                let p1Y = getRandomInt(-200,100);
                 let rWidth = getRandomInt(50, 100);
 
                 let rect = {
@@ -325,6 +310,7 @@ class Demo9BikeScene extends Scene {
                     size: new V2(rWidth+100,item.size.y + Math.abs(p1Y)),
                     hsv: [208,100,18],
                     sClamps: [80,100],
+                    vClamps: [13,19],
                     visible: true,
                 }
                 item.parts.push(rect)
@@ -340,6 +326,7 @@ class Demo9BikeScene extends Scene {
                     type: 'side',
                     hsv: [207,100,22],
                     sClamps: [80,100],
+                    vClamps: [17,23],
                     p1: p1.clone(),
                     p2: p2.clone(),
                     p3: p3.clone(),
@@ -354,6 +341,7 @@ class Demo9BikeScene extends Scene {
                     p2: p4,
                     hsv: [207,100,27],
                     sClamps: [80,100],
+                    vClamps: [22,28],
                     visible: false,
                     visibleFrom: this.time/2
                 })
@@ -495,35 +483,37 @@ class Demo9BikeScene extends Scene {
                 let p4 = new V2(p2.x, item.size.y)
                 item.parts.push({
                     type: 'side',
-                    defaultColor: '#001F3A',
+                    //defaultColor: '#001F3A',
                     p1,
                     p2,
                     p3,
                     p4, 
                     visible: true,
-                    colorToTime: [
-                        { before: this.time/2, color: '#0E2538'},
-                        { before: this.time*3/4, color: '#082135'}
-                    ]
+                    hsv: [207,100,22],
+                    sClamps: [80,100],
+                    vClamps: [17,23],
                 })
 
                 item.parts.push({
                     type: 'rect',
                     tl: p2,
                     size: new V2(getRandomInt(200,300),item.size.y-p2.y),
-                    defaultColor: '#00182E',
+                    //defaultColor: '#00182E',
                     visible: true,
-                    colorToTime: [
-                        { before: this.time/2, color: '#0B1D2D'},
-                        { before: this.time*3/4, color: '#061A2B'}
-                    ]
+                    hsv: [208,100,18],
+                    sClamps: [80,100],
+                    vClamps: [13,19],
                 })
+
 
                 item.parts.push({
                     type: 'stroke',
                     p1,
                     p2: p3,
-                    color: '#002747',
+                    //color: '#002747',
+                    hsv: [207,100,27],
+                    sClamps: [80,100],
+                    vClamps: [22,28],
                     visible: false,
                     visibleFrom: this.time/2
                 })
@@ -562,19 +552,67 @@ class Demo9BikeScene extends Scene {
                         type: 'stroke',
                         p1: _p1,
                         p2: _p2,
-                        color: '#00182E',
+                        //color: '#00182E',
+                        hsv: [208,100,18],
+                        sClamps: [80,100],
+                        vClamps: [13,19],
                         visible: false,
                         visibleFrom: this.time*3/4
                     };
+
+                    
+                    if(getRandomInt(0,5) == 0){
+                        let wp1 = leftPoint.add(leftPointPerspectiveDirection.mul(getRandomInt(0,distance)));
+                        let wp2 = wp1.add(leftPointPerspectiveDirection.mul(2));
+                        let window = {
+                            type: 'side',
+                            p1: wp1.add(new V2(0,1)),
+                            p2: wp2.add(new V2(0,1)),
+                            p3: wp1.add(new V2(0,10)),
+                            p4: wp2.add(new V2(0,10)), 
+                            hsv: [47,80,80],
+                            sClamps: [40,60],
+                            vClamps: [40,70],
+                            visible: false,
+                            visibleFrom: this.time*2.5/4
+                        }
+
+                        item.parts.push(window)    
+                    }
+                    
 
                     let hPart = {
                         type: 'stroke',
                         subType: 'rect',
                         p1: rightPoint.add(new V2(leftShift+rightShift, 0)),
                         p2: rightPoint.add(new V2(200, 0)),
-                        color: '#001F3A',
+                        //color: '#001F3A',
+                        hsv: [207,100,22],
+                        sClamps: [80,100],
+                        vClamps: [17,23],
+                        forceHeight: true,
                         visible: false,
                         visibleFrom: this.time*3/4
+                    }
+
+                    if(getRandomInt(0,5) == 0){
+                        let wp1 = rightPoint.add(new V2(getRandomInt(15, 60), 1))
+                        let wp2 = wp1.add(new V2(10,10))
+                        let window = {
+                            type: 'stroke',
+                            subType: 'rect',
+                            p1: wp1,
+                            p2: wp2,
+                            forceHeight: true,
+                            forceWidth: true,
+                            hsv: [47,80,80],
+                            sClamps: [40,60],
+                            vClamps: [40,70],
+                            visible: false,
+                            visibleFrom: this.time*2.5/4
+                        }
+
+                        item.parts.push(window)    
                     }
 
                     if(i %2 != 0){
@@ -588,7 +626,20 @@ class Demo9BikeScene extends Scene {
                     item.parts.push(part);
                     item.parts.push(hPart);
 
-                    
+                    item.parts.push({
+                        type: 'stroke',
+                        subType: 'rect',
+                        p1: p1.clone(),
+                        p2: p1.add(new V2(1,1)),
+                        //color: 'red',
+                        hsv: [358,100,76],
+                        sClamps: [40,100],
+                        vClamps: [40,100],
+                        forceWidth: true,
+                        forceHeight: true,
+                        visible: false,
+                        visibleFrom: this.time*2.5/4
+                    })
     
                     // if(!_p1 || _p1.isNaN()
                     // || !_p2 || _p2.isNaN() 
@@ -710,6 +761,10 @@ class Demo9PerspectiveGO extends GO {
             if(part.sClamps){
                 part.sChange = easing.createProps(time, part.sClamps[0], part.sClamps[1], this.easingType, this.method);
             }
+
+            if(part.vClamps){
+                part.vChange = easing.createProps(time, part.vClamps[0], part.vClamps[1], this.easingType, this.method);
+            }
         }
 
         return item;
@@ -724,6 +779,7 @@ class Demo9PerspectiveGO extends GO {
             let part = item.parts[i];
 
             easing.commonProcess({ context: part, targetpropertyName: 's', propsName: 'sChange', round: true })
+            easing.commonProcess({ context: part, targetpropertyName: 'v', propsName: 'vChange', round: true })
 
             if(part.type == 'rect'){
                 easing.commonProcess({ context: part, setter: (value) => { part.tl.x = value }, propsName: 'tlXChange', round: false })
@@ -795,6 +851,10 @@ class Demo9PerspectiveGO extends GO {
                 if(part.s){
                     hsv[1] = part.s
                 };
+
+                if(part.v){
+                    hsv[2] = part.v
+                };
                 part.color = colors.hsvToHex(hsv);
             }
 
@@ -850,7 +910,7 @@ class Demo9PerspectiveGO extends GO {
                     let width = fast.r(part.p2.x - part.p1.x);
                     let height = fast.r(part.p2.y - part.p1.y);
                     let _tl = tl.add(part.p1).toInt();
-                    if(height == 0)
+                    if(height == 0 && part.forceHeight)
                         height = 1;
 
                     if(width == 0 && part.forceWidth){
