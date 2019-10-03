@@ -163,6 +163,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(300, 200)
     }));
 
+    SCG.scenes.cacheScene(new Demo9BikeScene({
+        name:'bike',
+        viewport: new V2(300, 200)
+    }));
+
 
     sceneSelectByHashValue();
     

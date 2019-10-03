@@ -4,12 +4,16 @@ class PerfectPixel {
             fillStyleProvider: undefined
         }, options)
 
-        if(this.context === undefined){
+        if(this.ctx ==- undefined && this.context === undefined){
             console.trace();
             throw 'PerfectPixel -> context is not defined';
         }
 
-        this.ctx = this.context;
+        if(this.context){
+            this.ctx = this.context;
+        }
+        
+        this.context = this.ctx;
     }
     setPixel(x, y){
         if(this.fillStyleProvider)
