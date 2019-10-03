@@ -47,11 +47,35 @@ class Demo9BikeScene extends Scene {
             }
         }), 1)
 
+        // this.bike = this.addGo(new GO({
+        //     position: new V2(70,135),
+        //     size: new V2(100,100),
+        //     init() {
+        //         this.img = createCanvas(this.size, (ctx, size, hlp) => {
+        //             hlp.setFillColor('red').strokeRect(0,0,size.x, size.y);
+        //         })
+        //     }
+        // }), 30)
+
         this.road = this.addGo(new GO({
             position: new V2(this.sceneCenter.x,this.viewport.y - (this.roadHeight/2)),
             size: new V2(this.viewport.x,this.roadHeight),
             init() {
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    hlp.setFillColor('#2F3A3F').rect(0,0,size.x, size.y);
+                    hlp.setFillColor('#283135')//.rect(0,0,size.x, 1)
+                    .rect(0,0,size.x/2 - 10, 1).rect(size.x - size.x/2 + 10,0,size.x/2 - 10, 1)
+                    .rect(0,1,size.x/4, 1).rect(0,2,size.x/8, 1)
+                    .rect(size.x-size.x/4,1,size.x/4, 1).rect(size.x-size.x/8,2,size.x/8, 1)
+                    // .rect(size.x/2-100,0,200, size.y-38)
+                    // .rect(size.x/2-80,0,160, size.y-37)
+                    // .rect(size.x/2-60,size.y-36,120, 1)
+                    //hlp.setFillColor('#1F2528').rect(size.x/2-80,0,160, size.y-39)
+                    //.rect(size.x/2-50,0,100, size.y-38)
+                    //hlp.setFillColor('#171C1E').rect(size.x/2-5,0,10, size.y-39)
+                    // hlp.setFillColor('#485359').rect(size.x/2 - 40,0,80, size.y-39);
+                    // hlp.setFillColor('#2F3A3F').rect(size.x/2 - 20,0,40, size.y-39)
+                    /*
                     hlp.setFillColor('#576166').rect(0,0,size.x, size.y);
                     // hlp.setFillColor('#899299').rect(0,0,size.x, size.y);
                     // hlp.setFillColor('#7E868C').rect(0,0,size.x, size.y-5);
@@ -59,16 +83,17 @@ class Demo9BikeScene extends Scene {
                     // hlp.setFillColor('#576166').rect(0,0,size.x, size.y-28);
                      hlp.setFillColor('#485359').rect(0,0,size.x, size.y-33);
                     hlp.setFillColor('#2F3A3F').rect(0,0,size.x, size.y-38);
+                    */
                     hlp.setFillColor('#090909');
                     let pp = new PerfectPixel({ctx});
                     //2D2D2D
-                    pp.lineV2(new V2(this.size.x/2 + 5, 0), new V2(this.size.x, 8)).forEach(p => {
-                        hlp.rect(p.x, 0, 1, p.y)
-                    })
+                    // pp.lineV2(new V2(this.size.x/2 + 5, 0), new V2(this.size.x, 8)).forEach(p => {
+                    //     hlp.rect(p.x, 0, 1, p.y)
+                    // })
 
-                    pp.lineV2(new V2(this.size.x/2 - 5, 0), new V2(0, 8)).forEach(p => {
-                        hlp.rect(p.x, 0, 1, p.y)
-                    })
+                    // pp.lineV2(new V2(this.size.x/2 - 5, 0), new V2(0, 8)).forEach(p => {
+                    //     hlp.rect(p.x, 0, 1, p.y)
+                    // })
 
                 })
 
@@ -104,7 +129,7 @@ class Demo9BikeScene extends Scene {
                                     p1: new V2(), p2: new V2(), p3: new V2(), p4: new V2(),
                                     color: '#DDD',
                                     hsv: [0,0,100],
-                                    vClamps: [65,100]
+                                    vClamps: [45,80]
                                 };
 
                                 d.p1xChange = easing.createProps(this.time, this.perspectiveCenter.x, this.dp1.x, this.easingType, this.method, () => { d.alive = false; })
@@ -128,7 +153,7 @@ class Demo9BikeScene extends Scene {
                                 //hsv: [348,39,26],
                                 hsv: [0,0,50],
                                 //sClamps: [0,39],
-                                vClamps: [30,10],
+                                vClamps: [20,5],
                                 color:undefined,
                             }
 
@@ -259,10 +284,15 @@ class Demo9BikeScene extends Scene {
                     let pp = new PerfectPixel({ctx});
                     let points = pp.lineV2(new V2(0, 0), new V2(size.x,size.y));
                     let sChange = easing.createProps(size.x, 70, 0, 'sin', 'out');
+                    let vChange = easing.createProps(size.x, 15, 0, 'sin', 'out');
                     let hsv = [206,50,15];
                     for(let i = 0; i < points.length; i++){
                         sChange.time = points[i].x;
-                        hlp.setFillColor(colors.hsvToHex([hsv[0], easing.process(sChange), hsv[2]])).rect(points[i].x, points[i].y, 1, size.y)
+                        hlp.setFillColor(colors.hsvToHex(
+                            [hsv[0], 
+                            fast.r(easing.process(sChange)/10)*10, 
+                            hsv[2]])
+                        ).rect(points[i].x, points[i].y, 1, size.y)
                     }
                 }),
                 position: new V2(0,this.perspectiveRightSize.y-20)
@@ -277,10 +307,11 @@ class Demo9BikeScene extends Scene {
                     parts: []
                 };
 
+                let p1 = new V2(0,this.size.y-20 + 1)
                 let fencePart = {
                     type: 'stroke',
                     subType: 'rect',
-                    p1: new V2(0,this.size.y-20 + 1),
+                    p1: p1,
                     p2: new V2(1, this.size.y),
                     forceWidth: true,
                     color: '#0A1219',
@@ -288,7 +319,18 @@ class Demo9BikeScene extends Scene {
                     visibleFrom: this.frontalTime/10
                 }
 
+                // let upperFencePart = {
+                //     type: 'stroke',
+                //     p1: p1.add(new V2(5,-10)),
+                //     p2: p1.clone(),
+                //     forceWidth: true,
+                //     color: '#0A1219',
+                //     visible: false,
+                //     visibleFrom: this.frontalTime/10
+                // }
+
                 item.parts.push(fencePart);
+                //item.parts.push(upperFencePart);
 
                 return item;
             },
@@ -313,16 +355,16 @@ class Demo9BikeScene extends Scene {
                     vClamps: [13,19],
                     visible: true,
                 }
-                item.parts.push(rect)
+                
 
                 let length = getRandomInt(30, 90);
                 
-                let p1 = new V2(rWidth-10, p1Y);
+                let p1 = new V2(rWidth, p1Y);
                 let p1perspectiveDirection = tl.add(p1).direction(this.perspectiveCenter);
                 let p2 = p1.add(p1perspectiveDirection.mul(length));
                 let p3 = new V2(p1.x, item.size.y)
                 let p4 = new V2(p2.x, item.size.y)
-                item.parts.push({
+                let side = {
                     type: 'side',
                     hsv: [207,100,22],
                     sClamps: [80,100],
@@ -333,8 +375,13 @@ class Demo9BikeScene extends Scene {
                     p4: p4.clone(), 
                     visible: false,
                     visibleFrom: this.time*1/3,
-                })
-
+                    update() {
+                        side.p1.x = rect.tl.x+rect.size.x-1;
+                        side.p3.x = side.p1.x;
+                    }
+                }
+                item.parts.push(side)
+                item.parts.push(rect)
                 item.parts.push({
                     type: 'stroke',
                     p1: p2,
@@ -346,69 +393,129 @@ class Demo9BikeScene extends Scene {
                     visibleFrom: this.time/2
                 })
 
-                
+                let sideLinesHeight = 5;
+                let upperShift = 15;
+                let linesGap = 10;
+                let leftShift = 5;
+                let rightShift = 7;
+                let count = fast.r((item.size.y-p1.y-upperShift)/(sideLinesHeight+linesGap));
+                let halfCount = fast.r(count/2)
+                let currentY = p1.y+upperShift;
+                let vLine = {begin: p2.add(new V2(-rightShift, -200)), end: p4.add(new V2(-rightShift, 200))};
+                for(let i = 0; i < count;i++){
+                    let leftPoint = new V2(p1.x+leftShift, currentY);
+                    let leftPointPerspectiveDirection  = tl.add(leftPoint).direction(this.perspectiveCenter);
 
-                // item.parts.push({
-                //     type: 'stroke',
-                //     p1,
-                //     p2: p3,
-                //     color: '#002747',
-                //     visible: false,
-                //     visibleFrom: this.time/2
-                //})
+                    let _p1 = leftPoint;//.add(leftPointPerspectiveDirection.mul(leftShift));
 
-                // let sideLinesHeight = 5;
-                // let upperShift = 5;
-                // let linesGap = 10;
-                // let leftShift = 5;
-                // let rightShift = 7;
-                // let count = fast.r((item.size.y-p1.y-upperShift)/(sideLinesHeight+linesGap));
-                // let halfCount = fast.r(count/2)
-                // let currentY = p1.y+upperShift;
-                // let vLine = {begin: p2.add(new V2(-rightShift, 0)), end: p4.add(new V2(-rightShift, 200))};
-                // for(let i = 0; i < count;i++){
-                //     let leftPoint = new V2(p1.x+leftShift, currentY);
-                //     let leftPointPerspectiveDirection  = tl.add(leftPoint).direction(this.perspectiveCenter).mul(-1);
+                    let rightPoint = raySegmentIntersectionVector2(leftPoint, leftPointPerspectiveDirection, vLine);
+                    let distance = leftPoint.distance(rightPoint);
 
-                //     let _p1 = leftPoint;//.add(leftPointPerspectiveDirection.mul(leftShift));
+                    let _p2 = leftPoint.add(leftPointPerspectiveDirection.mul((distance)));
+                    currentY+=sideLinesHeight;
 
-                //     let rightPoint = raySegmentIntersectionVector2(leftPoint, leftPointPerspectiveDirection, vLine);
-                //     let distance = leftPoint.distance(rightPoint);
+                    // leftPoint = new V2(p1.x+leftShift, currentY);
+                    // leftPointPerspectiveDirection  = tl.add(leftPoint).direction(this.perspectiveCenter).mul(-1);
+                    // let _p3 = leftPoint;//.add(leftPointPerspectiveDirection.mul(leftShift));
+                    // rightPoint = raySegmentIntersectionVector2(leftPoint, leftPointPerspectiveDirection, vLine);
+                    // distance = leftPoint.distance(rightPoint);
 
-                //     let _p2 = leftPoint.add(leftPointPerspectiveDirection.mul((distance)));
-                //     currentY+=sideLinesHeight;
+                    // let _p4 = leftPoint.add(leftPointPerspectiveDirection.mul(distance));
 
-                //     currentY+=linesGap;
-                //     let part = {
-                //         type: 'stroke',
-                //         p1: _p1,
-                //         p2: _p2,
-                //         color: '#00182E',
-                //         visible: false,
-                //         visibleFrom: this.time*3/4
-                //     };
+                    currentY+=linesGap;
+                    let part = {
+                        type: 'stroke',
+                        p1: _p1,
+                        p2: _p2,
+                        //color: '#00182E',
+                        hsv: [208,100,18],
+                        sClamps: [80,100],
+                        vClamps: [13,19],
+                        visible: false,
+                        visibleFrom: this.time*3/4
+                    };
 
-                //     let hPart = {
-                //         type: 'stroke',
-                //         subType: 'rect',
-                //         p1: rightPoint.add(new V2(leftShift+rightShift, 0)),
-                //         p2: rightPoint.add(new V2(200, 0)),
-                //         color: '#001F3A',
-                //         visible: false,
-                //         visibleFrom: this.time*3/4
-                //     }
+                    
+                    if(getRandomInt(0,5) == 0){
+                        let wp1 = leftPoint.add(leftPointPerspectiveDirection.mul(getRandomInt(0,distance)));
+                        let wp2 = wp1.add(leftPointPerspectiveDirection.mul(2));
+                        let window = {
+                            type: 'side',
+                            p1: wp1.add(new V2(0,1)),
+                            p2: wp2.add(new V2(0,1)),
+                            p3: wp1.add(new V2(0,10)),
+                            p4: wp2.add(new V2(0,10)), 
+                            hsv: [47,80,80],
+                            sClamps: [40,60],
+                            vClamps: [40,70],
+                            visible: false,
+                            visibleFrom: this.time*2.5/4
+                        }
 
-                //     if(i %2 != 0){
-                //         part.visible = true;
-                //         part.visibleFrom = undefined;
+                        item.parts.push(window)    
+                    }
+                    
 
-                //         hPart.visible = true;
-                //         hPart.visibleFrom = undefined;
-                //     }
+                    let hPart = {
+                        type: 'stroke',
+                        subType: 'rect',
+                        p1: leftPoint.add(new V2(-rect.size.x, 0)),
+                        p2: leftPoint.add(new V2(-2*rightShift - leftShift, 0)),
+                        //color: 'red',
+                        hsv: [207,100,22],
+                        sClamps: [80,100],
+                        vClamps: [17,23],
+                        forceHeight: true,
+                        visible: false,
+                        visibleFrom: this.time*3/4
+                    }
 
-                //     item.parts.push(part);
-                //     item.parts.push(hPart);
-                // }
+                    if(getRandomInt(0,5) == 0){
+                        let wp1 = leftPoint.add(new V2(-2*rightShift - leftShift, 0)).add(new V2(-getRandomInt(15, 60), 1))
+                        let wp2 = wp1.add(new V2(10,10))
+                        let window = {
+                            type: 'stroke',
+                            subType: 'rect',
+                            p1: wp1,
+                            p2: wp2,
+                            forceHeight: true,
+                            forceWidth: true,
+                            hsv: [47,80,80],
+                            sClamps: [40,60],
+                            vClamps: [40,70],
+                            visible: false,
+                            visibleFrom: this.time*2.5/4
+                        }
+
+                        item.parts.push(window)    
+                    }
+
+                    if(i %3 == 0){
+                        part.visible = true;
+                        part.visibleFrom = undefined;
+
+                        hPart.visible = true;
+                        hPart.visibleFrom = undefined;
+                    }
+
+                    item.parts.push(part);
+                    item.parts.push(hPart);
+
+                    item.parts.push({
+                        type: 'stroke',
+                        subType: 'rect',
+                        p1: p1.clone(),
+                        p2: p1.add(new V2(1,1)),
+                        //color: 'red',
+                        hsv: [358,100,76],
+                        sClamps: [40,100],
+                        vClamps: [40,100],
+                        forceWidth: true,
+                        forceHeight: true,
+                        visible: false,
+                        visibleFrom: this.time*2.5/4
+                    })
+                }
 
                 return item;
             }
@@ -640,25 +747,6 @@ class Demo9BikeScene extends Scene {
                         visible: false,
                         visibleFrom: this.time*2.5/4
                     })
-    
-                    // if(!_p1 || _p1.isNaN()
-                    // || !_p2 || _p2.isNaN() 
-                    // || !_p3 || _p3.isNaN()
-                    // || !_p4 || _p4.isNaN()){
-                    //     debugger;
-                    //     throw 'Side points is incorrect'
-                    // }
-
-
-                    // item.parts.push({
-                    //     type: 'side',
-                    //     color: '#9C7842',
-                    //     p1:_p1,
-                    //     p2:_p2,
-                    //     p3:_p3,
-                    //     p4:_p4, 
-                    //     visible: true,
-                    // })
                 }
 
                 return item;
@@ -834,6 +922,10 @@ class Demo9PerspectiveGO extends GO {
                 }
 
                 part.color = color;
+            }
+
+            if(part.update){
+                part.update();
             }
         }
     }
