@@ -10,7 +10,7 @@ class Editor {
                 mode: {
                     value: 'edit',
                     element: undefined,
-                    moveLayerElement: undefined,
+                    moveGroupElement: undefined,
                     stateElement: undefined,
                     setValue(value) {
                         value = value || this.value;
@@ -22,8 +22,8 @@ class Editor {
                                 text = '"Add points" mode'; break;
                             case 'edit':
                                 text = '"Edit points" mode'; break;
-                            case 'movelayer':
-                                text = '"Move layer" move'; break;
+                            case 'movegroup':
+                                text = '"Move group" move'; break;
                         }
                         
                         this.stateElement.innerText = text;
@@ -31,14 +31,19 @@ class Editor {
                     toggle() {
                         this.setValue(this.value == 'add' ? 'edit' : 'add');
                     },
-                    toggleMoveLayer() {
-                        this.setValue(this.value == 'movelayer' ? 'edit' : 'movelayer');
+                    toggleMoveGroup() {
+                        this.setValue(this.value == 'movegroup' ? 'edit' : 'movegroup');
                     }
                 },
                 setModeState(buttonState, modeValue){
                     this.mode.element.disabled = !buttonState;
-                    this.mode.moveLayerElement.disabled = !buttonState;
+                    //this.mode.moveGroupElement.disabled = !buttonState;
                     this.mode.setValue(modeValue);
+                },
+                setMoveGroupModeState(buttonState, modeValue) {
+                    this.mode.moveGroupElement.disabled = !buttonState;
+                    if(modeValue)
+                        this.mode.setValue(modeValue);
                 }
             },
             image: {
@@ -50,28 +55,40 @@ class Editor {
                 },
                 main: {
                     element: undefined,
-                    currentId: 1,
+                    currentLayerId: 1,
                     layers: [
                         {
                             order: 0,
+                            currentGroupId: 1,
                             selected: false,
                             id: 'main_0',
-                            clear: false,
-                            strokeColor: '#FF0000',
-                            fillColor: '#FF0000',
-                            fill: false,
-                            closePath: false,
-                            type: 'lines',
-                            pointsEl: undefined,
-                            pointEl: undefined,
                             visible: true,
-                            points: [
-                                // {
-                                //     id: 'main_0_point_0',
-                                //     order: 0,
-                                //     point: {x: 1, y: 1},
-                                // },
+                            groupsEl: undefined,
+                            groupEl: undefined,
+                            groups: [
+                                {
+                                    order: 0,
+                                    currentPointId: 0,
+                                    selected: false,
+                                    id: 'main_0_group_0',
+                                    clear: false,
+                                    strokeColor: '#FF0000',
+                                    fillColor: '#FF0000',
+                                    fill: false,
+                                    closePath: false,
+                                    type: 'lines',
+                                    pointsEl: undefined,
+                                    pointEl: undefined,
+                                    visible: true,
+                                    points: [
+                                        // {
+                                        //     id: 'main_0_point_0',
+                                        //     order: 0,
+                                        //     point: {x: 1, y: 1},
+                                        // },
 
+                                    ]
+                                }
                             ]
                         }
 /* layer props
@@ -109,6 +126,7 @@ points: [{
     }
 
     init() {
+        components.editor = this;
         this.createControlButtons();   
         this.createEditor();
         this.createImage();
@@ -145,21 +163,21 @@ points: [{
         let that = model || this;
         let i = that.image;
         let e = that.editor;
-        let layerMapper = (l) => {
+        let groupMapper = (g) => {
             return {
-                order: l.order,
-                selected: l.selected,
-                type: l.type,
-                strokeColor: l.strokeColor,
-                fillColor: l.fillColor,
-                closePath: l.closePath,
-                fill: l.fill,
-                visible: l.visible,
-                clear: l.clear,
+                order: g.order,
+                selected: g.selected,
+                type: g.type,
+                strokeColor: g.strokeColor,
+                fillColor: g.fillColor,
+                closePath: g.closePath,
+                fill: g.fill,
+                visible: g.visible,
+                clear: g.clear,
                 changeCallback() {
                     that.updateEditor.bind(that)();
                 },
-                points: l.points.map((p) => {
+                points: g.points.map((p) => {
                     return {
                         point: new V2(p.point),
                         selected: p.selected,
@@ -170,7 +188,7 @@ points: [{
                             //that.updateEditor();
                             //components.fillPoints(l.pointsEl, l.pointEl, l.points, that.updateEditor.bind(that));
 
-                            let select = l.pointsEl.querySelector('select');
+                            let select = g.pointsEl.querySelector('select');
                             if(select){
                                 for(let i = 0; i < select.options.length;i++){
                                     select.options[i].selected = select.options[i].value == p.id;
@@ -183,11 +201,11 @@ points: [{
                                     select.dispatchEvent(new Event('change'));
                             }
                             
-                            l.points.forEach(_p => p.selected = false);
+                            g.points.forEach(_p => p.selected = false);
                             p.selected = true;
                         },
                         selectCallback() {
-                            let select = l.pointsEl.querySelector('select');
+                            let select = g.pointsEl.querySelector('select');
                             if(select){
                                 for(let i = 0; i < select.options.length;i++){
                                     select.options[i].selected = select.options[i].value == p.id;
@@ -196,7 +214,7 @@ points: [{
                                 select.dispatchEvent(new CustomEvent('change', { detail: 'skipSelectChangeCallback' }));
                             }
                             
-                            l.points.forEach(_p => p.selected = false);
+                            g.points.forEach(_p => p.selected = false);
                             p.selected = true;
                         }
                     }
@@ -204,17 +222,34 @@ points: [{
                 addPointCallback(p) {
                     let callback = that.updateEditor.bind(that);
                     
-                    if(l.currentId == undefined){
-                        l.currentId = 0;
+                    if(g.currentPointId == undefined){
+                        g.currentPointId = 0;
                     }
 
-                    l.points.push({
-                        id: `${l.id}_point_${l.currentId++}`,
-                        order: l.points.length,
+                    g.points.push({
+                        id: `${g.id}_point_${g.currentPointId++}`,
+                        order: g.points.length,
                         point: {x: p.x, y: p.y},
                     })
-                    components.fillPoints(l, that.updateEditor.bind(that))
+                    components.fillPoints(g, that.updateEditor.bind(that))
                     callback();
+                }
+            }
+        }
+        let layerMapper = (l) => {
+            return {
+                order: l.order,
+                selected: l.selected,
+                //type: l.type,
+                //strokeColor: l.strokeColor,
+                //fillColor: l.fillColor,
+                //closePath: l.closePath,
+                //fill: l.fill,
+                visible: l.visible,
+                //clear: l.clear,
+                groups: l.groups.map(groupMapper),
+                changeCallback() {
+                    that.updateEditor.bind(that)();
                 }
             }
         }
@@ -486,7 +521,7 @@ points: [{
 
         let editorlEl = htmlUtils.createElement('div', { className: 'editorBlock' });
         let modeSwitch = htmlUtils.createElement('div', { className: 'modeSwitch' });
-        let moveLayer = htmlUtils.createElement('div', { className: 'moveLayer' });
+        let moveGroup = htmlUtils.createElement('div', { className: 'moveGroup' });
 
         let modeSwitchButton = htmlUtils.createElement('input', { 
             value: 'Toggle mode', 
@@ -500,13 +535,13 @@ points: [{
             }
         })
 
-        let moveLayerSwitchButton = htmlUtils.createElement('input', { 
-            value: 'Toggle move layer', 
+        let moveGroupSwitchButton = htmlUtils.createElement('input', { 
+            value: 'Toggle move group', 
             attributes: { type: 'button' }, 
             props: {disabled: true},
             events: {
                 click: () => {
-                    that.editor.mode.toggleMoveLayer();
+                    that.editor.mode.toggleMoveGroup();
                     that.updateEditor();
                 }
             }
@@ -514,15 +549,15 @@ points: [{
 
         modeSwitch.appendChild(modeSwitchButton);
 
-        moveLayer.appendChild(moveLayerSwitchButton)
+        moveGroup.appendChild(moveGroupSwitchButton)
 
         editorlEl.appendChild(modeSwitch);
-        editorlEl.appendChild(moveLayer)
+        editorlEl.appendChild(moveGroup)
         
         editor.element = editorlEl;
         
         editor.mode.element = modeSwitchButton;
-        editor.mode.moveLayerElement = moveLayerSwitchButton;
+        editor.mode.moveGroupElement = moveGroupSwitchButton;
 
         editor.mode.stateElement = htmlUtils.createElement('span', { className: 'stateName', text: '"Edit points" mode' });
         modeSwitch.appendChild(editor.mode.stateElement);
@@ -613,17 +648,20 @@ points: [{
                     let layer = {
                         selected: true,
                         order: main.layers.length,
-                        id: `main_${main.currentId++}`,
-                        clear: false,
-                        strokeColor: '#FF0000',
-                        fillColor: '#FF0000',
-                        fill: false,
-                        closePath: false,
-                        type: 'dots',
-                        pointsEl: undefined,
-                        pointEl: undefined,
+                        id: `main_${main.currentLayerId++}`,
                         visible: true,
-                        points: []
+                        groupsEl: undefined,
+                        groupEl: undefined,
+                        groups: []
+                        // clear: false,
+                        // strokeColor: '#FF0000',
+                        // fillColor: '#FF0000',
+                        // fill: false,
+                        // closePath: false,
+                        // type: 'dots',
+                        // pointsEl: undefined,
+                        // pointEl: undefined,
+                        // points: []
                     }
                     main.layers.push(layer);
                     select.options[select.options.length] = new Option(layer.id, layer.id);

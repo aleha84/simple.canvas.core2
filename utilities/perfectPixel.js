@@ -15,6 +15,9 @@ class PerfectPixel {
         
         this.context = this.ctx;
     }
+    setFillStyle(color){
+        this.ctx.fillStyle = color;
+    }
     setPixel(x, y){
         if(this.fillStyleProvider)
             this.ctx.fillStyle = this.fillStyleProvider(x, y);
@@ -202,47 +205,61 @@ var PP = PerfectPixel;
 
 PP.createImage = function(model) {
     let {general, main} = model;
+    let renderGroup = (pp, group) => {
+        pp.setFillStyle(group.strokeColor)
+        pp.clear = group.clear;
+
+        if(group.type == 'dots'){
+            for(let po of group.points){
+                pp.setPixel(po.point.x, po.point.y);    
+            }
+        }
+        else if(group.type == 'lines'){
+            if(group.points.length == 1){
+                pp.setPixel(group.points[0].point.x, group.points[0].point.y);
+            }
+            else{
+                let filledPixels = [];
+                for(let i = 0; i < group.points.length;i++){
+                    let p = group.points;
+                    if(i < p.length-1)
+                        filledPixels= [...filledPixels, ...pp.lineV2(p[i].point, p[i+1].point)];
+                    else if(group.closePath){
+                        filledPixels = [...filledPixels, ...pp.lineV2(p[i].point, p[0].point)];
+
+                        if(group.fill){
+                            pp.setFillStyle(group.fillColor)
+                            let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
+                            pp.fill(uniquePoints, p.map(p => p.point))//, _fillPoints)
+                        }
+                        
+                    }
+                        
+                }
+
+
+            }
+            
+        }
+    }
+
     return createCanvas(general.size, (ctx, size) => {
         let pp = new PerfectPixel({context: ctx});
         for(let layer of main.layers.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
             if(layer.visible != undefined && layer.visible == false)
                 continue;
 
-            ctx.fillStyle = layer.strokeColor;
+            if(layer.groups){
+                //for(let g = 0; g < layer.groups.length; g++){
+                for(let group of layer.groups.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
+                    if(group.visible != undefined && group.visible == false)
+                        continue;
 
-            pp.clear = layer.clear;
-
-            if(layer.type == 'dots'){
-                for(let po of layer.points){
-                    pp.setPixel(po.point.x, po.point.y);    
+                    renderGroup(pp, group)
                 }
             }
-            else if(layer.type == 'lines'){
-                if(layer.points.length == 1){
-                    pp.setPixel(layer.points[0].point.x, layer.points[0].point.y);
-                }
-                else{
-                    let filledPixels = [];
-                    for(let i = 0; i < layer.points.length;i++){
-                        let p = layer.points;
-                        if(i < p.length-1)
-                            filledPixels= [...filledPixels, ...pp.lineV2(p[i].point, p[i+1].point)];
-                        else if(layer.closePath){
-                            filledPixels = [...filledPixels, ...pp.lineV2(p[i].point, p[0].point)];
-
-                            if(layer.fill){
-                                ctx.fillStyle = layer.fillColor;
-                                let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
-                                pp.fill(uniquePoints, p.map(p => p.point))//, _fillPoints)
-                            }
-                            
-                        }
-                            
-                    }
-
-
-                }
-                
+            else {
+                renderGroup(pp, layer);
             }
         }
     });
