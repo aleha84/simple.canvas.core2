@@ -26,6 +26,52 @@ var components = {
 
         return el;
     },
+    createInput(value, title, changeCallback){
+        let el = htmlUtils.createElement('div', { classNames: ['inputBox', 'row'] });
+
+        if(title){    
+            el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
+        }
+
+        el.appendChild((() => {
+            
+            let divValue = htmlUtils.createElement('div', { className: 'value' })
+            divValue.appendChild(htmlUtils.createElement('span', { className: 'read', text: value || '<no value>' }));
+            divValue.appendChild(htmlUtils.createElement('div', { className: 'edit' }));
+
+            divValue.addEventListener('click', function(e) {
+                if(this.classList.contains('edit'))
+                    return;
+
+                this.classList.add('edit');
+
+                let editBlock = this.querySelector('.edit');
+                let readBlock = this.querySelector('.read');
+                htmlUtils.removeChilds(editBlock);
+
+                editBlock.appendChild(htmlUtils.createElement('input', { className: 'newValue', value: value }));
+
+                editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
+                events: { click: (event) => {
+                    let newValue = editBlock.querySelector('.newValue').value;
+                    readBlock.innerText = newValue;
+                    this.classList.remove('edit');
+                    event.stopPropagation();
+                    changeCallback(newValue);
+                }},
+                value: 'U' }));
+                editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
+                    events: { click: (event) => {
+                        this.classList.remove('edit');
+                        event.stopPropagation();
+                    } }, value: 'C' }));
+            })
+
+            return divValue;
+        })())
+
+        return el;
+    },
     createV2(value, title, changeCallback) {
         let el = htmlUtils.createElement('div', { classNames: ['V2', 'row'] });
 
@@ -380,7 +426,7 @@ var components = {
 
         changeCallback();
     },
-    createLayer(layerEl, layerProps, changeCallback) {
+    createLayer(layerEl, layerProps, changeCallback, additionals = {}) {
         htmlUtils.removeChilds(layerEl);
 
         if(layerProps == undefined) {
@@ -388,7 +434,17 @@ var components = {
             return;
         }
 
-        layerEl.appendChild(htmlUtils.createElement('div', { text: layerProps.id }))
+        layerEl.appendChild(htmlUtils.createElement('div', { text: 'id: ' + layerProps.id }))
+        layerEl.appendChild(components.createInput(layerProps.name, 'Name', function(value) {
+            if(value){
+                layerProps.name = value
+                if(additionals.selectedOption)
+                    additionals.selectedOption.text =  value;
+    
+                changeCallback();
+            }
+            
+        }))
 
         layerEl.appendChild(components.createCheckBox(layerProps.visible, 'Visible', function(value) {
             layerProps.visible = value;
@@ -493,13 +549,13 @@ var components = {
                     else 
                         g = g[0];
 
-                    let currentIndex = groups.indexOf(p);
+                    let currentIndex = groups.indexOf(g);
                     if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == points.length-1))
                         return;
 
                     components.array_move(groups, currentIndex, currentIndex + direction);
                     groups.forEach((g, i) => g.order = i);
-
+                    components.fillGroups(layerProps, changeCallback);
                     //components.fillPoints(layerProps, changeCallback);
                     changeCallback();
                 },

@@ -122,7 +122,7 @@ SCG.viewport = {
 		let mLeft = 0;
 		if(this.real.width < _width)
             mLeft = Math.round((_width - this.real.width)/2);
-		else if(this.real.height < _height)
+		if(this.real.height < _height)
             mTop = Math.round((_height - this.real.height)/2);
 
         let setCanvasProperties = (canvasName, mTop, mLeft) => {

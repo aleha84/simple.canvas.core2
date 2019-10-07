@@ -90,30 +90,39 @@ html,
         clear: both;
       }
 
-    .V2>.value.edit > .read {
+    .V2>.value.edit > .read,
+    .inputBox>.value.edit > .read {
         display: none;
     }
 
-    .V2>.value > .edit {
+    .V2>.value > .edit,
+    .inputBox>.value > .edit {
         display: none;
     }
 
-    .V2>.value > .edit > input {
+    .V2>.value > .edit > input,
+    .inputBox>.value > .edit > input {
         display: inline-block;
         width: 30px;
     }
 
-    .V2>.value.edit > .edit {
+    .inputBox>.value > .edit > input.newValue {
+      width: 100px;
+    }
+
+    .V2>.value.edit > .edit,
+    .inputBox>.value.edit > .edit {
         display: block;
     }
 
-    .V2>.value:not(.edit) {
+    .V2>.value:not(.edit),
+    .inputBox>.value:not(.edit) {
         cursor: pointer;
     }
 
     .main > .layer {
       overflow-y: auto;
-      height: 450px;
+      height: 800px;
       border-top: 1px solid black;
     }
 

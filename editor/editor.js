@@ -62,6 +62,7 @@ class Editor {
                             currentGroupId: 1,
                             selected: false,
                             id: 'main_0',
+                            name: '',
                             visible: true,
                             groupsEl: undefined,
                             groupEl: undefined,
@@ -174,13 +175,16 @@ points: [{
                 fill: g.fill,
                 visible: g.visible,
                 clear: g.clear,
+                id: g.id,
                 changeCallback() {
                     that.updateEditor.bind(that)();
                 },
                 points: g.points.map((p) => {
                     return {
                         point: new V2(p.point),
+                        order: p.order,
                         selected: p.selected,
+                        id: p.id,
                         changeCallback(value, skipEventDispatch = false) {
                             p.point.x = value.x;
                             p.point.y = value.y;
@@ -240,6 +244,8 @@ points: [{
             return {
                 order: l.order,
                 selected: l.selected,
+                id: l.id,
+                name: l.name,
                 //type: l.type,
                 //strokeColor: l.strokeColor,
                 //fillColor: l.fillColor,
@@ -318,26 +324,64 @@ points: [{
                         image.general.element = that.image.general.element;
                         image.general.zoom =  {current: 10, max: 10, min: 1, step: 1};
 
-                        image.main.currentId = image.main.layers.length;
-                        image.main.layers = image.main.layers.map((l,i) => assignDeep({}, {
-                            selected: false,
-                            order: i,
-                            id: `main_${i}`,
-                            clear: false,
-                            strokeColor: '#FF0000',
-                            fillColor: '#FF0000',
-                            fill: false,
-                            closePath: false,
-                            type: 'dots',
-                            pointsEl: undefined,
-                            pointEl: undefined,
-                            visible: true,
-                            currentId: l.points.length
-                        }, 
-                        {...l, points: l.points.map((p,j) => assignDeep({}, {
-                            id: `main_${i}_point_${j}`,
-                            order: j,
-                        }, p))}));
+                        image.main.currentLayerId = image.main.layers.length;
+                        image.main.layers = image.main.layers.map(
+                            (l,i) => assignDeep(
+                                {}, 
+                                {
+                                    selected: false,
+                                    order: i,
+                                    id: `main_${i}`,
+                                    name: '',
+                                    groupsEl: undefined,
+                                    groupEl: undefined,
+                                    visible: true,
+                                    currentGroupId: l.groups.length
+                                    //clear: false,
+                                    //strokeColor: '#FF0000',
+                                    //fillColor: '#FF0000',
+                                    //fill: false,
+                                    //closePath: false,
+                                    //type: 'dots',
+                                    //pointsEl: undefined,
+                                    //pointEl: undefined,
+                                    //currentId: l.points.length
+                                }, 
+                                // {
+                                //     ...l, 
+                                //     points: l.points.map((p,j) => assignDeep({}, {
+                                //         id: `main_${i}_point_${j}`,
+                                //         order: j,
+                                //     }, p))
+                                // }
+                                {
+                                    ...l,
+                                    groups: l.groups.map((g, j) => assignDeep(
+                                        {},
+                                        {
+                                            id: `main_${i}_group_${j}`,
+                                            order: j,
+                                            clear: false,
+                                            strokeColor: '#FF0000',
+                                            fillColor: '#FF0000',
+                                            fill: false,
+                                            closePath: false,
+                                            type: 'dots',
+                                            pointsEl: undefined,
+                                            pointEl: undefined,
+                                            currentPointId: g.points.length
+                                        },
+                                        {
+                                            ...g,
+                                            points: g.points.map((p,k) => assignDeep({}, {
+                                                id: `main_${i}_group_${j}_point_${k}`,
+                                                order: k,
+                                            }, p))
+                                        }
+                                    ))
+                                }
+                            )
+                        );
                         image.main.element = that.image.main.element;
 
                         /*
@@ -595,14 +639,23 @@ points: [{
         mainEl.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Main image properties' }))
         mainEl.appendChild(components.createList({
             title: 'Layers',
-            items: main.layers.map(l => {return { title: l.id, value: l.id }}),
+            items: main.layers.map(l => {return { title: l.name || l.id, value: l.id }}),
             callbacks: {
                 select: function(e){ 
                     main.layers.forEach(l => l.selected = false);
                     let layer = main.layers.find(l => l.id == e.target.value);
                     layer.selected = true;
                     that.editor.setModeState(true, e.detail == 'setModeStateToAdd' ? 'add' : 'edit');
-                    components.createLayer(layerEl, layer, that.updateEditor.bind(that));  
+
+                    let selectedOption = undefined;
+                    for(let i = 0; i < e.target.options.length;i++){
+                        if(e.target.options[i].value == e.target.value){
+                            selectedOption = e.target.options[i];
+                            break;
+                        }
+                    }
+
+                    components.createLayer(layerEl, layer, that.updateEditor.bind(that), { selectedOption });  
                 },
                 reset: function(e) { 
                     main.layers.forEach(l => l.selected = false);
@@ -649,6 +702,7 @@ points: [{
                         selected: true,
                         order: main.layers.length,
                         id: `main_${main.currentLayerId++}`,
+                        name: '',
                         visible: true,
                         groupsEl: undefined,
                         groupEl: undefined,
