@@ -131,6 +131,13 @@ points: [{
         this.createControlButtons();   
         this.createEditor();
         this.createImage();
+
+        addListenerMulti(window, 'orientationchange resize', function(e){
+            let heightLeft = document.getElementsByClassName('controlsWrapper')[0].clientHeight - document.getElementsByClassName('layer')[0].offsetTop;
+            if(heightLeft < 800){
+                document.getElementsByClassName('layer')[0].style.height = heightLeft+'px';
+            }
+        });
     }
 
     createImage() {
