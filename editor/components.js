@@ -299,24 +299,27 @@ var components = {
             sControls.append(moveDownButton);
         }
         
-        sControls.append(
-            htmlUtils.createElement('input', 
-                { 
-                    attributes: { 
-                        type: 'button', 
-                        value: 'reset' 
-                    }, 
-                    events: { 
-                        click: function(e) { 
-                            selected = false;
-                            select.options.selectedIndex = -1;
-                            addButton.disabled = true;
-                            if(moveUpButton)
-                                moveUpButton.disabled = true;
-                            if(moveDownButton)
-                                moveDownButton.disabled = true;
-                            listProps.callbacks.reset(e);
-                        } } }))
+        if(listProps.noReset == undefined || listProps.noReset == false){
+            sControls.append(
+                htmlUtils.createElement('input', 
+                    { 
+                        attributes: { 
+                            type: 'button', 
+                            value: 'reset' 
+                        }, 
+                        events: { 
+                            click: function(e) { 
+                                selected = false;
+                                select.options.selectedIndex = -1;
+                                addButton.disabled = true;
+                                if(moveUpButton)
+                                    moveUpButton.disabled = true;
+                                if(moveDownButton)
+                                    moveDownButton.disabled = true;
+                                listProps.callbacks.reset(e);
+                            } } }))
+        }
+        
 
         sControls.append(
             htmlUtils.createElement('input', 

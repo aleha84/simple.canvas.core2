@@ -65,7 +65,7 @@ class EditorGO extends GO {
                     };
                 },
                 down: function(relativePosition) {
-                    if(this.model.editor.mode == 'movegroup'){
+                    if(this.model.editor.mode == 'movegroup' && this.model.editor.selectedLayer && this.model.editor.selectedLayer.selectedGroup){
                         //console.log('down movegroup', this.model.editor.selectedLayer.points);
                         this.drag.downOn = {
                             index: new V2(
@@ -98,13 +98,13 @@ class EditorGO extends GO {
 
                         sg.addPointCallback(e.index);
                     }
-                    else if(this.model.editor.mode == 'movegroup'){
+                    else if(this.model.editor.mode == 'movegroup' ){
                         if(d.started && d.downOn.indexChanged){
                             this.dots.forEach(p => {
                                 p.pointModel.changeCallback(p.index, true);
                             })
 
-                            this.model.editor.selectedLayer.changeCallback();
+                            this.model.editor.selectedLayer.selectedGroup.changeCallback();
                         }
                         d.disable();
                     }
@@ -134,7 +134,7 @@ class EditorGO extends GO {
                                 p.pointModel.changeCallback(p.index, true);
                             })
 
-                            this.model.editor.selectedLayer.changeCallback();
+                            this.model.editor.selectedLayer.selectedGroup.changeCallback();
                         }
                         d.disable();
                     }

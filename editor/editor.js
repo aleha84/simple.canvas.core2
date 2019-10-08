@@ -51,6 +51,7 @@ class Editor {
                     originalSize: {x: 20, y: 20},//new V2(10, 10),
                     zoom: {current: 10, max: 10, min: 1, step: 1},
                     showGrid: false,
+                    animated: false,
                     element: undefined
                 },
                 main: {
@@ -133,11 +134,15 @@ points: [{
         this.createImage();
 
         addListenerMulti(window, 'orientationchange resize', function(e){
-            let heightLeft = document.getElementsByClassName('controlsWrapper')[0].clientHeight - document.getElementsByClassName('layer')[0].offsetTop;
-            if(heightLeft < 800){
-                document.getElementsByClassName('layer')[0].style.height = heightLeft+'px';
-            }
+            this.controlsHeightSet();
         });
+    }
+
+    controlsHeightSet() {
+        let heightLeft = document.getElementsByClassName('controlsWrapper')[0].clientHeight - document.getElementsByClassName('layer')[0].offsetTop;
+        if(heightLeft < 800){
+            document.getElementsByClassName('layer')[0].style.height = heightLeft+'px';
+        }
     }
 
     createImage() {
@@ -148,7 +153,8 @@ points: [{
     }
 
     updateEditor() {
-        this.renderCallback(this.prepareModel());
+        this.controlsHeightSet();
+        this.renderCallback(this.prepareModel(undefined, { singleFrame: true}));
     }
 
     exportModel(pretty, clean) {
@@ -167,7 +173,7 @@ points: [{
         else 
             return model;
     }
-    prepareModel(model) {
+    prepareModel(model, params = { singleFrame: false }) {
         let that = model || this;
         let i = that.image;
         let e = that.editor;
@@ -267,7 +273,32 @@ points: [{
             }
         }
         
-        return {
+        let main = undefined;
+        let animated  = i.general.animated;
+        if(animated){
+            if(params.singleFrame){
+                main = {
+                    layers: i.main[i.general.currentFrameIndex].layers.map(layerMapper)
+                };
+
+                animated = false;
+            }
+            else {
+                main = i.main.map(frame => ({
+                    layers: frame.layers.map(layerMapper)
+                }))
+            }
+            
+        }
+        else {
+            main = {
+                layers: i.main.layers.map(layerMapper)
+            }
+        }
+
+        
+
+        let result = {
             editor: {
                 mode: e.mode.value
             },
@@ -276,11 +307,12 @@ points: [{
                 size: new V2(i.general.originalSize),
                 zoom: i.general.zoom.current,
                 showGrid: i.general.showGrid, 
+                animated
             },
-            main: {
-                layers: i.main.layers.map(layerMapper)
-            }
+            main
         }
+
+        return result;
     }
 
     createControlButtons() {
@@ -315,6 +347,7 @@ points: [{
                         if(!textarea.value)
                             return;
 
+                        // extract to method
                         let image = undefined;
                         try{
                             image = JSON.parse(textarea.value);
@@ -328,8 +361,10 @@ points: [{
                         //     showGrid: false,
                         //     element: undefined
                         // }, image.general);
+                        
                         image.general.element = that.image.general.element;
                         image.general.zoom =  {current: 10, max: 10, min: 1, step: 1};
+                        // add support of animated property
 
                         image.main.currentLayerId = image.main.layers.length;
                         image.main.layers = image.main.layers.map(
@@ -629,6 +664,27 @@ points: [{
             general.showGrid = value;
             this.updateEditor();
         }.bind(this)));
+        generalEl.appendChild(components.createCheckBox(general.animated, 'Animated', function(value) {
+            
+            if(value){
+                general.animated = true;
+                general.currentFrameIndex = 0;
+                this.image.main = [this.image.main];
+                this.createMain();
+            }
+            else {
+                if(confirm('Первый фрейм будет преобразован в основное изображение')){
+                    general.animated = false;
+                    general.currentFrameIndex = undefined;
+                    this.image.main = this.image.main[0];
+                    this.createMain();
+                }
+                else {
+                    general.animated = true;
+                }
+            }
+            this.updateEditor();
+        }.bind(this)));
 
         general.element = generalEl;
         
@@ -636,13 +692,59 @@ points: [{
     }
 
     createMain() {
-        let { main } = this.image;
+        let { main, general } = this.image;
         let that = this;
+
+        if(general.animated){
+            main = main[general.currentFrameIndex];
+        }
+
         if(main.element){
             main.element.remove();
         }
 
         let mainEl = htmlUtils.createElement('div', { className: 'main' });
+        if(general.animated){
+            mainEl.appendChild(components.createList({
+                title: 'Frames',
+                items: this.image.main.map((f, i) => ({ title: 'Frame_' + i, value: i, selected: i == general.currentFrameIndex })),
+                noReset: true,
+                callbacks: {
+                    select: function(e) {
+                        general.currentFrameIndex = parseInt(e.target.value);
+                        this.createMain();
+                        this.updateEditor();
+                    },
+                    remove(e, select) {
+                        if(this.image.main.length == 1){
+                            return;
+                        }
+
+                        this.image.main.splice(general.currentFrameIndex, 1)
+                        general.currentFrameIndex = 0;
+                        this.createMain();
+                        this.updateEditor();
+                    },
+                    move(select, direction) {
+                        let currentIndex = general.currentFrameIndex;
+                        if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == this.image.main.length-1))
+                            return;
+
+                        components.array_move(this.image.main, currentIndex, currentIndex + direction);
+                        general.currentFrameIndex = currentIndex + direction;
+
+                        this.createMain();
+                        this.updateEditor();
+                    },
+                    add: function(e, select){
+                        let currentFrame = this.image.main[general.currentFrameIndex];
+                    },
+                    changeCallback: that.updateEditor.bind(that)
+                },
+
+            }))
+        }
+
         mainEl.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Main image properties' }))
         mainEl.appendChild(components.createList({
             title: 'Layers',
