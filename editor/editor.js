@@ -135,7 +135,7 @@ points: [{
 
         addListenerMulti(window, 'orientationchange resize', function(e){
             this.controlsHeightSet();
-        });
+        }.bind(this));
     }
 
     controlsHeightSet() {
@@ -173,7 +173,7 @@ points: [{
         else 
             return model;
     }
-    prepareModel(model, params = { singleFrame: false }) {
+    prepareModel(model, params = { singleFrame: false, returnOnlyMain: false }) {
         let that = model || this;
         let i = that.image;
         let e = that.editor;
@@ -259,13 +259,7 @@ points: [{
                 selected: l.selected,
                 id: l.id,
                 name: l.name,
-                //type: l.type,
-                //strokeColor: l.strokeColor,
-                //fillColor: l.fillColor,
-                //closePath: l.closePath,
-                //fill: l.fill,
                 visible: l.visible,
-                //clear: l.clear,
                 groups: l.groups.map(groupMapper),
                 changeCallback() {
                     that.updateEditor.bind(that)();
@@ -287,16 +281,13 @@ points: [{
                 main = i.main.map(frame => ({
                     layers: frame.layers.map(layerMapper)
                 }))
-            }
-            
+            } 
         }
         else {
             main = {
                 layers: i.main.layers.map(layerMapper)
             }
         }
-
-        
 
         let result = {
             editor: {
@@ -312,7 +303,88 @@ points: [{
             main
         }
 
+        if(params.returnOnlyMain){
+            return main;
+        }
+
         return result;
+    }
+
+    importModel(model) {
+        let that = this;
+        let importMain = (main) => 
+            (main.layers.map(
+                (l,i) => assignDeep(
+                    {}, 
+                    {
+                        selected: false,
+                        order: i,
+                        id: `main_${i}`,
+                        name: '',
+                        groupsEl: undefined,
+                        groupEl: undefined,
+                        visible: true,
+                        currentGroupId: l.groups.length
+                    }, 
+                    {
+                        ...l,
+                        groups: l.groups.map((g, j) => assignDeep(
+                            {},
+                            {
+                                id: `main_${i}_group_${j}`,
+                                order: j,
+                                clear: false,
+                                strokeColor: '#FF0000',
+                                fillColor: '#FF0000',
+                                fill: false,
+                                closePath: false,
+                                type: 'dots',
+                                pointsEl: undefined,
+                                pointEl: undefined,
+                                currentPointId: g.points.length
+                            },
+                            {
+                                ...g,
+                                points: g.points.map((p,k) => assignDeep({}, {
+                                    id: `main_${i}_group_${j}_point_${k}`,
+                                    order: k,
+                                }, p))
+                            }
+                        ))
+                    }
+                )
+            ));
+        
+        let image = undefined;
+        
+        if(isString(model)) {
+            image = JSON.parse(model);
+        }
+        else if(isObject(model)){
+            image = model;
+        }
+        else {
+            throw 'importModel -> Wrong model type. '
+        }
+
+        image.general.element = that.image.general.element;
+        image.general.zoom =  {current: 10, max: 10, min: 1, step: 1};
+        // add support of animated property
+
+        if(image.general.animated){
+            image.main = image.main.map(f => {
+                let frame = importMain(f);
+                frame.currentLayerId = frame.layers.length;
+                frame.element = that.image.main.element;
+            });
+        }
+        else {
+            image.main.currentLayerId = image.main.layers.length;
+            image.main.layers = importMain(image.main);
+            image.main.element = that.image.main.element;
+        }
+
+        return image;
     }
 
     createControlButtons() {
@@ -350,81 +422,12 @@ points: [{
                         // extract to method
                         let image = undefined;
                         try{
-                            image = JSON.parse(textarea.value);
+                            image = this.importModel(textarea.value); //JSON.parse(textarea.value);
                         }
                         catch(e){
                             alert('Entered value is invalid.\n' + e.message);
                             return;
                         }
-                        // image.general = assignDeep({}, {
-                        //     zoom: {current: 10, max: 10, min: 1, step: 1},
-                        //     showGrid: false,
-                        //     element: undefined
-                        // }, image.general);
-                        
-                        image.general.element = that.image.general.element;
-                        image.general.zoom =  {current: 10, max: 10, min: 1, step: 1};
-                        // add support of animated property
-
-                        image.main.currentLayerId = image.main.layers.length;
-                        image.main.layers = image.main.layers.map(
-                            (l,i) => assignDeep(
-                                {}, 
-                                {
-                                    selected: false,
-                                    order: i,
-                                    id: `main_${i}`,
-                                    name: '',
-                                    groupsEl: undefined,
-                                    groupEl: undefined,
-                                    visible: true,
-                                    currentGroupId: l.groups.length
-                                    //clear: false,
-                                    //strokeColor: '#FF0000',
-                                    //fillColor: '#FF0000',
-                                    //fill: false,
-                                    //closePath: false,
-                                    //type: 'dots',
-                                    //pointsEl: undefined,
-                                    //pointEl: undefined,
-                                    //currentId: l.points.length
-                                }, 
-                                // {
-                                //     ...l, 
-                                //     points: l.points.map((p,j) => assignDeep({}, {
-                                //         id: `main_${i}_point_${j}`,
-                                //         order: j,
-                                //     }, p))
-                                // }
-                                {
-                                    ...l,
-                                    groups: l.groups.map((g, j) => assignDeep(
-                                        {},
-                                        {
-                                            id: `main_${i}_group_${j}`,
-                                            order: j,
-                                            clear: false,
-                                            strokeColor: '#FF0000',
-                                            fillColor: '#FF0000',
-                                            fill: false,
-                                            closePath: false,
-                                            type: 'dots',
-                                            pointsEl: undefined,
-                                            pointEl: undefined,
-                                            currentPointId: g.points.length
-                                        },
-                                        {
-                                            ...g,
-                                            points: g.points.map((p,k) => assignDeep({}, {
-                                                id: `main_${i}_group_${j}_point_${k}`,
-                                                order: k,
-                                            }, p))
-                                        }
-                                    ))
-                                }
-                            )
-                        );
-                        image.main.element = that.image.main.element;
 
                         /*
 
@@ -712,32 +715,37 @@ points: [{
                 callbacks: {
                     select: function(e) {
                         general.currentFrameIndex = parseInt(e.target.value);
-                        this.createMain();
-                        this.updateEditor();
+                        that.createMain();
+                        that.updateEditor();
                     },
                     remove(e, select) {
-                        if(this.image.main.length == 1){
+                        if(that.image.main.length == 1){
                             return;
                         }
 
-                        this.image.main.splice(general.currentFrameIndex, 1)
+                        that.image.main.splice(general.currentFrameIndex, 1)
                         general.currentFrameIndex = 0;
-                        this.createMain();
-                        this.updateEditor();
+                        that.createMain();
+                        that.updateEditor();
                     },
                     move(select, direction) {
                         let currentIndex = general.currentFrameIndex;
-                        if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == this.image.main.length-1))
+                        if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == that.image.main.length-1))
                             return;
 
-                        components.array_move(this.image.main, currentIndex, currentIndex + direction);
+                        components.array_move(that.image.main, currentIndex, currentIndex + direction);
                         general.currentFrameIndex = currentIndex + direction;
 
-                        this.createMain();
-                        this.updateEditor();
+                        that.createMain();
+                        that.updateEditor();
                     },
                     add: function(e, select){
-                        let currentFrame = this.image.main[general.currentFrameIndex];
+                        //let currentFrame = that.image.main[general.currentFrameIndex];
+                        let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }));
+                        let newItem = that.importModel(currentFrameModel).main;
+                        that.image.main.push(newItem);
+                        that.createMain();
+                        that.updateEditor();
                     },
                     changeCallback: that.updateEditor.bind(that)
                 },
