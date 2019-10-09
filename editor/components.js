@@ -494,11 +494,16 @@ var components = {
 
                     components.createGroup(groupEl, selectedGroup, changeCallback);
                     components.editor.editor.setMoveGroupModeState(true);
+                    components.editor.editor.setModeState(true, 'edit');
                 },
                 reset: function(e) { 
                     groups.forEach(g => g.selected = false);
                     //components.createGroup(undefined, undefined, changeCallback) 
                     components.fillGroups(layerProps, changeCallback);
+
+                    components.editor.editor.setModeState(false, 'edit');
+                    components.editor.editor.setMoveGroupModeState(false);
+
                     changeCallback();
                 },
                 remove(e, select) {
@@ -507,6 +512,10 @@ var components = {
                     select.value = undefined;
                     layerProps.groups = groups;
                     components.fillGroups(layerProps, changeCallback);
+
+                    components.editor.editor.setModeState(false, 'edit');
+                    components.editor.editor.setMoveGroupModeState(false);
+
                     changeCallback();
                 },
                 add: function(e, select) {
@@ -536,13 +545,10 @@ var components = {
                     select.options[select.options.length] = new Option(group.id, group.id);
                     select.value = group.id;
                     select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
-                    // groups.push({
-                    //     id: `${layerProps.id}_point_${layerProps.currentId++}`,
-                    //     order: points.length,
-                    //     point: {x: 0, y: 0},
-                    // })
-                    //components.fillPoints(group, changeCallback);
-                    //components.fillGroups(layerProps, changeCallback) 
+                    
+                    components.editor.editor.setModeState(true, 'edit');
+                    components.editor.editor.setMoveGroupModeState(true);
+
                     changeCallback();
                 },
                 move(select, direction) {
@@ -553,13 +559,16 @@ var components = {
                         g = g[0];
 
                     let currentIndex = groups.indexOf(g);
-                    if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == points.length-1))
+                    if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == groups.length-1))
                         return;
 
                     components.array_move(groups, currentIndex, currentIndex + direction);
                     groups.forEach((g, i) => g.order = i);
                     components.fillGroups(layerProps, changeCallback);
-                    //components.fillPoints(layerProps, changeCallback);
+                    
+                    components.editor.editor.setModeState(false, 'edit');
+                    components.editor.editor.setMoveGroupModeState(false);
+
                     changeCallback();
                 },
                 changeCallback: changeCallback
@@ -610,10 +619,13 @@ var components = {
                         }
                     }
 
+                    components.editor.editor.setModeState(true, 'edit');
+
                     fillPoint(selectedPoint,selectedOption, changeCallback, e.detail);  
                 },
                 reset: function(e) { 
                     points.forEach(p => p.selected = false);
+                    components.editor.editor.setModeState(true, 'edit');
                     fillPoint(undefined, undefined, changeCallback, '') 
                 },
                 remove(e, select) {
@@ -622,6 +634,7 @@ var components = {
                     select.value = undefined;
                     groupProps.points = points;
                     components.fillPoints(groupProps, changeCallback);
+                    components.editor.editor.setModeState(true, 'edit');
                     changeCallback();
                 },
                 add: function(e, select) {
@@ -636,6 +649,7 @@ var components = {
                         point: {x: 0, y: 0},
                     })
                     components.fillPoints(groupProps, changeCallback);
+                    components.editor.editor.setModeState(true, 'edit');
                     changeCallback();
                 },
                 move(select, direction) {
@@ -653,6 +667,7 @@ var components = {
                     points.forEach((p, i) => p.order = i);
 
                     components.fillPoints(groupProps, changeCallback);
+                    components.editor.editor.setModeState(true, 'edit');
                     changeCallback();
                 },
                 changeCallback: changeCallback

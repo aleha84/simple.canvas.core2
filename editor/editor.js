@@ -749,6 +749,12 @@ points: [{
         let mainEl = htmlUtils.createElement('div', { className: 'frames' });
 
         if(general.animated){
+            let commonCallback = () => {
+                that.editor.setModeState(false, 'edit');
+                that.createMain({setFocusToFrames:true});
+                that.updateEditor();
+            }
+
             mainEl.appendChild(components.createList({
                 title: 'Frames',
                 items: this.image.main.map((f, i) => ({ title: 'Frame_' + i, value: i, selected: i == general.currentFrameIndex })),
@@ -756,8 +762,8 @@ points: [{
                 callbacks: {
                     select: function(e) {
                         general.currentFrameIndex = parseInt(e.target.value);
-                        that.createMain({setFocusToFrames:true});
-                        that.updateEditor();
+
+                        commonCallback();
                     },
                     remove(e, select) {
                         if(that.image.main.length == 1){
@@ -766,8 +772,8 @@ points: [{
 
                         that.image.main.splice(general.currentFrameIndex, 1)
                         general.currentFrameIndex = 0;
-                        that.createMain({setFocusToFrames:true});
-                        that.updateEditor();
+
+                        commonCallback();
                     },
                     move(select, direction) {
                         let currentIndex = general.currentFrameIndex;
@@ -777,16 +783,14 @@ points: [{
                         components.array_move(that.image.main, currentIndex, currentIndex + direction);
                         general.currentFrameIndex = currentIndex + direction;
 
-                        that.createMain({setFocusToFrames:true});
-                        that.updateEditor();
+                        commonCallback();
                     },
                     add: function(e, select){
-                        //let currentFrame = that.image.main[general.currentFrameIndex];
                         let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }));
                         let newItem = that.importModel(currentFrameModel).main;
                         that.image.main.push(newItem);
-                        that.createMain({setFocusToFrames:true});
-                        that.updateEditor();
+
+                        commonCallback();
                     },
                     changeCallback: that.updateEditor.bind(that)
                 },
