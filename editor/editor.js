@@ -339,6 +339,7 @@ points: [{
                                 fill: false,
                                 closePath: false,
                                 type: 'dots',
+                                selected: false,
                                 pointsEl: undefined,
                                 pointEl: undefined,
                                 currentPointId: g.points.length
@@ -373,15 +374,27 @@ points: [{
 
         if(image.general.animated){
             image.main = image.main.map(f => {
-                let frame = importMain(f);
+                let frame = { 
+                    layers: importMain(f) 
+                };
                 frame.currentLayerId = frame.layers.length;
                 frame.element = that.image.main.element;
+
+                return frame;
             });
+
+            image.general.currentFrameIndex = 0;
         }
         else {
             image.main.currentLayerId = image.main.layers.length;
             image.main.layers = importMain(image.main);
-            image.main.element = that.image.main.element;
+            if(that.image.general.animated){
+                image.main.element = that.image.main[0].element;
+            }
+            else {
+                image.main.element = that.image.main.element;
+            }
+            
         }
 
         return image;
@@ -422,7 +435,7 @@ points: [{
                         // extract to method
                         let image = undefined;
                         try{
-                            image = this.importModel(textarea.value); //JSON.parse(textarea.value);
+                            image = that.importModel(textarea.value); //JSON.parse(textarea.value);
                         }
                         catch(e){
                             alert('Entered value is invalid.\n' + e.message);
@@ -694,7 +707,7 @@ points: [{
         this.parentElement.appendChild(general.element);
     }
 
-    createMain() {
+    createMain(params = { setFocusToFrames: false }) {
         let { main, general } = this.image;
         let that = this;
 
@@ -706,7 +719,8 @@ points: [{
             main.element.remove();
         }
 
-        let mainEl = htmlUtils.createElement('div', { className: 'main' });
+        let mainEl = htmlUtils.createElement('div', { className: 'frames' });
+
         if(general.animated){
             mainEl.appendChild(components.createList({
                 title: 'Frames',
@@ -715,7 +729,7 @@ points: [{
                 callbacks: {
                     select: function(e) {
                         general.currentFrameIndex = parseInt(e.target.value);
-                        that.createMain();
+                        that.createMain({setFocusToFrames:true});
                         that.updateEditor();
                     },
                     remove(e, select) {
@@ -725,7 +739,7 @@ points: [{
 
                         that.image.main.splice(general.currentFrameIndex, 1)
                         general.currentFrameIndex = 0;
-                        that.createMain();
+                        that.createMain({setFocusToFrames:true});
                         that.updateEditor();
                     },
                     move(select, direction) {
@@ -736,7 +750,7 @@ points: [{
                         components.array_move(that.image.main, currentIndex, currentIndex + direction);
                         general.currentFrameIndex = currentIndex + direction;
 
-                        that.createMain();
+                        that.createMain({setFocusToFrames:true});
                         that.updateEditor();
                     },
                     add: function(e, select){
@@ -744,7 +758,7 @@ points: [{
                         let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }));
                         let newItem = that.importModel(currentFrameModel).main;
                         that.image.main.push(newItem);
-                        that.createMain();
+                        that.createMain({setFocusToFrames:true});
                         that.updateEditor();
                     },
                     changeCallback: that.updateEditor.bind(that)
@@ -757,6 +771,7 @@ points: [{
         mainEl.appendChild(components.createList({
             title: 'Layers',
             items: main.layers.map(l => {return { title: l.name || l.id, value: l.id }}),
+            maxSize: 5,
             callbacks: {
                 select: function(e){ 
                     main.layers.forEach(l => l.selected = false);
@@ -772,6 +787,7 @@ points: [{
                         }
                     }
 
+                    layer.groups.forEach(g => g.selected = false);
                     components.createLayer(layerEl, layer, that.updateEditor.bind(that), { selectedOption });  
                 },
                 reset: function(e) { 
@@ -846,9 +862,19 @@ points: [{
         let layerEl = htmlUtils.createElement('div', {className: 'layer'});
         mainEl.appendChild(layerEl)
 
-        main.element = mainEl;
+        if(general.animated){
+            that.image.main.forEach(f => f.element = mainEl);
+        }
+        else {
+            main.element = mainEl;
+        }
+        
         
         this.parentElement.appendChild(main.element);
+
+        if(params.setFocusToFrames && general.animated){
+            document.querySelector('.frames select').focus();
+        }
     }
 
     
