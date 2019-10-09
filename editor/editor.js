@@ -611,7 +611,32 @@ points: [{
             }
         } }));
 
+        let secondaryControlsEl = htmlUtils.createElement('div', { className: 'secondaryControlsBlock' });
+        this.demoButton = secondaryControlsEl.appendChild(htmlUtils.createElement('input', { value: 'Demo', attributes: { type: 'button' }, props: { disabled: true }, events: {
+            click: function(){
+                let model = that.prepareModel()
+                let delay = parseInt(that.demoDelayInput.value);
+                if(Number.isNaN(delay)){
+                    delay = 100;
+                }
+                model.general.demo = {
+                    delay
+                }
+
+                that.renderCallback(model);
+            }
+        }}));
+
+        this.demoDelayInput = secondaryControlsEl.appendChild(htmlUtils.createElement('input', { value: '100', attributes: { type: 'text' }, props: { disabled: true }
+        }));
+
         this.parentElement.appendChild(controlsEl);
+        this.parentElement.appendChild(secondaryControlsEl);
+    }
+
+    toggleDemoControlsState(disabled = true) {
+        this.demoButton.disabled = disabled;
+        this.demoDelayInput.disabled = disabled;
     }
 
     createEditor() {
@@ -683,6 +708,7 @@ points: [{
         generalEl.appendChild(components.createCheckBox(general.animated, 'Animated', function(value) {
             
             if(value){
+                this.toggleDemoControlsState(false);
                 general.animated = true;
                 general.currentFrameIndex = 0;
                 this.image.main = [this.image.main];
@@ -690,6 +716,7 @@ points: [{
             }
             else {
                 if(confirm('Первый фрейм будет преобразован в основное изображение')){
+                    this.toggleDemoControlsState(true);
                     general.animated = false;
                     general.currentFrameIndex = undefined;
                     this.image.main = this.image.main[0];
