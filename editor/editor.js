@@ -854,7 +854,7 @@ points: [{
 
                     select.options.length = 0;
                     for(let l of main.layers){
-                        select.options[select.options.length] = new Option(l.id, l.id);
+                        select.options[select.options.length] = new Option(l.name || l.id, l.id);
                     }
 
                     select.value = selectedValue;
