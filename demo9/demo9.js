@@ -168,6 +168,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(300, 200)
     }));
 
+    SCG.scenes.cacheScene(new Demo9NestingDollScene({
+        name:'doll',
+        viewport: new V2(200, 300)
+    }));
+
 
     sceneSelectByHashValue();
     
