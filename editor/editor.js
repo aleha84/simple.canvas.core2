@@ -7,6 +7,12 @@ class Editor {
             },
             editor: {
                 element: undefined,
+                selected: {
+                    //selectedFrame: undefined,
+                    layerId: undefined,
+                    groupId: undefined,
+                    pointId: undefined,
+                },
                 mode: {
                     value: 'edit',
                     element: undefined,
@@ -139,9 +145,9 @@ points: [{
     }
 
     controlsHeightSet() {
-        let heightLeft = document.getElementsByClassName('controlsWrapper')[0].clientHeight - document.getElementsByClassName('layer')[0].offsetTop;
+        let heightLeft = document.getElementsByClassName('controlsWrapper')[0].clientHeight - document.getElementsByClassName('layersWrapper')[0].offsetTop;
         if(heightLeft < 800){
-            document.getElementsByClassName('layer')[0].style.height = heightLeft+'px';
+            document.getElementsByClassName('layersWrapper')[0].style.height = heightLeft+'px';
         }
     }
 
@@ -149,6 +155,7 @@ points: [{
         this.createGeneral();
         this.createMain();
 
+        this.toggleDemoControlsState(!this.image.general.animated);
         this.updateEditor();
     }
 
@@ -746,7 +753,7 @@ points: [{
             main.element.remove();
         }
 
-        let mainEl = htmlUtils.createElement('div', { className: 'frames' });
+        let mainEl = htmlUtils.createElement('div', { className: 'main' });
 
         if(general.animated){
             let commonCallback = () => {
@@ -757,6 +764,7 @@ points: [{
 
             mainEl.appendChild(components.createList({
                 title: 'Frames',
+                className: 'frames',
                 items: this.image.main.map((f, i) => ({ title: 'Frame_' + i, value: i, selected: i == general.currentFrameIndex })),
                 noReset: true,
                 callbacks: {
@@ -798,16 +806,20 @@ points: [{
             }))
         }
 
-        mainEl.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Main image properties' }))
-        mainEl.appendChild(components.createList({
+        let layersWrapperEl = htmlUtils.createElement('div', { className: 'layersWrapper' });
+
+        layersWrapperEl.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Main image properties' }))
+        layersWrapperEl.appendChild(components.createList({
             title: 'Layers',
-            items: main.layers.map(l => {return { title: l.name || l.id, value: l.id }}),
+            className: 'layers',
+            items: main.layers.map(l => {return { title: l.name || l.id, value: l.id, selected: l.id == that.editor.selected.layerId }}),
             maxSize: 5,
             callbacks: {
                 select: function(e){ 
                     main.layers.forEach(l => l.selected = false);
                     let layer = main.layers.find(l => l.id == e.target.value);
                     layer.selected = true;
+                    that.editor.selected.layerId = layer.id;
                     that.editor.setModeState(true, e.detail == 'setModeStateToAdd' ? 'add' : 'edit');
 
                     let selectedOption = undefined;
@@ -823,17 +835,22 @@ points: [{
                 },
                 reset: function(e) { 
                     main.layers.forEach(l => l.selected = false);
+                    that.editor.selected.layerId = undefined;
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
                     that.editor.setModeState(false, 'edit');
                 },
                 remove(e, select) {
+                    if(!confirm('Remove layer?'))
+                        return;
+                        
                     main.layers = main.layers.filter(l => l.id != select.value);  
                     main.layers.forEach((l, i) => l.order = i);
                     select.options.length = 0;
                     for(let l of main.layers){
-                        select.options[select.options.length] = new Option(l.id, l.id);
+                        select.options[select.options.length] = new Option(l.name || l.id, l.id);
                     }
                     select.value = undefined;
+                    that.editor.selected.layerId = undefined;
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
                     that.editor.setModeState(false, 'edit');
                 },
@@ -884,6 +901,7 @@ points: [{
                     main.layers.push(layer);
                     select.options[select.options.length] = new Option(layer.id, layer.id);
                     select.value = layer.id;
+                    that.editor.selected.layerId = layer.id;
                     select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
                     //that.editor.setModeState(true, 'add');
                 },
@@ -891,8 +909,9 @@ points: [{
             }
         }))
         let layerEl = htmlUtils.createElement('div', {className: 'layer'});
-        mainEl.appendChild(layerEl)
-
+        layersWrapperEl.appendChild(layerEl)
+        mainEl.appendChild(layersWrapperEl)
+        
         if(general.animated){
             that.image.main.forEach(f => f.element = mainEl);
         }
@@ -905,6 +924,13 @@ points: [{
 
         if(params.setFocusToFrames && general.animated){
             document.querySelector('.frames select').focus();
+        }
+
+        if(that.editor.selected.layerId){
+            let selectedLayer = main.layers.filter(l => l.id == that.editor.selected.layerId);
+            if(selectedLayer && selectedLayer.length > 0){
+                document.querySelector('.layers select').dispatchEvent(new CustomEvent('change'));
+            }
         }
     }
 

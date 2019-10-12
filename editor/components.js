@@ -206,7 +206,7 @@ var components = {
     },
     createList(listProps) {
         let selected = false;
-        let lb = htmlUtils.createElement('div', { className: 'listbox' });
+        let lb = htmlUtils.createElement('div', { classNames: ['listbox', listProps.className] });
         lb.appendChild(htmlUtils.createElement('p', { className: 'title', text: listProps.title }));
         let selectHolder = htmlUtils.createElement('div', { className: 'selectHolder'});
         
@@ -297,6 +297,22 @@ var components = {
                 } });
     
             sControls.append(moveDownButton);
+
+            if(listProps.buttons){
+                listProps.buttons.forEach(button => {
+                    sControls.append(htmlUtils.createElement('input', 
+                    { 
+                        attributes: { 
+                            type: 'button', 
+                            value: button.text 
+                        }, 
+                        events: { 
+                            click: function(e) { 
+                                button.click();
+                            } 
+                        } }));
+                })
+            }
         }
         
         if(listProps.noReset == undefined || listProps.noReset == false){
@@ -475,13 +491,15 @@ var components = {
         // groups list
         groupsEl.appendChild(components.createList({
             title: 'Groups',
-            items: groups.map(g => {return { title: g.id, value: g.id, selected: g.selected }}),
+            className: 'groups',
+            items: groups.map(g => {return { title: g.id, value: g.id, selected:  g.id == components.editor.editor.selected.groupId }}), //g.selected
             callbacks: {
                 select: function(e){ 
                     groups.forEach(g => g.selected = false);
                     let selectedGroup = groups.find(g => g.id == e.target.value);
                     if(selectedGroup){
                         selectedGroup.selected = true;
+                        components.editor.editor.selected.groupId = selectedGroup.id;
                     }
 
                     let selectedOption = undefined;
@@ -500,16 +518,20 @@ var components = {
                     groups.forEach(g => g.selected = false);
                     //components.createGroup(undefined, undefined, changeCallback) 
                     components.fillGroups(layerProps, changeCallback);
-
+                    components.editor.editor.selected.groupId = undefined;
                     components.editor.editor.setModeState(false, 'edit');
                     components.editor.editor.setMoveGroupModeState(false);
 
                     changeCallback();
                 },
                 remove(e, select) {
+                    if(!confirm('Remove group?'))
+                        return;
+
                     groups = groups.filter(g => g.id != select.value);  
                     groups.forEach((p, i) => p.order = i);
                     select.value = undefined;
+                    components.editor.editor.selected.groupId = undefined;
                     layerProps.groups = groups;
                     components.fillGroups(layerProps, changeCallback);
 
@@ -544,6 +566,7 @@ var components = {
 
                     select.options[select.options.length] = new Option(group.id, group.id);
                     select.value = group.id;
+                    components.editor.editor.selected.groupId = group.id;
                     select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
                     
                     components.editor.editor.setModeState(true, 'edit');
@@ -572,8 +595,54 @@ var components = {
                     changeCallback();
                 },
                 changeCallback: changeCallback
-            }
+            },
+            buttons: components.editor.image.general.animated ? [
+                {
+                    text: 'Update next frame',
+                    click: () => {
+                        let frames = components.editor.image.main;
+                        let currentFrameIndex = components.editor.image.general.currentFrameIndex;
+
+                        if(currentFrameIndex == frames.length-1)
+                            return;
+
+                        let selectedGroup = groups.filter(g => g.selected)[0];
+                        let sameIdGroup = undefined;
+                        let f = currentFrameIndex+1;
+                        for(let l = 0; l < frames[f].layers.length;l++){
+                            for(let g = 0; g < frames[f].layers[l].groups.length; g++){
+                                if(selectedGroup.id == frames[f].layers[l].groups[g].id){
+                                    sameIdGroup = frames[f].layers[l].groups[g];
+                                    break;
+                                }
+                            }
+                            if(sameIdGroup){
+                                break;
+                            }
+                        }
+                        
+                        if(!sameIdGroup){
+                            alert('Not found same Id group');
+                            return;
+                        }
+
+                        sameIdGroup.points = selectedGroup.points.map(p => ({
+                            ...p,
+                            point: {...p.point}
+                        }));
+
+                        alert('Done');
+                    }
+                }
+            ] : []
         }))
+
+        if(components.editor.editor.selected.groupId){
+            let selectedGroups = groups.filter(g => g.id == components.editor.editor.selected.groupId);
+            if(selectedGroups && selectedGroups.length > 0){
+                document.querySelector('.groups select').dispatchEvent(new CustomEvent('change'));
+            }
+        }
     },
 
     fillPoints(groupProps, changeCallback) {

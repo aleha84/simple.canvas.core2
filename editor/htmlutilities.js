@@ -10,7 +10,8 @@ var htmlUtils = {
             if(props.classNames){
                 if(isArray(props.classNames)){
                     props.classNames.forEach(className => {
-                        el.classList.add(className);
+                        if(className)
+                            el.classList.add(className);
                     });
                 }
                 else if(isString(props.classNames)){
