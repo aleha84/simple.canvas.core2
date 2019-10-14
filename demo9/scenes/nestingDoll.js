@@ -39,7 +39,16 @@ class Demo9NestingDollScene extends Scene {
                     position: new V2(),
                     size: this.size.clone(),
                     init() {
-                        this.img = PP.createImage(nestingDollImages.body_details)
+                        this.frames = PP.createImage(nestingDollImages.body_details_frames)
+
+                        this.currentFrame = 0;
+                        this.timer = this.regTimerDefault(150, () => {
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
                     }
                 }))
 
