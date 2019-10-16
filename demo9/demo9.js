@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo9NestingDollScene({
         name:'doll',
-        viewport: new V2(200, 300)
+        viewport: new V2(200, 200)
     }));
 
 
