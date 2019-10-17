@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let verticalDefaultViewport = new V2(300,500);
     let squareDefaultViewport = new V2(300,300);
     let smallSquareDefaultViewport = new V2(200,200);
+    let small200_300_Viewport = new V2(200, 300);
     
     SCG.scenes.cacheScene(new RotationScene({
         name:'rotation',
@@ -173,6 +174,10 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(200, 200)
     }));
 
+    SCG.scenes.cacheScene(new Demo9CorridorScene({
+        name:'corridor',
+        viewport: small200_300_Viewport
+    }));
 
     sceneSelectByHashValue();
     
