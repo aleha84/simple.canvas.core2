@@ -192,7 +192,10 @@ class Demo9CorridorScene extends Scene {
                     let currentAYClamps = []
                     let plitkaShift = false;
                     let currentXStep = 5;
-                    let plitkaDrawer = (l) => {
+                    let plitkaBordersAlphaChange = easing.createProps(bottomLines.filter(el => el).length-1, 0.01, 0.1, 'quad', 'out')
+                    let plitkaDrawer = (l, i) => {
+                        plitkaBordersAlphaChange.time = i;
+                        let a = easing.process(plitkaBordersAlphaChange);
                         plitkaShift = !plitkaShift;
                             currentXStep++;
                             let bottomLine = {begin: new V2(0, currentAYClamps[1]-1), end: new V2(size.x, currentAYClamps[1]-1)}
@@ -203,9 +206,27 @@ class Demo9CorridorScene extends Scene {
                                     var randPoint = new V2(currentX, currentAYClamps[0])//new V2(fast.r(size.x/2 + getRandomInt(-10,10)), currentAYClamps[0]);
                                     var randPointToBottomLine = raySegmentIntersectionVector2(randPoint, randPoint.direction(center).mul(-1), bottomLine);
                                     if(randPointToBottomLine){
-                                        hlp.setFillColor('rgba(0,0,0,0.1)');
+                                        hlp.setFillColor(`rgba(0,0,0,${a})`);
                                         pp.lineV2(randPoint, randPointToBottomLine)
                                     }
+
+                                    // let isBlack = getRandomBool();
+                                    // let _a = getRandom(0.01, 0.1);
+                                    
+                                    // for(let i = 1; i < currentXStep;i++){
+                                    //     if(currentX+i < l.to-5){
+                                    //         let _p = new V2(currentX+i, currentAYClamps[0])
+                                    //         var _pToBottomLine = raySegmentIntersectionVector2(_p, _p.direction(center).mul(-1), bottomLine);
+                                    //         if(_pToBottomLine){
+                                    //             hlp.setFillColor(`rgba(${isBlack ? '0,0,0' : '255,255,255'},${_a})`);
+                                    //             pp.lineV2(_p, _pToBottomLine)
+                                    //             //pp.lineV2(_p.add(new V2(1,0)).toInt(), _pToBottomLine.add(new V2(1,0)).toInt())
+                                    //         }
+                                        
+                                    //     }
+                                        
+                                    // }
+                                    //pp.fillStyleProvider = undefined;
                                 }
 
                                 currentX+=currentXStep;
@@ -232,12 +253,12 @@ class Demo9CorridorScene extends Scene {
                             currentAYClamps = [i]    
                         }
                         else if(currentA != a){
-                            plitkaDrawer(l);
+                            plitkaDrawer(l, i-firstNotEmptyIndex);
                             currentAYClamps = [i, undefined];
                             currentA = a;
                         }
                     })
-                    plitkaDrawer(bottomLines[bottomLines.length-1]);
+                    plitkaDrawer(bottomLines[bottomLines.length-1], bottomLines.length-1-firstNotEmptyIndex);
 
                     let leftLines = [];
                     for(let x = 0; x < hole_tl.x; x++){
