@@ -70,6 +70,28 @@ class Demo9CorridorScene extends Scene {
         this.corridor = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
+            drawTrapecia({pp, hlp, tl, tr, bl, br, ifToUndefined = (p) => {}, doNotDrawLines = false,}){
+                let drawedX = []; 
+                let color = hlp.getFillColor();
+                if(doNotDrawLines){
+                    hlp.setFillColor('rgba(0,0,0,0)');
+                }
+                let topLinePoints = pp.line(tl.x,tl.y, tr.x,tr.y);
+                let bottomLinePoints = pp.line(bl.x,bl.y, br.x,br.y);
+                if(doNotDrawLines){
+                    hlp.setFillColor(color);
+                }
+                topLinePoints.forEach(p => {
+                    if(drawedX.indexOf(p.x) == -1){
+                        let to = bottomLinePoints.find(bp => bp.x == p.x);
+                        hlp.rect(p.x, p.y, 1, !to ? ifToUndefined(p): (to.y - p.y))
+                        drawedX[drawedX.length] = p.x;
+                    }
+                    
+                })
+
+                return {topLinePoints, bottomLinePoints }
+            },
             init() {
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
                     let holeSize = new V2(70,130);
@@ -128,7 +150,7 @@ class Demo9CorridorScene extends Scene {
                         }
                     })
 
-                    let aChange = easing.createProps(topLines.length-1, 0.75, 0, 'quad', 'in')
+                    let aChange = easing.createProps(topLines.length-1, 0.7, 0, 'quad', 'in')
                     topLines.forEach((l,i) => {
                         aChange.time = i;
                         let a = easing.process(aChange);
@@ -166,7 +188,29 @@ class Demo9CorridorScene extends Scene {
                     let vChangeLength = 30;
                     let vChange = easing.createProps(vChangeLength, 65, 48, 'quad', 'out');
                     let firstNotEmptyIndex = bottomLines.indexOf(bottomLines.filter(el => el)[0]);
+                    let currentA = undefined;
+                    let currentAYClamps = []
+                    let plitkaShift = false;
+                    let currentXStep = 5;
+                    let plitkaDrawer = (l) => {
+                        plitkaShift = !plitkaShift;
+                            currentXStep++;
+                            let bottomLine = {begin: new V2(0, currentAYClamps[1]-1), end: new V2(size.x, currentAYClamps[1]-1)}
+                            let currentX = l.from - plitkaShift ? fast.r(currentXStep/2) : 0;
+                            
+                            while(currentX < l.to-2){
+                                if(currentX > l.from && currentX < l.to){
+                                    var randPoint = new V2(currentX, currentAYClamps[0])//new V2(fast.r(size.x/2 + getRandomInt(-10,10)), currentAYClamps[0]);
+                                    var randPointToBottomLine = raySegmentIntersectionVector2(randPoint, randPoint.direction(center).mul(-1), bottomLine);
+                                    if(randPointToBottomLine){
+                                        hlp.setFillColor('rgba(0,0,0,0.1)');
+                                        pp.lineV2(randPoint, randPointToBottomLine)
+                                    }
+                                }
 
+                                currentX+=currentXStep;
+                            }
+                    }
                     bottomLines.forEach((l,i) => {
                         aChange.time = i-firstNotEmptyIndex;
                         let a = easing.process(aChange);
@@ -180,7 +224,20 @@ class Demo9CorridorScene extends Scene {
                         }
                         //hlp.setFillColor('#A0C0E7').rect(l.from, i, l.to-l.from, 1)
                         hlp.setFillColor(`rgba(0,0,0,${a})`).rect(l.from, i, l.to-l.from, 1)
+
+                        currentAYClamps[1] = i;
+
+                        if(currentA == undefined){
+                            currentA = a;
+                            currentAYClamps = [i]    
+                        }
+                        else if(currentA != a){
+                            plitkaDrawer(l);
+                            currentAYClamps = [i, undefined];
+                            currentA = a;
+                        }
                     })
+                    plitkaDrawer(bottomLines[bottomLines.length-1]);
 
                     let leftLines = [];
                     for(let x = 0; x < hole_tl.x; x++){
@@ -206,7 +263,7 @@ class Demo9CorridorScene extends Scene {
 
                     }
 
-                    aChange = easing.createProps(leftLines.length-1, 0.75, 0, 'quad', 'in')
+                    aChange = easing.createProps(leftLines.length-1, 0.70, 0, 'expo', 'in')
                     leftLines.forEach((l,i) => {
                         aChange.time = l.from.x;
                         let a = easing.process(aChange);
@@ -249,13 +306,47 @@ class Demo9CorridorScene extends Scene {
 
                     }
 
-                    aChange = easing.createProps(rightLines.length-1, 0, 0.75, 'quad', 'out')
+                    aChange = easing.createProps(rightLines.length-1, 0, 0.7, 'expo', 'out')
                     rightLines.forEach((l,i) => {
                         aChange.time = l.from.x - hole_tr.x;
                         let a = easing.process(aChange);
                         a = fast.r((fast.r(a, 2)*100)/5)*5/100;
                         hlp.setFillColor(`rgba(0,0,0,${a})`).rect(l.from.x, l.from.y, 1, l.to.y-l.from.y+1)
                     })
+
+                    //161B27
+                    let vLineLeft = tlPoints.find(p => p.x == 47);
+                    hlp.setFillColor('#161B27').rect(vLineLeft.x,vLineLeft.y+1, 1, 190);
+
+                    //door
+                    hlp.setFillColor('rgba(0,0,0,0.25)')
+                    this.drawTrapecia({pp, hlp, tl: new V2(0,106), tr: new V2(32,119), bl: new V2(4,299), br: new V2(32,256), ifToUndefined: (p )=> (size.y - p.y) })
+
+                    hlp.setFillColor('#161922');
+                    for(let i = -1; i < 4; i++){
+                        pp.line(4-i,299, 32-i,256);
+                    }
+
+                    hlp.setFillColor('#19191C')
+
+                    let doorLines = this.drawTrapecia({pp, hlp, tl: new V2(0,107), tr: new V2(29, 119), bl: new V2(0,298), br: new V2(29,256), ifToUndefined: (p )=> (size.y - p.y) })
+
+                    hlp.setFillColor('rgba(0,0,0,0.25)')
+                    pp.line(0,298, 29,256);
+                    pp.line(8, doorLines.topLinePoints.find(p => p.x == 8).y, 8, doorLines.bottomLinePoints.find(p => p.x == 8).y-2)
+
+                    hlp.setFillColor('rgba(0,0,0,0.1)')
+                    this.drawTrapecia({doNotDrawLines: true, pp, hlp, tl: new V2(0,6), tr: new V2(29, 48), bl: new V2(0,73), br: new V2(29,94), ifToUndefined: (p )=> (size.y - p.y) })
+                    let upperWindow = this.drawTrapecia({doNotDrawLines: true,pp, hlp, tl: new V2(0,12), tr: new V2(27, 48), bl: new V2(0,73), br: new V2(27,93), ifToUndefined: (p )=> (size.y - p.y) })
+                    hlp.setFillColor('rgba(255,255,255,0.025)');
+                    hlp.rectFromTo(new V2(7, upperWindow.topLinePoints.find(p => p.x == 7).y), new V2(8, upperWindow.bottomLinePoints.find(p => p.x == 7).y))
+                    hlp.rectFromTo(new V2(8, upperWindow.topLinePoints.find(p => p.x == 8).y-1), new V2(9, upperWindow.bottomLinePoints.find(p => p.x == 9).y-1))
+                    hlp.rectFromTo(new V2(20, upperWindow.topLinePoints.find(p => p.x == 20).y-1), new V2(21, upperWindow.bottomLinePoints.find(p => p.x == 21).y-2))
+                    hlp.rectFromTo(new V2(21, upperWindow.topLinePoints.find(p => p.x == 21).y-1), new V2(22, upperWindow.bottomLinePoints.find(p => p.x == 22).y-1))
+
+                    hlp.setFillColor('#32404C');
+                    this.drawTrapecia({doNotDrawLines: true, pp, hlp, tl: new V2(37,104), tr: new V2(50, 113), bl: new V2(37,165), br: new V2(50,162), ifToUndefined: (p )=> (size.y - p.y) })
+                    hlp.setFillColor('rgba(0,0,0,0.2)').rect(36,105, 1, 59)
                 })            
             }
         }), 10)
