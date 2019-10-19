@@ -20,11 +20,124 @@ class Demo9CorridorScene extends Scene {
             size: new V2(100,200),
             init() {
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    hlp.setFillColor('#181D23').rect(0,0,size.x, size.y)
-                    
+                    hlp.setFillColor('#181D23').rect(0,0,size.x, size.y) 
+                    //212-31-13
+                    //198-30-16
+                    ctx.drawImage(PP.createImage(corridorImageModels.city), 15 ,68)
                 })
             }
         }), 1)
+
+        this.farRain = this.addGo(new GO({
+            position: this.sceneCenter.add(new V2(0,-20)),
+            size: new V2(100,150),
+            init() {
+                this.items = [];
+                this.lightEllipsis = {
+                    position: new V2(this.size.x-20, 20),
+                    size: new V2(40, 80),
+                }
+
+                let bgDirection = V2.down.rotate(15);
+                this.bgSpeed = bgDirection.mul(3);
+                this.bgRainImage = createCanvas(this.size, (ctx, size, hlp) => {
+                    let pp = new PerfectPixel({ctx});
+                    hlp.setFillColor('rgba(255,255,255,0.05)')
+                    for(let i = 0; i < 200; i++){
+                        let p1 = new V2(getRandomInt(0, size.x), getRandomInt(0, size.y))
+                        let p2 = p1.add(bgDirection.mul(getRandomInt(1, 4)));
+                        pp.lineV2(p1, p2);
+                    }
+                })
+                this.bgImageResetPosition = raySegmentIntersectionVector2(new V2(0,0), bgDirection.mul(-1), { begin: new V2(0,-this.size.y), end: new V2(this.size.x, -this.size.y) })
+                this.bgPositions = [new V2(0,0), this.bgImageResetPosition.clone()]
+
+                this.lightEllipsis.rxSq = this.lightEllipsis.size.x*this.lightEllipsis.size.x;
+                this.lightEllipsis.rySq = this.lightEllipsis.size.y*this.lightEllipsis.size.y;
+                this.aChange = easing.createProps(100, 0.7, 0.1, 'quad', 'out')
+                this.timer = this.regTimerDefault(15, () => {
+                    for(let i = 0; i < 3; i++){
+                        let p1 = new V2(getRandomInt(0,this.size.x*2), 0);
+                        //let p1 = new V2(this.size.x/2, 0);
+                        let direction = V2.down.rotate(getRandomInt(15,20));
+                        let length = getRandomInt(5, 12);
+                        let p2 = p1.add(direction.mul(length));
+                        let targetY = this.size.y
+    
+                        let item = {
+                            alpha: 0.7,
+                            color: 'rgba(255,255,255,0.5)',
+                            p1,
+                            p2,
+                            alive: true,
+                            targetY,
+                            direction,
+                            speedV2: direction.mul(getRandomInt(4,5))
+                        };
+
+                        this.items.push(item);
+                    }
+                    
+
+                    
+                    this.createImage();  
+                    this.processDrops();
+                    
+                    this.items = this.items.filter(item => item.alive);
+                          
+                })
+                
+            },
+            processDrops() {
+                this.bgPositions.forEach(p => {
+                    p.add(this.bgSpeed, true);
+
+                    if(p.y > this.size.y){
+                        p.x = this.bgImageResetPosition.x;
+                        p.y = this.bgImageResetPosition.y;
+                    }
+                })
+                for(let i = 0; i < this.items.length; i++){
+                    let item = this.items[i];
+                    item.p1.add(item.speedV2, true);
+                    item.p2.add(item.speedV2, true);
+                    let x = item.p1.x;
+                    let y = item.p1.y;
+                    let dx = fast.r(
+                        (((x-this.lightEllipsis.position.x)*(x-this.lightEllipsis.position.x)/this.lightEllipsis.rxSq) 
+                        + ((y-this.lightEllipsis.position.y)*(y-this.lightEllipsis.position.y)/this.lightEllipsis.rySq))*100);
+
+                    
+                    if(dx > 100){
+                        dx = 100;
+                    }
+
+                    this.aChange.time = dx;
+                    item.alpha = fast.r(easing.process(this.aChange), 2);
+                    
+                    if(item.p1.y > item.targetY){
+                        item.alive = false;
+                    }
+                }
+            },
+            createImage() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    this.bgPositions.forEach(p => {
+                        ctx.drawImage(this.bgRainImage, p.x,p.y)
+                    })
+                    
+                    let pp = new PerfectPixel({ctx});
+
+                    for(let i = 0; i < this.items.length; i++){
+                        let item = this.items[i];
+                        hlp.setFillColor(`rgba(255,255,255, ${item.alpha})`);
+                        pp.lineV2(item.p1, item.p2);
+                    }
+
+                    hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
+                })
+            }
+        }), 4)
 
         this.floor = this.addGo(new GO({
             position: new V2(this.sceneCenter.x, 198),
@@ -38,7 +151,7 @@ class Demo9CorridorScene extends Scene {
                     // .setFillColor('#6A84A3').rect(0,0, size.x, 4)
                 })
             }
-        }), 2)
+        }), 5)
 
         this.fence = this.addGo(new GO({
             position: new V2(this.sceneCenter.x, 176),
@@ -65,7 +178,7 @@ class Demo9CorridorScene extends Scene {
                     
                 })
             }
-        }), 3)
+        }), 6)
 
         this.rain = this.addGo(new GO({
             position: this.sceneCenter.add(new V2(0,-20)),
@@ -83,7 +196,9 @@ class Demo9CorridorScene extends Scene {
                 this.aChange = easing.createProps(100, 0.9, 0.3, 'quad', 'out')
                 this.timer = this.regTimerDefault(15, () => {
                     let p1 = new V2(getRandomInt(0,this.size.x*2), 0);
-                    //let p1 = new V2(this.size.x/2, 0);
+                    // if(getRandomInt(0,2) == 0){
+                    //     p1.x = this.size.x + getRandomInt(-5,5);
+                    // }
                     let direction = V2.down.rotate(getRandomInt(15,30));
                     let length = getRandomInt(10, 15);
                     let p2 = p1.add(direction.mul(length));
@@ -128,6 +243,15 @@ class Demo9CorridorScene extends Scene {
                             if(_p2){
                                 item.p2 = _p2
                                 item.p2Frozen = true;
+                                this.raindropsTrails.push({
+                                    alive: true,
+                                    position: item.p2.clone(),
+                                    width: 1,
+                                    a: 0.1,
+                                    //maxWidth: 14,
+                                    wChange: easing.createProps(20, 1, getRandomInt(4,6),'quad', 'out', function() { this.alive = false }),
+                                    aChange: easing.createProps(20, 0.1, 0,'quad', 'out')
+                                })
                             }
                         }
                         else {
@@ -149,15 +273,6 @@ class Demo9CorridorScene extends Scene {
                     
                     if(item.p1.y > item.targetY){
                         item.alive = false;
-                        this.raindropsTrails.push({
-                            alive: true,
-                            position: item.p2.clone(),
-                            width: 1,
-                            a: 0.1,
-                            //maxWidth: 14,
-                            wChange: easing.createProps(20, 1, getRandomInt(10,20),'quad', 'out', function() { this.alive = false }),
-                            aChange: easing.createProps(20, 0.1, 0,'quad', 'out')
-                        })
                     }
                 }
             },
@@ -198,7 +313,7 @@ class Demo9CorridorScene extends Scene {
                     //hlp.setFillColor('rgba(255,0,0,0.2)').elipsis(this.ellipsis.position, this.ellipsis.size)
                 })
             }
-        }), 4)
+        }), 7)
 
         this.corridor = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -237,8 +352,42 @@ class Demo9CorridorScene extends Scene {
                     hlp.setFillColor('#4D637B').rect(0,0,size.x, size.y)
                     hlp.clear(hole_tl.x,hole_tl.y, holeSize.x, holeSize.y)
 
-                    
                     let pp = new PerfectPixel({ctx});
+                    //  художественная часть
+                    hlp.setFillColor('#3C4C63').rect(69,74,6,1).rect(64,87,1,7).rect(53,94,1,10).rect(54,99,1,10)
+                    .rect(59,135,1,6).rect(46,165,1,5).rect(46,54,1,4).rect(46,69,1,4)
+                    .rect(59,63,1,15).rect(57,59,1,13).rect(58, 62,1,4).rect(60, 65,1,5)
+                    .rect(32,116,1,3).rect(31,117,1,2).rect(16,109,1,3).rect(15,110,1,2)
+                    .rect(156,213,1,7).rect(170,119,1,10).rect(158,168,1,15).rect(159,166,1,7).rect(181,241,1,35).rect(182,243,1,36)
+                    .rect(54,122,1,3).rect(55,124,1,4).rect(56,125,1,6)
+
+                    pp.line(37,16,57,59)
+
+                    hlp.setFillColor('#5E829C').rect(58,123,1,10).rect(57,123,1,8).rect(56,122,1,7).rect(55,121,1,5).rect(54,120,1,2)
+                    .rect(58,146,1,4).rect(57,147,1,4).rect(56,149,1,2).dot(55,150)
+
+                    
+                    //hlp.setFillColor('#283444')
+                    //  
+                    
+                    for(let i = 0; i < 9; i++){
+                        if(i == 0){
+                            hlp.setFillColor('#1D212D');
+                        }
+                        else {
+                            hlp.setFillColor('#30374C')    
+                        }
+                        
+                        pp.line(156+i,0,127+i,74)    
+                    }
+
+                    for(let i = 0; i < 5; i++){
+                        pp.line(168-i,0,135-i,74)           
+                    }
+
+                    hlp.setFillColor('#768FA9').rect(128,75, 7,1)
+                    pp.line(128,74, 130,69)    
+
                     hlp.setFillColor('rgba(0,0,0,0)')
                     let upperBorderLine = {begin: new V2(0, 0), end: new V2(this.size.x, 0)};
                     let bottomBorderLine = {begin: new V2(0, this.size.y), end: new V2(this.size.x, this.size.y)}
@@ -471,6 +620,8 @@ class Demo9CorridorScene extends Scene {
                     //161B27
                     let vLineLeft = tlPoints.find(p => p.x == 47);
                     hlp.setFillColor('#161B27').rect(vLineLeft.x,vLineLeft.y+1, 1, 190);
+                    let vLineRight = trPoints.find(p => p.x == 155);
+                    hlp.setFillColor('#161B27').rect(vLineRight.x,vLineRight.y+1, 1, 203);
 
                     //door
                     hlp.setFillColor('rgba(0,0,0,0.25)')
@@ -501,6 +652,69 @@ class Demo9CorridorScene extends Scene {
                     hlp.setFillColor('#32404C');
                     this.drawTrapecia({doNotDrawLines: true, pp, hlp, tl: new V2(37,104), tr: new V2(50, 113), bl: new V2(37,165), br: new V2(50,162), ifToUndefined: (p )=> (size.y - p.y) })
                     hlp.setFillColor('rgba(0,0,0,0.2)').rect(36,105, 1, 59)
+
+                    ctx.drawImage(PP.createImage(corridorImageModels.upperLamp), 54,12)
+                    ctx.drawImage(PP.createImage(corridorImageModels.upperLamp2), 65,45)
+                    
+                    
+                    let ciAChange = easing.createProps(22, 0.5, 0, 'linear', 'base');
+                    let ciWChange = easing.createProps(22, 29, 20, 'linear', 'base');
+                    let yStart = 235
+                    for(let y = yStart; y <= 256; y++){
+                        ciAChange.time = y-yStart;
+                        ciWChange.time = y-yStart;
+                        let p = blPoints.find(p => p.y == y);
+                        hlp.setFillColor(`rgba(0,0,0,${fast.r(easing.process(ciAChange),2)})`).rect(p.x, p.y, fast.r(easing.process(ciWChange)), 1)
+                    }
+                    
+                    
+                    yStart = 228
+                    let yEnd = 250
+                    ciAChange = easing.createProps(yEnd-yStart, 0.35, 0, 'linear', 'base');
+                    let ciHChange = easing.createProps(yEnd-yStart, 50, 1, 'linear', 'base');
+                    let xPassed = [];
+                    for(let y = yStart; y <= yEnd; y++){
+                        ciAChange.time = y-yStart;
+                        ciHChange.time = y-yStart;
+                        let p = blPoints.find(p => p.y == y);
+                        if(xPassed.indexOf(p.x) != -1)
+                            continue;
+                        
+                        xPassed.push(p.x);
+                        let h = easing.process(ciHChange)
+                        hlp.setFillColor(`rgba(0,0,0,${fast.r(easing.process(ciAChange),2)})`).rect(p.x, p.y-h, 1, h)
+                    }
+                    
+                    hlp.setFillColor('rgba(0,0,0,0.3)').rect(70,224,8, 2).rect(70,226,7, 1)
+                    ctx.drawImage(PP.createImage(corridorImageModels.corridorItem1), 46,178)
+
+                    yStart = 216
+                    yEnd = 235;
+                    ciAChange = easing.createProps(yEnd-yStart, 0.75, 0, 'linear', 'base');
+                    ciWChange = easing.createProps(yEnd-yStart, 18, 14, 'linear', 'base');
+                    ciHChange = easing.createProps(yEnd-yStart, 45, 25, 'linear', 'base');
+                    xPassed = [];
+                    for(let y = yStart; y <= yEnd; y++){
+                        ciAChange.time = y-yStart;
+                        ciWChange.time = y-yStart;
+                        ciHChange.time = y-yStart;
+                        let p = brPoints.find(p => p.y == y);
+                        let w = fast.r(easing.process(ciWChange));
+                        hlp.setFillColor(`rgba(0,0,0,${fast.r(easing.process(ciAChange),2)})`).rect(p.x-w, p.y, w, 1)
+                        if(xPassed.indexOf(p.x) != -1)
+                            continue;
+                        
+                        xPassed.push(p.x);
+                        let h = easing.process(ciHChange);
+                        hlp.setFillColor(`rgba(0,0,0,${fast.r(easing.process(ciAChange),2)})`).rect(p.x-1, p.y-h, 1, h)
+                    }
+
+                    ctx.drawImage(PP.createImage(corridorImageModels.corridorItem2), 119,166)
+
+                    hlp.setFillColor('#262D33').rect(45,113,1,2).rect(46,114,1,5).rect(47,115,1,6);
+
+                    
+                    
                 })            
             }
         }), 10)
