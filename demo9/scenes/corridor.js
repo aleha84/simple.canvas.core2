@@ -67,6 +67,139 @@ class Demo9CorridorScene extends Scene {
             }
         }), 3)
 
+        this.rain = this.addGo(new GO({
+            position: this.sceneCenter.add(new V2(0,-20)),
+            size: new V2(100,150),
+            init() {
+                this.items = [];
+                this.raindropsTrails = [];
+                this.lightEllipsis = {
+                    position: new V2(this.size.x-20, 20),
+                    size: new V2(50, 100),
+                }
+
+                this.lightEllipsis.rxSq = this.lightEllipsis.size.x*this.lightEllipsis.size.x;
+                this.lightEllipsis.rySq = this.lightEllipsis.size.y*this.lightEllipsis.size.y;
+                this.aChange = easing.createProps(100, 0.9, 0.3, 'quad', 'out')
+                this.timer = this.regTimerDefault(15, () => {
+                    let p1 = new V2(getRandomInt(0,this.size.x*2), 0);
+                    //let p1 = new V2(this.size.x/2, 0);
+                    let direction = V2.down.rotate(getRandomInt(15,30));
+                    let length = getRandomInt(10, 15);
+                    let p2 = p1.add(direction.mul(length));
+                    let targetY = this.size.y - getRandomInt(2,15)
+
+                    let item = {
+                        alpha: 0.9,
+                        color: 'rgba(255,255,255,0.5)',
+                        p1,
+                        p2,
+                        alive: true,
+                        targetY,
+                        direction,
+                        speedV2: direction.mul(7)
+                    };
+
+                    this.items.push(item);
+                    this.createImage();  
+                    this.processDrops();
+                    
+                    this.items = this.items.filter(item => item.alive);
+                    this.raindropsTrails = this.raindropsTrails.filter(item => item.alive);
+                          
+                })
+                
+            },
+            processDrops() {
+                for(let i = 0; i < this.raindropsTrails.length; i++){
+                    let item = this.raindropsTrails[i];
+                    easing.commonProcess({context: item, targetpropertyName: 'width', propsName: 'wChange', round: true, callbacksUseContext: true})
+                    easing.commonProcess({context: item, targetpropertyName: 'a', propsName: 'aChange' })
+                }
+                for(let i = 0; i < this.items.length; i++){
+                    let item = this.items[i];
+                    item.p1.add(item.speedV2, true);
+                    if(!item.p2Frozen){
+                        item.p2.add(item.speedV2, true);
+
+                        if(item.p2.y > item.targetY){
+                            //item.p2 = item.targetY;
+                            let _p2 = raySegmentIntersectionVector2(item.p1, item.direction, { begin: new V2(0, item.targetY), end: new V2(this.size.x, item.targetY) })
+                            if(_p2){
+                                item.p2 = _p2
+                                item.p2Frozen = true;
+                            }
+                        }
+                        else {
+                            let x = item.p1.x;
+                            let y = item.p1.y;
+                            let dx = fast.r(
+                                (((x-this.lightEllipsis.position.x)*(x-this.lightEllipsis.position.x)/this.lightEllipsis.rxSq) 
+                                + ((y-this.lightEllipsis.position.y)*(y-this.lightEllipsis.position.y)/this.lightEllipsis.rySq))*100);
+
+                            
+                            if(dx > 100){
+                                dx = 100;
+                            }
+
+                            this.aChange.time = dx;
+                            item.alpha = fast.r(easing.process(this.aChange), 2);
+                        }
+                    }
+                    
+                    if(item.p1.y > item.targetY){
+                        item.alive = false;
+                        this.raindropsTrails.push({
+                            alive: true,
+                            position: item.p2.clone(),
+                            width: 1,
+                            a: 0.1,
+                            //maxWidth: 14,
+                            wChange: easing.createProps(20, 1, getRandomInt(10,20),'quad', 'out', function() { this.alive = false }),
+                            aChange: easing.createProps(20, 0.1, 0,'quad', 'out')
+                        })
+                    }
+                }
+            },
+            createImage() {
+                if(!this.lightEllipsisImg){
+                    this.lightEllipsisImg = createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor('rgba(255,255,255,0.03)').elipsis(this.lightEllipsis.position.add(new V2(5,0)), this.lightEllipsis.size.mul(0.5))
+                        .elipsis(this.lightEllipsis.position.add(new V2(5,0)), this.lightEllipsis.size.mul(0.35))
+                        .elipsis(this.lightEllipsis.position.add(new V2(5,0)), this.lightEllipsis.size.mul(0.15))
+                    })
+                }
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    //ctx.drawImage(this.lightEllipsisImg, 0, 0)
+                    let pp = new PerfectPixel({ctx});
+
+                    for(let i = 0; i < this.raindropsTrails.length; i++){
+                        let item = this.raindropsTrails[i];
+                        let p = item.position.toInt();
+                        hlp.setFillColor(`rgba(0,0,0,${item.a})`).rect(p.x - item.width, p.y, item.width*2, 1)
+                        // if(item.width > 2){
+                        //     hlp.rect(p.x - item.width+2, p.y+1, (item.width-2)*2, 1)
+                            
+                        // }
+
+                        if(item.width > 8){
+                            hlp.rect(p.x - item.width+8, p.y+1, (item.width-8)*2, 1)
+                        }
+                    }
+
+                    for(let i = 0; i < this.items.length; i++){
+                        let item = this.items[i];
+                        hlp.setFillColor(`rgba(255,255,255, ${item.alpha})`);
+                        pp.lineV2(item.p1, item.p2);
+                    }
+                    
+                    //hlp.setFillColor('red').strokeRect(0,0,size.x, size.y)
+
+                    //hlp.setFillColor('rgba(255,0,0,0.2)').elipsis(this.ellipsis.position, this.ellipsis.size)
+                })
+            }
+        }), 4)
+
         this.corridor = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),

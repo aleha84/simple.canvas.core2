@@ -22,7 +22,7 @@ var easing = {
     createProps(duration, start, end, type, method, onComplete = undefined, onChange = undefined) {
         return { time: 0, duration, change: end - start , type, method, startValue: start, useCache: false,  onComplete, onChange }
     },
-    commonProcess({context, targetpropertyName, propsName, round = false, setter, removePropsOnComplete = true, setterUseContext = false}) {
+    commonProcess({context, targetpropertyName, propsName, round = false, setter, removePropsOnComplete = true, setterUseContext = false, callbacksUseContext = false}) {
         if(context[propsName]){
             let props = context[propsName];
             if(props == undefined)
@@ -47,8 +47,14 @@ var easing = {
             }
 
             props.time++;
-            if(props.onChange)
-                props.onChange(props);
+            if(props.onChange){
+                if(callbacksUseContext){
+                    props.onChange.call(context, props);
+                }
+                else 
+                    props.onChange(props);
+
+            }
 
             if(props.time>props.duration){
                 let onComplete = props.onComplete;
@@ -56,8 +62,15 @@ var easing = {
                     context[propsName] = undefined;
                 }
                 
-                if(onComplete)
-                    onComplete();
+                if(onComplete){
+                    if(callbacksUseContext){
+                        onComplete.call(context);
+                    }
+                    else {
+                        onComplete();
+                    }
+                }
+                    
             }
         }
     },
