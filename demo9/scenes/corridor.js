@@ -2,7 +2,7 @@ class Demo9CorridorScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -19,12 +19,69 @@ class Demo9CorridorScene extends Scene {
             position: this.sceneCenter.clone(),
             size: new V2(100,200),
             init() {
-                this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    hlp.setFillColor('#181D23').rect(0,0,size.x, size.y) 
-                    //212-31-13
-                    //198-30-16
-                    ctx.drawImage(PP.createImage(corridorImageModels.city), 15 ,68)
-                })
+                this.city = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor('#181D23').rect(0,0,size.x, size.y) 
+                        //212-31-13
+
+                        //backc_b - 212-21-20 
+                        // delta: s - 10, v - 7
+                        // -- 212 - 24 - 18
+                        // -- 212 - 27 - 16
+                        // -- 212 - 30 - 14
+                        ctx.drawImage(PP.createImage(corridorImageModels.cityWithoutLights), 15 ,68)
+                        //ctx.drawImage(PP.createImage(corridorImageModels.cityLights), 15 ,68)
+                    })
+                }));
+
+                this.lights = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.cityLightsImg = createCanvas(this.size, (ctx, size, hlp) => {
+                            ctx.drawImage(PP.createImage(corridorImageModels.cityLights), 15 ,68)
+                        })
+
+                        this.framesSets = corridorImageModels.cityLightsFramesSets.map(frameSet => {
+                             return PP.createImage(frameSet).map(rawFrame => {
+                                return createCanvas(this.size, (ctx, size, hlp) => {
+                                    ctx.drawImage(rawFrame, 15 ,68)
+                                })
+                             })
+
+                        }) 
+                        this.currentFrame = 0;
+                        this.currentFramesSet = 0;
+                        this.pauseCounter = 2;
+                        this.timer = this.regTimerDefault(100, () => {
+                            if(this.pauseCounter > 0){
+                                this.pauseCounter--;
+                            }
+                            else {
+                                let frames = this.framesSets[this.currentFramesSet];
+                                
+                                
+                                if(this.currentFrame == frames.length){
+                                    this.img = this.cityLightsImg;
+                                    this.currentFramesSet++;// = getRandomInt(0, this.framesSets.length-1)
+                                    if(this.currentFramesSet == this.framesSets.length){
+                                        this.currentFramesSet = 0;
+                                    }
+
+                                    this.currentFrame = 0;
+                                    this.pauseCounter = 0//getRandomInt(1,4);
+                                }
+                                else {
+                                    this.img = frames[this.currentFrame];
+                                    this.currentFrame++;
+                                }
+                            }
+                            
+                        })
+                    }
+                }))
             }
         }), 1)
 
@@ -169,6 +226,8 @@ class Demo9CorridorScene extends Scene {
                         hlp.setFillColor('#2B3642').rect(currentX,0,1,size.y-1)
                         hlp.setFillColor('#1C2931').rect(currentX,0,1,5)
 
+                        hlp.setFillColor('rgba(255,255,255,0.05)').rect(currentX+3, size.y-2, 10,2).rect(currentX+5, size.y-2, 5,2)
+
                         currentX+=15;
                     }
 
@@ -176,6 +235,7 @@ class Demo9CorridorScene extends Scene {
                     .setFillColor('#253645').rect(0,1,size.x,1)
                     .setFillColor('#17212E').rect(0,2,size.x, 1)
                     
+                    hlp.setFillColor('rgba(0,0,0,0.1)').rect(size.x/2,1,size.x/2,2).rect(size.x/2 + 20,1,size.x/2,2).rect(0,0,70, 1).rect(80,0,10, 1)
                 })
             }
         }), 6)
@@ -196,9 +256,6 @@ class Demo9CorridorScene extends Scene {
                 this.aChange = easing.createProps(100, 0.9, 0.3, 'quad', 'out')
                 this.timer = this.regTimerDefault(15, () => {
                     let p1 = new V2(getRandomInt(0,this.size.x*2), 0);
-                    // if(getRandomInt(0,2) == 0){
-                    //     p1.x = this.size.x + getRandomInt(-5,5);
-                    // }
                     let direction = V2.down.rotate(getRandomInt(15,30));
                     let length = getRandomInt(10, 15);
                     let p2 = p1.add(direction.mul(length));
@@ -216,6 +273,25 @@ class Demo9CorridorScene extends Scene {
                     };
 
                     this.items.push(item);
+
+                    if(getRandomInt(0,8) == 0){
+                        let p1 = new V2(getRandomGaussian(0,this.size.x), 0);
+                        let direction = V2.down.clone();
+                        let length = getRandomInt(1, 3);
+                        let p2 = p1.add(direction.mul(length));
+                        let targetY = this.size.y-1
+
+                        let item = {
+                            alpha: 0.9,color: 'rgba(255,255,255,0.5)',
+                            p1, p2,
+                            alive: true,
+                            targetY, direction,
+                            speedV2: direction.mul(4)
+                        };
+
+                        this.items.push(item);
+                    }
+
                     this.createImage();  
                     this.processDrops();
                     
@@ -366,7 +442,11 @@ class Demo9CorridorScene extends Scene {
                     hlp.setFillColor('#5E829C').rect(58,123,1,10).rect(57,123,1,8).rect(56,122,1,7).rect(55,121,1,5).rect(54,120,1,2)
                     .rect(58,146,1,4).rect(57,147,1,4).rect(56,149,1,2).dot(55,150)
 
-                    
+                    hlp.setFillColor('#5E8098').rect(139,130,1,6).rect(140,129,1,3).rect(139,142, 1,5).rect(140,142, 1,4).rect(139,152, 1,3).rect(140,153, 1,3)
+                    hlp.setFillColor('#6C95AB').rect(144,127,1,3).rect(145,126,1,4).rect(146,126,1,3)
+                    hlp.setFillColor('#5D7F98').rect(151,132,1,4).rect(152,131,1,6)
+                    .dot(150,145).rect(151,144,1,4).rect(152,143,1,6)
+                    .dot(149,157).rect(150,156,1,2).rect(151,156,1,2).rect(152,155,1,3)
                     //hlp.setFillColor('#283444')
                     //  
                     
@@ -713,8 +793,24 @@ class Demo9CorridorScene extends Scene {
 
                     hlp.setFillColor('#262D33').rect(45,113,1,2).rect(46,114,1,5).rect(47,115,1,6);
 
-                    
-                    
+                    hlp.setFillColor('rgba(0,0,0,0.1)').rect(152,78,1,22)
+                    hlp.setFillColor('rgba(0,0,0,0.2)').rect(150,103,1,22).rect(151,104,1,22).rect(152,105,1,23)
+                    hlp.setFillColor('rgba(0,0,0,0.15)').rect(153,106,1,27).rect(154,107, 1, 30)
+                    hlp.setFillColor('rgba(0,0,0,0.1)').rect(155,107, 1, 35)
+                    ctx.drawImage(PP.createImage(corridorImageModels.corridorItem3), 133,78)
+
+                    // hlp.setFillColor('#12161D').rect(180,97,20,10)
+                    // hlp.setFillColor('#272B37');
+                    // let boxUpperLinePoints = pp.line(180,25,199,-4)
+                    // let boxBottomLinePoints = pp.line(180,106,199,97)
+                    // boxUpperLinePoints.forEach(p => {
+                    //     let to = boxBottomLinePoints.find(_p => _p.x == p.x);
+                    //     hlp.rect(p.x, p.y, 1, to.y - p.y);
+                    // })
+
+                    // hlp.setFillColor('#657590').rect(180,50, 1,25)
+
+                    ctx.drawImage(PP.createImage(corridorImageModels.corridorItem4), 181,0)
                 })            
             }
         }), 10)
