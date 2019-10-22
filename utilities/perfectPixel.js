@@ -15,6 +15,9 @@ class PerfectPixel {
         
         this.context = this.ctx;
     }
+    setFillStyle(color){
+        this.ctx.fillStyle = color;
+    }
     setPixel(x, y){
         if(this.fillStyleProvider)
             this.ctx.fillStyle = this.fillStyleProvider(x, y);
@@ -202,50 +205,99 @@ var PP = PerfectPixel;
 
 PP.createImage = function(model) {
     let {general, main} = model;
-    return createCanvas(general.size, (ctx, size) => {
-        let pp = new PerfectPixel({context: ctx});
-        for(let layer of main.layers.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
-            if(layer.visible != undefined && layer.visible == false)
-                continue;
+    let renderGroup = (pp, group) => {
+        pp.setFillStyle(group.strokeColor)
+        pp.clear = group.clear;
 
-            ctx.fillStyle = layer.strokeColor;
-
-            pp.clear = layer.clear;
-
-            if(layer.type == 'dots'){
-                for(let po of layer.points){
-                    pp.setPixel(po.point.x, po.point.y);    
-                }
-            }
-            else if(layer.type == 'lines'){
-                if(layer.points.length == 1){
-                    pp.setPixel(layer.points[0].point.x, layer.points[0].point.y);
-                }
-                else{
-                    let filledPixels = [];
-                    for(let i = 0; i < layer.points.length;i++){
-                        let p = layer.points;
-                        if(i < p.length-1)
-                            filledPixels= [...filledPixels, ...pp.lineV2(p[i].point, p[i+1].point)];
-                        else if(layer.closePath){
-                            filledPixels = [...filledPixels, ...pp.lineV2(p[i].point, p[0].point)];
-
-                            if(layer.fill){
-                                ctx.fillStyle = layer.fillColor;
-                                let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
-                                pp.fill(uniquePoints, p.map(p => p.point))//, _fillPoints)
-                            }
-                            
-                        }
-                            
-                    }
-
-
-                }
-                
+        if(group.type == 'dots'){
+            for(let po of group.points){
+                pp.setPixel(po.point.x, po.point.y);    
             }
         }
-    });
+        else if(group.type == 'lines'){
+            if(group.points.length == 1){
+                pp.setPixel(group.points[0].point.x, group.points[0].point.y);
+            }
+            else{
+                let filledPixels = [];
+                for(let i = 0; i < group.points.length;i++){
+                    let p = group.points;
+                    if(i < p.length-1)
+                        filledPixels= [...filledPixels, ...pp.lineV2(p[i].point, p[i+1].point)];
+                    else if(group.closePath){
+                        filledPixels = [...filledPixels, ...pp.lineV2(p[i].point, p[0].point)];
+
+                        if(group.fill){
+                            pp.setFillStyle(group.fillColor)
+                            let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
+                            pp.fill(uniquePoints, p.map(p => p.point))//, _fillPoints)
+                        }
+                        
+                    }
+                        
+                }
+
+
+            }
+            
+        }
+    }
+
+    let renderFrame =  (main) => {
+        return createCanvas(general.size, (ctx, size) => {
+            let pp = new PerfectPixel({context: ctx});
+            for(let layer of main.layers.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
+                if(layer.visible != undefined && layer.visible == false)
+                    continue;
+    
+                if(layer.groups){
+                    //for(let g = 0; g < layer.groups.length; g++){
+                    for(let group of layer.groups.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
+                        if(group.visible != undefined && group.visible == false)
+                            continue;
+    
+                        renderGroup(pp, group)
+                    }
+                }
+                else {
+                    renderGroup(pp, layer);
+                }
+            }
+        })
+    }
+
+    if(general.animated){
+        if(isArray(main)){
+            return main.map(m => renderFrame(m))
+        }
+        
+        throw 'PP -> main should be array if general.animated = true'
+    }
+    else {
+        return renderFrame(main);
+    }
+
+
+    // return createCanvas(general.size, (ctx, size) => {
+    //     let pp = new PerfectPixel({context: ctx});
+    //     for(let layer of main.layers.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
+    //         if(layer.visible != undefined && layer.visible == false)
+    //             continue;
+
+    //         if(layer.groups){
+    //             //for(let g = 0; g < layer.groups.length; g++){
+    //             for(let group of layer.groups.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
+    //                 if(group.visible != undefined && group.visible == false)
+    //                     continue;
+
+    //                 renderGroup(pp, group)
+    //             }
+    //         }
+    //         else {
+    //             renderGroup(pp, layer);
+    //         }
+    //     }
+    // });
  }
 
  PP.pixelFonts = {
@@ -254,60 +306,61 @@ PP.createImage = function(model) {
             "properties": {
                 "baseSize": new V2(7,7),
                 "gap": 1,
-                "common": () => ({"general":{"originalSize":{"x":7,"y":7},"size":{"x":7,"y":7},"zoom":10,"showGrid":false},"main":{"layers":[]}})
+                "common": () => ({"general":{"originalSize":{"x":7,"y":7},"size":{"x":7,"y":7},"zoom":10,"showGrid":false},"main":{"layers":[]}}),
+                "layerCommon": () => ({"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[]})
             },
-            "A": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":0,"y":3}}]}], img: undefined},
-            "a": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":0,"y":3}}]}], img: undefined},
-            "B": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":2}},{"point":{"x":5,"y":3}},{"point":{"x":0,"y":3}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":4}}]}], img: undefined},
-            "b": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":2}},{"point":{"x":5,"y":3}},{"point":{"x":0,"y":3}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":4}}]}], img: undefined},
-            "C": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "c": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "D": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":true,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":1}},{"point":{"x":5,"y":0}}]}], img: undefined},
-            "d": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":true,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":1}},{"point":{"x":5,"y":0}}]}], img: undefined},
-            "E": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":6}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":3}},{"point":{"x":4,"y":3}},{"point":{"x":2,"y":3}},{"point":{"x":0,"y":2}},{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}}]}], img: undefined},
-            "e": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":6}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":3}},{"point":{"x":4,"y":3}},{"point":{"x":2,"y":3}},{"point":{"x":0,"y":2}},{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}}]}], img: undefined},
-            "F": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":4,"y":3}},{"point":{"x":1,"y":3}}]}], img: undefined},
-            "f": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":4,"y":3}},{"point":{"x":1,"y":3}}]}], img: undefined},
-            "G": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":6,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":3,"y":3}}]}], img: undefined},
-            "g": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":6,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":3,"y":3}}]}], img: undefined},
-            "H": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":3}},{"point":{"x":6,"y":3}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "h": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":3}},{"point":{"x":6,"y":3}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "I": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":3,"y":0}},{"point":{"x":3,"y":6}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "i": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":3,"y":0}},{"point":{"x":3,"y":6}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "J": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":0,"y":6}}]}], img: undefined},
-            "j": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":0,"y":6}}]}], img: undefined},
-            "K": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "k": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "L": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "l": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "M": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":2,"y":0}},{"point":{"x":3,"y":1}},{"point":{"x":4,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}}]},{"order":1,"type":"dots","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":2}},{"point":{"x":3,"y":3}}]}], img: undefined},
-            "m": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":2,"y":0}},{"point":{"x":3,"y":1}},{"point":{"x":4,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}}]},{"order":1,"type":"dots","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":2}},{"point":{"x":3,"y":3}}]}], img: undefined},
-            "N": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "n": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "O": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":5}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":1,"y":6}}]}], img: undefined},
-            "o": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":5}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":1,"y":6}}]}], img: undefined},
-            "P": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":3}},{"point":{"x":1,"y":3}}]}], img: undefined},
-            "p": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":3}},{"point":{"x":1,"y":3}}]}], img: undefined},
-            "Q": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":6}},{"point":{"x":3,"y":4}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":5,"y":5}},{"point":{"x":1,"y":5}},{"point":{"x":0,"y":4}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":4}}]}], img: undefined},
-            "q": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":6}},{"point":{"x":3,"y":4}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":5,"y":5}},{"point":{"x":1,"y":5}},{"point":{"x":0,"y":4}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":4}}]}], img: undefined},
-            "R": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":2}},{"point":{"x":5,"y":3}},{"point":{"x":1,"y":3}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "r": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":2}},{"point":{"x":5,"y":3}},{"point":{"x":1,"y":3}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "S": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":4}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":0,"y":6}}]}], img: undefined},
-            "s": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":4}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":0,"y":6}}]}], img: undefined},
-            "T": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":3,"y":0}},{"point":{"x":3,"y":6}}]}], img: undefined},
-            "t": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":3,"y":0}},{"point":{"x":3,"y":6}}]}], img: undefined},
-            "U": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":0}}]}], img: undefined},
-            "u": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":0}}]}], img: undefined},
-            "V": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":3}},{"point":{"x":3,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":6,"y":0}}]}], img: undefined},
-            "v": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":3}},{"point":{"x":3,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":6,"y":0}}]}], img: undefined},
-            "W": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":2,"y":6}},{"point":{"x":3,"y":5}},{"point":{"x":4,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":5}},{"point":{"x":3,"y":2}}]}], img: undefined},
-            "w": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":2,"y":6}},{"point":{"x":3,"y":5}},{"point":{"x":4,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":5}},{"point":{"x":3,"y":2}}]}], img: undefined},
-            "X": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":4}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "x": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":4}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "Y": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":3}},{"point":{"x":3,"y":6}}]}], img: undefined},
-            "y": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":3,"y":3}},{"point":{"x":3,"y":6}}]}], img: undefined},
-            "Z": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":4,"y":3}},{"point":{"x":2,"y":3}},{"point":{"x":0,"y":5}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
-            "z": {layers: [{"order":0,"type":"lines","strokeColor":"#FF0000","fillColor":"#FF0000","closePath":false,"fill":false,"visible":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":4,"y":3}},{"point":{"x":2,"y":3}},{"point":{"x":0,"y":5}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined}
+            "A": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":0,"y":3}}]}], img: undefined},
+            "a": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":0,"y":3}}]}], img: undefined},
+            "B": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":2}},{"point":{"x":5,"y":3}},{"point":{"x":0,"y":3}}]},{"order":1,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":4}}]}], img: undefined},
+            "b": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":2}},{"point":{"x":5,"y":3}},{"point":{"x":0,"y":3}}]},{"order":1,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":4}}]}], img: undefined},
+            "C": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "c": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "D": {layers: [{"closePath":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":1}},{"point":{"x":5,"y":0}}]}], img: undefined},
+            "d": {layers: [{"closePath":true,"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":1}},{"point":{"x":5,"y":0}}]}], img: undefined},
+            "E": {layers: [{"points":[{"point":{"x":6,"y":6}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":3}},{"point":{"x":4,"y":3}},{"point":{"x":2,"y":3}},{"point":{"x":0,"y":2}},{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}}]}], img: undefined},
+            "e": {layers: [{"points":[{"point":{"x":6,"y":6}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":3}},{"point":{"x":4,"y":3}},{"point":{"x":2,"y":3}},{"point":{"x":0,"y":2}},{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}}]}], img: undefined},
+            "F": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}}]},{"order":1,"points":[{"point":{"x":4,"y":3}},{"point":{"x":1,"y":3}}]}], img: undefined},
+            "f": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}}]},{"order":1,"points":[{"point":{"x":4,"y":3}},{"point":{"x":1,"y":3}}]}], img: undefined},
+            "G": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":6,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":3,"y":3}}]}], img: undefined},
+            "g": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":6,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":3,"y":3}}]}], img: undefined},
+            "H": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":3}},{"point":{"x":6,"y":3}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "h": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":3}},{"point":{"x":6,"y":3}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "I": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":3,"y":0}},{"point":{"x":3,"y":6}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "i": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":3,"y":0}},{"point":{"x":3,"y":6}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "J": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":0,"y":6}}]}], img: undefined},
+            "j": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":0,"y":6}}]}], img: undefined},
+            "K": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"points":[{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "k": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":0,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"points":[{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "L": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "l": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "M": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":2,"y":0}},{"point":{"x":3,"y":1}},{"point":{"x":4,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}}]},{"order":1,"type":"dots","points":[{"point":{"x":3,"y":2}},{"point":{"x":3,"y":3}}]}], img: undefined},
+            "m": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":2,"y":0}},{"point":{"x":3,"y":1}},{"point":{"x":4,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}}]},{"order":1,"type":"dots","points":[{"point":{"x":3,"y":2}},{"point":{"x":3,"y":3}}]}], img: undefined},
+            "N": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "n": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "O": {layers: [{"points":[{"point":{"x":0,"y":5}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":1,"y":6}}]}], img: undefined},
+            "o": {layers: [{"points":[{"point":{"x":0,"y":5}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":1,"y":6}}]}], img: undefined},
+            "P": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":3}},{"point":{"x":1,"y":3}}]}], img: undefined},
+            "p": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":3}},{"point":{"x":1,"y":3}}]}], img: undefined},
+            "Q": {layers: [{"points":[{"point":{"x":3,"y":6}},{"point":{"x":3,"y":4}}]},{"order":1,"points":[{"point":{"x":5,"y":5}},{"point":{"x":1,"y":5}},{"point":{"x":0,"y":4}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":4}}]}], img: undefined},
+            "q": {layers: [{"points":[{"point":{"x":3,"y":6}},{"point":{"x":3,"y":4}}]},{"order":1,"points":[{"point":{"x":5,"y":5}},{"point":{"x":1,"y":5}},{"point":{"x":0,"y":4}},{"point":{"x":0,"y":1}},{"point":{"x":1,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":4}}]}], img: undefined},
+            "R": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":2}},{"point":{"x":5,"y":3}},{"point":{"x":1,"y":3}}]},{"order":1,"points":[{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "r": {layers: [{"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":0}},{"point":{"x":5,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":6,"y":2}},{"point":{"x":5,"y":3}},{"point":{"x":1,"y":3}}]},{"order":1,"points":[{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "S": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":4}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":0,"y":6}}]}], img: undefined},
+            "s": {layers: [{"points":[{"point":{"x":6,"y":0}},{"point":{"x":1,"y":0}},{"point":{"x":0,"y":1}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":4}},{"point":{"x":6,"y":5}},{"point":{"x":5,"y":6}},{"point":{"x":0,"y":6}}]}], img: undefined},
+            "T": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":3,"y":0}},{"point":{"x":3,"y":6}}]}], img: undefined},
+            "t": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":3,"y":0}},{"point":{"x":3,"y":6}}]}], img: undefined},
+            "U": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":0}}]}], img: undefined},
+            "u": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":0}}]}], img: undefined},
+            "V": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":3}},{"point":{"x":3,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":6,"y":0}}]}], img: undefined},
+            "v": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":3}},{"point":{"x":3,"y":6}},{"point":{"x":6,"y":3}},{"point":{"x":6,"y":0}}]}], img: undefined},
+            "W": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":2,"y":6}},{"point":{"x":3,"y":5}},{"point":{"x":4,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":0}}]},{"order":1,"points":[{"point":{"x":3,"y":5}},{"point":{"x":3,"y":2}}]}], img: undefined},
+            "w": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":5}},{"point":{"x":1,"y":6}},{"point":{"x":2,"y":6}},{"point":{"x":3,"y":5}},{"point":{"x":4,"y":6}},{"point":{"x":5,"y":6}},{"point":{"x":6,"y":5}},{"point":{"x":6,"y":0}}]},{"order":1,"points":[{"point":{"x":3,"y":5}},{"point":{"x":3,"y":2}}]}], img: undefined},
+            "X": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":4}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "x": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"points":[{"point":{"x":0,"y":6}},{"point":{"x":0,"y":4}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":4}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "Y": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"points":[{"point":{"x":3,"y":3}},{"point":{"x":3,"y":6}}]}], img: undefined},
+            "y": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":0,"y":2}},{"point":{"x":1,"y":3}},{"point":{"x":5,"y":3}},{"point":{"x":6,"y":2}},{"point":{"x":6,"y":0}}]},{"order":1,"points":[{"point":{"x":3,"y":3}},{"point":{"x":3,"y":6}}]}], img: undefined},
+            "Z": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":4,"y":3}},{"point":{"x":2,"y":3}},{"point":{"x":0,"y":5}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined},
+            "z": {layers: [{"points":[{"point":{"x":0,"y":0}},{"point":{"x":6,"y":0}},{"point":{"x":6,"y":1}},{"point":{"x":4,"y":3}},{"point":{"x":2,"y":3}},{"point":{"x":0,"y":5}},{"point":{"x":0,"y":6}},{"point":{"x":6,"y":6}}]}], img: undefined}
          }
      }
  }
@@ -345,7 +398,7 @@ PP.createImage = function(model) {
 
             if(!letterProps.img[color]){
                 let letterModel = fontProps.properties.common();
-                letterModel.main.layers = letterProps.layers;
+                letterModel.main.layers = letterProps.layers.map(l => assignDeep({}, fontProps.properties.layerCommon(), l));
                 letterModel.main.layers.forEach(l => { l.fillColor = color; l.strokeColor = color; });
                 letterProps.img[color] = PP.createImage(letterModel) 
                 //createCanvas(fontProps.properties.baseSize, (ctx, size) => { ctx.fillStyle = 'red'; ctx.fillRect(0,0,size.x, size.y) });

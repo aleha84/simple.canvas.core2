@@ -38,7 +38,7 @@ class EditorGO extends GO {
                             }
                         }
                     }
-                    else if(this.model.editor.mode == 'movelayer'){
+                    else if(this.model.editor.mode == 'movegroup'){
                         if(d.downOn){
                             SCG.viewport.scrollOptions.enabled = false;
                             if(!d.downOn.index.equal(index)){
@@ -65,8 +65,8 @@ class EditorGO extends GO {
                     };
                 },
                 down: function(relativePosition) {
-                    if(this.model.editor.mode == 'movelayer'){
-                        console.log('down movelayer', this.model.editor.selectedLayer.points);
+                    if(this.model.editor.mode == 'movegroup' && this.model.editor.selectedLayer && this.model.editor.selectedLayer.selectedGroup){
+                        //console.log('down movegroup', this.model.editor.selectedLayer.points);
                         this.drag.downOn = {
                             index: new V2(
                                 fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
@@ -85,20 +85,26 @@ class EditorGO extends GO {
                     }
                     else if(this.model.editor.mode == 'add'){
                         let e = this.model.editor;
-                        if( e.selectedLayer.points.filter(p => p.point.x == e.index.x && p.point.y == e.index.y).length > 0){
+                        let sg = e.selectedLayer.selectedGroup
+                        if(!sg){
+                            console.log('No selected group in layer')
+                            return;
+                        }
+
+                        if(sg && sg.points.filter(p => p.point.x == e.index.x && p.point.y == e.index.y).length > 0){
                             console.log('existing point trying to add');
                             return;
                         }
 
-                        e.selectedLayer.addPointCallback(e.index);
+                        sg.addPointCallback(e.index);
                     }
-                    else if(this.model.editor.mode == 'movelayer'){
+                    else if(this.model.editor.mode == 'movegroup' ){
                         if(d.started && d.downOn.indexChanged){
                             this.dots.forEach(p => {
                                 p.pointModel.changeCallback(p.index, true);
                             })
 
-                            this.model.editor.selectedLayer.changeCallback();
+                            this.model.editor.selectedLayer.selectedGroup.changeCallback();
                         }
                         d.disable();
                     }
@@ -122,13 +128,13 @@ class EditorGO extends GO {
                         }
                         d.disable();
                     }
-                    else if(this.model.editor.mode == 'movelayer'){
+                    else if(this.model.editor.mode == 'movegroup'){
                         if(d.started && d.downOn.indexChanged){
                             this.dots.forEach(p => {
                                 p.pointModel.changeCallback(p.index, true);
                             })
 
-                            this.model.editor.selectedLayer.changeCallback();
+                            this.model.editor.selectedLayer.selectedGroup.changeCallback();
                         }
                         d.disable();
                     }
@@ -208,27 +214,37 @@ class EditorGO extends GO {
                 selectedLayer = selectedLayer[0];
                 this.model.editor.selectedLayer = selectedLayer;
                 this.dots = [];
-                selectedLayer.points.forEach(p => {
-                    this.dots.push(this.addChild(new Dot({
-                        size: this.itemSize,
-                        pointModel: p,
-                        selected: p.selected,
-                        index: p.point.clone(),
-                        position: new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.point.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.point.y),
-                        notSelectedImg: createCanvas(this.itemSize, (ctx, size) => {
-                            ctx.translate(0.5,0.5);
-                            ctx.strokeStyle = 'white';
-                            ctx.strokeRect(0,0, size.x-1, size.y-1);
-                        }),
-                        selectedImg:createCanvas(this.itemSize, (ctx, size) => {
-                            ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                            ctx.fillRect(0,0, size.x, size.y);
-                            ctx.translate(0.5,0.5);
-                            ctx.strokeStyle = 'white';
-                            ctx.strokeRect(0,0, size.x-1, size.y-1);
-                        })
-                    }), true)
-                )})
+
+                let selectedGroup = selectedLayer.groups ? selectedLayer.groups.filter(g => g.selected) : [];
+                this.model.editor.selectedLayer.selectedGroup = undefined;
+
+                if(selectedGroup.length){
+                    selectedGroup= selectedGroup[0]
+                    this.model.editor.selectedLayer.selectedGroup = selectedGroup;
+
+                    selectedGroup.points.forEach(p => {
+                        this.dots.push(this.addChild(new Dot({
+                            size: this.itemSize,
+                            pointModel: p,
+                            selected: p.selected,
+                            index: p.point.clone(),
+                            position: new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.point.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.point.y),
+                            notSelectedImg: createCanvas(this.itemSize, (ctx, size) => {
+                                ctx.translate(0.5,0.5);
+                                ctx.strokeStyle = 'white';
+                                ctx.strokeRect(0,0, size.x-1, size.y-1);
+                            }),
+                            selectedImg:createCanvas(this.itemSize, (ctx, size) => {
+                                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                                ctx.fillRect(0,0, size.x, size.y);
+                                ctx.translate(0.5,0.5);
+                                ctx.strokeStyle = 'white';
+                                ctx.strokeRect(0,0, size.x-1, size.y-1);
+                            })
+                        }), true)
+                    )})
+                }
+                
             }
         }
         

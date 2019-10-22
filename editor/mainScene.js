@@ -58,36 +58,67 @@ class EditorScene extends Scene {
         console.log(model);
         let mg = this.mainGo;
         let {general, main} = model;
-        mg.model = model;
 
-        mg.img = PP.createImage(model);
+        if(!general.demo){
+            if(this.animationDemo) {
+                this.animationDemo.setDead();
+                this.animationDemo = undefined;
+            }
 
-        mg.originalSize = general.originalSize;
-        mg.size = general.size.mul(general.zoom);
-        mg.showGrid = general.showGrid;
-        mg.invalidate();
+            mg.isVisible = true;
+            mg.model = model;
+    
+            mg.img = PP.createImage(model);
+    
+            mg.originalSize = general.originalSize;
+            mg.size = general.size.mul(general.zoom);
+            mg.showGrid = general.showGrid;
+            mg.invalidate();
+    
+            SCG.UI.invalidate()
+    
+            mg.needRecalcRenderProperties = true;
+        }
+        else {
+            mg.isVisible = false;
 
-        // let delay = 0;
-        // for(let p of _fillPoints){
-        //     let go = mg.addChild(new GO({
-        //         position: new V2(mg.tl.x + mg.itemSize.x/2 + mg.itemSize.x*p.x, mg.tl.y + mg.itemSize.y/2 + mg.itemSize.y*p.y),
-        //         size: mg.itemSize,
-        //         img: createCanvas(new V2(1,1), (ctx, size) => {
-        //             ctx.fillStyle = 'blue'; ctx.fillRect(0,0, size.x, size.y);
-        //         }),
-        //         isVisible: false
-        //     }));
+            if(!this.animationDemo){
+                this.animationDemo = this.addGo(new GO({
+                    position: this.sceneCenter.clone(),
+                    size: general.size.mul(general.zoom),
+                    timerDelay: general.demo.delay,
+                    init() {
+                        this.frames = PP.createImage(model);
+                        if(!isArray(this.frames)){
+                            this.frames = [this.frames];
+                        }
+    
+                        this.currentFrame = 0;
+                        this.setTimer()
+                    },
+                    setTimer(timerDelay) {
+                        if(timerDelay){
+                            this.timerDelay = timerDelay;
+                        }
 
+                        if(this.timer){
+                            this.unregTimer(this.timer);
+                        }
+
+                        this.timer = this.regTimerDefault(this.timerDelay, () => {
+                            this.img = this.frames[this.currentFrame++];
+    
+                            if(this.currentFrame == this.frames.length)
+                                this.currentFrame = 0;
+                        })
+                    }
+                }))
+            }
+            else {
+                this.animationDemo.setTimer(general.demo.delay)
+            }
             
-        //     go.addEffect(new FadeInEffect({startDelay: delay, effectTime: 150,updateDelay: 40,  beforeStartCallback: function() {
-        //         this.parent.isVisible = true;
-        //     }}))
-        //     delay+=50
-        // }
-
-        SCG.UI.invalidate()
-
-        mg.needRecalcRenderProperties = true;
+        }
     }
 
     backgroundRender(){

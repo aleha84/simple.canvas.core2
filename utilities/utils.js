@@ -556,11 +556,17 @@ function createCanvas(size, contextProcesser) {
 
 function createCanvasHelper({ctx}){
   return {
+    getFillColor() {
+      return ctx.fillStyle;
+    },
     setFillColor(color){
       ctx.fillStyle = color;return this;
     },
     rect(x,y,w,h) {
       ctx.fillRect(x,y,w,h);return this;
+    },
+    rectFromTo(from, to){
+      return this.rect(from.x, from.y, to.x-from.x, to.y -from.y);
     },
     clear(x,y,w=1,h=1){
       ctx.clearRect(x,y,w,h);return this;

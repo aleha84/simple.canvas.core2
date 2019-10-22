@@ -26,6 +26,52 @@ var components = {
 
         return el;
     },
+    createInput(value, title, changeCallback){
+        let el = htmlUtils.createElement('div', { classNames: ['inputBox', 'row'] });
+
+        if(title){    
+            el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
+        }
+
+        el.appendChild((() => {
+            
+            let divValue = htmlUtils.createElement('div', { className: 'value' })
+            divValue.appendChild(htmlUtils.createElement('span', { className: 'read', text: value || '<no value>' }));
+            divValue.appendChild(htmlUtils.createElement('div', { className: 'edit' }));
+
+            divValue.addEventListener('click', function(e) {
+                if(this.classList.contains('edit'))
+                    return;
+
+                this.classList.add('edit');
+
+                let editBlock = this.querySelector('.edit');
+                let readBlock = this.querySelector('.read');
+                htmlUtils.removeChilds(editBlock);
+
+                editBlock.appendChild(htmlUtils.createElement('input', { className: 'newValue', value: value }));
+
+                editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
+                events: { click: (event) => {
+                    let newValue = editBlock.querySelector('.newValue').value;
+                    readBlock.innerText = newValue;
+                    this.classList.remove('edit');
+                    event.stopPropagation();
+                    changeCallback(newValue);
+                }},
+                value: 'U' }));
+                editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
+                    events: { click: (event) => {
+                        this.classList.remove('edit');
+                        event.stopPropagation();
+                    } }, value: 'C' }));
+            })
+
+            return divValue;
+        })())
+
+        return el;
+    },
     createV2(value, title, changeCallback) {
         let el = htmlUtils.createElement('div', { classNames: ['V2', 'row'] });
 
@@ -160,7 +206,7 @@ var components = {
     },
     createList(listProps) {
         let selected = false;
-        let lb = htmlUtils.createElement('div', { className: 'listbox' });
+        let lb = htmlUtils.createElement('div', { classNames: ['listbox', listProps.className] });
         lb.appendChild(htmlUtils.createElement('p', { className: 'title', text: listProps.title }));
         let selectHolder = htmlUtils.createElement('div', { className: 'selectHolder'});
         
@@ -251,26 +297,45 @@ var components = {
                 } });
     
             sControls.append(moveDownButton);
+
+            if(listProps.buttons){
+                listProps.buttons.forEach(button => {
+                    sControls.append(htmlUtils.createElement('input', 
+                    { 
+                        attributes: { 
+                            type: 'button', 
+                            value: button.text 
+                        }, 
+                        events: { 
+                            click: function(e) { 
+                                button.click();
+                            } 
+                        } }));
+                })
+            }
         }
         
-        sControls.append(
-            htmlUtils.createElement('input', 
-                { 
-                    attributes: { 
-                        type: 'button', 
-                        value: 'reset' 
-                    }, 
-                    events: { 
-                        click: function(e) { 
-                            selected = false;
-                            select.options.selectedIndex = -1;
-                            addButton.disabled = true;
-                            if(moveUpButton)
-                                moveUpButton.disabled = true;
-                            if(moveDownButton)
-                                moveDownButton.disabled = true;
-                            listProps.callbacks.reset(e);
-                        } } }))
+        if(listProps.noReset == undefined || listProps.noReset == false){
+            sControls.append(
+                htmlUtils.createElement('input', 
+                    { 
+                        attributes: { 
+                            type: 'button', 
+                            value: 'reset' 
+                        }, 
+                        events: { 
+                            click: function(e) { 
+                                selected = false;
+                                select.options.selectedIndex = -1;
+                                addButton.disabled = true;
+                                if(moveUpButton)
+                                    moveUpButton.disabled = true;
+                                if(moveDownButton)
+                                    moveDownButton.disabled = true;
+                                listProps.callbacks.reset(e);
+                            } } }))
+        }
+        
 
         sControls.append(
             htmlUtils.createElement('input', 
@@ -293,8 +358,94 @@ var components = {
 
         return lb;
     },
+    createGroup(groupEl, groupProps, changeCallback){
+        htmlUtils.removeChilds(groupEl);
+        if(groupProps == undefined) {
+            changeCallback();
+            return;
+        }
 
-    createLayer(layerEl, layerProps, changeCallback) {
+        groupEl.appendChild(htmlUtils.createElement('div', { text: groupProps.id }))
+
+        groupEl.appendChild(components.createCheckBox(groupProps.visible, 'Visible', function(value) {
+            groupProps.visible = value;
+            changeCallback();
+        }));
+
+        groupEl.appendChild(this.createCheckBox(groupProps.clear, 'Clear', (value) =>{
+            groupProps.clear = value;
+            changeCallback();
+        }));
+
+        let strokeColor = this.createColorPicker(groupProps.strokeColor, 'Stroke color', (color) => {
+            groupProps.strokeColor = color;
+            changeCallback();
+        });
+
+        let fillColor = this.createColorPicker(groupProps.fillColor, 'Fill color', (color) => {
+            groupProps.fillColor = color;
+            changeCallback();
+        });
+
+        groupEl.appendChild(strokeColor);
+
+        //обмен цвентов
+        let colorsExchange = htmlUtils.createElement('div',  { classNames: ['colorsExchange', 'row'] });
+        colorsExchange.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Colors exchange' }))
+        colorsExchange.appendChild(htmlUtils.createElement('button', { text: '↓', attributes: {}, events: { 
+            click: function() { 
+                if(groupProps.fillColor == groupProps.strokeColor)
+                    return;
+
+                fillColor.cPicker.value = strokeColor.cPicker.value;
+                fillColor.hexInput.value = strokeColor.hexInput.value;
+                groupProps.fillColor = groupProps.strokeColor;
+                changeCallback();
+             }
+        } }))
+        colorsExchange.appendChild(htmlUtils.createElement('button', { text: '↑', attributes: {}, events: { 
+            click: function() { 
+                if(groupProps.fillColor == groupProps.strokeColor)
+                    return;
+                    
+                strokeColor.cPicker.value = fillColor.cPicker.value;
+                strokeColor.hexInput.value = fillColor.hexInput.value;
+                groupProps.strokeColor = groupProps.fillColor;
+                changeCallback();
+             }
+        } }))
+
+        groupEl.appendChild(colorsExchange);
+
+        groupEl.appendChild(fillColor);
+
+        groupEl.appendChild(components.createCheckBox(groupProps.closePath, 'Close path', function(value) {
+            groupProps.closePath = value;
+            changeCallback();
+        }));
+
+        groupEl.appendChild(components.createCheckBox(groupProps.fill, 'Fill', function(value) {
+            groupProps.fill = value;
+            changeCallback();
+        }));
+
+        
+
+        groupEl.appendChild(components.createSelect(groupProps.type, ['dots','lines'],'Type', function(value){
+            groupProps.type = value;
+            changeCallback();
+        } ))
+
+        groupProps.pointsEl = htmlUtils.createElement('div', { className: 'pointsListWrapper' });
+        groupProps.pointEl = htmlUtils.createElement('div', { className: 'point'});
+        groupEl.appendChild(groupProps.pointsEl);
+        groupEl.appendChild(groupProps.pointEl);
+
+        this.fillPoints(groupProps, changeCallback) 
+
+        changeCallback();
+    },
+    createLayer(layerEl, layerProps, changeCallback, additionals = {}) {
         htmlUtils.removeChilds(layerEl);
 
         if(layerProps == undefined) {
@@ -302,86 +453,200 @@ var components = {
             return;
         }
 
-        layerEl.appendChild(htmlUtils.createElement('div', { text: layerProps.id }))
-        layerEl.appendChild(this.createCheckBox(layerProps.clear, 'Clear', (value) =>{
-            layerProps.clear = value;
-            changeCallback();
-        }));
-
-        let strokeColor = this.createColorPicker(layerProps.strokeColor, 'Stroke color', (color) => {
-            layerProps.strokeColor = color;
-            changeCallback();
-        });
-
-        let fillColor = this.createColorPicker(layerProps.fillColor, 'Fill color', (color) => {
-            layerProps.fillColor = color;
-            changeCallback();
-        });
-
-        layerEl.appendChild(strokeColor);
-
-        //обмен цвентов
-        let colorsExchange = htmlUtils.createElement('div',  { classNames: ['colorsExchange', 'row'] });
-        colorsExchange.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Colors exchange' }))
-        colorsExchange.appendChild(htmlUtils.createElement('button', { text: '↓', attributes: {}, events: { 
-            click: function() { 
-                if(layerProps.fillColor == layerProps.strokeColor)
-                    return;
-
-                fillColor.cPicker.value = strokeColor.cPicker.value;
-                fillColor.hexInput.value = strokeColor.hexInput.value;
-                layerProps.fillColor = layerProps.strokeColor;
+        layerEl.appendChild(htmlUtils.createElement('div', { text: 'id: ' + layerProps.id }))
+        layerEl.appendChild(components.createInput(layerProps.name, 'Name', function(value) {
+            if(value){
+                layerProps.name = value
+                if(additionals.selectedOption)
+                    additionals.selectedOption.text =  value;
+    
                 changeCallback();
-             }
-        } }))
-        colorsExchange.appendChild(htmlUtils.createElement('button', { text: '↑', attributes: {}, events: { 
-            click: function() { 
-                if(layerProps.fillColor == layerProps.strokeColor)
-                    return;
-                    
-                strokeColor.cPicker.value = fillColor.cPicker.value;
-                strokeColor.hexInput.value = fillColor.hexInput.value;
-                layerProps.strokeColor = layerProps.fillColor;
-                changeCallback();
-             }
-        } }))
-
-        layerEl.appendChild(colorsExchange);
-
-        layerEl.appendChild(fillColor);
-
-        layerEl.appendChild(components.createCheckBox(layerProps.closePath, 'Close path', function(value) {
-            layerProps.closePath = value;
-            changeCallback();
-        }));
-
-        layerEl.appendChild(components.createCheckBox(layerProps.fill, 'Fill', function(value) {
-            layerProps.fill = value;
-            changeCallback();
-        }));
+            }
+            
+        }))
 
         layerEl.appendChild(components.createCheckBox(layerProps.visible, 'Visible', function(value) {
             layerProps.visible = value;
             changeCallback();
         }));
 
-        layerEl.appendChild(components.createSelect(layerProps.type, ['dots','lines'],'Type', function(value){
-            layerProps.type = value;
-            changeCallback();
-        } ))
+        layerProps.groupsEl = htmlUtils.createElement('div', { className: 'groupsListWrapper' });
+        layerProps.groupEl = htmlUtils.createElement('div', { className: 'group'});
+        layerEl.appendChild(layerProps.groupsEl);
+        layerEl.appendChild(layerProps.groupEl);
 
-        layerProps.pointsEl = htmlUtils.createElement('div', { className: 'pointsListWrapper' });
-        layerProps.pointEl = htmlUtils.createElement('div', { className: 'point'});
-        layerEl.appendChild(layerProps.pointsEl);
-        layerEl.appendChild(layerProps.pointEl);
-
-        this.fillPoints(layerProps, changeCallback) //layerProps.pointsEl, layerProps.pointEl, layerProps.points
+        this.fillGroups(layerProps, changeCallback) 
 
         changeCallback();
     },
 
-    fillPoints(layerProps, changeCallback) {
-        let {pointsEl, pointEl, points} = layerProps;
+    fillGroups(layerProps, changeCallback) {
+        let {groupsEl, groupEl, groups} = layerProps;
+
+        if(groupEl)
+            htmlUtils.removeChilds(groupEl);
+
+        if(groupsEl)
+            htmlUtils.removeChilds(groupsEl);
+        // groups list
+        groupsEl.appendChild(components.createList({
+            title: 'Groups',
+            className: 'groups',
+            items: groups.map(g => {return { title: g.id, value: g.id, selected:  g.id == components.editor.editor.selected.groupId }}), //g.selected
+            callbacks: {
+                select: function(e){ 
+                    groups.forEach(g => g.selected = false);
+                    let selectedGroup = groups.find(g => g.id == e.target.value);
+                    if(selectedGroup){
+                        selectedGroup.selected = true;
+                        components.editor.editor.selected.groupId = selectedGroup.id;
+                    }
+
+                    let selectedOption = undefined;
+                    for(let i = 0; i < e.target.options.length;i++){
+                        if(e.target.options[i].value == e.target.value){
+                            selectedOption = e.target.options[i];
+                            break;
+                        }
+                    }
+
+                    components.createGroup(groupEl, selectedGroup, changeCallback);
+                    components.editor.editor.setMoveGroupModeState(true);
+                    components.editor.editor.setModeState(true, 'edit');
+                },
+                reset: function(e) { 
+                    groups.forEach(g => g.selected = false);
+                    //components.createGroup(undefined, undefined, changeCallback) 
+                    components.fillGroups(layerProps, changeCallback);
+                    components.editor.editor.selected.groupId = undefined;
+                    components.editor.editor.setModeState(false, 'edit');
+                    components.editor.editor.setMoveGroupModeState(false);
+
+                    changeCallback();
+                },
+                remove(e, select) {
+                    if(!confirm('Remove group?'))
+                        return;
+
+                    groups = groups.filter(g => g.id != select.value);  
+                    groups.forEach((p, i) => p.order = i);
+                    select.value = undefined;
+                    components.editor.editor.selected.groupId = undefined;
+                    layerProps.groups = groups;
+                    components.fillGroups(layerProps, changeCallback);
+
+                    components.editor.editor.setModeState(false, 'edit');
+                    components.editor.editor.setMoveGroupModeState(false);
+
+                    changeCallback();
+                },
+                add: function(e, select) {
+                    
+                    if(layerProps.currentGroupId == undefined){
+                        layerProps.currentGroupId = 0;
+                    }
+                    let group  = {
+                        currentPointId: 0,
+                        selected: true,
+                        order: groups.length,
+                        id: `${layerProps.id}_group_${layerProps.currentGroupId++}`,
+                        visible: true,
+                        clear: false,
+                        strokeColor: '#FF0000',
+                        fillColor: '#FF0000',
+                        fill: false,
+                        closePath: false,
+                        type: 'dots',
+                        pointsEl: undefined,
+                        pointEl: undefined,
+                        points: []
+                    }
+
+                    groups.push(group);
+
+                    select.options[select.options.length] = new Option(group.id, group.id);
+                    select.value = group.id;
+                    components.editor.editor.selected.groupId = group.id;
+                    select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+                    
+                    components.editor.editor.setModeState(true, 'edit');
+                    components.editor.editor.setMoveGroupModeState(true);
+
+                    changeCallback();
+                },
+                move(select, direction) {
+                    let g = groups.filter(g => g.id == select.value); 
+                    if(!g.length)
+                        return;
+                    else 
+                        g = g[0];
+
+                    let currentIndex = groups.indexOf(g);
+                    if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == groups.length-1))
+                        return;
+
+                    components.array_move(groups, currentIndex, currentIndex + direction);
+                    groups.forEach((g, i) => g.order = i);
+                    components.fillGroups(layerProps, changeCallback);
+                    
+                    components.editor.editor.setModeState(false, 'edit');
+                    components.editor.editor.setMoveGroupModeState(false);
+
+                    changeCallback();
+                },
+                changeCallback: changeCallback
+            },
+            buttons: components.editor.image.general.animated ? [
+                {
+                    text: 'Update next frame',
+                    click: () => {
+                        let frames = components.editor.image.main;
+                        let currentFrameIndex = components.editor.image.general.currentFrameIndex;
+
+                        if(currentFrameIndex == frames.length-1)
+                            return;
+
+                        let selectedGroup = groups.filter(g => g.selected)[0];
+                        let sameIdGroup = undefined;
+                        let f = currentFrameIndex+1;
+                        for(let l = 0; l < frames[f].layers.length;l++){
+                            for(let g = 0; g < frames[f].layers[l].groups.length; g++){
+                                if(selectedGroup.id == frames[f].layers[l].groups[g].id){
+                                    sameIdGroup = frames[f].layers[l].groups[g];
+                                    break;
+                                }
+                            }
+                            if(sameIdGroup){
+                                break;
+                            }
+                        }
+                        
+                        if(!sameIdGroup){
+                            alert('Not found same Id group');
+                            return;
+                        }
+
+                        sameIdGroup.points = selectedGroup.points.map(p => ({
+                            ...p,
+                            point: {...p.point}
+                        }));
+
+                        alert('Done');
+                    }
+                }
+            ] : []
+        }))
+
+        if(components.editor.editor.selected.groupId){
+            let selectedGroups = groups.filter(g => g.id == components.editor.editor.selected.groupId);
+            if(selectedGroups && selectedGroups.length > 0){
+                document.querySelector('.groups select').dispatchEvent(new CustomEvent('change'));
+            }
+        }
+    },
+
+    fillPoints(groupProps, changeCallback) {
+        let {pointsEl, pointEl, points} = groupProps;
         let fillPoint = (point, selectedOptionEl,changeCallback, eventDetails) => {
             htmlUtils.removeChilds(pointEl);
 
@@ -423,32 +688,37 @@ var components = {
                         }
                     }
 
+                    components.editor.editor.setModeState(true, 'edit');
+
                     fillPoint(selectedPoint,selectedOption, changeCallback, e.detail);  
                 },
                 reset: function(e) { 
                     points.forEach(p => p.selected = false);
+                    components.editor.editor.setModeState(true, 'edit');
                     fillPoint(undefined, undefined, changeCallback, '') 
                 },
                 remove(e, select) {
                     points = points.filter(p => p.id != select.value);  
                     points.forEach((p, i) => p.order = i);
                     select.value = undefined;
-                    layerProps.points = points;
-                    components.fillPoints(layerProps, changeCallback);
+                    groupProps.points = points;
+                    components.fillPoints(groupProps, changeCallback);
+                    components.editor.editor.setModeState(true, 'edit');
                     changeCallback();
                 },
                 add: function(e, select) {
                     
-                    if(layerProps.currentId == undefined){
-                        layerProps.currentId = 0;
+                    if(groupProps.currentPointId == undefined){
+                        groupProps.currentPointId = 0;
                     }
 
                     points.push({
-                        id: `${layerProps.id}_point_${layerProps.currentId++}`,
+                        id: `${groupProps.id}_point_${groupProps.currentPointId++}`,
                         order: points.length,
                         point: {x: 0, y: 0},
                     })
-                    components.fillPoints(layerProps, changeCallback);
+                    components.fillPoints(groupProps, changeCallback);
+                    components.editor.editor.setModeState(true, 'edit');
                     changeCallback();
                 },
                 move(select, direction) {
@@ -465,7 +735,8 @@ var components = {
                     components.array_move(points, currentIndex, currentIndex + direction);
                     points.forEach((p, i) => p.order = i);
 
-                    components.fillPoints(layerProps, changeCallback);
+                    components.fillPoints(groupProps, changeCallback);
+                    components.editor.editor.setModeState(true, 'edit');
                     changeCallback();
                 },
                 changeCallback: changeCallback
