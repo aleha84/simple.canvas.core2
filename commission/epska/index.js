@@ -14,7 +14,10 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.globals.version = 0.1;
 
     SCG.src = {
-	}
+    }
+    
+    SCG.imageModels = {
+    }
 
     debugger;
     
