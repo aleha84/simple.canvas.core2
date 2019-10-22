@@ -27,7 +27,7 @@ class EditorScene extends Scene {
 
         this.pointerDataLabel = this.addUIGo(new UILabel({
             position: new V2(this.viewport.x- 100, 20),
-            size: new V2(70,20),
+            size: new V2(100,20),
             text: {
                 size: 8,
                 color: 'white'
