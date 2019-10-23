@@ -15,9 +15,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.src = {
     }
-    
-    SCG.imageModels = {
-    }
 
     debugger;
     
