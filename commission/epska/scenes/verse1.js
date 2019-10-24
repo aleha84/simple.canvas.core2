@@ -89,7 +89,7 @@ class EpskaVerse1Scene extends Scene {
             size: new V2(239,200),
             init() {
                 this.rightHand = this.addChild(new GO({
-                    position: new V2(-20, 53),
+                    position: new V2(-17, 53),
                     size: new V2(130, 45),
                     init() {
                         this.img = PP.createImage(SCG.epskaImageModels.verse1.rightHand)
