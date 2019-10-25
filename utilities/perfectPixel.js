@@ -33,7 +33,7 @@ class PerfectPixel {
     removePixel(x,y){
         this.ctx.clearRect(x, y, 1,1);
     }
-    lineV2(p1, p2, clear = false){
+    lineV2(p1, p2){
         if(!p1 || !(p1 instanceof Vector2)){
             if(isObject(p1) && p1.x != undefined && p1.y != undefined){
                 p1 = new V2(p1);
@@ -58,7 +58,19 @@ class PerfectPixel {
         return this.line(p1.x, p1.y, p2.x, p2.y);
     }
 
-    line(x0, y0, x1, y1, clear = false){
+    lineL(line){
+        let from = line.from || line.start;
+        let to = line.to || line.end;
+
+        if(!from || !to){
+            console.trace();
+                throw 'PerfectPixel.lineL -> Wrong line params';
+        }
+
+        return this.line(from.x, from.y, to.x, to.y)
+    }
+
+    line(x0, y0, x1, y1){
         x0 = fastRoundWithPrecision(x0, 0);
         y0 = fastRoundWithPrecision(y0, 0);
         x1 = fastRoundWithPrecision(x1, 0);

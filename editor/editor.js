@@ -878,11 +878,17 @@ points: [{
                     that.updateEditor.call(that);
                 },
                 add: function(e, select){
+
+                    let nextLayerId = `main_${main.currentLayerId++}`;
+                    while(main.layers.filter(g => g.id == nextLayerId).length > 0){
+                        nextLayerId = `main_${main.currentLayerId++}`;
+                    }
+
                     main.layers.forEach(l => l.selected = false);
                     let layer = {
                         selected: true,
                         order: main.layers.length,
-                        id: `main_${main.currentLayerId++}`,
+                        id: nextLayerId,
                         name: '',
                         visible: true,
                         groupsEl: undefined,
