@@ -545,11 +545,17 @@ var components = {
                     if(layerProps.currentGroupId == undefined){
                         layerProps.currentGroupId = 0;
                     }
+
+                    let nextGroupId = `${layerProps.id}_group_${layerProps.currentGroupId++}`;
+                    while(groups.filter(g => g.id == nextGroupId).length > 0){
+                        nextGroupId = `${layerProps.id}_group_${layerProps.currentGroupId++}`;
+                    }
+                    
                     let group  = {
                         currentPointId: 0,
                         selected: true,
                         order: groups.length,
-                        id: `${layerProps.id}_group_${layerProps.currentGroupId++}`,
+                        id: nextGroupId,
                         visible: true,
                         clear: false,
                         strokeColor: '#FF0000',
