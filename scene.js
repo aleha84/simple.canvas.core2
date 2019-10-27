@@ -215,7 +215,8 @@ class Scene {
             events: { // custom event handling
                 up: undefined,
                 down: undefined,
-                move: undefined
+                move: undefined,
+                keyup: undefined
             },
             scrollOptions: { // default scroll options
                 enabled: false,

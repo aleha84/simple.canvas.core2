@@ -34,6 +34,10 @@ SCG.events = {
 			return false;
         }, false);
 
+        document.addEventListener('keyup', function(e) {
+            SCG.controls.keyboard.keyup(e);
+        })
+
         if(SCG.globals.isMobile)
             {
                 setTimeout( function(){ window.scrollTo(0, 1); }, 100 );

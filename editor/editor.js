@@ -41,6 +41,9 @@ class Editor {
                         this.setValue(this.value == 'movegroup' ? 'edit' : 'movegroup');
                     }
                 },
+                getModeState() {
+                    return { disabled: this.mode.element.disabled, mode: this.mode.value }
+                },
                 setModeState(buttonState, modeValue){
                     this.mode.element.disabled = !buttonState;
                     //this.mode.moveGroupElement.disabled = !buttonState;

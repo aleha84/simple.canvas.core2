@@ -22,6 +22,12 @@ SCG.controls = {
             down: []
         };
     },  
+    keyboard: {
+        keyup(event) {
+            if(SCG.scenes.activeScene.events.keyup)
+                SCG.scenes.activeScene.events.keyup(event);
+        },
+    },
     mouse: {
         state: {
             position: undefined,
@@ -232,6 +238,7 @@ SCG.controls = {
             //     SCG2.gameControls.scale.change(-1);
             // }
         },
+        
         getEventAbsolutePosition(event) {
             var eventPos = pointerEventToXY(event);
             this.state.position = new V2(eventPos.x - SCG.canvases.ui.margins.left,eventPos.y - SCG.canvases.ui.margins.top);
