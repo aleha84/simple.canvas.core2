@@ -5,6 +5,57 @@ class EditorScene extends Scene {
                 enabled: true,
                 restrictBySpace: false
             },
+            events: {
+                keyup: (event) => {
+                   // console.log(this, event, event.keyCode)
+
+                    if(['e', 'a', 'm'].indexOf(event.key) != -1 && !this.editor.editor.getModeState().disabled && this.editor.editor.selected.groupId != undefined){
+                        switch(event.key){
+                            case 'a': 
+                                this.editor.editor.setModeState(true, 'add')
+                                break;
+                            case 'e': 
+                                this.editor.editor.setModeState(true, 'edit')
+                                break;
+                            case 'm': 
+                                this.editor.editor.setMoveGroupModeState(true, 'movegroup')
+                                break;
+                            default:
+                                break;
+                        }
+
+                        this.editor.updateEditor();
+                    }
+
+                    if(['-', '+', '='].indexOf(event.key) != -1){
+                        let zoom = this.editor.image.general.zoom;
+                        let trigger = false;
+                        switch(event.key){
+                            case '-': 
+                                if(zoom.current > zoom.min){
+                                    zoom.current--;
+                                    trigger = true;
+                                }
+                                break;
+                            case '+': 
+                            case '=':
+                                    if(zoom.current < zoom.max){
+                                        zoom.current++;
+                                        trigger = true;
+                                    }
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if(trigger){
+                            let el = document.querySelector('.general .range input');
+                            el.value = zoom.current;
+                            el.dispatchEvent(new Event('change'))
+                        }
+                    }
+                }
+            }
         }, options);
 
         super(options)
