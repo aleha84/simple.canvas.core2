@@ -322,6 +322,7 @@ class BallGO extends GO {
     }
 
     toPixels() {
+        this.scale = 1;
         let topLeft = new V2(-this.size.x/2, -this.size.y/2);
         let pixels = this.parentScene.getPixels(this.body.img, this.imgSize).map(p => {
             return {
@@ -339,7 +340,7 @@ class BallGO extends GO {
         pixels.forEach(pixel => {
             let pgo =  this.addChild(new GO({
                 //renderValuesRound: true,
-                isVisible: false,
+                isVisible: true,
                 position: pixel.position,
                 size: pixel.size,
                 img: createCanvas(new V2(1,1), (ctx, size, hlp) => {
