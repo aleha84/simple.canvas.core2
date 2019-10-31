@@ -7,19 +7,28 @@ var components = {
 
         el.appendChild((() => {
             let divValue = htmlUtils.createElement('div', { className: 'value' })
-            let currentValueElement = htmlUtils.createElement('span', { className: 'current', text: value.current })
-            divValue.appendChild(htmlUtils.createElement('input', { 
-                attributes: { type: 'range', min: value.min, max: value.max, step: value.step }, value: value.current,
+            let currentValueElement = htmlUtils.createElement('span', { className: 'current', text: value.current.toString() })
+            el.range = divValue.appendChild(htmlUtils.createElement('input', { 
+                attributes: { type: 'range', min: value.min, max: value.max, step: value.step }, value: value.current.toString(),
                 events: {
                     change: (event) => {
-                        currentValueElement.innerText = event.target.value;
-                        value.current = parseInt(event.target.value);
-                        changeCallback();
+                        
+                        if(value.round){
+                            value.current = fast.r(parseFloat(event.target.value), value.round);
+                        }
+                        else 
+                            value.current = parseInt(event.target.value);
+
+                        currentValueElement.innerText = value.current;
+                        changeCallback(event.target, value.current);
                     }
                 }
              }))
 
+             el.range.value = value.current;
+
              divValue.appendChild(currentValueElement);
+             el.label = currentValueElement;
 
              return divValue;
         })());
@@ -377,40 +386,65 @@ var components = {
             changeCallback();
         }));
 
+
         let strokeColor = this.createColorPicker(groupProps.strokeColor, 'Stroke color', (color) => {
             groupProps.strokeColor = color;
             changeCallback();
         });
+
+        let strokeColorOpacityProps = {current: groupProps.strokeColorOpacity, max: 1, min: 0, step: 0.05, round: 2}
+        let strokeColorOpacity = this.createRange(strokeColorOpacityProps, 'Opacity', 
+                (el, value) => {
+                    groupProps.strokeColorOpacity = value;
+                    changeCallback()
+                }
+            )
 
         let fillColor = this.createColorPicker(groupProps.fillColor, 'Fill color', (color) => {
             groupProps.fillColor = color;
             changeCallback();
         });
 
+        let fillColorOpacityProps = {current: groupProps.fillColorOpacity, max: 1, min: 0, step: 0.05, round: 2}
+        let fillColorOpacity = this.createRange(fillColorOpacityProps, 'Opacity', 
+                (el, value) => {
+                    groupProps.fillColorOpacity = value;
+                    changeCallback()
+                }
+            )
+
+        groupEl.appendChild(htmlUtils.createElement('hr'));
         groupEl.appendChild(strokeColor);
+        groupEl.appendChild(strokeColorOpacity);
 
         //обмен цвентов
         let colorsExchange = htmlUtils.createElement('div',  { classNames: ['colorsExchange', 'row'] });
         colorsExchange.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Colors exchange' }))
         colorsExchange.appendChild(htmlUtils.createElement('button', { text: '↓', attributes: {}, events: { 
             click: function() { 
-                if(groupProps.fillColor == groupProps.strokeColor)
+                if(groupProps.fillColor == groupProps.strokeColor && groupProps.fillColorOpacity == groupProps.strokeColorOpacity)
                     return;
 
                 fillColor.cPicker.value = strokeColor.cPicker.value;
                 fillColor.hexInput.value = strokeColor.hexInput.value;
                 groupProps.fillColor = groupProps.strokeColor;
+                groupProps.fillColorOpacity = groupProps.strokeColorOpacity;
+                fillColorOpacity.range.value = groupProps.strokeColorOpacity;
+                fillColorOpacity.label.innerText = groupProps.strokeColorOpacity;
                 changeCallback();
              }
         } }))
         colorsExchange.appendChild(htmlUtils.createElement('button', { text: '↑', attributes: {}, events: { 
             click: function() { 
-                if(groupProps.fillColor == groupProps.strokeColor)
+                if(groupProps.fillColor == groupProps.strokeColor && groupProps.fillColorOpacity == groupProps.strokeColorOpacity)
                     return;
                     
                 strokeColor.cPicker.value = fillColor.cPicker.value;
                 strokeColor.hexInput.value = fillColor.hexInput.value;
                 groupProps.strokeColor = groupProps.fillColor;
+                groupProps.strokeColorOpacity = groupProps.fillColorOpacity;
+                strokeColorOpacity.range.value = groupProps.fillColorOpacity;
+                strokeColorOpacity.label.innerText = groupProps.fillColorOpacity;
                 changeCallback();
              }
         } }))
@@ -418,6 +452,8 @@ var components = {
         groupEl.appendChild(colorsExchange);
 
         groupEl.appendChild(fillColor);
+        groupEl.appendChild(fillColorOpacity);
+        groupEl.appendChild(htmlUtils.createElement('hr'));
 
         groupEl.appendChild(components.createCheckBox(groupProps.closePath, 'Close path', function(value) {
             groupProps.closePath = value;
@@ -426,6 +462,11 @@ var components = {
 
         groupEl.appendChild(components.createCheckBox(groupProps.fill, 'Fill', function(value) {
             groupProps.fill = value;
+            changeCallback();
+        }));
+
+        groupEl.appendChild(components.createCheckBox(groupProps.fillPattern, 'Fill pattern', function(value) {
+            groupProps.fillPattern = value;
             changeCallback();
         }));
 
@@ -559,8 +600,11 @@ var components = {
                         visible: true,
                         clear: false,
                         strokeColor: '#FF0000',
+                        strokeColorOpacity: 1,
                         fillColor: '#FF0000',
+                        fillColorOpacity: 1,
                         fill: false,
+                        fillPattern: false,
                         closePath: false,
                         type: 'dots',
                         pointsEl: undefined,
