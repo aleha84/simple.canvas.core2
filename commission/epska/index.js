@@ -35,6 +35,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: small300_200_Viewport
     }));
 
+    SCG.scenes.cacheScene(new EpskaVerse1Part3Scene({
+        name:'verse1p3',
+        viewport: small300_200_Viewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
