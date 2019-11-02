@@ -3,6 +3,8 @@ class Scene {
         if(!props.name)
             throw "Can't create scene without name";
         
+        this.viewport = undefined;
+
         assignDeep(this,{
             viewport: new V2(500, 300),
             goLayers: [],

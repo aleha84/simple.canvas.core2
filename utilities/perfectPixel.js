@@ -1,5 +1,7 @@
 class PerfectPixel {
     constructor(options = {}){
+        this.fillStyleProvider = undefined;
+        
         assignDeep(this, {
             fillStyleProvider: undefined
         }, options)
@@ -95,6 +97,22 @@ class PerfectPixel {
         return filledPoints;
      }
      
+     fillByCornerPoints(cornerPoints) {
+         if(cornerPoints.length < 3)
+            throw 'fillByCornerPoints -> cornerPoints should be 3 or more!';
+
+        let filledPixels = [];
+        for(let i = 0; i < cornerPoints.length;i++){
+            if(i < cornerPoints.length-1)
+                filledPixels= [...filledPixels, ...this.lineV2(cornerPoints[i], cornerPoints[i+1])];
+        }
+
+        filledPixels = [...filledPixels, ...this.lineV2(cornerPoints[cornerPoints.length-1], cornerPoints[0])];
+        let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
+
+        return this.fill(uniquePoints, cornerPoints)
+     }
+
      fill(filledPoints, cornerPoints) {//, _fillPoints) {
         let _fillPointsResult = [...filledPoints];
         let checkBoundaries = function(p) {
@@ -217,8 +235,14 @@ class PerfectPixel {
 
 var PP = PerfectPixel;
 
-PP.createImage = function(model) {
+PP.createImage = function(model, params = {}) {
     let {general, main} = model;
+
+    params = assignDeep({}, {
+        renderOnly: [], 
+        exclude: []
+    }, params);
+
     let renderGroup = (pp, group) => {
         let strokeColor = group.strokeColor;
         let scOpacity = group.strokeColorOpacity != undefined && group.strokeColorOpacity < 1;
@@ -303,6 +327,15 @@ PP.createImage = function(model) {
                 if(layer.visible != undefined && layer.visible == false)
                     continue;
     
+                if(params.renderOnly.length > 0){
+                    if(params.renderOnly.indexOf(layer.name) == -1)
+                        continue;
+                }
+                else if(params.exclude.length > 0) {
+                    if(params.exclude.indexOf(layer.name) != -1)
+                        continue;
+                }
+
                 if(layer.groups){
                     //for(let g = 0; g < layer.groups.length; g++){
                     for(let group of layer.groups.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {

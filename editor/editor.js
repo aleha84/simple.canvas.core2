@@ -61,7 +61,8 @@ class Editor {
                     zoom: {current: 10, max: 10, min: 1, step: 1},
                     showGrid: false,
                     animated: false,
-                    element: undefined
+                    element: undefined,
+                    backgroundColor: '#000000'
                 },
                 main: {
                     element: undefined,
@@ -314,7 +315,8 @@ points: [{
                 size: new V2(i.general.originalSize),
                 zoom: i.general.zoom.current,
                 showGrid: i.general.showGrid, 
-                animated
+                animated,
+                backgroundColor:i.general.backgroundColor
             },
             main
         }
@@ -720,6 +722,12 @@ points: [{
         let generalEl = htmlUtils.createElement('div', { className: 'general' });
         generalEl.appendChild(components.createV2(general.originalSize, 'Size', this.updateEditor.bind(this)));
         generalEl.appendChild(components.createRange(general.zoom, 'Zoom', this.updateEditor.bind(this)));
+        
+        generalEl.appendChild(components.createColorPicker(general.backgroundColor, 'Bg color', function(color) {
+            general.backgroundColor = color;
+            this.updateEditor();
+        }.bind(this)));
+        
         generalEl.appendChild(components.createCheckBox(general.showGrid, 'Show grid', function(value) {
             general.showGrid = value;
             this.updateEditor();
