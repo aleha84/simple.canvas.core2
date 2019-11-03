@@ -176,5 +176,21 @@ class EpskaVerse1Part3Scene extends Scene {
                 this.img = PP.createImage(SCG.epskaImageModels.verse1.lamp)
             }
         }), 6)
+
+        this.laptop = this.addGo(new GO({
+            position: new V2(19,113).add(new V2(80,45).divide(2)),
+            size: new V2(80,45),
+            init() {
+                this.img = PP.createImage(SCG.epskaImageModels.verse1.laptop)
+            }
+        }), 6)
+
+        this.glasses = this.addGo(new GO({
+            position: new V2(223,155).add(new V2(35,15).divide(2)),
+            size: new V2(35,15),
+            init() {
+                this.img = PP.createImage(SCG.epskaImageModels.verse1.glasses)
+            }
+        }), 6)
     }
 }
