@@ -17,7 +17,7 @@ class EpskaVerse1Part3Scene extends Scene {
     start(){
         this.heroPositionTL = new V2(150,75)
         this.heroSize = new V2(115,90);
-        this.heroPosition = this.heroPositionTL.add(this.heroSize.divide(2)).toInt();
+        this.heroPosition = this.heroPositionTL.add(this.heroSize.divide(2));
 
         this.background = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -163,6 +163,8 @@ class EpskaVerse1Part3Scene extends Scene {
                     
                     //far end       hsv: 30,35,45; rgb: 114,94,74
                     // frightEnd:   hsv: 23,18,80; rgb: 205,182,167
+
+                    //hero shadows
                 })
             }
         }), 5)
