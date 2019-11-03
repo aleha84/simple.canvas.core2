@@ -75,13 +75,23 @@ Moving blocks 3: https://aleha84.github.io/simple.canvas.core2/demo9/#dots
 
 Cyber zhiguli: https://aleha84.github.io/simple.canvas.core2/demo9/#label
 
+Bike: https://aleha84.github.io/simple.canvas.core2/demo9/#bike
+
+Nesting doll: https://aleha84.github.io/simple.canvas.core2/demo9/#doll
+
+Corridor: https://aleha84.github.io/simple.canvas.core2/demo9/#corridor
+
+At work: https://aleha84.github.io/simple.canvas.core2/commission/epska/#verse1
+
+Sad message: https://aleha84.github.io/simple.canvas.core2/commission/epska/#verse1p2
 
 TODO: 
 
+- Add Layer move
 
-update image editor - add dots, lines groups per layer, add animation support
+- Fix bugs
 
-Children objects order - logical layers.
+
 
 
 
