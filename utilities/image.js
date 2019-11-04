@@ -638,6 +638,41 @@ var colors = {
         white: 'rgba(255,255,255, 1)',
         black: 'rgba(0,0,0,1)',
     },
+    createEasingChange({hsv = {from:{h:0,s:0,v:0}, to:{h:0,s:0,v:0}}, rgb = {from:{r:0,g:0,b:0}, to:{r:0,g:0,b:0}}, type = 'quad', method = 'in', time = 100}) {
+        let change = {
+            current: {},
+            h: easing.createProps(time, hsv.from.h,hsv.to.h, type, method),
+            s: easing.createProps(time, hsv.from.s,hsv.to.s, type, method),
+            v: easing.createProps(time, hsv.from.v,hsv.to.v, type, method),
+            r: easing.createProps(time, rgb.from.r,rgb.to.r, type, method),
+            g: easing.createProps(time, rgb.from.g,rgb.to.g, type, method),
+            b: easing.createProps(time, rgb.from.b,rgb.to.b, type, method),
+        }
+
+        return {
+            processer: function(time, change) {
+                if(change == undefined)
+                    change = this.change;
+
+                Object.entries(change).forEach(([key,value]) => {
+                    if(key == 'current')
+                        return;
+
+                    value.time = time;
+                    change.current[key] = easing.process(value);
+                })
+            },
+            getCurrent: function(scheme){
+                if(scheme == 'hsv')
+                    return colors.hsvToHex([this.change.current.h, this.change.current.s, this.change.current.v])
+                else if(scheme == 'rgb')
+                    return rgbToHex(this.change.current.r,this.change.current.g,this.change.current.b)
+
+                return undefined;
+            },
+            change
+        };
+    },
     hsvToHex(hsv) {
         return hsvToHex({hsv});
     },

@@ -61,7 +61,8 @@ class Editor {
                     zoom: {current: 10, max: 10, min: 1, step: 1},
                     showGrid: false,
                     animated: false,
-                    element: undefined
+                    element: undefined,
+                    backgroundColor: '#000000'
                 },
                 main: {
                     element: undefined,
@@ -84,8 +85,11 @@ class Editor {
                                     id: 'main_0_group_0',
                                     clear: false,
                                     strokeColor: '#FF0000',
+                                    strokeColorOpacity: 1,
                                     fillColor: '#FF0000',
+                                    fillColorOpacity: 1,
                                     fill: false,
+                                    fillPattern: false,
                                     closePath: false,
                                     type: 'lines',
                                     pointsEl: undefined,
@@ -193,9 +197,12 @@ points: [{
                 selected: g.selected,
                 type: g.type,
                 strokeColor: g.strokeColor,
+                strokeColorOpacity: g.strokeColorOpacity,
                 fillColor: g.fillColor,
+                fillColorOpacity: g.fillColorOpacity,
                 closePath: g.closePath,
                 fill: g.fill,
+                fillPattern: g.fillPattern,
                 visible: g.visible,
                 clear: g.clear,
                 id: g.id,
@@ -308,7 +315,8 @@ points: [{
                 size: new V2(i.general.originalSize),
                 zoom: i.general.zoom.current,
                 showGrid: i.general.showGrid, 
-                animated
+                animated,
+                backgroundColor:i.general.backgroundColor
             },
             main
         }
@@ -345,8 +353,11 @@ points: [{
                                 order: j,
                                 clear: false,
                                 strokeColor: '#FF0000',
+                                strokeColorOpacity: 1,
                                 fillColor: '#FF0000',
+                                fillColorOpacity: 1,
                                 fill: false,
+                                fillPattern: false,
                                 closePath: false,
                                 type: 'dots',
                                 selected: false,
@@ -711,6 +722,12 @@ points: [{
         let generalEl = htmlUtils.createElement('div', { className: 'general' });
         generalEl.appendChild(components.createV2(general.originalSize, 'Size', this.updateEditor.bind(this)));
         generalEl.appendChild(components.createRange(general.zoom, 'Zoom', this.updateEditor.bind(this)));
+        
+        generalEl.appendChild(components.createColorPicker(general.backgroundColor, 'Bg color', function(color) {
+            general.backgroundColor = color;
+            this.updateEditor();
+        }.bind(this)));
+        
         generalEl.appendChild(components.createCheckBox(general.showGrid, 'Show grid', function(value) {
             general.showGrid = value;
             this.updateEditor();

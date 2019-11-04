@@ -62,6 +62,8 @@ class EditorScene extends Scene {
     }
 
     start(){
+        this.bgColor = '#000000';
+
         this.editorMode = this.addUIGo(new UILabel({
             position: new V2(55, 20),
             size: new V2(50,20),
@@ -109,6 +111,11 @@ class EditorScene extends Scene {
         console.log(model);
         let mg = this.mainGo;
         let {general, main} = model;
+
+        if(general.backgroundColor && this.bgColor != general.backgroundColor){
+            this.bgColor = general.backgroundColor;
+            this.backgroundRenderDefault(this.bgColor);
+        }
 
         if(!general.demo){
             if(this.animationDemo) {
@@ -173,7 +180,7 @@ class EditorScene extends Scene {
     }
 
     backgroundRender(){
-        this.backgroundRenderDefault();
+        this.backgroundRenderDefault(this.bgColor);
     }
 }
 
