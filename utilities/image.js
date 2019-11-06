@@ -733,6 +733,26 @@ var colors = {
         else {
             return '#' + rgbToHex(resultRgb);
         }
+    },
+    saveImage(canvas, {size = undefined, name = 'export'}){
+        let resultImg;
+        if(size == undefined){
+            resultImg = canvas;
+        }
+        else {
+            resultImg = createCanvas(size, (ctx, size) => {
+                ctx.drawImage(canvas, 0,0, size.x, size.y)
+            });
+        }
+        
+        //window.location.href = resultImg;
+        var link = document.createElement("a");
+        link.download = name;
+        link.href = resultImg.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        delete link;
     }
     
 
