@@ -87,6 +87,8 @@ Sad message: https://aleha84.github.io/simple.canvas.core2/commission/epska/#ver
 
 TODO: 
 
+- Add used colors panel
+
 - Add Layer move
 
 - Fix bugs
