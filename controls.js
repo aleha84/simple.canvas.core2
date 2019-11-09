@@ -160,6 +160,10 @@ SCG.controls = {
         up(event) {
             this.getEventAbsolutePosition(event);
 
+            if(SCG.scenes.activeScene.debug.enabled){
+                console.log(this.state.logicalPosition);
+            }
+
             this.state.doEventCheck('up');
             if(!this.state.moving || this.state.movingDelta.equal(new V2()))
             {

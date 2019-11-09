@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let squareDefaultViewport = new V2(300,300);
     let smallSquareDefaultViewport = new V2(200,200);
     let small200_300_Viewport = new V2(200, 300);
+    let small300_200_Viewport = new V2(300, 200);
     
     SCG.scenes.cacheScene(new RotationScene({
         name:'rotation',
@@ -177,6 +178,11 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.scenes.cacheScene(new Demo9CorridorScene({
         name:'corridor',
         viewport: small200_300_Viewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9PursuitScene({
+        name:'pursuit',
+        viewport: small300_200_Viewport
     }));
 
     sceneSelectByHashValue();
