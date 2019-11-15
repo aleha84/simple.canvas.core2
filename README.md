@@ -91,6 +91,8 @@ TODO:
 
 - Add Layer move
 
+- clone group to another frame if it is not exists
+
 - Fix bugs
 
 
