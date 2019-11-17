@@ -8,8 +8,8 @@ var modelUtils = {
             visible: l.visible,
         }
     },
-    groupMapper(g) {
-        return {
+    groupMapper(g, deep = false) {
+        let group = {
             order: g.order,
             selected: g.selected,
             type: g.type,
@@ -23,7 +23,18 @@ var modelUtils = {
             visible: g.visible,
             clear: g.clear,
             id: g.id,
+            //points: deep ? 
+        };
+
+        if(deep){
+            group.points = g.points.map((p) => {
+                return {
+                    ...modelUtils.pointMapper(p)
+                }
+            });
         }
+
+        return group
     },
     pointMapper(p) {
         return {

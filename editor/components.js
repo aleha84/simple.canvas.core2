@@ -532,7 +532,7 @@ var components = {
         if(groupsEl)
             htmlUtils.removeChilds(groupsEl);
         // groups list
-        groupsEl.appendChild(components.createList({
+        let groupsList = components.createList({
             title: 'Groups',
             className: 'groups',
             items: groups.map(g => {return { title: g.id, value: g.id, selected:  g.id == components.editor.editor.selected.groupId }}), //g.selected
@@ -693,25 +693,21 @@ var components = {
                                 pointsEl: undefined,
                                 pointEl: undefined,
                                 points: []
-                            }, modelUtils.groupMapper(selectedGroup));
+                            }, modelUtils.groupMapper(selectedGroup, true));
 
-                            frames[f].layers[l].groups.push(g);
-                            let select = groupsEl.selectHolder.select;
-
-                            select.options[select.options.length] = new Option(g.id, g.id);
-                            //select.value = g.id;
-                            //components.editor.editor.selected.groupId = group.id;
-                            //select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
-                            
-                            //components.editor.editor.setModeState(true, 'edit');
-                            //components.editor.editor.setMoveGroupModeState(true);
-
-                            //changeCallback();
-                            
-                            // todo: check layer existence
-                            // todo: refactor
-                            alert('Added new group to next frame');
-                            return;
+                            let sameLayer = frames[f].layers.find(l => l.id == components.editor.editor.selected.layerId);
+                            if(sameLayer){
+                                if(sameLayer.groups == undefined){
+                                    sameLayer.groups = [];
+                                }
+                                sameLayer.groups.push(g);
+                                alert('Added new group to next frame');
+                                return;
+                            }
+                            else {
+                                alert('Same layer in next frame not found!')
+                                return;
+                            }
                         }
 
                         sameIdGroup.points = selectedGroup.points.map(p => ({
@@ -723,7 +719,10 @@ var components = {
                     }
                 }
             ] : []
-        }))
+        });
+
+        groupsEl.appendChild(groupsList);
+        groupsEl.list = groupsList;
 
         if(components.editor.editor.selected.groupId){
             let selectedGroups = groups.filter(g => g.id == components.editor.editor.selected.groupId);
