@@ -247,6 +247,7 @@ var components = {
         }
 
         selectHolder.append(select);
+        selectHolder.select = select;
         
         let addButton = htmlUtils.createElement('input', {
             attributes: { 
@@ -364,6 +365,7 @@ var components = {
 
         selectHolder.append(sControls)
         lb.append(selectHolder);
+        lb.selectHolder = selectHolder;
 
         return lb;
     },
@@ -672,7 +674,43 @@ var components = {
                         }
                         
                         if(!sameIdGroup){
-                            alert('Not found same Id group');
+                            //alert('Not found same Id group');
+                            let g = assignDeep({},{
+                                currentPointId: 0,
+                                selected: true,
+                                order: groups.length,
+                                id: selectedGroup.id,
+                                visible: true,
+                                clear: false,
+                                strokeColor: '#FF0000',
+                                strokeColorOpacity: 1,
+                                fillColor: '#FF0000',
+                                fillColorOpacity: 1,
+                                fill: false,
+                                fillPattern: false,
+                                closePath: false,
+                                type: 'dots',
+                                pointsEl: undefined,
+                                pointEl: undefined,
+                                points: []
+                            }, modelUtils.groupMapper(selectedGroup));
+
+                            frames[f].layers[l].groups.push(g);
+                            let select = groupsEl.selectHolder.select;
+
+                            select.options[select.options.length] = new Option(g.id, g.id);
+                            //select.value = g.id;
+                            //components.editor.editor.selected.groupId = group.id;
+                            //select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+                            
+                            //components.editor.editor.setModeState(true, 'edit');
+                            //components.editor.editor.setMoveGroupModeState(true);
+
+                            //changeCallback();
+                            
+                            // todo: check layer existence
+                            // todo: refactor
+                            alert('Added new group to next frame');
                             return;
                         }
 

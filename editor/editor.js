@@ -193,28 +193,30 @@ points: [{
         let e = that.editor;
         let groupMapper = (g) => {
             return {
-                order: g.order,
-                selected: g.selected,
-                type: g.type,
-                strokeColor: g.strokeColor,
-                strokeColorOpacity: g.strokeColorOpacity,
-                fillColor: g.fillColor,
-                fillColorOpacity: g.fillColorOpacity,
-                closePath: g.closePath,
-                fill: g.fill,
-                fillPattern: g.fillPattern,
-                visible: g.visible,
-                clear: g.clear,
-                id: g.id,
+                // order: g.order,
+                // selected: g.selected,
+                // type: g.type,
+                // strokeColor: g.strokeColor,
+                // strokeColorOpacity: g.strokeColorOpacity,
+                // fillColor: g.fillColor,
+                // fillColorOpacity: g.fillColorOpacity,
+                // closePath: g.closePath,
+                // fill: g.fill,
+                // fillPattern: g.fillPattern,
+                // visible: g.visible,
+                // clear: g.clear,
+                // id: g.id,
+                ...modelUtils.groupMapper(g),
                 changeCallback() {
                     that.updateEditor.bind(that)();
                 },
                 points: g.points.map((p) => {
                     return {
-                        point: new V2(p.point),
-                        order: p.order,
-                        selected: p.selected,
-                        id: p.id,
+                        // point: new V2(p.point),
+                        // order: p.order,
+                        // selected: p.selected,
+                        // id: p.id,
+                        ...modelUtils.pointMapper(p),
                         changeCallback(value, skipEventDispatch = false) {
                             p.point.x = value.x;
                             p.point.y = value.y;
@@ -272,11 +274,12 @@ points: [{
         }
         let layerMapper = (l) => {
             return {
-                order: l.order,
-                selected: l.selected,
-                id: l.id,
-                name: l.name,
-                visible: l.visible,
+                ...modelUtils.layerMapper(l),
+                // order: l.order,
+                // selected: l.selected,
+                // id: l.id,
+                // name: l.name,
+                // visible: l.visible,
                 groups: l.groups.map(groupMapper),
                 changeCallback() {
                     that.updateEditor.bind(that)();
