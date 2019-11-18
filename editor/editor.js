@@ -17,6 +17,7 @@ class Editor {
                     value: 'edit',
                     element: undefined,
                     moveGroupElement: undefined,
+                    moveLayerElement: undefined,
                     stateElement: undefined,
                     setValue(value) {
                         value = value || this.value;
@@ -39,6 +40,9 @@ class Editor {
                     },
                     toggleMoveGroup() {
                         this.setValue(this.value == 'movegroup' ? 'edit' : 'movegroup');
+                    },
+                    toggleMoveLayer() {
+                        this.setValue(this.value == 'movelayer' ? 'edit' : 'movelayer');
                     }
                 },
                 getModeState() {
@@ -51,6 +55,11 @@ class Editor {
                 },
                 setMoveGroupModeState(buttonState, modeValue) {
                     this.mode.moveGroupElement.disabled = !buttonState;
+                    if(modeValue)
+                        this.mode.setValue(modeValue);
+                },
+                setMoveLayerModeState(buttonState, modeValue) {
+                    this.mode.moveLayerElement.disabled = !buttonState;
                     if(modeValue)
                         this.mode.setValue(modeValue);
                 }
@@ -68,57 +77,28 @@ class Editor {
                     element: undefined,
                     currentLayerId: 1,
                     layers: [
-                        {
-                            order: 0,
-                            currentGroupId: 1,
-                            selected: false,
-                            id: 'main_0',
-                            name: '',
-                            visible: true,
-                            groupsEl: undefined,
-                            groupEl: undefined,
-                            groups: [
-                                {
-                                    order: 0,
-                                    currentPointId: 0,
-                                    selected: false,
-                                    id: 'main_0_group_0',
-                                    clear: false,
-                                    strokeColor: '#FF0000',
-                                    strokeColorOpacity: 1,
-                                    fillColor: '#FF0000',
-                                    fillColorOpacity: 1,
-                                    fill: false,
-                                    fillPattern: false,
-                                    closePath: false,
-                                    type: 'lines',
-                                    pointsEl: undefined,
-                                    pointEl: undefined,
-                                    visible: true,
-                                    points: [
-                                        // {
-                                        //     id: 'main_0_point_0',
-                                        //     order: 0,
-                                        //     point: {x: 1, y: 1},
-                                        // },
-
-                                    ]
-                                }
-                            ]
-                        }
-/* layer props
-order: int,
-id: string,
-strokeColor: string (rgb,rgba,#),
-fillColor: string (rgb,rgba,#),
-closePath: boolean,
-points: [{
-    point: V2,
-    color: string (rgb,rgba,#),
-    opacity: float 0 - 1
-}] 
- 
-*/
+                        assignDeep(
+                            {}, 
+                            modelUtils.createDefaultLayer('main_0', 0), 
+                            { 
+                                currentGroupId: 1, 
+                                groups: [
+                                    modelUtils.createDefaultGroup('main_0_group_0', 0)
+                                ] 
+                            }),
+                        // {
+                        //     order: 0,
+                        //     currentGroupId: 1,
+                        //     selected: false,
+                        //     id: 'main_0',
+                        //     name: '',
+                        //     visible: true,
+                        //     groupsEl: undefined,
+                        //     groupEl: undefined,
+                        //     groups: [
+                        //         modelUtils.createDefaultGroup('main_0_group_0', 0)
+                        //     ]
+                        // }
                     ]
                 }
             },
@@ -153,8 +133,11 @@ points: [{
 
     controlsHeightSet() {
         let heightLeft = document.getElementsByClassName('controlsWrapper')[0].clientHeight - document.getElementsByClassName('layersWrapper')[0].offsetTop;
-        if(heightLeft < 800){
+        if(heightLeft < 1050){
             document.getElementsByClassName('layersWrapper')[0].style.height = heightLeft+'px';
+        }
+        else {
+            document.getElementsByClassName('layersWrapper')[0].style.height = null;
         }
     }
 
@@ -193,36 +176,16 @@ points: [{
         let e = that.editor;
         let groupMapper = (g) => {
             return {
-                // order: g.order,
-                // selected: g.selected,
-                // type: g.type,
-                // strokeColor: g.strokeColor,
-                // strokeColorOpacity: g.strokeColorOpacity,
-                // fillColor: g.fillColor,
-                // fillColorOpacity: g.fillColorOpacity,
-                // closePath: g.closePath,
-                // fill: g.fill,
-                // fillPattern: g.fillPattern,
-                // visible: g.visible,
-                // clear: g.clear,
-                // id: g.id,
                 ...modelUtils.groupMapper(g),
                 changeCallback() {
                     that.updateEditor.bind(that)();
                 },
                 points: g.points.map((p) => {
                     return {
-                        // point: new V2(p.point),
-                        // order: p.order,
-                        // selected: p.selected,
-                        // id: p.id,
                         ...modelUtils.pointMapper(p),
                         changeCallback(value, skipEventDispatch = false) {
                             p.point.x = value.x;
                             p.point.y = value.y;
-                            //console.log(this, value)
-                            //that.updateEditor();
-                            //components.fillPoints(l.pointsEl, l.pointEl, l.points, that.updateEditor.bind(that));
 
                             let select = g.pointsEl.querySelector('select');
                             if(select){
@@ -275,12 +238,18 @@ points: [{
         let layerMapper = (l) => {
             return {
                 ...modelUtils.layerMapper(l),
-                // order: l.order,
-                // selected: l.selected,
-                // id: l.id,
-                // name: l.name,
-                // visible: l.visible,
                 groups: l.groups.map(groupMapper),
+                move(direction) {
+                    let d = new V2(direction);
+                    
+                    l.groups.forEach(g => {
+                        g.points.forEach(p => {
+                            p.point = new V2(p.point).add(d).toPlain();
+                        })
+                    })
+
+                    that.updateEditor.bind(that)();
+                },
                 changeCallback() {
                     that.updateEditor.bind(that)();
                 }
@@ -337,35 +306,16 @@ points: [{
             (main.layers.map(
                 (l,i) => assignDeep(
                     {}, 
+                    modelUtils.createDefaultLayer( `main_${i}`, i),
                     {
-                        selected: false,
-                        order: i,
-                        id: `main_${i}`,
-                        name: '',
-                        groupsEl: undefined,
-                        groupEl: undefined,
-                        visible: true,
                         currentGroupId: l.groups.length
                     }, 
                     {
                         ...l,
                         groups: l.groups.map((g, j) => assignDeep(
                             {},
+                            modelUtils.createDefaultGroup(`main_${i}_group_${j}`, j),
                             {
-                                id: `main_${i}_group_${j}`,
-                                order: j,
-                                clear: false,
-                                strokeColor: '#FF0000',
-                                strokeColorOpacity: 1,
-                                fillColor: '#FF0000',
-                                fillColorOpacity: 1,
-                                fill: false,
-                                fillPattern: false,
-                                closePath: false,
-                                type: 'dots',
-                                selected: false,
-                                pointsEl: undefined,
-                                pointEl: undefined,
                                 currentPointId: g.points.length
                             },
                             {
@@ -698,9 +648,22 @@ points: [{
             }
         });
 
+        let moveLayerSwitchButton = htmlUtils.createElement('input', { 
+            value: 'Toggle move layer', 
+            attributes: { type: 'button' }, 
+            props: {disabled: true},
+            events: {
+                click: () => {
+                    that.editor.mode.toggleMoveLayer();
+                    that.updateEditor();
+                }
+            }
+        });
+
         modeSwitch.appendChild(modeSwitchButton);
 
         moveGroup.appendChild(moveGroupSwitchButton)
+        moveGroup.appendChild(moveLayerSwitchButton)
 
         editorlEl.appendChild(modeSwitch);
         editorlEl.appendChild(moveGroup)
@@ -709,6 +672,7 @@ points: [{
         
         editor.mode.element = modeSwitchButton;
         editor.mode.moveGroupElement = moveGroupSwitchButton;
+        editor.mode.moveLayerElement = moveLayerSwitchButton;
 
         editor.mode.stateElement = htmlUtils.createElement('span', { className: 'stateName', text: '"Edit points" mode' });
         modeSwitch.appendChild(editor.mode.stateElement);
@@ -855,12 +819,21 @@ points: [{
 
                     layer.groups.forEach(g => g.selected = false);
                     components.createLayer(layerEl, layer, that.updateEditor.bind(that), { selectedOption });  
+
+                    that.editor.setMoveLayerModeState(true);
                 },
                 reset: function(e) { 
                     main.layers.forEach(l => l.selected = false);
+
                     that.editor.selected.layerId = undefined;
+                    that.editor.selected.groupId = undefined;
+                    that.editor.selected.pointId = undefined;
+
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
                     that.editor.setModeState(false, 'edit');
+
+                    that.editor.setMoveGroupModeState(false);
+                    that.editor.setMoveLayerModeState(false);
                 },
                 remove(e, select) {
                     if(!confirm('Remove layer?'))
@@ -908,25 +881,10 @@ points: [{
                     }
 
                     main.layers.forEach(l => l.selected = false);
-                    let layer = {
-                        selected: true,
-                        order: main.layers.length,
-                        id: nextLayerId,
-                        name: '',
-                        visible: true,
-                        groupsEl: undefined,
-                        groupEl: undefined,
-                        groups: []
-                        // clear: false,
-                        // strokeColor: '#FF0000',
-                        // fillColor: '#FF0000',
-                        // fill: false,
-                        // closePath: false,
-                        // type: 'dots',
-                        // pointsEl: undefined,
-                        // pointEl: undefined,
-                        // points: []
-                    }
+
+                    let layer = modelUtils.createDefaultLayer(nextLayerId, main.layers.length);
+
+                    layer.selected = true;
                     main.layers.push(layer);
                     select.options[select.options.length] = new Option(layer.id, layer.id);
                     select.value = layer.id;
@@ -962,16 +920,6 @@ points: [{
             }
         }
     }
-
-    
-
-    // appendList(parent, listProps) {
-    //     parent.appendChild(this.createList(listProps));
-    // }
-
-    
-
-    
 
     
 }

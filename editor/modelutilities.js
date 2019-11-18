@@ -43,5 +43,39 @@ var modelUtils = {
             selected: p.selected,
             id: p.id
         }
+    },
+    createDefaultLayer(id, order) {
+        return {
+            order: order,
+            currentGroupId: 0,
+            selected: false,
+            id: id,
+            name: '',
+            visible: true,
+            groupsEl: undefined,
+            groupEl: undefined,
+            groups: []
+        }
+    },
+    createDefaultGroup(id, order){
+        return {
+            currentPointId: 0,
+            selected: false,
+            order: order,
+            id: id,
+            visible: true,
+            clear: false,
+            strokeColor: '#FF0000',
+            strokeColorOpacity: 1,
+            fillColor: '#FF0000',
+            fillColorOpacity: 1,
+            fill: false,
+            fillPattern: false,
+            closePath: false,
+            type: 'dots',
+            pointsEl: undefined,
+            pointEl: undefined,
+            points: []
+        }
     }
 }

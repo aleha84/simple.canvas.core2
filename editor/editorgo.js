@@ -38,6 +38,17 @@ class EditorGO extends GO {
                             }
                         }
                     }
+                    else if(this.model.editor.mode == 'movelayer'){
+                        if(d.downOn){
+                            SCG.viewport.scrollOptions.enabled = false;
+                            if(!d.downOn.index.equal(index)){
+                                let direction = d.downOn.index.direction(index).toInt();
+                                this.model.editor.selectedLayer.move(direction);
+                                d.downOn.index = index;
+                                d.downOn.indexChanged = true;
+                            }
+                        }
+                    }
                     else if(this.model.editor.mode == 'movegroup'){
                         if(d.downOn){
                             SCG.viewport.scrollOptions.enabled = false;
@@ -65,6 +76,15 @@ class EditorGO extends GO {
                     };
                 },
                 down: function(relativePosition) {
+                    if(this.model.editor.mode == 'movelayer' && this.model.editor.selectedLayer){
+                        this.drag.downOn = {
+                            index: new V2(
+                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
+                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0)
+                                )
+                        }
+                    }
+
                     if(this.model.editor.mode == 'movegroup' && this.model.editor.selectedLayer && this.model.editor.selectedLayer.selectedGroup){
                         //console.log('down movegroup', this.model.editor.selectedLayer.points);
                         this.drag.downOn = {
@@ -98,6 +118,9 @@ class EditorGO extends GO {
 
                         sg.addPointCallback(e.index);
                     }
+                    else if(this.model.editor.mode == 'movelayer' ){
+                        d.disable();
+                    }
                     else if(this.model.editor.mode == 'movegroup' ){
                         if(d.started && d.downOn.indexChanged){
                             this.dots.forEach(p => {
@@ -126,6 +149,9 @@ class EditorGO extends GO {
                             if(index.y >= os.y) index.y = os.y-1;
                             d.downOn.pointModel.changeCallback(index);
                         }
+                        d.disable();
+                    }
+                    else if(this.model.editor.mode == 'movelayer'){
                         d.disable();
                     }
                     else if(this.model.editor.mode == 'movegroup'){

@@ -231,6 +231,10 @@ class Vector2 {
         return this.round(0, inner);
     }
 
+    toPlain() {
+        return { x: this.x, y: this.y };
+    }
+
     isNaN(){
         return Number.isNaN(this.x) || Number.isNaN(this.y);
     }

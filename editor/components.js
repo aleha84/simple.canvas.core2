@@ -560,8 +560,11 @@ var components = {
                 reset: function(e) { 
                     groups.forEach(g => g.selected = false);
                     //components.createGroup(undefined, undefined, changeCallback) 
-                    components.fillGroups(layerProps, changeCallback);
+                    
                     components.editor.editor.selected.groupId = undefined;
+                    components.editor.editor.selected.pointId = undefined;
+
+                    components.fillGroups(layerProps, changeCallback);
                     components.editor.editor.setModeState(false, 'edit');
                     components.editor.editor.setMoveGroupModeState(false);
 
@@ -594,25 +597,9 @@ var components = {
                         nextGroupId = `${layerProps.id}_group_${layerProps.currentGroupId++}`;
                     }
                     
-                    let group  = {
-                        currentPointId: 0,
-                        selected: true,
-                        order: groups.length,
-                        id: nextGroupId,
-                        visible: true,
-                        clear: false,
-                        strokeColor: '#FF0000',
-                        strokeColorOpacity: 1,
-                        fillColor: '#FF0000',
-                        fillColorOpacity: 1,
-                        fill: false,
-                        fillPattern: false,
-                        closePath: false,
-                        type: 'dots',
-                        pointsEl: undefined,
-                        pointEl: undefined,
-                        points: []
-                    }
+                    
+                    let group  = modelUtils.createDefaultGroup(nextGroupId, groups.length);
+                    group.selected = true;
 
                     groups.push(group);
 
@@ -673,27 +660,13 @@ var components = {
                             }
                         }
                         
+                        
                         if(!sameIdGroup){
                             //alert('Not found same Id group');
-                            let g = assignDeep({},{
-                                currentPointId: 0,
-                                selected: true,
-                                order: groups.length,
-                                id: selectedGroup.id,
-                                visible: true,
-                                clear: false,
-                                strokeColor: '#FF0000',
-                                strokeColorOpacity: 1,
-                                fillColor: '#FF0000',
-                                fillColorOpacity: 1,
-                                fill: false,
-                                fillPattern: false,
-                                closePath: false,
-                                type: 'dots',
-                                pointsEl: undefined,
-                                pointEl: undefined,
-                                points: []
-                            }, modelUtils.groupMapper(selectedGroup, true));
+                            let g = assignDeep(
+                                {},
+                                modelUtils.createDefaultGroup(selectedGroup.id, groups.length), 
+                                modelUtils.groupMapper(selectedGroup, true));
 
                             let sameLayer = frames[f].layers.find(l => l.id == components.editor.editor.selected.layerId);
                             if(sameLayer){
