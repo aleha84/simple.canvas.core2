@@ -772,8 +772,13 @@ var components = {
                         groupProps.currentPointId = 0;
                     }
 
+                    let nextPointId = `${groupProps.id}_group_${groupProps.currentPointId++}`;
+                    while(points.filter(p => p.id == nextPointId).length > 0){
+                        nextPointId = `${groupProps.id}_group_${groupProps.currentPointId++}`;
+                    }
+
                     points.push({
-                        id: `${groupProps.id}_point_${groupProps.currentPointId++}`,
+                        id: nextPointId,
                         order: points.length,
                         point: {x: 0, y: 0},
                     })
