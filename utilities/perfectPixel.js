@@ -61,7 +61,7 @@ class PerfectPixel {
     }
 
     lineL(line){
-        let from = line.from || line.start;
+        let from = line.from || line.start || line.begin;
         let to = line.to || line.end;
 
         if(!from || !to){

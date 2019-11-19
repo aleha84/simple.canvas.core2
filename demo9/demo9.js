@@ -185,6 +185,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: small300_200_Viewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9FogScene({
+        name:'fog',
+        viewport: small300_200_Viewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();

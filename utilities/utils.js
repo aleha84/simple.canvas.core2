@@ -772,4 +772,10 @@ function distinct(array, keyCreator){
   })
 }
 
+function createLine(begin, end) {
+  return {
+    begin, end
+  };
+}
+
 
