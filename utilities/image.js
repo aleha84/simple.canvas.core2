@@ -660,14 +660,25 @@ var colors = {
 
                     value.time = time;
                     change.current[key] = easing.process(value);
+                    if(key == 'r' || key == 'g' || key == 'b'){
+                        change.current[key] = fast.r(change.current[key]);
+                    }
                 })
             },
-            getCurrent: function(scheme){
-                if(scheme == 'hsv')
-                    return colors.hsvToHex([this.change.current.h, this.change.current.s, this.change.current.v])
-                else if(scheme == 'rgb')
-                    return rgbToHex(this.change.current.r,this.change.current.g,this.change.current.b)
+            getCurrent: function(scheme, raw = false){
+                if(scheme == 'hsv'){
+                    if(raw)
+                        return {h: this.change.current.h, s: this.change.current.s, v: this.change.current.v};
 
+                    return colors.hsvToHex([this.change.current.h, this.change.current.s, this.change.current.v])
+                }
+                else if(scheme == 'rgb'){
+                    if(raw)
+                        return {r: this.change.current.r, g: this.change.current.g, b: this.change.current.b};
+
+                    return rgbToHex(this.change.current.r,this.change.current.g,this.change.current.b)
+                }
+                
                 return undefined;
             },
             change

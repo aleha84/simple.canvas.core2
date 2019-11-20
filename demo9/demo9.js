@@ -190,6 +190,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: small300_200_Viewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9SunsetScene({
+        name:'sunset',
+        viewport: small200_300_Viewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
