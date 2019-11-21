@@ -91,7 +91,7 @@ class Demo9SunsetScene extends Scene {
         }), 4)
 
         this.man = this.addGo(new GO({
-            position: new V2(114,226),
+            position: new V2(113,226),
             size: new V2(27,60),
             init() {
                 this.img = PP.createImage(Demo9SunsetScene.sunsetModels.manModel)
@@ -99,7 +99,7 @@ class Demo9SunsetScene extends Scene {
         }), 6)
 
         this.bench = this.addGo(new GO({
-            position: new V2(86,235),
+            position: new V2(85,235),
             size: new V2(110,40),
             init() {
                 this.img = PP.createImage(Demo9SunsetScene.sunsetModels.benchModel)
