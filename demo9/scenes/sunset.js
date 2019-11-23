@@ -115,13 +115,21 @@ class Demo9SunsetScene extends Scene {
             }
         }), 1)
 
+        this.tower = this.addGo(new GO({
+            position: new V2(145,150),
+            size: new V2(10,50),
+            init() {
+                this.img = PP.createImage(Demo9SunsetScene.sunsetModels.tower)
+            }
+        }), 2)
+
         this.cityView = this.addGo(new GO({
             position: new V2(100,200),
             size: new V2(this.viewport.x,120),
             init() {
                 this.img = PP.createImage(Demo9SunsetScene.sunsetModels.cityView)
             }
-        }), 2)
+        }), 3)
 
         this.ground = this.addGo(new GO({
             position: new V2(0,0),
