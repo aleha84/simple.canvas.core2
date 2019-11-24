@@ -592,9 +592,9 @@ var components = {
                         layerProps.currentGroupId = 0;
                     }
 
-                    let nextGroupId = `${layerProps.id}_group_${layerProps.currentGroupId++}`;
+                    let nextGroupId = `${layerProps.id}_g_${layerProps.currentGroupId++}`;
                     while(groups.filter(g => g.id == nextGroupId).length > 0){
-                        nextGroupId = `${layerProps.id}_group_${layerProps.currentGroupId++}`;
+                        nextGroupId = `${layerProps.id}_g_${layerProps.currentGroupId++}`;
                     }
                     
                     
@@ -772,9 +772,9 @@ var components = {
                         groupProps.currentPointId = 0;
                     }
 
-                    let nextPointId = `${groupProps.id}_group_${groupProps.currentPointId++}`;
+                    let nextPointId = `${groupProps.id}_p_${groupProps.currentPointId++}`;
                     while(points.filter(p => p.id == nextPointId).length > 0){
-                        nextPointId = `${groupProps.id}_group_${groupProps.currentPointId++}`;
+                        nextPointId = `${groupProps.id}_p_${groupProps.currentPointId++}`;
                     }
 
                     points.push({

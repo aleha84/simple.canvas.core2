@@ -79,11 +79,11 @@ class Editor {
                     layers: [
                         assignDeep(
                             {}, 
-                            modelUtils.createDefaultLayer('main_0', 0), 
+                            modelUtils.createDefaultLayer('m_0', 0), 
                             { 
                                 currentGroupId: 1, 
                                 groups: [
-                                    modelUtils.createDefaultGroup('main_0_group_0', 0)
+                                    modelUtils.createDefaultGroup('m_0_g_0', 0)
                                 ] 
                             }),
                         // {
@@ -225,8 +225,13 @@ class Editor {
                         g.currentPointId = 0;
                     }
 
+                    let nextPointId = `${g.id}_p_${g.currentPointId++}`;
+                    while(g.points.filter(p => p.id == nextPointId).length > 0){
+                        nextPointId = `${g.id}_p_${g.currentPointId++}`;
+                    }
+
                     g.points.push({
-                        id: `${g.id}_point_${g.currentPointId++}`,
+                        id: nextPointId,
                         order: g.points.length,
                         point: {x: p.x, y: p.y},
                     })
@@ -306,7 +311,7 @@ class Editor {
             (main.layers.map(
                 (l,i) => assignDeep(
                     {}, 
-                    modelUtils.createDefaultLayer( `main_${i}`, i),
+                    modelUtils.createDefaultLayer( `m_${i}`, i),
                     {
                         currentGroupId: l.groups.length
                     }, 
@@ -314,14 +319,14 @@ class Editor {
                         ...l,
                         groups: l.groups.map((g, j) => assignDeep(
                             {},
-                            modelUtils.createDefaultGroup(`main_${i}_group_${j}`, j),
+                            modelUtils.createDefaultGroup(`m_${i}_g_${j}`, j),
                             {
                                 currentPointId: g.points.length
                             },
                             {
                                 ...g,
                                 points: g.points.map((p,k) => assignDeep({}, {
-                                    id: `main_${i}_group_${j}_point_${k}`,
+                                    id: `m_${i}_g_${j}_p_${k}`,
                                     order: k,
                                 }, p))
                             }
@@ -875,9 +880,9 @@ class Editor {
                 },
                 add: function(e, select){
 
-                    let nextLayerId = `main_${main.currentLayerId++}`;
+                    let nextLayerId = `m_${main.currentLayerId++}`;
                     while(main.layers.filter(g => g.id == nextLayerId).length > 0){
-                        nextLayerId = `main_${main.currentLayerId++}`;
+                        nextLayerId = `m_${main.currentLayerId++}`;
                     }
 
                     main.layers.forEach(l => l.selected = false);
