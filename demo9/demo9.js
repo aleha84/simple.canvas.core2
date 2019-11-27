@@ -195,6 +195,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: small200_300_Viewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9DreamsScene({
+        name:'dreams',
+        viewport: smallSquareDefaultViewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
