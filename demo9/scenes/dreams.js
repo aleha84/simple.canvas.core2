@@ -2,7 +2,7 @@ class Demo9DreamsScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -15,6 +15,16 @@ class Demo9DreamsScene extends Scene {
     }
 
     start(){
+
+        this.bg = this.addGo(new GO({
+            position: new V2(0,0),
+            size: new V2(200,140),
+            init() {
+                this.img = PP.createImage(Demo9DreamsScene.boredModels.bg);
+                this.position = new V2(this.parentScene.sceneCenter.x, this.parentScene.viewport.y - this.size.y/2).toInt()
+            }
+        }), 1)
+
         this.table = this.addGo(new GO({
             position: new V2(0,0),
             size: new V2(200,120),
@@ -22,7 +32,15 @@ class Demo9DreamsScene extends Scene {
                 this.img = PP.createImage(Demo9DreamsScene.boredModels.table);
                 this.position = new V2(this.parentScene.sceneCenter.x, this.parentScene.viewport.y - this.size.y/2).toInt()
             }
-        }), 1)
+        }), 2)
+
+        this.phone = this.addGo(new GO({
+            position: new V2(23,this.viewport.y-20),
+            size: new V2(34,16),
+            init() {
+                this.img = PP.createImage(Demo9DreamsScene.boredModels.phone);
+            }
+        }), 3)
 
         this.dreams = this.addGo(new GO({
             position: new V2(0,0),
