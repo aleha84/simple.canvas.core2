@@ -4,6 +4,7 @@ class Scene {
             throw "Can't create scene without name";
         
         this.viewport = undefined;
+        this.showLoadingOverlay = false;
 
         assignDeep(this,{
             viewport: new V2(500, 300),
@@ -341,7 +342,47 @@ class Scene {
             this.collisionDetection.init(this.space);
         }
 
-        this.start(sceneProperties);
+        if(this.showLoadingOverlay){
+
+            let el = document.createElement('div');
+            el.style.cssText='position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 50%; height: 50%; z-index: 10000; text-align: center;';
+            let progressHolder = document.createElement('div');
+            progressHolder.style.cssText='position: relative;top: 49.5%;border: 1px solid lightgrey;margin: 0 20px;';
+            let progress = document.createElement('div');
+            progress.style.cssText='width: 0%;background: lightgrey;height: 30px;';
+            progressHolder.appendChild(progress);
+            let content = document.createElement('div');
+            content.style.cssText = 'position: absolute;top: 50%;left: 50%;';
+            content.innerText = 'Loading...';
+            el.appendChild(progressHolder)
+            el.appendChild(content)
+            
+
+            document.body.appendChild(el)
+
+            this.loadingOverlay = {
+                el,
+                progress,
+                current: 0,
+                setParams({total}){
+                    this.total = total;
+                },
+                step() {
+                    this.current++;
+                    //setTimeout(() => this.progress.style.width = `${fast.r((this.current/this.total)*100)}%`, 5);
+                    this.progress.style.width = `${fast.r((this.current/this.total)*100)}%`
+                }
+            }
+
+            setTimeout(() => {
+                this.start(sceneProperties);
+                this.loadingOverlay.el.remove();
+                this.loadingOverlay = undefined;
+            }, 10);
+        }
+        else {
+            this.start(sceneProperties);
+        }
     }
 
     start(sceneProperties) {}

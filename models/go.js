@@ -14,6 +14,9 @@ class GO {
 
         var objectContext = this;
 
+        this.renderValuesRound = false;
+        this.needRecalcRenderProperties = true;
+
         assignDeep(this, {
             debug: false,
             logInDebug: false,

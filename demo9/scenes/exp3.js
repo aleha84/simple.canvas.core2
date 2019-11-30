@@ -6,6 +6,7 @@ class Demo9Exp3Scene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            showLoadingOverlay: true,
         }, options)
         super(options);
     }
@@ -14,94 +15,152 @@ class Demo9Exp3Scene extends Scene {
         this.backgroundRenderDefault();
     }
 
+    nebullaImagesGenerator({size, framesCount = 20, maskCirclesCount = 20, paramsDivider = 10}) {
+        var pn = new Perlin('random seed ' + getRandom(0,1000));
+
+        let time = 0;
+        let timeDirection = 1;
+
+        let mask = createCanvas(size, (ctx, size, hlp) => {
+            let sizeClamps = [size.x/10,size.x/4];
+            for(let i =0; i < maskCirclesCount; i++){
+                let lightEllipsis = {
+                    position: new V2(getRandomInt(sizeClamps[1], size.x-sizeClamps[1]), getRandomInt(sizeClamps[1], size.y-sizeClamps[1])),
+                    size: new V2(getRandomInt(sizeClamps[0], sizeClamps[1]), getRandomInt(sizeClamps[0], sizeClamps[1]))
+                }
+    
+                lightEllipsis.rxSq = lightEllipsis.size.x*lightEllipsis.size.x;
+                lightEllipsis.rySq = lightEllipsis.size.y*lightEllipsis.size.y;
+                let pp = new PerfectPixel({ctx});
+                let aChange = easing.createProps(100, 0.15, 0, 'quad', 'out');
+                pp.fillStyleProvider = (x,y) => {
+
+                    let dx = fast.r(
+                        (((x-lightEllipsis.position.x)*(x-lightEllipsis.position.x)/lightEllipsis.rxSq) 
+                        + ((y-lightEllipsis.position.y)*(y-lightEllipsis.position.y)/lightEllipsis.rySq))*100);
+
+                    if(dx > 100){
+                        dx = 100;
+                    }
+
+                    aChange.time = dx;
+
+                    return `rgba(255,255,255,${fast.r(easing.process(aChange),2)})`;
+                }
+                pp.fillByCornerPoints([new V2(0,0), new V2(size.x, 0), new V2(size.x, size.y), new V2(0, size.y)]);
+            }
+        })
+
+        let frames = [];
+
+        for(let i = 0; i < framesCount; i++){
+
+            let matrix = [];
+            
+            let noiseImg = createCanvas(size, (ctx, size, hlp) => {
+                
+                for(let y = 0; y < size.y; y++){
+                    matrix[y] = [];
+                    for(let x = 0; x < size.x; x++){
+                        matrix[y][x] = pn.noise(x/paramsDivider, y/paramsDivider, time/10);
+                        let value = matrix[y][x]*100;
+                        value = fast.r(value/5)*5;
+                        hlp.setFillColor(colors.hsvToHex([215,25,value])).dot(x,y)
+                    }
+                }
+                time+=timeDirection;
+
+                if((timeDirection > 0 && time > framesCount/2) || (timeDirection < 0 && time < -framesCount/2))
+                    timeDirection*=-1;
+            })
+
+            frames[frames.length] = createCanvas(size, (ctx, size, hlp) => {
+                ctx.drawImage(mask, 0,0);
+
+                ctx.globalCompositeOperation = 'source-in';
+
+                ctx.drawImage(noiseImg, 0,0);
+            })
+
+            // this.loadingOverlay.step();
+        };
+
+        return frames;
+    }
+
+    createNebula() {
+        let nSet = this.nebullaFramesSet[getRandomInt(0, this.nebullaFramesSet.length-1)];
+        this.upperNebula = this.addGo(new Demo9Exp3Scene.NebullaGO({
+            position: new V2(getRandomInt(this.viewport.x/5, this.viewport.x*4/5), -nSet.size.y/2).toInt(), //new V2(100,50),
+            size: nSet.size, //new V2(100,200),
+            frames: nSet.frames
+        }), 1)
+    }
+
     start(){
+        this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    hlp.setFillColor('rgba(255,255,255, 0.05)');
+                    // for(let i = 0;i < 5000; i++){
+                    //     hlp.dot(fast.r(getRandomGaussian(-size.x, 2*size.x)), getRandomInt(0, size.y))
+                    // }
+
+                    for(let i = 0;i < 5000; i++){
+                        hlp.dot(fast.r(getRandomGaussian(0, size.x)), getRandomInt(0, size.y))
+                    }
+
+                    hlp.setFillColor('rgba(255,255,255, 0.05)');
+                    for(let i = 0;i < 5000; i++){
+                        hlp.dot(fast.r(getRandomGaussian(size.x/3, size.x*2/3)), getRandomInt(0, size.y))
+                    }
+                })
+            }
+        }), 1)
+
+        this.nebullaFramesSet = [];
+        
+        // for(let i = 0; i < 5; i++){
+        //     let nSize = new V2(getRandomInt(this.viewport.x/5, this.viewport.x*3/5), getRandomInt(this.viewport.y/5, this.viewport.y*3/5)).toInt();
+
+        //     this.nebullaFramesSet [i] = {
+        //         size: nSize,
+        //         frames:this.nebullaImagesGenerator(nSize),
+        //     }
+        // }
+
+        // let nSize = new V2(200, this.viewport.y*1.5);
+        // let nebula = this.nebullaImagesGenerator({size: nSize, maskCirclesCount:20, paramsDivider:15});
+        // this.addGo(new Demo9Exp3Scene.NebullaGO({
+        //     position: new V2(0, this.sceneCenter.y),
+        //     size: nSize, //new V2(100,200),
+        //     frames: nebula,
+        //     static: true
+        // }), 1)
+
+        // this.addGo(new Demo9Exp3Scene.NebullaGO({
+        //     position: new V2(this.viewport.x, this.sceneCenter.y),
+        //     size: nSize, //new V2(100,200),
+        //     frames: nebula,
+        //     static: true
+        // }), 1)
+
         this.playerGo = this.addGo(new Demo9Exp3Scene.PlayerGO({
             position: this.sceneCenter.clone(),
         }), 20);
 
-        this.pDemo = this.addGo(new GO({
-            position: new V2(100,50),
-            size: new V2(100,200),
-            init() {
-                var pn = new Perlin('random seed ' + getRandom(0,1000));
 
-                this.time = 0;
-                this.timeDirection = 1;
+        // this.timer = this.regTimerDefault(100, () => {
+        //     if(this.upperNebula.position.y > this.viewport.y/3){
+        //         this.createNebula();
+        //     }
+        // })
 
-                this.mask = createCanvas(this.size, (ctx, size, hlp) => {
-                    let sizeClamps = [this.size.x/10,this.size.x/4];
-                    for(let i =0; i < 15; i++){
-                        let lightEllipsis = {
-                            position: new V2(getRandomInt(sizeClamps[1], size.x-sizeClamps[1]), getRandomInt(sizeClamps[1], size.y-sizeClamps[1])),
-                            size: new V2(getRandomInt(sizeClamps[0], sizeClamps[1]), getRandomInt(sizeClamps[0], sizeClamps[1]))
-                        }
-            
-                        lightEllipsis.rxSq = lightEllipsis.size.x*lightEllipsis.size.x;
-                        lightEllipsis.rySq = lightEllipsis.size.y*lightEllipsis.size.y;
-                        let pp = new PerfectPixel({ctx});
-                        let aChange = easing.createProps(100, 0.1, 0, 'quad', 'out');
-                        pp.fillStyleProvider = (x,y) => {
-    
-                            let dx = fast.r(
-                                (((x-lightEllipsis.position.x)*(x-lightEllipsis.position.x)/lightEllipsis.rxSq) 
-                                + ((y-lightEllipsis.position.y)*(y-lightEllipsis.position.y)/lightEllipsis.rySq))*100);
+        // this.createNebula();
         
-                            if(dx > 100){
-                                dx = 100;
-                            }
-    
-                            aChange.time = dx;
-    
-                            return `rgba(255,255,255,${fast.r(easing.process(aChange),2)})`;
-                        }
-                        pp.fillByCornerPoints([new V2(0,0), new V2(size.x, 0), new V2(size.x, size.y), new V2(0, size.y)]);
-                    }
-                })
-
-                this.frames = [];
-                for(let i = 0; i < 20; i++){
-                    this.matrix = [];
-                    
-                    let noiseImg = createCanvas(this.size, (ctx, size, hlp) => {
-                        
-                        for(let y = 0; y < this.size.y; y++){
-                            this.matrix[y] = [];
-                            for(let x = 0; x < this.size.x; x++){
-                                this.matrix[y][x] = pn.noise(x/10, y/10, this.time/10);
-                                let value = this.matrix[y][x]*100;
-                                value = fast.r(value/5)*5;
-                                hlp.setFillColor(colors.hsvToHex([215,15,value])).dot(x,y)
-                            }
-                        }
-                        this.time+=this.timeDirection;
-
-                        if((this.timeDirection > 0 && this.time > 10) || (this.timeDirection < 0 && this.time < -10))
-                            this.timeDirection*=-1;
-                    })
-
-                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
-                        ctx.drawImage(this.mask, 0,0);
-
-                        ctx.globalCompositeOperation = 'source-in';
-
-                        ctx.drawImage(noiseImg, 0,0);
-                    })
-                }
-
-                this.currentFrame = 0;
-                this.frameChangeDirection = 1;
-                this.timer = this.regTimerDefault(200, () => {
-                    this.img = this.frames[this.currentFrame];
-
-                    this.currentFrame+=this.frameChangeDirection;
-                    if((this.frameChangeDirection > 0 && this.currentFrame >= (this.frames.length-1)) || (this.frameChangeDirection < 0 && this.currentFrame == 0)){
-                        this.frameChangeDirection*=-1;
-                    }
-                } )
-
-                
-            }
-        }), 1)
+        
 
         this.addGo(new GO({
             position: this.sceneCenter,
@@ -180,6 +239,50 @@ Demo9Exp3Scene.PlayerGO = class extends GO {
     init() {
         this.staticImg = PP.createImage(Demo9Exp3Scene.models.mainCraft)
         this.img = this.staticImg;
+    }
+}
+
+Demo9Exp3Scene.NebullaGO = class extends GO{
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            // position: new V2(100,50),
+            // size: new V2(100,200),
+            frames: [],
+            calmDown: 5,
+            renderValuesRound: true,
+            static: false,
+        }, options)
+
+        super(options);
+    }
+    
+    init() {
+        this.currentFrame = 0;
+        this.frameChangeDirection = 1;
+        if(!this.static){
+            this.moveTimer = this.regTimerDefault(30, () => {
+                this.position.y+=0.25;
+    
+                if(this.position.y > (this.parentScene.viewport.y + this.size.y/2)){
+                    this.setDead();
+                }
+    
+                this.needRecalcRenderProperties  = true;
+    
+            });
+        }
+        
+
+        this.timer = this.regTimerDefault(200, () => {
+            this.img = this.frames[this.currentFrame];
+
+            this.currentFrame+=this.frameChangeDirection;
+            if((this.frameChangeDirection > 0 && this.currentFrame >= (this.frames.length-1)) || (this.frameChangeDirection < 0 && this.currentFrame == 0)){
+                this.frameChangeDirection*=-1;
+            }
+        } )
+
+        
     }
 }
 
