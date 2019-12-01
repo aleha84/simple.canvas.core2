@@ -32,7 +32,7 @@ class Demo9Exp3Scene extends Scene {
                 lightEllipsis.rxSq = lightEllipsis.size.x*lightEllipsis.size.x;
                 lightEllipsis.rySq = lightEllipsis.size.y*lightEllipsis.size.y;
                 let pp = new PerfectPixel({ctx});
-                let aChange = easing.createProps(100, 0.15, 0, 'quad', 'out');
+                let aChange = easing.createProps(100, 0.15, 0, 'cubic', 'out');
                 pp.fillStyleProvider = (x,y) => {
 
                     let dx = fast.r(
@@ -172,7 +172,7 @@ class Demo9Exp3Scene extends Scene {
             init() {
                 let scene = this.parentScene;
                 this.bgNebullaFrames = [];
-                let nSize = new V2(100, scene.viewport.y*1.5);
+                let nSize = new V2(200, scene.viewport.y*1.5);
 
                 this.script.items = [
                     function() {
@@ -196,7 +196,7 @@ class Demo9Exp3Scene extends Scene {
                         this.processScript()
                     },
                     this.addProcessScriptDelay(200),
-                    ...(scene.nebullaImagesGeneratorFun({size: nSize, maskCirclesCount:30, framesCount:1, paramsDivider:10}).map(f => {
+                    ...(scene.nebullaImagesGeneratorFun({size: nSize, maskCirclesCount:10, framesCount:1, paramsDivider:15}).map(f => {
                         return [function() {
                             this.bgNebullaFrames[this.bgNebullaFrames.length] = f();
                             scene.loadingOverlay.step();
