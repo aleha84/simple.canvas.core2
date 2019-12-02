@@ -131,21 +131,21 @@ class Demo9Exp3Scene extends Scene {
         //     }
         // }
 
-        let nSize = new V2(150, this.viewport.y*1.5);
-        let nebula = this.nebullaImagesGenerator({size: nSize, maskCirclesCount:20, paramsDivider:15});
-        this.addGo(new Demo9Exp3Scene.NebullaGO({
-            position: new V2(0, this.sceneCenter.y),
-            size: nSize, //new V2(100,200),
-            frames: nebula,
-            static: true
-        }), 25)
+        // let nSize = new V2(200, this.viewport.y*1.5);
+        // let nebula = this.nebullaImagesGenerator({size: nSize, maskCirclesCount:20, paramsDivider:15});
+        // this.addGo(new Demo9Exp3Scene.NebullaGO({
+        //     position: new V2(0, this.sceneCenter.y),
+        //     size: nSize, //new V2(100,200),
+        //     frames: nebula,
+        //     static: true
+        // }), 1)
 
-        this.addGo(new Demo9Exp3Scene.NebullaGO({
-            position: new V2(this.viewport.x, this.sceneCenter.y),
-            size: nSize, //new V2(100,200),
-            frames: nebula,
-            static: true
-        }), 25)
+        // this.addGo(new Demo9Exp3Scene.NebullaGO({
+        //     position: new V2(this.viewport.x, this.sceneCenter.y),
+        //     size: nSize, //new V2(100,200),
+        //     frames: nebula,
+        //     static: true
+        // }), 1)
 
         this.playerGo = this.addGo(new Demo9Exp3Scene.PlayerGO({
             position: this.sceneCenter.clone(),
@@ -222,7 +222,7 @@ class Demo9Exp3Scene extends Scene {
                     }
                 })
             }
-        }), 10)
+        }), 1)
     }
 
 }
