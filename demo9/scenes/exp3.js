@@ -165,6 +165,71 @@ class Demo9Exp3Scene extends Scene {
         }), 1)
     }
 
+    createBgFrames({framesCount = 10, maxOpacity = 0.25, yShift = 5,pointsDistributionPosition, pointsDistributionSize, imgSize, pointsPerGroup = 100, pointColor = {r:255, g:255, b:255}  }) {
+        let bgImageFrames = [];
+        //let framesCount = 10;
+        let yDeltaChange = easing.createProps(framesCount-1, 0, yShift, 'quad', 'inOut');
+        let aChangeUp = easing.createProps((framesCount/2) - 1, 0, maxOpacity, 'quad', 'inOut');
+        let aChangeDown = easing.createProps((framesCount/2) - 1, maxOpacity, 0, 'quad', 'inOut');
+        let yDeltas = new Array(framesCount).fill().map((p, i) => {
+            yDeltaChange.time = i;
+            return fast.r(easing.process(yDeltaChange));
+        })
+
+        let aValues = new Array(framesCount).fill().map((p,i) => {
+            let time = i;
+            let aChange = aChangeUp;
+            if(time > 4){
+                time-=5;
+                aChange = aChangeDown;
+            }
+
+            aChange.time = time;
+            return fast.r(easing.process(aChange), 2);
+        })
+
+        let moveFromEndToBegin = function(initialArr, index) {
+            var firstPart = initialArr.slice(0, index);
+            var lastPart = initialArr.slice(index, initialArr.length);
+            return [...lastPart, ...firstPart];
+        }
+
+        let groupPointsPositions = new Array(framesCount).fill().map((p, i) => {
+            let initialPositions = new Array(pointsPerGroup).fill().map(p => {
+                return new V2(
+                    fast.r(getRandomGaussian(pointsDistributionPosition.x, pointsDistributionPosition.x + pointsDistributionSize.x)), 
+                    getRandomInt(pointsDistributionPosition.y, pointsDistributionPosition.y + pointsDistributionSize.y));
+            });
+
+            let groupPerFrame = [];
+            for(let j = 0; j < framesCount; j++){
+                let yDeltaV2 = new V2(0, yDeltas[j]);
+                let color = `rgba(${pointColor.r},${pointColor.g},${pointColor.b}, ${aValues[j]})`;
+                groupPerFrame[j] = initialPositions.map( p => ({
+                    p: p.add(yDeltaV2),
+                    color
+                }));
+            }
+
+            groupPerFrame = moveFromEndToBegin(groupPerFrame, i);
+
+            return groupPerFrame;
+        });
+
+        for(let i = 0; i < framesCount; i++){
+            bgImageFrames.push(createCanvas(imgSize, (ctx, size, hlp) => {
+                groupPointsPositions.forEach(group => {
+                    let frame = group[i];
+                    frame.forEach(point => {
+                        hlp.setFillColor(point.color).dot(point.p.x, point.p.y);
+                    })
+                })
+            }));
+        }
+
+        return bgImageFrames;
+    }
+
     start(){
         this.loadingManager = this.addGo(new GO({
             position: new V2(0,0),
@@ -196,44 +261,122 @@ class Demo9Exp3Scene extends Scene {
                         this.processScript()
                     },
                     this.addProcessScriptDelay(200),
-                    ...(scene.nebullaImagesGeneratorFun({size: nSize, maskCirclesCount:10, framesCount:1, paramsDivider:15}).map(f => {
-                        return [function() {
-                            this.bgNebullaFrames[this.bgNebullaFrames.length] = f();
-                            scene.loadingOverlay.step();
-                            this.processScript()
-                        }, this.addProcessScriptDelay(200)]
-                    }).flat()),
+                    function() {
+                        
+                        this.bgImageFrames = scene.createBgFrames({
+                            color: { r: 59,g: 64,b:71 },
+                            imgSize: scene.viewport, 
+                            yShift: 8, 
+                            pointsPerGroup: 25,
+                            framesCount: 20,
+                            pointsDistributionSize: scene.viewport, 
+                            pointsDistributionPosition: new V2()});
+
+                        scene.loadingOverlay.step();
+                        this.processScript()
+                    },
+                    function() {
+                        
+                        this.bgImageFrames2 = scene.createBgFrames({ 
+                            color: { r: 59,g: 64,b:71 },
+                            imgSize:scene.viewport, 
+                            framesCount: 20,
+                            pointsDistributionSize: new V2(scene.viewport.x/3, scene.viewport.y), 
+                            pointsDistributionPosition: new V2(scene.viewport.x/3, 0),
+                            maxOpacity: 0.55, pointsPerGroup: 10, yShift: 3 });
+
+                        scene.loadingOverlay.step();
+                        this.processScript()
+                    },
+                     this.addProcessScriptDelay(200),
+                    // ...(scene.nebullaImagesGeneratorFun({size: nSize, maskCirclesCount:10, framesCount:1, paramsDivider:15}).map(f => {
+                    //     return [function() {
+                    //         this.bgNebullaFrames[this.bgNebullaFrames.length] = f();
+                    //         scene.loadingOverlay.step();
+                    //         this.processScript()
+                    //     }, this.addProcessScriptDelay(200)]
+                    // }).flat()),
                     function() {
                         let that = this;
                         scene.addGo(new GO({
                             position: scene.sceneCenter,
                             size: scene.viewport,
                             init() {
-                                this.img = that.bgImg;
+                                //this.img = that.bgImg;
+                                this.bgImg = that.bgImg;
+
+                                this.sparks = [
+                                    this.addChild(new GO({
+                                    position: new V2(),
+                                    size: this.size,
+                                    init() {
+                                        this.frames = that.bgImageFrames2;
+                                        this.currentFrame = 0;
+                                        this.img = this.frames[this.currentFrame];
+         
+                                    }
+                                })), 
+                                this.addChild(new GO({
+                                    position: new V2(),
+                                    size: this.size,
+                                    init() {
+                                        this.frames = that.bgImageFrames;
+                                        this.currentFrame = 0;
+                                        this.img = this.frames[this.currentFrame];
+            
+                                    }
+                                }))];
+
+                                this.currentY = 0;
+                                this.currentYSpeed = 0.1;
+                                this.timer = this.regTimerDefault(30, () => {
+                                    for(let i = 0; i < this.sparks.length; i++){
+                                        let sparksItem = this.sparks[i];
+
+                                        sparksItem.img = sparksItem.frames[sparksItem.currentFrame];
+                                        sparksItem.currentFrame++;
+                                        if(sparksItem.currentFrame == sparksItem.frames.length){
+                                            sparksItem.currentFrame = 0;
+                                        }
+                                    }
+                                    
+
+
+                                    this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                                        let y = fast.r(this.currentY);
+                                        ctx.drawImage(this.bgImg, 0, y);
+                                        ctx.drawImage(this.bgImg, 0,fast.r(y-size.y));
+                                    })
+                                
+                                    this.currentY =this.currentY+this.currentYSpeed;
+                                    if(this.currentY >= this.size.y){
+                                        this.currentY = 0;
+                                    }
+                                })
                             }
                         }), 1)
 
-                        scene.addGo(new Demo9Exp3Scene.NebullaGO({
-                            position: new V2(0, scene.sceneCenter.y),
-                            size: nSize, //new V2(100,200),
-                            frames: that.bgNebullaFrames,
-                            static: true,
-                            animated:false
-                        }), 1)
+                        // scene.addGo(new Demo9Exp3Scene.NebullaGO({
+                        //     position: new V2(0, scene.sceneCenter.y),
+                        //     size: nSize, //new V2(100,200),
+                        //     frames: that.bgNebullaFrames,
+                        //     static: true,
+                        //     animated:false
+                        // }), 1)
                 
-                        scene.addGo(new Demo9Exp3Scene.NebullaGO({
-                            position: new V2(scene.viewport.x, scene.sceneCenter.y),
-                            size: nSize, //new V2(100,200),
-                            frames: that.bgNebullaFrames,
-                            static: true,
-                            animated:false
-                        }), 1)
+                        // scene.addGo(new Demo9Exp3Scene.NebullaGO({
+                        //     position: new V2(scene.viewport.x, scene.sceneCenter.y),
+                        //     size: nSize, //new V2(100,200),
+                        //     frames: that.bgNebullaFrames,
+                        //     static: true,
+                        //     animated:false
+                        // }), 1)
 
                         scene.addGo(new GO({
                             position: scene.sceneCenter,
                             size: scene.viewport,
                             init() {
-                                this.bgParticles = [{ color: '#3B4047', speed: new V2(0, 1), points: [] }, { color: '#67707C', speed: new V2(0, 2), points: [] }, { color: '#929FB0', speed: new V2(0, 6), points: [] }];
+                                this.bgParticles = [{ color: '#515860', speed: new V2(0, 1), points: [] }, { color: '#67707C', speed: new V2(0, 2), points: [] }, { color: '#929FB0', speed: new V2(0, 6), points: [] }];
                                 
                                 this.points = [];
                                 this.pgCount = 1;
@@ -322,7 +465,58 @@ Demo9Exp3Scene.PlayerGO = class extends GO {
 
     init() {
         this.staticImg = PP.createImage(Demo9Exp3Scene.models.mainCraft)
+        let thrusterImageSize = new V2(5,20);
+        this.thrusterFlameImg = PP.createImage(Demo9Exp3Scene.models.thrusterFlame)
+        this.thrusterFlameFrames = PP.createImage(Demo9Exp3Scene.models.thrusterFlameFrames)
+        this.thrusterFlameImgFlip = createCanvas(thrusterImageSize, (ctx, size, hlp) => {
+            ctx.translate(size.x, 0);
+            ctx.scale(-1,1);
+            ctx.drawImage(this.thrusterFlameImg, 0,0);
+        })
+
+        this.thrusterFlameFramesFlip = this.thrusterFlameFrames.map((frame) => (
+            createCanvas(thrusterImageSize, (ctx, size, hlp) => {
+                ctx.translate(size.x, 0);
+                ctx.scale(-1,1);
+                ctx.drawImage(frame, 0,0);
+            })
+        ))
+
         this.img = this.staticImg;
+
+        let that = this;
+        this.thrusterFlames = [
+            this.addChild(new GO({
+                position: new V2(-2,23),
+                size: new V2(5,20),
+                init() {
+                    this.currentFrame = 0;
+                    this.frames = that.thrusterFlameFrames;
+                    this.img = that.thrusterFlameImg;
+                }
+            })),
+            this.addChild(new GO({
+                position: new V2(2,23),
+                size: new V2(5,20),
+                init() {
+                    this.currentFrame = 0;
+                    this.frames = that.thrusterFlameFramesFlip;
+                    this.img = that.thrusterFlameImgFlip;
+                }
+            }))
+        ];
+
+        this.timer = this.regTimerDefault(100, () => {
+            for(let i = 0; i < this.thrusterFlames.length; i++){
+                let flameItem = this.thrusterFlames[i];
+
+                flameItem.img = flameItem.frames[flameItem.currentFrame];
+                flameItem.currentFrame++;
+                if(flameItem.currentFrame == flameItem.frames.length){
+                    flameItem.currentFrame = 0;
+                }
+            }
+        });
     }
 }
 
@@ -358,7 +552,7 @@ Demo9Exp3Scene.NebullaGO = class extends GO{
         }
         
         if(this.animated){
-            this.timer = this.regTimerDefault(200, () => {
+            this.timer = this.regTimerDefault(30, () => {
                 this.img = this.frames[this.currentFrame];
     
                 this.currentFrame+=this.frameChangeDirection;
