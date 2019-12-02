@@ -371,18 +371,17 @@ class Scene {
                     this.current++;
                     //setTimeout(() => this.progress.style.width = `${fast.r((this.current/this.total)*100)}%`, 5);
                     this.progress.style.width = `${fast.r((this.current/this.total)*100)}%`
+
+                    if(this.current == this.total)
+                        this.remove();
+                },
+                remove() {
+                    this.el.remove();
                 }
             }
-
-            setTimeout(() => {
-                this.start(sceneProperties);
-                this.loadingOverlay.el.remove();
-                this.loadingOverlay = undefined;
-            }, 10);
         }
-        else {
-            this.start(sceneProperties);
-        }
+        
+        this.start(sceneProperties);
     }
 
     start(sceneProperties) {}
