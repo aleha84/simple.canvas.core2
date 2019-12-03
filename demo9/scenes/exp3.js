@@ -2,7 +2,7 @@ class Demo9Exp3Scene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -437,6 +437,82 @@ class Demo9Exp3Scene extends Scene {
                         scene.playerGo = scene.addGo(new Demo9Exp3Scene.PlayerGO({
                             position: scene.sceneCenter.clone(),
                         }), 20);
+
+                        scene.asteroids = scene.addGo(new GO({
+                            position: scene.sceneCenter.clone(),
+                            size: scene.viewport.clone(),
+                            init() {
+                                this.smallAsteroidSize = new V2(20,20);
+                                this.microAsteroidSize = new V2(10,10);
+                                this.smallAsteroidsImages = Demo9Exp3Scene.models.smallAsteroids.map(model => PP.createImage(model));
+                                this.microAsteroidsImages = Demo9Exp3Scene.models.microAsteroids.map(model => PP.createImage(model));
+                                this.smallAsteroids = [this.addChild(new GO({
+                                    renderValuesRound: true,
+                                    position: new V2(50,-this.size.y/2 - this.smallAsteroidSize.y/2),
+                                    size: this.smallAsteroidSize,
+                                    img: this.smallAsteroidsImages[0]
+                                })),
+                                this.addChild(new GO({
+                                    renderValuesRound: true,
+                                    position: new V2(-50,-this.size.y/2 - this.smallAsteroidSize.y/2 - this.size.y/4).toInt(),
+                                    size: this.smallAsteroidSize,
+                                    img: this.smallAsteroidsImages[1]
+                                })),
+                                this.addChild(new GO({
+                                    renderValuesRound: true,
+                                    position: new V2(-85,-this.size.y/2 - this.smallAsteroidSize.y/2 - this.size.y*2/4).toInt(),
+                                    size: this.smallAsteroidSize,
+                                    img: this.smallAsteroidsImages[2]
+                                })),
+                                this.addChild(new GO({
+                                    renderValuesRound: true,
+                                    position: new V2(85,-this.size.y/2 - this.smallAsteroidSize.y/2 - this.size.y*3/4).toInt(),
+                                    size: this.smallAsteroidSize,
+                                    img: this.smallAsteroidsImages[3]
+                                })),
+                                this.addChild(new GO({
+                                    renderValuesRound: true,
+                                    position: new V2(25,-this.size.y/2 - this.smallAsteroidSize.y/2 - this.size.y*4/4).toInt(),
+                                    size: this.smallAsteroidSize,
+                                    img: this.smallAsteroidsImages[4]
+                                }))]
+
+                                this.microAsteroids = new Array(8).fill().map((el, i) => (
+                                    this.addChild(new GO({
+                                        renderValuesRound: true,
+                                        position: new V2((getRandomBool() ? getRandomInt(-this.size.x/2+20, -20) : getRandomInt(20,this.size.x/2-20))
+                                        ,-this.size.y/2 - this.smallAsteroidSize.y/2 - getRandomInt(-10, -this.size.y + 10)).toInt(),
+                                        size: this.microAsteroidSize,
+                                        img: this.microAsteroidsImages[getRandomInt(0, this.microAsteroidsImages.length-1)],
+                                        speedY: getRandom(4,5)
+                                    }))
+                                ))
+
+                                this.timer = this.regTimerDefault(15, () => {
+                                    this.smallAsteroids.forEach(item => {
+                                        item.position.y+=3.5;
+                                        if(item.position.y > this.size.y/2 + this.smallAsteroidSize.y/2){
+                                            item.position.y = -this.size.y/2 - this.smallAsteroidSize.y/2;    
+                                            item.img = this.smallAsteroidsImages[getRandomInt(0, this.smallAsteroidsImages.length-1)]
+                                        }
+                                        item.needRecalcRenderProperties = true;
+                                        
+                                    })
+
+                                    this.microAsteroids.forEach(item => {
+                                        item.position.y+=item.speedY;
+                                        if(item.position.y > this.size.y/2 + this.microAsteroidSize.y/2){
+                                            item.position.y = -this.size.y/2 - this.microAsteroidSize.y/2;   
+                                            item.position.x = getRandomBool() ? getRandomInt(-this.size.x/2+20, -20) : getRandomInt(20,this.size.x/2-20)
+                                            item.img = this.microAsteroidsImages[getRandomInt(0, this.microAsteroidsImages.length-1)]
+                                        }
+                                        item.needRecalcRenderProperties = true;
+                                        
+                                    })
+                                })
+                            }
+                            
+                        }), 19)
 
                         scene.loadingOverlay.remove();
                     } 
