@@ -205,6 +205,12 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: small200_300_Viewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9WinterScene({
+        name:'winter',
+        viewport: small300_200_Viewport
+    }));
+
+
     sceneSelectByHashValue();
     
     SCG.main.start();
