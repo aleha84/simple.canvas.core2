@@ -23,43 +23,68 @@ class Demo9WinterScene extends Scene {
         imgSize, 
         pointsPerGroup = 100, 
         target,
-        pChangeType = 'quad',
-        pChangeMethod = 'inOut',
+        pChangeType = 'linear',
+        pChangeMethod = 'base',
         aChangeType = 'quad',
         aChangeMethotUp = 'inOut',
         aChangeMethotDown = 'inOut',
+        targetAngleRandClamps = [-15,15],
         pointColor = {r:255, g:255, b:255}  
     }) {
+
+        if(targetAngleRandClamps == undefined)
+            targetAngleRandClamps = [0,0];
+
         let bgImageFrames = [];
         
-        let pathPoints = [];
+        //let pathPoints = [];
+        let allPathPoints = [];
         createCanvas(new V2(1,1), (ctx, size, hlp) => {
+            let from = new V2();
+            let dist = from.distance(target);
+            let originDireciton = from.direction(target);
             let pp  = new PerfectPixel({ctx});
+            for(let angle = targetAngleRandClamps[0]; angle <= targetAngleRandClamps[1]; angle++){
+                let rotatedTarget = originDireciton.rotate(angle).mul(dist);
+
+                allPathPoints[allPathPoints.length] = pp.lineV2(from, rotatedTarget);
+            }
+
+            
             pathPoints = pp.lineV2(new V2(), target);
         })
 
         let distance = new V2(target);
 
-        let positionChangePathIndex = easing.createProps(framesCount-1, 0, pathPoints.length-1, 'linear', 'base');
+        //let positionChangePathIndex = easing.createProps(framesCount-1, 0, pathPoints.length-1, 'linear', 'base');
+        let allPositionChangePathIndex = allPathPoints.map(pathPoints => (easing.createProps(framesCount-1, 0, pathPoints.length-1, pChangeType, pChangeMethod)));
 
-        let xDeltaChange = easing.createProps(framesCount-1, 0, distance.x, pChangeType, pChangeMethod);
-        let yDeltaChange = easing.createProps(framesCount-1, 0, distance.y, pChangeType, pChangeMethod);
+        // let xDeltaChange = easing.createProps(framesCount-1, 0, distance.x, pChangeType, pChangeMethod);
+        // let yDeltaChange = easing.createProps(framesCount-1, 0, distance.y, pChangeType, pChangeMethod);
         let aChangeUp = easing.createProps((framesCount/2) - 1, 0, maxOpacity, aChangeType, aChangeMethotUp);
         let aChangeDown = easing.createProps((framesCount/2) - 1, maxOpacity, 0, aChangeType, aChangeMethotDown);
-        let yDeltas = new Array(framesCount).fill().map((p, i) => {
-            yDeltaChange.time = i;
-            return fast.r(easing.process(yDeltaChange),2);
-        })
+        // let yDeltas = new Array(framesCount).fill().map((p, i) => {
+        //     yDeltaChange.time = i;
+        //     return fast.r(easing.process(yDeltaChange),2);
+        // })
 
-        let xDeltas = new Array(framesCount).fill().map((p, i) => {
-            xDeltaChange.time = i;
-            return fast.r(easing.process(xDeltaChange),2);
-        })
+        // let xDeltas = new Array(framesCount).fill().map((p, i) => {
+        //     xDeltaChange.time = i;
+        //     return fast.r(easing.process(xDeltaChange),2);
+        // })
 
-        let positionChangesIndexes = new Array(framesCount).fill().map((p, i) => {
-            positionChangePathIndex.time = i;
-            return fast.r(easing.process(positionChangePathIndex));
-        })
+        // let positionChangesIndexes = new Array(framesCount).fill().map((p, i) => {
+        //     positionChangePathIndex.time = i;
+        //     return fast.r(easing.process(positionChangePathIndex));
+        // })
+
+        let allPositionChangesIndexes = allPathPoints.map((el, j) => (
+            new Array(framesCount).fill().map((p, i) => {
+                allPositionChangePathIndex[j].time = i;
+                return fast.r(easing.process(allPositionChangePathIndex[j]));
+            })
+        ));
+        
 
         let aValues = new Array(framesCount).fill().map((p,i) => {
             let time = i;
@@ -86,13 +111,24 @@ class Demo9WinterScene extends Scene {
                     getRandomInt(pointsDistributionPosition.y, pointsDistributionPosition.y + pointsDistributionSize.y));
             });
 
+            let initialPositionsAndPathPointIndex = initialPositions.map(ip => ({
+                position: ip,
+                pathPointIndex: getRandomInt(0,allPathPoints.length-1)
+            }))
+
             let groupPerFrame = [];
             for(let j = 0; j < framesCount; j++){
-                let deltaV2 = new V2(xDeltas[j], yDeltas[j]);
+                //let deltaV2 = new V2(xDeltas[j], yDeltas[j]);
                 let color = `rgba(${pointColor.r},${pointColor.g},${pointColor.b}, ${aValues[j]})`;
-                groupPerFrame[j] = initialPositions.map( p => ({
-                    p: p.add(pathPoints[positionChangesIndexes[j]]),//p.add(deltaV2).toInt(),
-                    color
+                // groupPerFrame[j] = initialPositions.map( p => ({
+                //     p: p.add(pathPoints[positionChangesIndexes[j]]),//p.add(deltaV2).toInt(),
+                //     color
+                // }));
+
+                groupPerFrame[j] = initialPositionsAndPathPointIndex.map( p => ({
+                    p: p.position.add(allPathPoints[p.pathPointIndex][allPositionChangesIndexes[p.pathPointIndex][j]]),
+                    //p.position.add(allPathPoints[p.pathPointIndex][allPositionChangesIndexes[j]]),//p.add(deltaV2).toInt(),
+                    color,
                 }));
             }
 
@@ -122,30 +158,55 @@ class Demo9WinterScene extends Scene {
             position: this.sceneCenter,
             size: this.viewport,
             init() {
-                this.snowLayers = [this.addChild(new GO({
-                    position: new V2(),
-                    size: this.size,
-                    init() {
-                        let scene = this.parent.parentScene;
-                        this.frames = scene.createBgFrames({
-                            color: { r: 188,g: 204,b:206 },
-                            imgSize: scene.viewport, 
-                            pointsPerGroup: 10,
-                            framesCount: 20,
-                            pointsDistributionSize: scene.viewport.add(new V2(10,-10)), 
-                            pointsDistributionPosition: new V2(0,-10),
-                            target: new V2(-38,38),
-                            pChangeType: 'linear',
-                            pChangeMethod: 'base',
-                            aChangeType: 'quad',
-                            aChangeMethotUp: 'inOut',
-                            aChangeMethotDown: 'inOut',
-                        });
+                this.snowLayers = [
+                //     this.addChild(new GO({
+                //     position: new V2(),
+                //     size: this.size,
+                //     init() {
+                //         let scene = this.parent.parentScene;
+                //         this.frames = scene.createBgFrames({
+                //             color: { r: 188,g: 204,b:206 },
+                //             imgSize: scene.viewport, 
+                //             pointsPerGroup: 10,
+                //             framesCount: 20,
+                //             pointsDistributionSize: scene.viewport.add(new V2(10,-10)), 
+                //             pointsDistributionPosition: new V2(0,-10),
+                //             target: new V2(-38,38),
+                //             pChangeType: 'linear',
+                //             pChangeMethod: 'base',
+                //             aChangeType: 'quad',
+                //             aChangeMethotUp: 'inOut',
+                //             aChangeMethotDown: 'inOut',
+                //         });
         
-                        this.currentFrame = 0;
-                        this.img = this.frames[this.currentFrame];
-                    }
-                })),
+                //         this.currentFrame = 0;
+                //         this.img = this.frames[this.currentFrame];
+                //     }
+                // })),
+                // this.addChild(new GO({
+                //     position: new V2(),
+                //     size: this.size,
+                //     init() {
+                //         let scene = this.parent.parentScene;
+                //         this.frames = scene.createBgFrames({
+                //             color: { r: 188,g: 204,b:206 },
+                //             imgSize: scene.viewport, 
+                //             pointsPerGroup: 10,
+                //             framesCount: 20,
+                //             pointsDistributionSize: scene.viewport.add(new V2(10,-10)), 
+                //             pointsDistributionPosition: new V2(-10,-10),
+                //             target: new V2(38,38),
+                //             pChangeType: 'linear',
+                //             pChangeMethod: 'base',
+                //             aChangeType: 'quad',
+                //             aChangeMethotUp: 'inOut',
+                //             aChangeMethotDown: 'inOut',
+                //         });
+        
+                //         this.currentFrame = 0;
+                //         this.img = this.frames[this.currentFrame];
+                //     }
+                // }))
                 this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
@@ -154,22 +215,24 @@ class Demo9WinterScene extends Scene {
                         this.frames = scene.createBgFrames({
                             color: { r: 188,g: 204,b:206 },
                             imgSize: scene.viewport, 
-                            pointsPerGroup: 10,
+                            pointsPerGroup: 25,
                             framesCount: 20,
                             pointsDistributionSize: scene.viewport.add(new V2(10,-10)), 
                             pointsDistributionPosition: new V2(-10,-10),
-                            target: new V2(38,38),
+                            target: new V2(0,38),
                             pChangeType: 'linear',
                             pChangeMethod: 'base',
                             aChangeType: 'quad',
                             aChangeMethotUp: 'inOut',
                             aChangeMethotDown: 'inOut',
+                            targetAngleRandClamps: [-45,45]
                         });
         
                         this.currentFrame = 0;
                         this.img = this.frames[this.currentFrame];
                     }
-                }))]
+                }))
+            ]
 
 
                 this.timer = this.regTimerDefault(30, () => {
