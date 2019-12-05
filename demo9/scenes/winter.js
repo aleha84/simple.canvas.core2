@@ -51,7 +51,7 @@ class Demo9WinterScene extends Scene {
             }
 
             
-            pathPoints = pp.lineV2(new V2(), target);
+            //pathPoints = pp.lineV2(new V2(), target);
         })
 
         let distance = new V2(target);
@@ -154,6 +154,15 @@ class Demo9WinterScene extends Scene {
 
     start(){
 
+        this.road = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                this.img = PP.createImage(Demo9WinterScene.models.main)
+            }
+        }), 1)
+
+
         this.fg = this.addGo(new GO({
             position: this.sceneCenter,
             size: this.viewport,
@@ -255,6 +264,8 @@ class Demo9WinterScene extends Scene {
                 })
             }
         }), 10)
+
+
 
         this.addGo(new Demo9WinterScene.SnowFlow({
             position: this.sceneCenter,
