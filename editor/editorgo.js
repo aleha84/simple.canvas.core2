@@ -5,6 +5,7 @@ class EditorGO extends GO {
             renderValuesRound: true,
             img: undefined,
             preventDiving: true,
+            showDots: true,
             dots: [],
             drag: {
                 disable() {
@@ -195,6 +196,24 @@ class EditorGO extends GO {
         this.itemSize = new V2(this.size.x/this.originalSize.x, this.size.y/this.originalSize.y)
         this.tl = new V2(-this.size.x/2, -this.size.y/2);
 
+        if(!this.notSelectedImg){
+            this.notSelectedImg = createCanvas(this.itemSize, (ctx, size) => {
+                ctx.translate(0.5,0.5);
+                ctx.strokeStyle = 'white';
+                ctx.strokeRect(0,0, size.x-1, size.y-1);
+            })
+        }
+        
+        if(!this.selectedImg){
+            this.selectedImg = createCanvas(this.itemSize, (ctx, size) => {
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fillRect(0,0, size.x, size.y);
+                ctx.translate(0.5,0.5);
+                ctx.strokeStyle = 'white';
+                ctx.strokeRect(0,0, size.x-1, size.y-1);
+            })
+        }
+
         if(this.showGrid){
             
             for(let r = 0; r < this.originalSize.y; r++){
@@ -255,18 +274,8 @@ class EditorGO extends GO {
                             selected: p.selected,
                             index: p.point.clone(),
                             position: new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.point.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.point.y),
-                            notSelectedImg: createCanvas(this.itemSize, (ctx, size) => {
-                                ctx.translate(0.5,0.5);
-                                ctx.strokeStyle = 'white';
-                                ctx.strokeRect(0,0, size.x-1, size.y-1);
-                            }),
-                            selectedImg:createCanvas(this.itemSize, (ctx, size) => {
-                                ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                                ctx.fillRect(0,0, size.x, size.y);
-                                ctx.translate(0.5,0.5);
-                                ctx.strokeStyle = 'white';
-                                ctx.strokeRect(0,0, size.x-1, size.y-1);
-                            })
+                            notSelectedImg: this.notSelectedImg,
+                            selectedImg: this.selectedImg
                         }), true)
                     )})
                 }
@@ -275,6 +284,12 @@ class EditorGO extends GO {
         }
         
         
+    }
+
+    internalUpdate() {
+        this.childrenGO.forEach((ch) => {
+            ch.isVisible = this.showDots;
+        });
     }
 
     internalRender() {

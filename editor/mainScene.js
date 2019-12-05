@@ -9,6 +9,10 @@ class EditorScene extends Scene {
                 keyup: (event) => {
                    // console.log(this, event, event.keyCode)
 
+                    if(event.key == 'h'){
+                        this.mainGo.showDots = !this.mainGo.showDots;
+                    }
+
                     if(['e', 'a', 'm'].indexOf(event.key) != -1 && !this.editor.editor.getModeState().disabled && this.editor.editor.selected.groupId != undefined){
                         switch(event.key){
                             case 'a': 
