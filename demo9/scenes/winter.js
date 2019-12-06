@@ -224,7 +224,7 @@ class Demo9WinterScene extends Scene {
                         this.frames = scene.createBgFrames({
                             color: { r: 188,g: 204,b:206 },
                             imgSize: scene.viewport, 
-                            pointsPerGroup: 25,
+                            pointsPerGroup: 50,
                             framesCount: 20,
                             pointsDistributionSize: scene.viewport.add(new V2(10,-10)), 
                             pointsDistributionPosition: new V2(-10,-10),
@@ -268,18 +268,35 @@ class Demo9WinterScene extends Scene {
 
 
         this.addGo(new Demo9WinterScene.SnowFlow({
-            position: this.sceneCenter,
+            position: new V2(138, 90),
             size: new  V2(70,100),
             lightCenter: new V2(35,15),
             lightSize: new V2(35,50),
-            roofTop: new V2()
+            roofTop: new V2(),
+            debugFrames: false,
+            speedClamps: [1.25,1.5],
+            itemPerTick: 10,
         }), 5)
+
+        this.addGo(new Demo9WinterScene.SnowFlow({
+            position: new V2(149, 107),
+            size: new  V2(70,100),
+            lightCenter: new V2(35,15),
+            lightSize: new V2(35,50),
+            roofTop: new V2(),
+            debugFrames: false,
+            speedClamps: [1,1],//[1.5,1.75]
+            itemPerTick: 11,
+        }), 4)
     }
 }
 
 Demo9WinterScene.SnowFlow = class extends GO {
     constructor(options = {}) {
         options = assignDeep({}, {
+            debugFrames: false,
+            speedClamps:  [2,2.5],
+            itemPerTick: 20,
         }, options)
 
         super(options);
@@ -328,7 +345,7 @@ Demo9WinterScene.SnowFlow = class extends GO {
 
         this.timer = this.regTimerDefault(30, () => {
 
-            for(let i = 0; i < 10; i++)
+            for(let i = 0; i < this.itemPerTick; i++)
                 this.points.push(this.pointGeneratorRandom());
 
 
@@ -369,7 +386,7 @@ Demo9WinterScene.SnowFlow = class extends GO {
     pointGeneratorRandom() {
         return {
             position: new V2(getRandomInt(-this.size.x, this.size.x*2), -1),
-            speed:  V2.right.rotate(getRandomInt(45,135)).mul(getRandom(2,2.5)),
+            speed:  V2.right.rotate(getRandomInt(45,135)).mul(getRandom(this.speedClamps[0],this.speedClamps[1])),
             alive: true,
         }
     }
@@ -398,8 +415,11 @@ Demo9WinterScene.SnowFlow = class extends GO {
             ctx.globalCompositeOperation = 'source-in';
             ctx.drawImage(snowImg, 0,0);
 
-            ctx.globalCompositeOperation = 'source-over';
-            hlp.setFillColor('red').strokeRect(0,0,size.x, size.y);
+            if(this.debugFrames){
+                ctx.globalCompositeOperation = 'source-over';
+                hlp.setFillColor('red').strokeRect(0,0,size.x, size.y);
+            }
+            
         })
     }
 }
