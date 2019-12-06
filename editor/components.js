@@ -707,6 +707,7 @@ var components = {
 
     fillPoints(groupProps, changeCallback) {
         let {pointsEl, pointEl, points} = groupProps;
+        components.editor.editor.removeSelectedPoint = undefined;
         let fillPoint = (point, selectedOptionEl,changeCallback, eventDetails) => {
             htmlUtils.removeChilds(pointEl);
 
@@ -728,6 +729,17 @@ var components = {
 
         htmlUtils.removeChilds(pointsEl);
 
+        let removePointCallback = function(e, select) {
+            points = points.filter(p => p.id != select.value);  
+            points.forEach((p, i) => p.order = i);
+            select.value = undefined;
+            groupProps.points = points;
+            components.fillPoints(groupProps, changeCallback);
+            components.editor.editor.setModeState(true, 'edit');
+            changeCallback();
+        }
+
+
         // points list
         pointsEl.appendChild(components.createList({
             title: 'Points',
@@ -738,6 +750,9 @@ var components = {
                     let selectedPoint = points.find(l => l.id == e.target.value);
                     if(selectedPoint){
                         selectedPoint.selected = true;
+                        components.editor.editor.selected.pointId = selectedPoint.id;
+                        components.editor.editor.removeSelectedPoint = () => removePointCallback(e,e.target);
+                        //console.log('selected point id: ' + components.editor.editor.selected.pointId); 
                     }
 
                     let selectedOption = undefined;
@@ -753,18 +768,14 @@ var components = {
                     fillPoint(selectedPoint,selectedOption, changeCallback, e.detail);  
                 },
                 reset: function(e) { 
+                    components.editor.editor.selected.pointId = undefined;
+
                     points.forEach(p => p.selected = false);
                     components.editor.editor.setModeState(true, 'edit');
                     fillPoint(undefined, undefined, changeCallback, '') 
                 },
                 remove(e, select) {
-                    points = points.filter(p => p.id != select.value);  
-                    points.forEach((p, i) => p.order = i);
-                    select.value = undefined;
-                    groupProps.points = points;
-                    components.fillPoints(groupProps, changeCallback);
-                    components.editor.editor.setModeState(true, 'edit');
-                    changeCallback();
+                    removePointCallback(e, select);
                 },
                 add: function(e, select) {
                     

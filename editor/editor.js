@@ -13,6 +13,7 @@ class Editor {
                     groupId: undefined,
                     pointId: undefined,
                 },
+                removeSelectedPoint: undefined,
                 mode: {
                     value: 'edit',
                     element: undefined,

@@ -11,6 +11,11 @@ class Demo9WinterScene extends Scene {
     }
 
     backgroundRender() {
+        // l. hsv: 187,22,56; rgb: 113,141,145
+        // d. hsv: 203,2,32;  rgb:  48, 70, 84
+
+        //mid.                rgb: 80, 105, 114
+
         this.backgroundRenderDefault('#091929');
     }
 
@@ -280,6 +285,17 @@ class Demo9WinterScene extends Scene {
 
         this.addGo(new Demo9WinterScene.SnowFlow({
             position: new V2(149, 107),
+            size: new  V2(70,100),
+            lightCenter: new V2(35,15),
+            lightSize: new V2(35,50),
+            roofTop: new V2(),
+            debugFrames: false,
+            speedClamps: [1,1],//[1.5,1.75]
+            itemPerTick: 11,
+        }), 4)
+
+        this.addGo(new Demo9WinterScene.SnowFlow({
+            position: new V2(259, 103),
             size: new  V2(70,100),
             lightCenter: new V2(35,15),
             lightSize: new V2(35,50),

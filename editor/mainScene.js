@@ -13,6 +13,16 @@ class EditorScene extends Scene {
                         this.mainGo.showDots = !this.mainGo.showDots;
                     }
 
+                    if(event.key == 'r'){
+                        if(this.editor.editor.selected.pointId == undefined)
+                        {
+                            alert('No point selected');
+                            return;
+                        }
+                        
+                        this.editor.editor.removeSelectedPoint()
+                    }
+
                     if(['e', 'a', 'm'].indexOf(event.key) != -1 && !this.editor.editor.getModeState().disabled && this.editor.editor.selected.groupId != undefined){
                         switch(event.key){
                             case 'a': 
