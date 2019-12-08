@@ -12,9 +12,27 @@ class Demo9WinterScene extends Scene {
 
     backgroundRender() {
         // l. hsv: 187,22,56; rgb: 113,141,145
+        
+        //lm.                 rgb: 96, 123, 129 
+        //mid.                rgb: 80, 105, 114 //hex. 576C70
+        //dm.                 rgb: 64, 87, 99
+        
         // d. hsv: 203,2,32;  rgb:  48, 70, 84
 
-        //mid.                rgb: 80, 105, 114
+//#2
+        // l. rgb. 98,123,127
+        // lm.rgb. 85,109,116//hex. 556D74
+        // m. rgb. 73,96,105 //hex. 496069
+        // ld.rgb. 60,83,94
+        // d. rgb. 48,70,84
+        
+
+
+//#3 светлый rgb 58,86,98
+
+// средный   rgb 53,78,91
+
+//   тёмный  rgb 48,70,84   
 
         this.backgroundRenderDefault('#091929');
     }
@@ -304,6 +322,56 @@ class Demo9WinterScene extends Scene {
             speedClamps: [1,1],//[1.5,1.75]
             itemPerTick: 11,
         }), 4)
+
+        this.addGo(new Demo9WinterScene.SnowFlow({
+            position: new V2(69, 112),
+            size: new  V2(70,100),
+            lightCenter: new V2(35,8),
+            lightSize: new V2(30,40),
+            roofTop: new V2(),
+            debugFrames: false,
+            speedClamps: [1,1],//[1.5,1.75]
+            itemPerTick: 10,
+            alphaStart: 0.9,
+            roofPoints: {
+                left: new V2(0, 30),
+                right: new V2(70,30)
+            },
+            // debugFrames: true,
+            // debugMask: true,
+        }), 4)
+
+        this.addGo(new Demo9WinterScene.SnowFlow({
+            position: new V2(184, 92),
+            size: new  V2(70,60),
+            lightCenter: new V2(35,7),
+            lightSize: new V2(20,30),
+            roofPoints: {
+                left: new V2(0, 30),
+                right: new V2(70,30)
+            },
+            debugFrames: false,
+            debugMask: false,
+            speedClamps: [0.55,0.75],//[1.5,1.75]
+            itemPerTick: 15,
+            alphaStart: 0.8,
+        }), 3)
+
+        this.addGo(new Demo9WinterScene.SnowFlow({
+            position: new V2(121, 97),
+            size: new  V2(70,60),
+            lightCenter: new V2(35,7),
+            lightSize: new V2(20,30),
+            roofPoints: {
+                left: new V2(0, 30),
+                right: new V2(70,30)
+            },
+            debugFrames: false,
+            debugMask: false,
+            speedClamps: [0.55,0.75],//[1.5,1.75]
+            itemPerTick: 15,
+            alphaStart: 0.75,
+        }), 3)
     }
 }
 
@@ -311,8 +379,15 @@ Demo9WinterScene.SnowFlow = class extends GO {
     constructor(options = {}) {
         options = assignDeep({}, {
             debugFrames: false,
+            debugMask: false,
             speedClamps:  [2,2.5],
             itemPerTick: 20,
+            alphaStart: 1,
+            roofPoints: {
+                left: undefined,
+                center: undefined,
+                right: undefined
+            }
         }, options)
 
         super(options);
@@ -322,15 +397,24 @@ Demo9WinterScene.SnowFlow = class extends GO {
             position: this.lightCenter
         }
 
+        if(this.roofPoints.left == undefined)
+            this.roofPoints.left = new V2(0,20)
+
+        if(this.roofPoints.center == undefined)
+            this.roofPoints.center = new V2(this.ellipsis.position.x, 0)
+
+        if(this.roofPoints.right == undefined)
+            this.roofPoints.right = new V2(this.size.x,20)
+
         this.ellipsis.rxSq = this.ellipsis.size.x*this.ellipsis.size.x;
         this.ellipsis.rySq = this.ellipsis.size.y*this.ellipsis.size.y;
 
         this.mask = createCanvas(this.size, (ctx, size, hlp) => {
-            let aChange = easing.createProps(100, 1, 0, 'expo', 'out')
+            let aChange = easing.createProps(100, this.alphaStart, 0, 'expo', 'out')
 
             let pp = new PerfectPixel({ctx});
             pp.setFillStyle('rgba(0,255,0,0)');
-            let roofPoints = [...pp.lineV2(new V2(0,20), new V2(this.ellipsis.position.x, 0)), ...pp.lineV2(new V2(this.ellipsis.position.x, 0),new V2(size.x,20))];
+            let roofPoints = [...pp.lineV2(this.roofPoints.left, this.roofPoints.center), ...pp.lineV2(this.roofPoints.center,this.roofPoints.right)];
             roofPoints = distinct(roofPoints, (p) => p.x+'_'+p.y);
 
             for(let y = 0; y < size.y; y++){
@@ -426,10 +510,13 @@ Demo9WinterScene.SnowFlow = class extends GO {
         })
 
         this.img = createCanvas(this.size, (ctx, size, hlp) => {
-            
             ctx.drawImage(this.mask, 0,0);
-            ctx.globalCompositeOperation = 'source-in';
-            ctx.drawImage(snowImg, 0,0);
+            if(!this.debugMask){
+                ctx.globalCompositeOperation = 'source-in';
+                ctx.drawImage(snowImg, 0,0);
+            }
+            
+            
 
             if(this.debugFrames){
                 ctx.globalCompositeOperation = 'source-over';
