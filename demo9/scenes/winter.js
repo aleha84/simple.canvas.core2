@@ -2,7 +2,7 @@ class Demo9WinterScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -185,60 +185,102 @@ class Demo9WinterScene extends Scene {
             }
         }), 1)
 
+        // this.carLights = this.addGo(new GO({
+        //     position: new V2(121,109.5),
+        //     size: new V2(50,25),
+        //     init() {
+        //         this.frames = PP.createImage(Demo9WinterScene.models.carlightsFrames)
+
+        //         this.currentFrame = 0;
+        //         this.framesDirection = 1;
+        //         this.frameChangeDelay = 1;
+        //         this.img = this.frames[this.currentFrame];
+        //         this.timer = this.regTimerDefault(20, () => {
+        //             this.img = this.frames[this.currentFrame];
+        //             this.frameChangeDelay--;
+        //             if(this.frameChangeDelay == 0){
+        //                 this.frameChangeDelay = this.framesDirection > 0 ? 1: 2;
+        //                 this.currentFrame += this.framesDirection;
+        //             }
+                    
+        //             if(this.currentFrame == this.frames.length || this.currentFrame == 0){
+        //                 //this.currentFrame = 0;
+        //                 this.framesDirection*=-1;
+        //                 this.currentFrame+=this.framesDirection;
+        //                 if(this.currentFrame == 1){
+        //                     this.frameChangeDelay = 20;
+        //                 }
+        //             }
+        //         })
+        //     }
+        // }), 2)
+
+        this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                let scene = this.parentScene;
+                this.frames = scene.createBgFrames({
+                    color: { r: 188,g: 204,b:206 },
+                    imgSize: scene.viewport, 
+                    pointsPerGroup: 30,
+                    framesCount: 80,
+                    pointsDistributionSize: new V2(scene.viewport.x, 80), 
+                    pointsDistributionPosition: new V2(),//new V2(-10,-10),
+                    target: new V2(0,38),
+                    pChangeType: 'linear',
+                    pChangeMethod: 'base',
+                    aChangeType: 'quad',
+                    aChangeMethotUp: 'inOut',
+                    aChangeMethotDown: 'inOut',
+                    maxOpacity: 0.1,
+                    targetAngleRandClamps: [-45,45]
+                });
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+
+                this.timer = this.regTimerDefault(30, () => {
+                    // for(let i = 0; i < this.snowLayers.length; i++){
+                    //     let snowLayer = this.snowLayers[i];
+
+                    //     snowLayer.img = snowLayer.frames[snowLayer.currentFrame];
+                    //     snowLayer.currentFrame++;
+                    //     if(snowLayer.currentFrame == snowLayer.frames.length){
+                    //         snowLayer.currentFrame = 0;
+                    //     }
+                    // }
+
+
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 2)
 
         this.fg = this.addGo(new GO({
             position: this.sceneCenter,
             size: this.viewport,
             init() {
-                this.snowLayers = [
-                //     this.addChild(new GO({
-                //     position: new V2(),
-                //     size: this.size,
-                //     init() {
-                //         let scene = this.parent.parentScene;
-                //         this.frames = scene.createBgFrames({
-                //             color: { r: 188,g: 204,b:206 },
-                //             imgSize: scene.viewport, 
-                //             pointsPerGroup: 10,
-                //             framesCount: 20,
-                //             pointsDistributionSize: scene.viewport.add(new V2(10,-10)), 
-                //             pointsDistributionPosition: new V2(0,-10),
-                //             target: new V2(-38,38),
-                //             pChangeType: 'linear',
-                //             pChangeMethod: 'base',
-                //             aChangeType: 'quad',
-                //             aChangeMethotUp: 'inOut',
-                //             aChangeMethotDown: 'inOut',
-                //         });
-        
-                //         this.currentFrame = 0;
-                //         this.img = this.frames[this.currentFrame];
-                //     }
-                // })),
+
                 // this.addChild(new GO({
                 //     position: new V2(),
                 //     size: this.size,
                 //     init() {
+
                 //         let scene = this.parent.parentScene;
-                //         this.frames = scene.createBgFrames({
-                //             color: { r: 188,g: 204,b:206 },
-                //             imgSize: scene.viewport, 
-                //             pointsPerGroup: 10,
-                //             framesCount: 20,
-                //             pointsDistributionSize: scene.viewport.add(new V2(10,-10)), 
-                //             pointsDistributionPosition: new V2(-10,-10),
-                //             target: new V2(38,38),
-                //             pChangeType: 'linear',
-                //             pChangeMethod: 'base',
-                //             aChangeType: 'quad',
-                //             aChangeMethotUp: 'inOut',
-                //             aChangeMethotDown: 'inOut',
-                //         });
-        
-                //         this.currentFrame = 0;
-                //         this.img = this.frames[this.currentFrame];
+                //         this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                //             hlp.setFillColor('red').strokeRect(0,0,scene.viewport.x, 100)
+                //         })
                 //     }
                 // }))
+
+                this.snowLayers = [
+               
+                
                 this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
@@ -264,6 +306,7 @@ class Demo9WinterScene extends Scene {
                         this.img = this.frames[this.currentFrame];
                     }
                 }))
+                
             ]
 
 

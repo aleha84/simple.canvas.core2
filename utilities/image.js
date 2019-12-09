@@ -684,6 +684,22 @@ var colors = {
             change
         };
     },
+    getMidColor({color1, color2, resultType = 'hex'}){
+        let rgb1 = hexToRgb(color1, true);
+        let rgb2 = hexToRgb(color2, true);
+
+        let mid = rgb1.map((el, i) => {
+            return fast.r((rgb1[i]+rgb2[i])/2)
+        });
+
+        switch(resultType){
+            case 'hex':
+                return '#' + rgbToHex(mid);
+        }
+
+        return mid;
+
+    },
     hsvToHex(hsv) {
         return hsvToHex({hsv});
     },
