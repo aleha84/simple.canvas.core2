@@ -119,6 +119,99 @@ class Editor {
         }
 
         this.init();
+
+
+        let createDraggablePanel = function({parent}) {
+            let editorBr = parent.querySelector('#editor').getBoundingClientRect();
+            let panelBr = undefined;
+            console.log(editorBr)
+            let panel = htmlUtils.createElement('div', { classNames: ['panel', 'utilities'] });
+            let panelHeader = htmlUtils.createElement('div', { className: 'header' });
+
+            let content = htmlUtils.createElement('div', { classNames: [ 'content'] });
+            let dragPanel = htmlUtils.createElement('div', { text: 'utilities',classNames: [ 'drag'] });
+            let expandBtn = htmlUtils.createElement('input', { value: 'Expand', className: 'toggle', attributes: { type: 'button' }, events: {
+                click: function(){
+                    panelBr = panel.getBoundingClientRect();
+                    if (content.classList.contains("visible")) 
+                        content.classList.remove("visible");
+                    else 
+                        content.classList.add('visible');
+                }
+            } });
+
+            panelHeader.appendChild(expandBtn);
+            panelHeader.appendChild(dragPanel);
+
+            panel.appendChild(panelHeader);
+            panel.appendChild(content)
+
+            parent.appendChild(panel);
+
+            panelBr = panel.getBoundingClientRect();
+
+            let dragStartRelative = undefined;
+            let dragStart = function(event) {
+                panelBr = panel.getBoundingClientRect();
+                dragStartRelative = {
+                    x: event.clientX - panelBr.left,
+                    y: event.clientY - panelBr.top
+                }
+
+                dragPanel.classList.add('active');
+
+                parent.addEventListener('mousemove', move);
+                parent.addEventListener('mouseup',mouseUp);
+                document.addEventListener('mouseout', out);
+            }
+
+            let out = function(event){
+                var from = event.relatedTarget || event.toElement;  
+                if (!from || from.nodeName == "HTML"){
+                    mouseUp()
+                }
+            }
+
+            let move = function(event) { 
+                if(!dragStartRelative)
+                    return;
+
+                event.preventDefault();
+                let nextX = event.clientX - dragStartRelative.x;
+                if(nextX < 0)
+                    nextX = 0;
+                
+                if(nextX + panelBr.width > editorBr.left + editorBr.width)
+                    nextX = editorBr.left + editorBr.width - panelBr.width;
+
+                let nextY = event.clientY - dragStartRelative.y;
+                if(nextY < 0)
+                    nextY = 0;
+
+                if(nextY + panelBr.height > editorBr.top + editorBr.height)
+                    nextY = editorBr.top + editorBr.height - panelBr.height;
+
+                panel.style.left = nextX + 'px';
+                panel.style.top = nextY + 'px';
+            }
+
+            let mouseUp = function() {
+                dragStartRelative = undefined;
+
+                if (dragPanel.classList.contains("active")) {
+                    dragPanel.classList.remove("active");
+                }
+
+                parent.removeEventListener('mousemove', move);
+                parent.removeEventListener('mouseup', mouseUp);
+                document.removeEventListener('mouseout', out);
+            }
+
+            dragPanel.onmousedown  = dragStart;
+        }
+
+
+        createDraggablePanel({parent: document.body});
     }
 
     init() {

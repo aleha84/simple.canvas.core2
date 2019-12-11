@@ -188,3 +188,54 @@ html,
         font-size: 20px;
         font-weight: bold;
     }
+
+    .panel {
+      position: absolute;
+      z-index: 10000;
+      background-color: #f1f1f1;
+      border: 1px solid #d3d3d3;
+      padding: 3px;
+    }
+
+    .panel>.header{
+      display: flex;
+      user-select: none;
+    }
+
+
+    .panel .toggle {
+      width:70px;
+    }
+
+    .panel .drag {
+      right: 5px;
+      height: 20px;
+      background: blue;
+      flex: 1;
+      min-width: 100px;
+      margin-left: 4px;
+      text-align: center;
+      color: #46ddff;
+      cursor: grab;
+    }
+
+    .panel .drag.active {
+      background: #5e0a6d;
+    }
+
+    .panel.utilities {
+      width: auto;
+      height:auto;
+      left: 20px;
+      top: 20px;
+    }
+
+    .panel.utilities .content {
+      height: 30px;
+      width:200px;
+      display: none;
+    }
+
+    .panel.utilities .content.visible {
+      display: block;
+    }
