@@ -121,7 +121,7 @@ class Editor {
         this.init();
 
 
-        let createDraggablePanel = function({parent}) {
+        let createDraggablePanel = function({parent, title, position, closable = false, expandable = true}) {
             let editorBr = parent.querySelector('#editor').getBoundingClientRect();
             let panelBr = undefined;
             console.log(editorBr)
@@ -129,22 +129,34 @@ class Editor {
             let panelHeader = htmlUtils.createElement('div', { className: 'header' });
 
             let content = htmlUtils.createElement('div', { classNames: [ 'content'] });
-            let dragPanel = htmlUtils.createElement('div', { text: 'utilities',classNames: [ 'drag'] });
-            let expandBtn = htmlUtils.createElement('input', { value: 'Expand', className: 'toggle', attributes: { type: 'button' }, events: {
-                click: function(){
-                    panelBr = panel.getBoundingClientRect();
-                    if (content.classList.contains("visible")) 
-                        content.classList.remove("visible");
-                    else 
-                        content.classList.add('visible');
-                }
-            } });
+            let dragPanel = htmlUtils.createElement('div', { text: title,classNames: [ 'drag'] });
+            
+            if(expandable){
+                panelHeader.appendChild(htmlUtils.createElement('input', { value: 'Expand', className: 'toggle', attributes: { type: 'button' }, events: {
+                    click: function(){
+                        panelBr = panel.getBoundingClientRect();
+                        if (content.classList.contains("visible")) 
+                            content.classList.remove("visible");
+                        else 
+                            content.classList.add('visible');
+                    }
+                } }));
+            }
 
-            panelHeader.appendChild(expandBtn);
             panelHeader.appendChild(dragPanel);
+            if(closable){
+                panelHeader.appendChild(htmlUtils.createElement('div', { text: 'x', classNames: [ 'close'], events: {
+                    click: () => {
+                        panel.remove();
+                    }
+                } }));
+            }
 
             panel.appendChild(panelHeader);
             panel.appendChild(content)
+
+            panel.style.left = position.x + 'px';
+            panel.style.top = position.y + 'px';
 
             parent.appendChild(panel);
 
@@ -211,7 +223,8 @@ class Editor {
         }
 
 
-        createDraggablePanel({parent: document.body});
+        createDraggablePanel({title: 'utilities', parent: document.body, position: new V2(20,20)});
+        createDraggablePanel({title: 'closable', parent: document.body, position: new V2(20,60), closable: true});
     }
 
     init() {
