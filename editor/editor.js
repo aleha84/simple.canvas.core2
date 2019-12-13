@@ -7,6 +7,7 @@ class Editor {
             },
             editor: {
                 element: undefined,
+                sceneColorPicker: undefined,
                 selected: {
                     //selectedFrame: undefined,
                     layerId: undefined,
@@ -132,6 +133,21 @@ class Editor {
                         contentWidth: 150,
                         contentItems: [
                             components.createMidColor()
+                        ]
+                    });
+                }
+            } }),
+            htmlUtils.createElement('input', { value: 'CPick',  attributes: { type: 'button' }, events: {
+                click: function(){
+                    components.createDraggablePanel({
+                        title: 'C picker', 
+                        parent: document.body, 
+                        position: new V2(40,60), 
+                        closable: true,
+                        expandable: false,
+                        contentWidth: 150,
+                        contentItems: [
+                            components.startSceneColorPicker()
                         ]
                     });
                 }

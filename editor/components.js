@@ -976,5 +976,13 @@ var components = {
         container.appendChild(result);
 
         return container;
+    },
+
+    startSceneColorPicker() {
+        let editor = components.editor.editor
+        if(editor.sceneColorPicker)
+            return;
+
+        
     }
 }
