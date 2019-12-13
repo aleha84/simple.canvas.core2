@@ -189,6 +189,10 @@ html,
         font-weight: bold;
     }
 
+    .colorPicker input[type='text'] {
+      width: 60px;
+    }
+
     .panel {
       position: absolute;
       z-index: 10000;
@@ -242,7 +246,8 @@ html,
     }
 
     .panel.utilities .content {
-      height: 30px;
+      /* height: 30px; */
+      height:auto;
       width:200px;
       display: none;
     }

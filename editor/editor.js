@@ -120,10 +120,20 @@ class Editor {
 
         this.init();
 
-        htmlUtils.createDraggablePanel({title: 'utilities', parent: document.body, position: new V2(20,20), contentItems: [
+        components.createDraggablePanel({title: 'utilities', panelClassNames: [ 'utilities'], parent: document.body, position: new V2(20,20), contentItems: [
             htmlUtils.createElement('input', { value: 'Mid',  attributes: { type: 'button' }, events: {
                 click: function(){
-                    alert('mid');
+                    components.createDraggablePanel({
+                        title: 'Mid color', 
+                        parent: document.body, 
+                        position: new V2(20,60), 
+                        closable: true,
+                        expandable: false,
+                        contentWidth: 150,
+                        contentItems: [
+                            components.createMidColor()
+                        ]
+                    });
                 }
             } })
         ]});

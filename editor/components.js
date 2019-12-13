@@ -211,6 +211,13 @@ var components = {
         el.cPicker = cPicker;
         el.hexInput = hexInput;
 
+        el.setValue = (value) => {
+            cPicker.value = value;
+            hexInput.value = value;
+        }
+
+        el.getValue = () => cPicker.value;
+
         return el;
     },
     createList(listProps) {
@@ -828,5 +835,146 @@ var components = {
         }
         arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
         return arr; // for testing
+    },
+    createDraggablePanel({parent, title, position, closable = false, panelClassNames = [], expandable = true, contentWidth = undefined, contentItems = []}) {
+        let editorBr = parent.querySelector('#editor').getBoundingClientRect();
+        let panelBr = undefined;
+        //console.log(editorBr)
+        let panel = htmlUtils.createElement('div', { classNames: ['panel', ...panelClassNames] });
+        let panelHeader = htmlUtils.createElement('div', { className: 'header' });
+
+        let content = htmlUtils.createElement('div', { classNames: [ 'content'] });
+
+        if(contentWidth){
+            content.style.minWidth = contentWidth + 'px';
+        }
+
+        contentItems.forEach(c => {
+            content.appendChild(c);
+        })
+
+        let dragPanel = htmlUtils.createElement('div', { text: title,classNames: [ 'drag'] });
+        
+        if(expandable){
+            panelHeader.appendChild(htmlUtils.createElement('input', { value: 'Expand', className: 'toggle', attributes: { type: 'button' }, events: {
+                click: function(){
+                    panelBr = panel.getBoundingClientRect();
+                    if (content.classList.contains("visible")) 
+                        content.classList.remove("visible");
+                    else 
+                        content.classList.add('visible');
+                }
+            } }));
+        }
+        else {
+            content.classList.add('visible')
+        }
+
+        panelHeader.appendChild(dragPanel);
+        if(closable){
+            panelHeader.appendChild(htmlUtils.createElement('div', { text: 'x', classNames: [ 'close'], events: {
+                click: () => {
+                    panel.remove();
+                }
+            } }));
+        }
+
+        panel.appendChild(panelHeader);
+        panel.appendChild(content)
+
+        panel.style.left = position.x + 'px';
+        panel.style.top = position.y + 'px';
+
+        parent.appendChild(panel);
+
+        panelBr = panel.getBoundingClientRect();
+
+        let dragStartRelative = undefined;
+        let events = {
+            dragStart(event) {
+                panelBr = panel.getBoundingClientRect();
+                dragStartRelative = {
+                    x: event.clientX - panelBr.left,
+                    y: event.clientY - panelBr.top
+                }
+    
+                dragPanel.classList.add('active');
+    
+                parent.addEventListener('mousemove', events.move);
+                parent.addEventListener('mouseup',events.mouseUp);
+                document.addEventListener('mouseout', events.out);
+            },
+            out(event){
+                var from = event.relatedTarget || event.toElement;  
+                if (!from || from.nodeName == "HTML"){
+                    events.mouseUp()
+                }
+            },
+            move(event) { 
+                if(!dragStartRelative)
+                    return;
+    
+                event.preventDefault();
+                let nextX = event.clientX - dragStartRelative.x;
+                if(nextX < 0)
+                    nextX = 0;
+                
+                if(nextX + panelBr.width > editorBr.left + editorBr.width)
+                    nextX = editorBr.left + editorBr.width - panelBr.width;
+    
+                let nextY = event.clientY - dragStartRelative.y;
+                if(nextY < 0)
+                    nextY = 0;
+    
+                if(nextY + panelBr.height > editorBr.top + editorBr.height)
+                    nextY = editorBr.top + editorBr.height - panelBr.height;
+    
+                panel.style.left = nextX + 'px';
+                panel.style.top = nextY + 'px';
+            },
+            mouseUp() {
+                dragStartRelative = undefined;
+    
+                if (dragPanel.classList.contains("active")) {
+                    dragPanel.classList.remove("active");
+                }
+    
+                parent.removeEventListener('mousemove', events.move);
+                parent.removeEventListener('mouseup', events.mouseUp);
+                document.removeEventListener('mouseout', events.out);
+            }
+        }
+
+        dragPanel.onmousedown  = events.dragStart;
+
+        return {
+            panel,
+            panelHeader,
+            content,
+            events
+        }
+    },
+
+    createMidColor() {
+        let midColorFoo = (c1, c2) => {
+            let c1rgb = hexToRgb(c1, true);
+            let c2rgb = hexToRgb(c2, true);
+            return '#' + rgbToHex( c1rgb.map((el, i) => fast.r((c1rgb[i] + c2rgb[i])/2)) )
+        }
+
+        let container = htmlUtils.createElement('div');
+        let color1 = this.createColorPicker('#FFFFFF', 'C1', () => {
+            result.setValue(midColorFoo(color1.getValue(), color2.getValue()))
+        })
+        let color2 = this.createColorPicker('#FFFFFF', 'C2', (value) => {
+            result.setValue(midColorFoo(color1.getValue(), color2.getValue()))
+        })
+        let result = this.createColorPicker('#FFFFFF', 'R', () => {})
+
+        container.appendChild(color1);
+        container.appendChild(color2);
+        container.appendChild(result);
+
+        return container;
     }
 }
