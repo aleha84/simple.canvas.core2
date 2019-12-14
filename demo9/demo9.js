@@ -210,6 +210,10 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: small300_200_Viewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9WaitingScene({
+        name:'waiting',
+        viewport: small200_300_Viewport
+    }));
 
     sceneSelectByHashValue();
     
