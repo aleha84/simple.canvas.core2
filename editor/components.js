@@ -836,7 +836,9 @@ var components = {
         arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
         return arr; // for testing
     },
-    createDraggablePanel({parent, title, position, closable = false, panelClassNames = [], expandable = true, contentWidth = undefined, contentItems = []}) {
+    createDraggablePanel({parent, title, position, closable = false, panelClassNames = [], expandable = true, contentWidth = undefined, contentItems = [],
+        onClose = () => {}
+    }) {
         let editorBr = parent.querySelector('#editor').getBoundingClientRect();
         let panelBr = undefined;
         //console.log(editorBr)
@@ -874,7 +876,7 @@ var components = {
         if(closable){
             panelHeader.appendChild(htmlUtils.createElement('div', { text: 'x', classNames: [ 'close'], events: {
                 click: () => {
-                    panel.remove();
+                    events.remove();
                 }
             } }));
         }
@@ -891,6 +893,10 @@ var components = {
 
         let dragStartRelative = undefined;
         let events = {
+            remove() {
+                panel.remove();
+                onClose();
+            },
             dragStart(event) {
                 panelBr = panel.getBoundingClientRect();
                 dragStartRelative = {
@@ -951,7 +957,11 @@ var components = {
             panel,
             panelHeader,
             content,
-            events
+            contentItems,
+            events,
+            remove() {
+                events.remove();
+            }
         }
     },
 
@@ -978,11 +988,16 @@ var components = {
         return container;
     },
 
-    startSceneColorPicker() {
-        let editor = components.editor.editor
-        if(editor.sceneColorPicker)
-            return;
+    createSceneColorPicker() {
+        let container = htmlUtils.createElement('div');
 
-        
+        let color1 = this.createColorPicker('#FFFFFF', 'C1', () => {})
+
+        container.appendChild(color1);
+        container.setValue = (value) => {
+            color1.setValue(value);
+        }
+
+        return container;
     }
 }

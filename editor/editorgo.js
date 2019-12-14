@@ -132,6 +132,13 @@ class EditorGO extends GO {
                         }
                         d.disable();
                     }
+                    else if(this.model.editor.mode == 'colorpick'){
+                        let colorData = this.img.getContext('2d').getImageData(this.model.editor.index.x, this.model.editor.index.y,1,1);
+                        this.parentScene.editor.editor.panels.colorPicker.setValue('#' + rgbToHex(Array.from(colorData.data)))
+                        //console.log(colorData);
+                        //this.model.editor.panels.colorPicker
+                        
+                    }
                     
                 },
                 out: function(e) {

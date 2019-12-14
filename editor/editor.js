@@ -15,6 +15,7 @@ class Editor {
                     pointId: undefined,
                 },
                 removeSelectedPoint: undefined,
+                panels: {},
                 mode: {
                     value: 'edit',
                     element: undefined,
@@ -22,6 +23,11 @@ class Editor {
                     moveLayerElement: undefined,
                     stateElement: undefined,
                     setValue(value) {
+                        
+                        if(this.value == 'colorpick' && value != 'colorpick' && that.editor.panels.colorPicker){
+                            that.editor.panels.colorPicker.remove();
+                        }
+
                         value = value || this.value;
                         this.value = value
                         let text = '';
@@ -32,7 +38,9 @@ class Editor {
                             case 'edit':
                                 text = '"Edit points" mode'; break;
                             case 'movegroup':
-                                text = '"Move group" move'; break;
+                                text = '"Move group" mode'; break;
+                            case 'colorpick':
+                                text = '"Color pick" mode'; break;
                         }
                         
                         this.stateElement.innerText = text;
@@ -45,6 +53,9 @@ class Editor {
                     },
                     toggleMoveLayer() {
                         this.setValue(this.value == 'movelayer' ? 'edit' : 'movelayer');
+                    },
+                    toggleColorPicker() {
+                        this.setValue(this.value == 'colorpick' ? 'edit' : 'colorpick');
                     }
                 },
                 getModeState() {
@@ -121,35 +132,65 @@ class Editor {
 
         this.init();
 
+        let that = this;
         components.createDraggablePanel({title: 'utilities', panelClassNames: [ 'utilities'], parent: document.body, position: new V2(20,20), contentItems: [
             htmlUtils.createElement('input', { value: 'Mid',  attributes: { type: 'button' }, events: {
                 click: function(){
-                    components.createDraggablePanel({
-                        title: 'Mid color', 
-                        parent: document.body, 
-                        position: new V2(20,60), 
-                        closable: true,
-                        expandable: false,
-                        contentWidth: 150,
-                        contentItems: [
-                            components.createMidColor()
-                        ]
-                    });
+
+                    if(that.editor.panels.midColor){
+                        that.editor.panels.midColor.remove();
+                    }
+                    else {
+                        that.editor.panels.midColor = components.createDraggablePanel({
+                            title: 'Mid color', 
+                            parent: document.body, 
+                            position: new V2(20,60), 
+                            closable: true,
+                            expandable: false,
+                            contentWidth: 150,
+                            onClose: () => { that.editor.panels.midColor = undefined; },
+                            contentItems: [
+                                components.createMidColor()
+                            ]
+                        });
+                    }
+                    
                 }
             } }),
             htmlUtils.createElement('input', { value: 'CPick',  attributes: { type: 'button' }, events: {
                 click: function(){
-                    components.createDraggablePanel({
-                        title: 'C picker', 
-                        parent: document.body, 
-                        position: new V2(40,60), 
-                        closable: true,
-                        expandable: false,
-                        contentWidth: 150,
-                        contentItems: [
-                            components.startSceneColorPicker()
-                        ]
-                    });
+
+                    if(that.editor.panels.colorPicker){
+                        that.editor.panels.colorPicker.remove();
+                    }
+                    else {
+                        that.editor.mode.toggleColorPicker();
+                        that.updateEditor();
+    
+                        let cp = components.createDraggablePanel({
+                            title: 'C picker', 
+                            parent: document.body, 
+                            position: new V2(40,60), 
+                            closable: true,
+                            expandable: false,
+                            contentWidth: 150,
+                            onClose: () => { 
+                                that.editor.panels.colorPicker = undefined;
+                                that.editor.mode.toggleColorPicker();
+                                that.updateEditor();
+                             },
+                            contentItems: [
+                                components.createSceneColorPicker()
+                            ]
+                        });
+
+                        that.editor.panels.colorPicker = cp;
+
+                        cp.setValue = (value) => {
+                            cp.contentItems[0].setValue(value);
+                        }
+                    }
+                    
                 }
             } })
         ]});
