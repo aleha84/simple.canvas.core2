@@ -15,6 +15,14 @@ class Demo9WaitingScene extends Scene {
     }
 
     start(){
+        this.train = this.addGo(new GO({
+            position: new V2(100,88),
+            size: new V2(260,80),
+            init() {
+                this.img = PP.createImage(Demo9WaitingScene.models.trainVagon)
+            }
+        }), 0)
+
         this.main = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport,
@@ -29,6 +37,14 @@ class Demo9WaitingScene extends Scene {
             init() {
                 this.img = PP.createImage(Demo9WaitingScene.models.sign)
             }
-        }), 2)
+        }), 5)
+
+        this.man = this.addGo(new GO({
+            position: new V2(75,111),
+            size: new V2(16,30),
+            init() {
+                this.img = PP.createImage(Demo9WaitingScene.models.man)
+            }
+        }), 4)
     }
 }
