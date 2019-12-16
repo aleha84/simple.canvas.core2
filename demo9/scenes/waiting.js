@@ -25,10 +25,10 @@ class Demo9WaitingScene extends Scene {
                 // })
                 this.vagonImg = PP.createImage(Demo9WaitingScene.models.trainVagon);
                  
-                this.direction = new V2(0,35).direction(new V2(259, 60));
+                this.direction = new V2(0,35).direction(new V2(259, 55));
                 this.movementDirection = this.direction.mul(-1);
                 //new V2(-1,0);
-                this.speed = 5;
+                this.speed = 15;
 
                 this.vagons = [];
                 this.genTrain();
@@ -67,7 +67,7 @@ class Demo9WaitingScene extends Scene {
                 })
             },
             genTrain() {
-                let vagonsCount = getRandomInt(5,10);
+                let vagonsCount = getRandomInt(10,20);
                 for(let i = 0; i < vagonsCount;i++){
                     this.vagons[this.vagons.length] = this.addChild(new GO({
                         position: new V2().add(this.direction.mul(this.size.x*(i+1))),  //new V2(this.size.x*i, 0),
