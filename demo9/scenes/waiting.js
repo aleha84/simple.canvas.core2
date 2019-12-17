@@ -113,6 +113,85 @@ class Demo9WaitingScene extends Scene {
             }
         }), 1)
 
+        this.car = this.addGo(new GO({
+            position: new V2(-27,264),
+            size: new V2(50,25),
+            init() {
+                this.carShadow = this.addChild(new GO({
+                    position: new V2(30,18),
+                    size: new V2(100,25),
+                    img: PP.createImage(Demo9WaitingScene.models.car1Shadow)
+                }))
+                this.car = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    img: PP.createImage(Demo9WaitingScene.models.car1)
+                }))
+
+                
+
+                //this.img = PP.createImage(Demo9WaitingScene.models.car1)
+                this.initialPosition = this.position.clone();
+                this.originalSize = this.size.clone();
+                this.originalShadowSize = this.carShadow.size.clone();
+                //this.direction = this.position.direction(new V2(200, 275))
+                this.positionPoints = [];
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    let pp = new PerfectPixel({ctx});
+
+                    this.positionPoints = pp.lineV2(this.position, new V2(240, 270));
+                })
+                
+                //this.speed = 1;
+
+                this.time = 15;
+                this.positionIndexChange = easing.createProps(this.time, 0, this.positionPoints.length, 'linear', 'base')
+                this.sizeYMul = easing.createProps(this.time, 1, 1.7, 'linear', 'base')
+                this.sizeXMul = easing.createProps(this.time, 1, 2.25, 'linear', 'base')
+                this.currentTime = 0;
+                this.delayCounter = 0;
+
+                this.timer = this.regTimerDefault(30, () => {
+                    if(this.delayCounter-- > 0)
+                        return;
+
+                    this.isVisible = true;
+                    // this.position.add(this.direction.mul(this.speed), true)
+                    
+                    // if(this.position.x > this.parentScene.viewport.x + this.size.x/2){
+                    //     this.position = this.initialPosition.clone();
+                    // }
+                    this.positionIndexChange.time = this.currentTime;
+                    this.sizeYMul.time = this.currentTime;
+                    this.sizeXMul.time = this.currentTime;
+
+                    let pIndex = fast.r(easing.process(this.positionIndexChange))
+                    this.position = new V2(this.positionPoints[pIndex]);
+                    let sizeXMul = easing.process(this.sizeXMul);
+                    let sizeYMul = easing.process(this.sizeYMul);
+                    this.car.size = new V2(this.originalSize.x*sizeXMul, this.originalSize.y*sizeYMul).toInt()
+                    this.carShadow.size = new V2(this.originalShadowSize.x*sizeXMul, this.originalShadowSize.y*sizeYMul).toInt()
+
+                    this.currentTime++;
+                    //this.currentTime = this.time/2;
+
+                    if(this.currentTime > this.time){
+                        this.currentTime = 0;
+                        this.delayCounter = getRandomInt(100,200);
+                        //this.isVisible = false;
+                        this.position = this.initialPosition.clone();
+                        this.positionIndexChange = easing.createProps(this.time, 0, this.positionPoints.length, 'linear', 'base')
+                        this.sizeYMul = easing.createProps(this.time, 1, 1.7, 'linear', 'base')
+                        this.sizeXMul = easing.createProps(this.time, 1, 2.25, 'linear', 'base')
+                    }
+
+                    this.needRecalcRenderProperties = true;
+
+
+                })
+            }
+        }), 4)
+
         this.sign = this.addGo(new GO({
             position: new V2(37.5, 231),
             size: new V2(75,130),
