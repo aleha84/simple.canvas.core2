@@ -2,7 +2,7 @@ class Demo9WaitingScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -11,14 +11,44 @@ class Demo9WaitingScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault('#030712');
+        if(this.bgImg)
+            this.backgroundRenderImage(this.bgImg);
+        else 
+            this.backgroundRenderDefault('#030712');
     }
 
     start(){
+
+        this.bgImg = createCanvas(this.viewport, (ctx, size, hlp) => {
+            hlp.setFillColor('#030712');
+            hlp.rect(0,0,size.x, size.y);
+
+            let dHeight = 50;
+            let dChange = easing.createProps(dHeight, 1, 0, 'quad', 'out');
+            for(let i = 0; i <= dHeight; i++){
+                dChange.time = i;
+                let a = fast.r(easing.process(dChange),1);
+                hlp.setFillColor(`rgba(0,0,0, ${a})`).rect(0,i,size.x, 1);
+            }
+
+            dChange = easing.createProps(dHeight, 0, 0.2, 'quad', 'in');
+            for(let i = 0; i <= dHeight; i++){
+                dChange.time = i;
+                let a = fast.r(easing.process(dChange),2);
+                hlp.setFillColor(`rgba(21,49,127, ${a})`).rect(0,i+75,size.x, 1);
+            }
+
+        })
+
+        //this.backgroundRender();
+
         this.train = this.addGo(new GO({
             position: new V2(100,88),
             size: new V2(260,80),
             init() {
+
+                
+
                 // this.vagonImg = createCanvas(this.size, (ctx, size, hlp) => {
                 //  ctx.drawImage(PP.createImage(Demo9WaitingScene.models.trainVagon),0,0)   ;
                 //  hlp.setFillColor('red').strokeRect(0,0,size.x, size.y);
@@ -115,37 +145,38 @@ class Demo9WaitingScene extends Scene {
 
         this.car = this.addGo(new GO({
             position: new V2(-27,264),
-            size: new V2(50,25),
+            size: new V2(200,200),
             init() {
                 this.carShadow = this.addChild(new GO({
-                    position: new V2(30,18),
+                    position: new V2(45,21),//new V2(30,18),
                     size: new V2(100,25),
                     img: PP.createImage(Demo9WaitingScene.models.car1Shadow)
                 }))
                 this.car = this.addChild(new GO({
                     position: new V2(),
-                    size: this.size.clone(),
+                    size: new V2(50,25),
                     img: PP.createImage(Demo9WaitingScene.models.car1)
                 }))
 
-                
-
                 //this.img = PP.createImage(Demo9WaitingScene.models.car1)
                 this.initialPosition = this.position.clone();
-                this.originalSize = this.size.clone();
+                this.originalSize = this.car.size.clone();
                 this.originalShadowSize = this.carShadow.size.clone();
                 //this.direction = this.position.direction(new V2(200, 275))
                 this.positionPoints = [];
+                this.shadowPositionPoints = [];
                 createCanvas(new V2(1,1), (ctx, size, hlp) => {
                     let pp = new PerfectPixel({ctx});
 
-                    this.positionPoints = pp.lineV2(this.position, new V2(240, 270));
+                    this.positionPoints = pp.lineV2(this.position, new V2(290, 270));
+                    this.shadowPositionPoints = pp.lineV2(new V2(30,16), new V2(50, 21.5));
                 })
                 
                 //this.speed = 1;
 
-                this.time = 15;
+                this.time = 20;
                 this.positionIndexChange = easing.createProps(this.time, 0, this.positionPoints.length, 'linear', 'base')
+                this.shadowPositionIndexChange = easing.createProps(this.time, 0, this.shadowPositionPoints.length, 'linear', 'base')
                 this.sizeYMul = easing.createProps(this.time, 1, 1.7, 'linear', 'base')
                 this.sizeXMul = easing.createProps(this.time, 1, 2.25, 'linear', 'base')
                 this.currentTime = 0;
@@ -162,17 +193,23 @@ class Demo9WaitingScene extends Scene {
                     //     this.position = this.initialPosition.clone();
                     // }
                     this.positionIndexChange.time = this.currentTime;
+                    this.shadowPositionIndexChange.time = this.currentTime;
                     this.sizeYMul.time = this.currentTime;
                     this.sizeXMul.time = this.currentTime;
 
                     let pIndex = fast.r(easing.process(this.positionIndexChange))
+                    let spIndex = fast.r(easing.process(this.shadowPositionIndexChange))
                     this.position = new V2(this.positionPoints[pIndex]);
+                    this.carShadow.position = new V2(this.shadowPositionPoints[spIndex]);
                     let sizeXMul = easing.process(this.sizeXMul);
                     let sizeYMul = easing.process(this.sizeYMul);
                     this.car.size = new V2(this.originalSize.x*sizeXMul, this.originalSize.y*sizeYMul).toInt()
                     this.carShadow.size = new V2(this.originalShadowSize.x*sizeXMul, this.originalShadowSize.y*sizeYMul).toInt()
 
                     this.currentTime++;
+                    //this.currentTime = 3
+                    //this.currentTime = this.time*1/3;
+                    //this.currentTime = this.time*2/3;
                     //this.currentTime = this.time/2;
 
                     if(this.currentTime > this.time){
@@ -180,7 +217,10 @@ class Demo9WaitingScene extends Scene {
                         this.delayCounter = getRandomInt(100,200);
                         //this.isVisible = false;
                         this.position = this.initialPosition.clone();
+                        this.car.size = this.originalSize.clone();
+                        this.carShadow.size = this.originalShadowSize.clone();
                         this.positionIndexChange = easing.createProps(this.time, 0, this.positionPoints.length, 'linear', 'base')
+                        this.shadowPositionIndexChange = easing.createProps(this.time, 0, this.shadowPositionPoints.length, 'linear', 'base')
                         this.sizeYMul = easing.createProps(this.time, 1, 1.7, 'linear', 'base')
                         this.sizeXMul = easing.createProps(this.time, 1, 2.25, 'linear', 'base')
                     }
