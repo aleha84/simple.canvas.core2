@@ -111,7 +111,16 @@ class EditorScene extends Scene {
 
         this.mainGo = this.addGo(new EditorGO({
             position: this.sceneCenter
-        }),0, true);
+        }),1, true);
+
+        this.underlyingImg = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.mainGo.size,
+            // setImg(img) {
+            //     this.img = img;
+            //     this.needRecalcRenderProperties = true;
+            // }
+        }))
 
         this.editor = new Editor({
             parentElementSelector: '.controlsWrapper',
@@ -124,6 +133,7 @@ class EditorScene extends Scene {
     renderModel(model){
         console.log(model);
         let mg = this.mainGo;
+        let uimg = this.underlyingImg;
         let {general, main} = model;
 
         if(general.backgroundColor && this.bgColor != general.backgroundColor){
@@ -143,13 +153,18 @@ class EditorScene extends Scene {
             mg.img = PP.createImage(model);
     
             mg.originalSize = general.originalSize;
+            uimg.originalSize = general.originalSize;
+
             mg.size = general.size.mul(general.zoom);
+            uimg.size = general.size.mul(general.zoom);
+
             mg.showGrid = general.showGrid;
             mg.invalidate();
     
             SCG.UI.invalidate()
     
             mg.needRecalcRenderProperties = true;
+            uimg.needRecalcRenderProperties = true;
         }
         else {
             mg.isVisible = false;
@@ -210,5 +225,37 @@ SCG.scenes.cacheScene(new EditorScene({
 SCG.scenes.selectScene('editor');
 document.addEventListener("DOMContentLoaded", function() {
     SCG.main.start();
+})
+
+document.addEventListener("paste", function(event) {
+    //console.log('paste event')
+    let items = (event.clipboardData || event.originalEvent.clipboardData).items;
+    //console.log(items);
+    if(items.length == 0)
+        return;
+
+    let blob = null;
+    for(let i = 0; i < items.length; i++){
+        if(items[i].type.indexOf('image') != -1){
+            blob = items[i].getAsFile();
+            break;
+        }
+    }
+    
+    if(blob == null)
+        return;
+
+    //console.log(blob);
+    var img = new Image();
+    img.onload = function() {
+        let uimg = SCG.scenes.activeScene.underlyingImg;
+        uimg.img = createCanvas(uimg.originalSize, (ctx, size, hlp) => {
+            ctx.drawImage(img,0,0, size.x, size.y);
+        })
+    }
+
+    img.src = URL.createObjectURL(blob);
+    // let reader = new FileReader();
+    // reader.readAsDataURL
 })
 
