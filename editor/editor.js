@@ -15,6 +15,8 @@ class Editor {
                     pointId: undefined,
                 },
                 removeSelectedPoint: undefined,
+                toggleLayerVisibility: undefined,
+                toggleGroupVisibility: undefined,
                 panels: {},
                 mode: {
                     value: 'edit',

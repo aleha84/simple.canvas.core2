@@ -8,31 +8,45 @@ class EditorScene extends Scene {
             events: {
                 keyup: (event) => {
                    // console.log(this, event, event.keyCode)
+                    let edt = this.editor.editor;
 
                     if(event.key == 'h'){
                         this.mainGo.showDots = !this.mainGo.showDots;
                     }
 
                     if(event.key == 'r'){
-                        if(this.editor.editor.selected.pointId == undefined)
+                        if(edt.selected.pointId == undefined)
                         {
                             alert('No point selected');
                             return;
                         }
                         
-                        this.editor.editor.removeSelectedPoint()
+                        edt.removeSelectedPoint()
                     }
 
-                    if(['e', 'a', 'm'].indexOf(event.key) != -1 && !this.editor.editor.getModeState().disabled && this.editor.editor.selected.groupId != undefined){
+                    if(event.keyCode == 86 && !event.ctrlKey){ // 'v' - toggle layer or group visibility
+                        if(event.shiftKey){
+                            //layer
+                            if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
+                                edt.toggleLayerVisibility();
+                        }
+                        else {
+                            //group
+                            if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
+                                edt.toggleGroupVisibility();
+                        }
+                    }
+
+                    if(['e', 'a', 'm'].indexOf(event.key) != -1 && !edt.getModeState().disabled && edt.selected.groupId != undefined){
                         switch(event.key){
                             case 'a': 
-                                this.editor.editor.setModeState(true, 'add')
+                                edt.setModeState(true, 'add')
                                 break;
                             case 'e': 
-                                this.editor.editor.setModeState(true, 'edit')
+                                edt.setModeState(true, 'edit')
                                 break;
                             case 'm': 
-                                this.editor.editor.setMoveGroupModeState(true, 'movegroup')
+                                edt.setMoveGroupModeState(true, 'movegroup')
                                 break;
                             default:
                                 break;
@@ -199,7 +213,7 @@ class EditorScene extends Scene {
                                 this.currentFrame = 0;
                         })
                     }
-                }))
+                }), 10)
             }
             else {
                 this.animationDemo.setTimer(general.demo.delay)

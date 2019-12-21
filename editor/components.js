@@ -141,11 +141,15 @@ var components = {
             props.checked = true;
         }
 
-        el.appendChild(htmlUtils.createElement('input', {attributes: { type: 'checkbox'}, props, events: {
+        let chk = htmlUtils.createElement('input', {attributes: { type: 'checkbox'}, props, events: {
             change: (event) => {
                 changeCallback(event.target.checked);
             }
-        } }))
+        } });
+
+        el.appendChild(chk);
+
+        el.chk = chk;
 
         return el;
     },
@@ -269,7 +273,6 @@ var components = {
                 disabled: !selected
             }
         });
-        
 
         let sControls = htmlUtils.createElement('div', { className: 'selectControls'});
         let moveUpButton = undefined;
@@ -369,6 +372,19 @@ var components = {
                         } } }))
 
         sControls.append(addButton);
+        if(listProps.callbacks.removeAll){
+            sControls.append(htmlUtils.createElement('input', {
+                attributes: { 
+                    type: 'button', 
+                    value: 'Remove All' 
+                },
+                events: { 
+                    click: function(e) { 
+                        listProps.callbacks.removeAll(e, select);
+                    } 
+                }
+            }));
+        }
 
         selectHolder.append(sControls)
         lb.append(selectHolder);
@@ -385,10 +401,14 @@ var components = {
 
         groupEl.appendChild(htmlUtils.createElement('div', { text: groupProps.id }))
 
-        groupEl.appendChild(components.createCheckBox(groupProps.visible, 'Visible', function(value) {
+        let groupVisibilityEl = components.createCheckBox(groupProps.visible, 'Visible', function(value) {
             groupProps.visible = value;
             changeCallback();
-        }));
+        });
+
+        groupEl.appendChild(groupVisibilityEl);
+
+        components.editor.editor.toggleGroupVisibility = () => groupVisibilityEl.chk.click();
 
         groupEl.appendChild(this.createCheckBox(groupProps.clear, 'Clear', (value) =>{
             groupProps.clear = value;
@@ -498,6 +518,8 @@ var components = {
     createLayer(layerEl, layerProps, changeCallback, additionals = {}) {
         htmlUtils.removeChilds(layerEl);
 
+
+
         if(layerProps == undefined) {
             changeCallback();
             return;
@@ -515,10 +537,15 @@ var components = {
             
         }))
 
-        layerEl.appendChild(components.createCheckBox(layerProps.visible, 'Visible', function(value) {
+        let layerVisiblityEl = components.createCheckBox(layerProps.visible, 'Visible', function(value) {
             layerProps.visible = value;
             changeCallback();
-        }));
+        })
+
+        layerEl.appendChild(layerVisiblityEl);
+
+        components.editor.editor.toggleLayerVisibility = () => layerVisiblityEl.chk.click();
+        components.editor.editor.toggleGroupVisibility = undefined;
 
         layerProps.groupsEl = htmlUtils.createElement('div', { className: 'groupsListWrapper' });
         layerProps.groupEl = htmlUtils.createElement('div', { className: 'group'});
@@ -533,6 +560,7 @@ var components = {
     fillGroups(layerProps, changeCallback) {
         let {groupsEl, groupEl, groups} = layerProps;
 
+        components.editor.editor.toggleGroupVisibility = undefined;
         if(groupEl)
             htmlUtils.removeChilds(groupEl);
 
@@ -783,6 +811,15 @@ var components = {
                 },
                 remove(e, select) {
                     removePointCallback(e, select);
+                },
+                removeAll(e, select) {
+                    while(points.length){
+                        points.pop();
+                    }
+
+                    components.fillPoints(groupProps, changeCallback);
+                    components.editor.editor.setModeState(true, 'edit');
+                    changeCallback();
                 },
                 add: function(e, select) {
                     

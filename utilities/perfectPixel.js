@@ -267,7 +267,7 @@ PP.createImage = function(model, params = {}) {
             if(group.points.length == 1){
                 pp.setPixel(group.points[0].point.x, group.points[0].point.y);
             }
-            else{
+            else if(group.points.length > 1){
                 if(scOpacity || (group.fillPattern)){
                     pp.setFillStyle('rgba(0,0,0,0)');
                 }
