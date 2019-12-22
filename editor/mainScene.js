@@ -26,6 +26,15 @@ class EditorScene extends Scene {
 
                     if(event.keyCode == 86 && !event.ctrlKey){ // 'v' - toggle layer or group visibility
                         if(event.shiftKey){
+
+                            if(true){ // buggy - experimental!
+                                let main = this.editor.image.main;
+                                if(isArray(main)){
+                                    main = main[this.editor.image.general.currentFrameIndex];
+                                }
+                                main.layers.filter(l => l.id != edt.selected.layerId).forEach(l => l.visible = !l.visible);
+                            }
+
                             //layer
                             if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
                                 edt.toggleLayerVisibility();
