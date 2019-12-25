@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let squareDefaultViewport = new V2(300,300);
     let smallSquareDefaultViewport = new V2(200,200);
     let small200_300_Viewport = new V2(200, 300);
+    let small300_200_Viewport = new V2(300, 200);
     
     SCG.scenes.cacheScene(new RotationScene({
         name:'rotation',
@@ -176,6 +177,51 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo9CorridorScene({
         name:'corridor',
+        viewport: small200_300_Viewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9PursuitScene({
+        name:'pursuit',
+        viewport: small300_200_Viewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9FogScene({
+        name:'fog',
+        viewport: small300_200_Viewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9SunsetScene({
+        name:'sunset',
+        viewport: small200_300_Viewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9DreamsScene({
+        name:'dreams',
+        viewport: new V2(200,120)//smallSquareDefaultViewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9Exp3Scene({
+        name:'exp3',
+        viewport: small200_300_Viewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9WinterScene({
+        name:'winter',
+        viewport: small300_200_Viewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9WaitingScene({
+        name:'waiting',
+        viewport: small200_300_Viewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo9DancingAnimationScene({
+        name:'dancing',
+        viewport: new V2(120, 100)
+    }));
+
+    SCG.scenes.cacheScene(new Demo9HealthbarScene({
+        name:'healthbar',
         viewport: small200_300_Viewport
     }));
 

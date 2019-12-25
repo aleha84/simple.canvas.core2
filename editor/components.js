@@ -141,11 +141,15 @@ var components = {
             props.checked = true;
         }
 
-        el.appendChild(htmlUtils.createElement('input', {attributes: { type: 'checkbox'}, props, events: {
+        let chk = htmlUtils.createElement('input', {attributes: { type: 'checkbox'}, props, events: {
             change: (event) => {
                 changeCallback(event.target.checked);
             }
-        } }))
+        } });
+
+        el.appendChild(chk);
+
+        el.chk = chk;
 
         return el;
     },
@@ -211,6 +215,13 @@ var components = {
         el.cPicker = cPicker;
         el.hexInput = hexInput;
 
+        el.setValue = (value) => {
+            cPicker.value = value;
+            hexInput.value = value;
+        }
+
+        el.getValue = () => cPicker.value;
+
         return el;
     },
     createList(listProps) {
@@ -247,6 +258,7 @@ var components = {
         }
 
         selectHolder.append(select);
+        selectHolder.select = select;
         
         let addButton = htmlUtils.createElement('input', {
             attributes: { 
@@ -261,7 +273,6 @@ var components = {
                 disabled: !selected
             }
         });
-        
 
         let sControls = htmlUtils.createElement('div', { className: 'selectControls'});
         let moveUpButton = undefined;
@@ -361,9 +372,26 @@ var components = {
                         } } }))
 
         sControls.append(addButton);
+        if(listProps.callbacks.removeAll){
+            sControls.append(htmlUtils.createElement('input', {
+                attributes: { 
+                    type: 'button', 
+                    value: 'Remove All' 
+                },
+                events: { 
+                    click: function(e) { 
+                        if(!confirm('Remove all points?'))
+                            return;
+
+                        listProps.callbacks.removeAll(e, select);
+                    } 
+                }
+            }));
+        }
 
         selectHolder.append(sControls)
         lb.append(selectHolder);
+        lb.selectHolder = selectHolder;
 
         return lb;
     },
@@ -376,10 +404,14 @@ var components = {
 
         groupEl.appendChild(htmlUtils.createElement('div', { text: groupProps.id }))
 
-        groupEl.appendChild(components.createCheckBox(groupProps.visible, 'Visible', function(value) {
+        let groupVisibilityEl = components.createCheckBox(groupProps.visible, 'Visible', function(value) {
             groupProps.visible = value;
             changeCallback();
-        }));
+        });
+
+        groupEl.appendChild(groupVisibilityEl);
+
+        components.editor.editor.toggleGroupVisibility = () => groupVisibilityEl.chk.click();
 
         groupEl.appendChild(this.createCheckBox(groupProps.clear, 'Clear', (value) =>{
             groupProps.clear = value;
@@ -489,6 +521,8 @@ var components = {
     createLayer(layerEl, layerProps, changeCallback, additionals = {}) {
         htmlUtils.removeChilds(layerEl);
 
+
+
         if(layerProps == undefined) {
             changeCallback();
             return;
@@ -506,10 +540,15 @@ var components = {
             
         }))
 
-        layerEl.appendChild(components.createCheckBox(layerProps.visible, 'Visible', function(value) {
+        let layerVisiblityEl = components.createCheckBox(layerProps.visible, 'Visible', function(value) {
             layerProps.visible = value;
             changeCallback();
-        }));
+        })
+
+        layerEl.appendChild(layerVisiblityEl);
+
+        components.editor.editor.toggleLayerVisibility = () => layerVisiblityEl.chk.click();
+        components.editor.editor.toggleGroupVisibility = undefined;
 
         layerProps.groupsEl = htmlUtils.createElement('div', { className: 'groupsListWrapper' });
         layerProps.groupEl = htmlUtils.createElement('div', { className: 'group'});
@@ -524,13 +563,14 @@ var components = {
     fillGroups(layerProps, changeCallback) {
         let {groupsEl, groupEl, groups} = layerProps;
 
+        components.editor.editor.toggleGroupVisibility = undefined;
         if(groupEl)
             htmlUtils.removeChilds(groupEl);
 
         if(groupsEl)
             htmlUtils.removeChilds(groupsEl);
         // groups list
-        groupsEl.appendChild(components.createList({
+        let groupsList = components.createList({
             title: 'Groups',
             className: 'groups',
             items: groups.map(g => {return { title: g.id, value: g.id, selected:  g.id == components.editor.editor.selected.groupId }}), //g.selected
@@ -558,8 +598,11 @@ var components = {
                 reset: function(e) { 
                     groups.forEach(g => g.selected = false);
                     //components.createGroup(undefined, undefined, changeCallback) 
-                    components.fillGroups(layerProps, changeCallback);
+                    
                     components.editor.editor.selected.groupId = undefined;
+                    components.editor.editor.selected.pointId = undefined;
+
+                    components.fillGroups(layerProps, changeCallback);
                     components.editor.editor.setModeState(false, 'edit');
                     components.editor.editor.setMoveGroupModeState(false);
 
@@ -587,30 +630,14 @@ var components = {
                         layerProps.currentGroupId = 0;
                     }
 
-                    let nextGroupId = `${layerProps.id}_group_${layerProps.currentGroupId++}`;
+                    let nextGroupId = `${layerProps.id}_g_${layerProps.currentGroupId++}`;
                     while(groups.filter(g => g.id == nextGroupId).length > 0){
-                        nextGroupId = `${layerProps.id}_group_${layerProps.currentGroupId++}`;
+                        nextGroupId = `${layerProps.id}_g_${layerProps.currentGroupId++}`;
                     }
                     
-                    let group  = {
-                        currentPointId: 0,
-                        selected: true,
-                        order: groups.length,
-                        id: nextGroupId,
-                        visible: true,
-                        clear: false,
-                        strokeColor: '#FF0000',
-                        strokeColorOpacity: 1,
-                        fillColor: '#FF0000',
-                        fillColorOpacity: 1,
-                        fill: false,
-                        fillPattern: false,
-                        closePath: false,
-                        type: 'dots',
-                        pointsEl: undefined,
-                        pointEl: undefined,
-                        points: []
-                    }
+                    
+                    let group  = modelUtils.createDefaultGroup(nextGroupId, groups.length);
+                    group.selected = true;
 
                     groups.push(group);
 
@@ -671,9 +698,27 @@ var components = {
                             }
                         }
                         
+                        
                         if(!sameIdGroup){
-                            alert('Not found same Id group');
-                            return;
+                            //alert('Not found same Id group');
+                            let g = assignDeep(
+                                {},
+                                modelUtils.createDefaultGroup(selectedGroup.id, groups.length), 
+                                modelUtils.groupMapper(selectedGroup, true));
+
+                            let sameLayer = frames[f].layers.find(l => l.id == components.editor.editor.selected.layerId);
+                            if(sameLayer){
+                                if(sameLayer.groups == undefined){
+                                    sameLayer.groups = [];
+                                }
+                                sameLayer.groups.push(g);
+                                alert('Added new group to next frame');
+                                return;
+                            }
+                            else {
+                                alert('Same layer in next frame not found!')
+                                return;
+                            }
                         }
 
                         sameIdGroup.points = selectedGroup.points.map(p => ({
@@ -685,7 +730,10 @@ var components = {
                     }
                 }
             ] : []
-        }))
+        });
+
+        groupsEl.appendChild(groupsList);
+        groupsEl.list = groupsList;
 
         if(components.editor.editor.selected.groupId){
             let selectedGroups = groups.filter(g => g.id == components.editor.editor.selected.groupId);
@@ -697,6 +745,7 @@ var components = {
 
     fillPoints(groupProps, changeCallback) {
         let {pointsEl, pointEl, points} = groupProps;
+        components.editor.editor.removeSelectedPoint = undefined;
         let fillPoint = (point, selectedOptionEl,changeCallback, eventDetails) => {
             htmlUtils.removeChilds(pointEl);
 
@@ -718,6 +767,17 @@ var components = {
 
         htmlUtils.removeChilds(pointsEl);
 
+        let removePointCallback = function(e, select) {
+            points = points.filter(p => p.id != select.value);  
+            points.forEach((p, i) => p.order = i);
+            select.value = undefined;
+            groupProps.points = points;
+            components.fillPoints(groupProps, changeCallback);
+            components.editor.editor.setModeState(true, 'edit');
+            changeCallback();
+        }
+
+
         // points list
         pointsEl.appendChild(components.createList({
             title: 'Points',
@@ -728,6 +788,9 @@ var components = {
                     let selectedPoint = points.find(l => l.id == e.target.value);
                     if(selectedPoint){
                         selectedPoint.selected = true;
+                        components.editor.editor.selected.pointId = selectedPoint.id;
+                        components.editor.editor.removeSelectedPoint = () => removePointCallback(e,e.target);
+                        //console.log('selected point id: ' + components.editor.editor.selected.pointId); 
                     }
 
                     let selectedOption = undefined;
@@ -743,15 +806,20 @@ var components = {
                     fillPoint(selectedPoint,selectedOption, changeCallback, e.detail);  
                 },
                 reset: function(e) { 
+                    components.editor.editor.selected.pointId = undefined;
+
                     points.forEach(p => p.selected = false);
                     components.editor.editor.setModeState(true, 'edit');
                     fillPoint(undefined, undefined, changeCallback, '') 
                 },
                 remove(e, select) {
-                    points = points.filter(p => p.id != select.value);  
-                    points.forEach((p, i) => p.order = i);
-                    select.value = undefined;
-                    groupProps.points = points;
+                    removePointCallback(e, select);
+                },
+                removeAll(e, select) {
+                    while(points.length){
+                        points.pop();
+                    }
+
                     components.fillPoints(groupProps, changeCallback);
                     components.editor.editor.setModeState(true, 'edit');
                     changeCallback();
@@ -762,8 +830,13 @@ var components = {
                         groupProps.currentPointId = 0;
                     }
 
+                    let nextPointId = `${groupProps.id}_p_${groupProps.currentPointId++}`;
+                    while(points.filter(p => p.id == nextPointId).length > 0){
+                        nextPointId = `${groupProps.id}_p_${groupProps.currentPointId++}`;
+                    }
+
                     points.push({
-                        id: `${groupProps.id}_point_${groupProps.currentPointId++}`,
+                        id: nextPointId,
                         order: points.length,
                         point: {x: 0, y: 0},
                     })
@@ -802,5 +875,169 @@ var components = {
         }
         arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
         return arr; // for testing
+    },
+    createDraggablePanel({parent, title, position, closable = false, panelClassNames = [], expandable = true, contentWidth = undefined, contentItems = [],
+        onClose = () => {}
+    }) {
+        let editorBr = parent.querySelector('#editor').getBoundingClientRect();
+        let panelBr = undefined;
+        //console.log(editorBr)
+        let panel = htmlUtils.createElement('div', { classNames: ['panel', ...panelClassNames] });
+        let panelHeader = htmlUtils.createElement('div', { className: 'header' });
+
+        let content = htmlUtils.createElement('div', { classNames: [ 'content'] });
+
+        if(contentWidth){
+            content.style.minWidth = contentWidth + 'px';
+        }
+
+        contentItems.forEach(c => {
+            content.appendChild(c);
+        })
+
+        let dragPanel = htmlUtils.createElement('div', { text: title,classNames: [ 'drag'] });
+        
+        if(expandable){
+            panelHeader.appendChild(htmlUtils.createElement('input', { value: 'Expand', className: 'toggle', attributes: { type: 'button' }, events: {
+                click: function(){
+                    panelBr = panel.getBoundingClientRect();
+                    if (content.classList.contains("visible")) 
+                        content.classList.remove("visible");
+                    else 
+                        content.classList.add('visible');
+                }
+            } }));
+        }
+        else {
+            content.classList.add('visible')
+        }
+
+        panelHeader.appendChild(dragPanel);
+        if(closable){
+            panelHeader.appendChild(htmlUtils.createElement('div', { text: 'x', classNames: [ 'close'], events: {
+                click: () => {
+                    events.remove();
+                }
+            } }));
+        }
+
+        panel.appendChild(panelHeader);
+        panel.appendChild(content)
+
+        panel.style.left = position.x + 'px';
+        panel.style.top = position.y + 'px';
+
+        parent.appendChild(panel);
+
+        panelBr = panel.getBoundingClientRect();
+
+        let dragStartRelative = undefined;
+        let events = {
+            remove() {
+                panel.remove();
+                onClose();
+            },
+            dragStart(event) {
+                panelBr = panel.getBoundingClientRect();
+                dragStartRelative = {
+                    x: event.clientX - panelBr.left,
+                    y: event.clientY - panelBr.top
+                }
+    
+                dragPanel.classList.add('active');
+    
+                parent.addEventListener('mousemove', events.move);
+                parent.addEventListener('mouseup',events.mouseUp);
+                document.addEventListener('mouseout', events.out);
+            },
+            out(event){
+                var from = event.relatedTarget || event.toElement;  
+                if (!from || from.nodeName == "HTML"){
+                    events.mouseUp()
+                }
+            },
+            move(event) { 
+                if(!dragStartRelative)
+                    return;
+    
+                event.preventDefault();
+                let nextX = event.clientX - dragStartRelative.x;
+                if(nextX < 0)
+                    nextX = 0;
+                
+                if(nextX + panelBr.width > editorBr.left + editorBr.width)
+                    nextX = editorBr.left + editorBr.width - panelBr.width;
+    
+                let nextY = event.clientY - dragStartRelative.y;
+                if(nextY < 0)
+                    nextY = 0;
+    
+                if(nextY + panelBr.height > editorBr.top + editorBr.height)
+                    nextY = editorBr.top + editorBr.height - panelBr.height;
+    
+                panel.style.left = nextX + 'px';
+                panel.style.top = nextY + 'px';
+            },
+            mouseUp() {
+                dragStartRelative = undefined;
+    
+                if (dragPanel.classList.contains("active")) {
+                    dragPanel.classList.remove("active");
+                }
+    
+                parent.removeEventListener('mousemove', events.move);
+                parent.removeEventListener('mouseup', events.mouseUp);
+                document.removeEventListener('mouseout', events.out);
+            }
+        }
+
+        dragPanel.onmousedown  = events.dragStart;
+
+        return {
+            panel,
+            panelHeader,
+            content,
+            contentItems,
+            events,
+            remove() {
+                events.remove();
+            }
+        }
+    },
+
+    createMidColor() {
+        let midColorFoo = (c1, c2) => {
+            let c1rgb = hexToRgb(c1, true);
+            let c2rgb = hexToRgb(c2, true);
+            return '#' + rgbToHex( c1rgb.map((el, i) => fast.r((c1rgb[i] + c2rgb[i])/2)) )
+        }
+
+        let container = htmlUtils.createElement('div');
+        let color1 = this.createColorPicker('#FFFFFF', 'C1', () => {
+            result.setValue(midColorFoo(color1.getValue(), color2.getValue()))
+        })
+        let color2 = this.createColorPicker('#FFFFFF', 'C2', (value) => {
+            result.setValue(midColorFoo(color1.getValue(), color2.getValue()))
+        })
+        let result = this.createColorPicker('#FFFFFF', 'R', () => {})
+
+        container.appendChild(color1);
+        container.appendChild(color2);
+        container.appendChild(result);
+
+        return container;
+    },
+
+    createSceneColorPicker() {
+        let container = htmlUtils.createElement('div');
+
+        let color1 = this.createColorPicker('#FFFFFF', 'C1', () => {})
+
+        container.appendChild(color1);
+        container.setValue = (value) => {
+            color1.setValue(value);
+        }
+
+        return container;
     }
 }

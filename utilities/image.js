@@ -660,18 +660,45 @@ var colors = {
 
                     value.time = time;
                     change.current[key] = easing.process(value);
+                    if(key == 'r' || key == 'g' || key == 'b'){
+                        change.current[key] = fast.r(change.current[key]);
+                    }
                 })
             },
-            getCurrent: function(scheme){
-                if(scheme == 'hsv')
-                    return colors.hsvToHex([this.change.current.h, this.change.current.s, this.change.current.v])
-                else if(scheme == 'rgb')
-                    return rgbToHex(this.change.current.r,this.change.current.g,this.change.current.b)
+            getCurrent: function(scheme, raw = false){
+                if(scheme == 'hsv'){
+                    if(raw)
+                        return {h: this.change.current.h, s: this.change.current.s, v: this.change.current.v};
 
+                    return colors.hsvToHex([this.change.current.h, this.change.current.s, this.change.current.v])
+                }
+                else if(scheme == 'rgb'){
+                    if(raw)
+                        return {r: this.change.current.r, g: this.change.current.g, b: this.change.current.b};
+
+                    return rgbToHex(this.change.current.r,this.change.current.g,this.change.current.b)
+                }
+                
                 return undefined;
             },
             change
         };
+    },
+    getMidColor({color1, color2, resultType = 'hex'}){
+        let rgb1 = hexToRgb(color1, true);
+        let rgb2 = hexToRgb(color2, true);
+
+        let mid = rgb1.map((el, i) => {
+            return fast.r((rgb1[i]+rgb2[i])/2)
+        });
+
+        switch(resultType){
+            case 'hex':
+                return '#' + rgbToHex(mid);
+        }
+
+        return mid;
+
     },
     hsvToHex(hsv) {
         return hsvToHex({hsv});
@@ -733,6 +760,26 @@ var colors = {
         else {
             return '#' + rgbToHex(resultRgb);
         }
+    },
+    saveImage(canvas, {size = undefined, name = 'export'}){
+        let resultImg;
+        if(size == undefined){
+            resultImg = canvas;
+        }
+        else {
+            resultImg = createCanvas(size, (ctx, size) => {
+                ctx.drawImage(canvas, 0,0, size.x, size.y)
+            });
+        }
+        
+        //window.location.href = resultImg;
+        var link = document.createElement("a");
+        link.download = name;
+        link.href = resultImg.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        delete link;
     }
     
 

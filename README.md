@@ -87,7 +87,11 @@ Sad message: https://aleha84.github.io/simple.canvas.core2/commission/epska/#ver
 
 TODO: 
 
+- Add used colors panel
+
 - Add Layer move
+
+- clone group to another frame if it is not exists
 
 - Fix bugs
 

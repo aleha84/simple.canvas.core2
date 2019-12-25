@@ -562,6 +562,9 @@ function createCanvasHelper({ctx}){
     setFillColor(color){
       ctx.fillStyle = color;return this;
     },
+    setFillStyle(color) {
+      return this.setFillColor(color);
+    },
     rect(x,y,w,h) {
       ctx.fillRect(x,y,w,h);return this;
     },
@@ -770,6 +773,12 @@ function distinct(array, keyCreator){
     keys.add(key);
     return true;
   })
+}
+
+function createLine(begin, end) {
+  return {
+    begin, end
+  };
 }
 
 

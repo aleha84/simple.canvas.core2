@@ -5,6 +5,7 @@ class EditorGO extends GO {
             renderValuesRound: true,
             img: undefined,
             preventDiving: true,
+            showDots: true,
             dots: [],
             drag: {
                 disable() {
@@ -38,6 +39,17 @@ class EditorGO extends GO {
                             }
                         }
                     }
+                    else if(this.model.editor.mode == 'movelayer'){
+                        if(d.downOn){
+                            SCG.viewport.scrollOptions.enabled = false;
+                            if(!d.downOn.index.equal(index)){
+                                let direction = d.downOn.index.direction(index).toInt();
+                                this.model.editor.selectedLayer.move(direction);
+                                d.downOn.index = index;
+                                d.downOn.indexChanged = true;
+                            }
+                        }
+                    }
                     else if(this.model.editor.mode == 'movegroup'){
                         if(d.downOn){
                             SCG.viewport.scrollOptions.enabled = false;
@@ -65,6 +77,15 @@ class EditorGO extends GO {
                     };
                 },
                 down: function(relativePosition) {
+                    if(this.model.editor.mode == 'movelayer' && this.model.editor.selectedLayer){
+                        this.drag.downOn = {
+                            index: new V2(
+                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
+                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0)
+                                )
+                        }
+                    }
+
                     if(this.model.editor.mode == 'movegroup' && this.model.editor.selectedLayer && this.model.editor.selectedLayer.selectedGroup){
                         //console.log('down movegroup', this.model.editor.selectedLayer.points);
                         this.drag.downOn = {
@@ -98,6 +119,9 @@ class EditorGO extends GO {
 
                         sg.addPointCallback(e.index);
                     }
+                    else if(this.model.editor.mode == 'movelayer' ){
+                        d.disable();
+                    }
                     else if(this.model.editor.mode == 'movegroup' ){
                         if(d.started && d.downOn.indexChanged){
                             this.dots.forEach(p => {
@@ -107,6 +131,13 @@ class EditorGO extends GO {
                             this.model.editor.selectedLayer.selectedGroup.changeCallback();
                         }
                         d.disable();
+                    }
+                    else if(this.model.editor.mode == 'colorpick'){
+                        let colorData = this.img.getContext('2d').getImageData(this.model.editor.index.x, this.model.editor.index.y,1,1);
+                        this.parentScene.editor.editor.panels.colorPicker.setValue('#' + rgbToHex(Array.from(colorData.data)))
+                        //console.log(colorData);
+                        //this.model.editor.panels.colorPicker
+                        
                     }
                     
                 },
@@ -126,6 +157,9 @@ class EditorGO extends GO {
                             if(index.y >= os.y) index.y = os.y-1;
                             d.downOn.pointModel.changeCallback(index);
                         }
+                        d.disable();
+                    }
+                    else if(this.model.editor.mode == 'movelayer'){
                         d.disable();
                     }
                     else if(this.model.editor.mode == 'movegroup'){
@@ -168,6 +202,24 @@ class EditorGO extends GO {
 
         this.itemSize = new V2(this.size.x/this.originalSize.x, this.size.y/this.originalSize.y)
         this.tl = new V2(-this.size.x/2, -this.size.y/2);
+
+        if(!this.notSelectedImg){
+            this.notSelectedImg = createCanvas(this.itemSize, (ctx, size) => {
+                ctx.translate(0.5,0.5);
+                ctx.strokeStyle = 'white';
+                ctx.strokeRect(0,0, size.x-1, size.y-1);
+            })
+        }
+        
+        if(!this.selectedImg){
+            this.selectedImg = createCanvas(this.itemSize, (ctx, size) => {
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fillRect(0,0, size.x, size.y);
+                ctx.translate(0.5,0.5);
+                ctx.strokeStyle = 'white';
+                ctx.strokeRect(0,0, size.x-1, size.y-1);
+            })
+        }
 
         if(this.showGrid){
             
@@ -229,18 +281,8 @@ class EditorGO extends GO {
                             selected: p.selected,
                             index: p.point.clone(),
                             position: new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.point.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.point.y),
-                            notSelectedImg: createCanvas(this.itemSize, (ctx, size) => {
-                                ctx.translate(0.5,0.5);
-                                ctx.strokeStyle = 'white';
-                                ctx.strokeRect(0,0, size.x-1, size.y-1);
-                            }),
-                            selectedImg:createCanvas(this.itemSize, (ctx, size) => {
-                                ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                                ctx.fillRect(0,0, size.x, size.y);
-                                ctx.translate(0.5,0.5);
-                                ctx.strokeStyle = 'white';
-                                ctx.strokeRect(0,0, size.x-1, size.y-1);
-                            })
+                            notSelectedImg: this.notSelectedImg,
+                            selectedImg: this.selectedImg
                         }), true)
                     )})
                 }
@@ -249,6 +291,12 @@ class EditorGO extends GO {
         }
         
         
+    }
+
+    internalUpdate() {
+        this.childrenGO.forEach((ch) => {
+            ch.isVisible = this.showDots;
+        });
     }
 
     internalRender() {

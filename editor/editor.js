@@ -7,18 +7,29 @@ class Editor {
             },
             editor: {
                 element: undefined,
+                sceneColorPicker: undefined,
                 selected: {
                     //selectedFrame: undefined,
                     layerId: undefined,
                     groupId: undefined,
                     pointId: undefined,
                 },
+                removeSelectedPoint: undefined,
+                toggleLayerVisibility: undefined,
+                toggleGroupVisibility: undefined,
+                panels: {},
                 mode: {
                     value: 'edit',
                     element: undefined,
                     moveGroupElement: undefined,
+                    moveLayerElement: undefined,
                     stateElement: undefined,
                     setValue(value) {
+                        
+                        if(this.value == 'colorpick' && value != 'colorpick' && that.editor.panels.colorPicker){
+                            that.editor.panels.colorPicker.remove();
+                        }
+
                         value = value || this.value;
                         this.value = value
                         let text = '';
@@ -29,7 +40,9 @@ class Editor {
                             case 'edit':
                                 text = '"Edit points" mode'; break;
                             case 'movegroup':
-                                text = '"Move group" move'; break;
+                                text = '"Move group" mode'; break;
+                            case 'colorpick':
+                                text = '"Color pick" mode'; break;
                         }
                         
                         this.stateElement.innerText = text;
@@ -39,6 +52,12 @@ class Editor {
                     },
                     toggleMoveGroup() {
                         this.setValue(this.value == 'movegroup' ? 'edit' : 'movegroup');
+                    },
+                    toggleMoveLayer() {
+                        this.setValue(this.value == 'movelayer' ? 'edit' : 'movelayer');
+                    },
+                    toggleColorPicker() {
+                        this.setValue(this.value == 'colorpick' ? 'edit' : 'colorpick');
                     }
                 },
                 getModeState() {
@@ -51,6 +70,11 @@ class Editor {
                 },
                 setMoveGroupModeState(buttonState, modeValue) {
                     this.mode.moveGroupElement.disabled = !buttonState;
+                    if(modeValue)
+                        this.mode.setValue(modeValue);
+                },
+                setMoveLayerModeState(buttonState, modeValue) {
+                    this.mode.moveLayerElement.disabled = !buttonState;
                     if(modeValue)
                         this.mode.setValue(modeValue);
                 }
@@ -68,57 +92,28 @@ class Editor {
                     element: undefined,
                     currentLayerId: 1,
                     layers: [
-                        {
-                            order: 0,
-                            currentGroupId: 1,
-                            selected: false,
-                            id: 'main_0',
-                            name: '',
-                            visible: true,
-                            groupsEl: undefined,
-                            groupEl: undefined,
-                            groups: [
-                                {
-                                    order: 0,
-                                    currentPointId: 0,
-                                    selected: false,
-                                    id: 'main_0_group_0',
-                                    clear: false,
-                                    strokeColor: '#FF0000',
-                                    strokeColorOpacity: 1,
-                                    fillColor: '#FF0000',
-                                    fillColorOpacity: 1,
-                                    fill: false,
-                                    fillPattern: false,
-                                    closePath: false,
-                                    type: 'lines',
-                                    pointsEl: undefined,
-                                    pointEl: undefined,
-                                    visible: true,
-                                    points: [
-                                        // {
-                                        //     id: 'main_0_point_0',
-                                        //     order: 0,
-                                        //     point: {x: 1, y: 1},
-                                        // },
-
-                                    ]
-                                }
-                            ]
-                        }
-/* layer props
-order: int,
-id: string,
-strokeColor: string (rgb,rgba,#),
-fillColor: string (rgb,rgba,#),
-closePath: boolean,
-points: [{
-    point: V2,
-    color: string (rgb,rgba,#),
-    opacity: float 0 - 1
-}] 
- 
-*/
+                        assignDeep(
+                            {}, 
+                            modelUtils.createDefaultLayer('m_0', 0), 
+                            { 
+                                currentGroupId: 1, 
+                                groups: [
+                                    modelUtils.createDefaultGroup('m_0_g_0', 0)
+                                ] 
+                            }),
+                        // {
+                        //     order: 0,
+                        //     currentGroupId: 1,
+                        //     selected: false,
+                        //     id: 'main_0',
+                        //     name: '',
+                        //     visible: true,
+                        //     groupsEl: undefined,
+                        //     groupEl: undefined,
+                        //     groups: [
+                        //         modelUtils.createDefaultGroup('main_0_group_0', 0)
+                        //     ]
+                        // }
                     ]
                 }
             },
@@ -138,6 +133,70 @@ points: [{
         }
 
         this.init();
+
+        let that = this;
+        components.createDraggablePanel({title: 'utilities', panelClassNames: [ 'utilities'], parent: document.body, position: new V2(20,20), contentItems: [
+            htmlUtils.createElement('input', { value: 'Mid',  attributes: { type: 'button' }, events: {
+                click: function(){
+
+                    if(that.editor.panels.midColor){
+                        that.editor.panels.midColor.remove();
+                    }
+                    else {
+                        that.editor.panels.midColor = components.createDraggablePanel({
+                            title: 'Mid color', 
+                            parent: document.body, 
+                            position: new V2(20,60), 
+                            closable: true,
+                            expandable: false,
+                            contentWidth: 150,
+                            onClose: () => { that.editor.panels.midColor = undefined; },
+                            contentItems: [
+                                components.createMidColor()
+                            ]
+                        });
+                    }
+                    
+                }
+            } }),
+            htmlUtils.createElement('input', { value: 'CPick',  attributes: { type: 'button' }, events: {
+                click: function(){
+
+                    if(that.editor.panels.colorPicker){
+                        that.editor.panels.colorPicker.remove();
+                    }
+                    else {
+                        that.editor.mode.toggleColorPicker();
+                        that.updateEditor();
+    
+                        let cp = components.createDraggablePanel({
+                            title: 'C picker', 
+                            parent: document.body, 
+                            position: new V2(40,60), 
+                            closable: true,
+                            expandable: false,
+                            contentWidth: 150,
+                            onClose: () => { 
+                                that.editor.panels.colorPicker = undefined;
+                                that.editor.mode.toggleColorPicker();
+                                that.updateEditor();
+                             },
+                            contentItems: [
+                                components.createSceneColorPicker()
+                            ]
+                        });
+
+                        that.editor.panels.colorPicker = cp;
+
+                        cp.setValue = (value) => {
+                            cp.contentItems[0].setValue(value);
+                        }
+                    }
+                    
+                }
+            } })
+        ]});
+        //createDraggablePanel({title: 'closable', parent: document.body, position: new V2(20,60), closable: true});
     }
 
     init() {
@@ -153,8 +212,11 @@ points: [{
 
     controlsHeightSet() {
         let heightLeft = document.getElementsByClassName('controlsWrapper')[0].clientHeight - document.getElementsByClassName('layersWrapper')[0].offsetTop;
-        if(heightLeft < 800){
+        if(heightLeft < 1050){
             document.getElementsByClassName('layersWrapper')[0].style.height = heightLeft+'px';
+        }
+        else {
+            document.getElementsByClassName('layersWrapper')[0].style.height = null;
         }
     }
 
@@ -193,34 +255,16 @@ points: [{
         let e = that.editor;
         let groupMapper = (g) => {
             return {
-                order: g.order,
-                selected: g.selected,
-                type: g.type,
-                strokeColor: g.strokeColor,
-                strokeColorOpacity: g.strokeColorOpacity,
-                fillColor: g.fillColor,
-                fillColorOpacity: g.fillColorOpacity,
-                closePath: g.closePath,
-                fill: g.fill,
-                fillPattern: g.fillPattern,
-                visible: g.visible,
-                clear: g.clear,
-                id: g.id,
+                ...modelUtils.groupMapper(g),
                 changeCallback() {
                     that.updateEditor.bind(that)();
                 },
                 points: g.points.map((p) => {
                     return {
-                        point: new V2(p.point),
-                        order: p.order,
-                        selected: p.selected,
-                        id: p.id,
+                        ...modelUtils.pointMapper(p),
                         changeCallback(value, skipEventDispatch = false) {
                             p.point.x = value.x;
                             p.point.y = value.y;
-                            //console.log(this, value)
-                            //that.updateEditor();
-                            //components.fillPoints(l.pointsEl, l.pointEl, l.points, that.updateEditor.bind(that));
 
                             let select = g.pointsEl.querySelector('select');
                             if(select){
@@ -260,8 +304,13 @@ points: [{
                         g.currentPointId = 0;
                     }
 
+                    let nextPointId = `${g.id}_p_${g.currentPointId++}`;
+                    while(g.points.filter(p => p.id == nextPointId).length > 0){
+                        nextPointId = `${g.id}_p_${g.currentPointId++}`;
+                    }
+
                     g.points.push({
-                        id: `${g.id}_point_${g.currentPointId++}`,
+                        id: nextPointId,
                         order: g.points.length,
                         point: {x: p.x, y: p.y},
                     })
@@ -272,12 +321,19 @@ points: [{
         }
         let layerMapper = (l) => {
             return {
-                order: l.order,
-                selected: l.selected,
-                id: l.id,
-                name: l.name,
-                visible: l.visible,
+                ...modelUtils.layerMapper(l),
                 groups: l.groups.map(groupMapper),
+                move(direction) {
+                    let d = new V2(direction);
+                    
+                    l.groups.forEach(g => {
+                        g.points.forEach(p => {
+                            p.point = new V2(p.point).add(d).toPlain();
+                        })
+                    })
+
+                    that.updateEditor.bind(that)();
+                },
                 changeCallback() {
                     that.updateEditor.bind(that)();
                 }
@@ -334,41 +390,22 @@ points: [{
             (main.layers.map(
                 (l,i) => assignDeep(
                     {}, 
+                    modelUtils.createDefaultLayer( `m_${i}`, i),
                     {
-                        selected: false,
-                        order: i,
-                        id: `main_${i}`,
-                        name: '',
-                        groupsEl: undefined,
-                        groupEl: undefined,
-                        visible: true,
                         currentGroupId: l.groups.length
                     }, 
                     {
                         ...l,
                         groups: l.groups.map((g, j) => assignDeep(
                             {},
+                            modelUtils.createDefaultGroup(`m_${i}_g_${j}`, j),
                             {
-                                id: `main_${i}_group_${j}`,
-                                order: j,
-                                clear: false,
-                                strokeColor: '#FF0000',
-                                strokeColorOpacity: 1,
-                                fillColor: '#FF0000',
-                                fillColorOpacity: 1,
-                                fill: false,
-                                fillPattern: false,
-                                closePath: false,
-                                type: 'dots',
-                                selected: false,
-                                pointsEl: undefined,
-                                pointEl: undefined,
                                 currentPointId: g.points.length
                             },
                             {
                                 ...g,
                                 points: g.points.map((p,k) => assignDeep({}, {
-                                    id: `main_${i}_group_${j}_point_${k}`,
+                                    id: `m_${i}_g_${j}_p_${k}`,
                                     order: k,
                                 }, p))
                             }
@@ -695,9 +732,22 @@ points: [{
             }
         });
 
+        let moveLayerSwitchButton = htmlUtils.createElement('input', { 
+            value: 'Toggle move layer', 
+            attributes: { type: 'button' }, 
+            props: {disabled: true},
+            events: {
+                click: () => {
+                    that.editor.mode.toggleMoveLayer();
+                    that.updateEditor();
+                }
+            }
+        });
+
         modeSwitch.appendChild(modeSwitchButton);
 
         moveGroup.appendChild(moveGroupSwitchButton)
+        moveGroup.appendChild(moveLayerSwitchButton)
 
         editorlEl.appendChild(modeSwitch);
         editorlEl.appendChild(moveGroup)
@@ -706,6 +756,7 @@ points: [{
         
         editor.mode.element = modeSwitchButton;
         editor.mode.moveGroupElement = moveGroupSwitchButton;
+        editor.mode.moveLayerElement = moveLayerSwitchButton;
 
         editor.mode.stateElement = htmlUtils.createElement('span', { className: 'stateName', text: '"Edit points" mode' });
         modeSwitch.appendChild(editor.mode.stateElement);
@@ -852,12 +903,21 @@ points: [{
 
                     layer.groups.forEach(g => g.selected = false);
                     components.createLayer(layerEl, layer, that.updateEditor.bind(that), { selectedOption });  
+
+                    that.editor.setMoveLayerModeState(true);
                 },
                 reset: function(e) { 
                     main.layers.forEach(l => l.selected = false);
+
                     that.editor.selected.layerId = undefined;
+                    that.editor.selected.groupId = undefined;
+                    that.editor.selected.pointId = undefined;
+
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
                     that.editor.setModeState(false, 'edit');
+
+                    that.editor.setMoveGroupModeState(false);
+                    that.editor.setMoveLayerModeState(false);
                 },
                 remove(e, select) {
                     if(!confirm('Remove layer?'))
@@ -899,31 +959,16 @@ points: [{
                 },
                 add: function(e, select){
 
-                    let nextLayerId = `main_${main.currentLayerId++}`;
+                    let nextLayerId = `m_${main.currentLayerId++}`;
                     while(main.layers.filter(g => g.id == nextLayerId).length > 0){
-                        nextLayerId = `main_${main.currentLayerId++}`;
+                        nextLayerId = `m_${main.currentLayerId++}`;
                     }
 
                     main.layers.forEach(l => l.selected = false);
-                    let layer = {
-                        selected: true,
-                        order: main.layers.length,
-                        id: nextLayerId,
-                        name: '',
-                        visible: true,
-                        groupsEl: undefined,
-                        groupEl: undefined,
-                        groups: []
-                        // clear: false,
-                        // strokeColor: '#FF0000',
-                        // fillColor: '#FF0000',
-                        // fill: false,
-                        // closePath: false,
-                        // type: 'dots',
-                        // pointsEl: undefined,
-                        // pointEl: undefined,
-                        // points: []
-                    }
+
+                    let layer = modelUtils.createDefaultLayer(nextLayerId, main.layers.length);
+
+                    layer.selected = true;
                     main.layers.push(layer);
                     select.options[select.options.length] = new Option(layer.id, layer.id);
                     select.value = layer.id;
@@ -959,16 +1004,6 @@ points: [{
             }
         }
     }
-
-    
-
-    // appendList(parent, listProps) {
-    //     parent.appendChild(this.createList(listProps));
-    // }
-
-    
-
-    
 
     
 }

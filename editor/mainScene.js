@@ -8,17 +8,54 @@ class EditorScene extends Scene {
             events: {
                 keyup: (event) => {
                    // console.log(this, event, event.keyCode)
+                    let edt = this.editor.editor;
 
-                    if(['e', 'a', 'm'].indexOf(event.key) != -1 && !this.editor.editor.getModeState().disabled && this.editor.editor.selected.groupId != undefined){
+                    if(event.key == 'h'){
+                        this.mainGo.showDots = !this.mainGo.showDots;
+                    }
+
+                    if(event.key == 'r'){
+                        if(edt.selected.pointId == undefined)
+                        {
+                            alert('No point selected');
+                            return;
+                        }
+                        
+                        edt.removeSelectedPoint()
+                    }
+
+                    if(event.keyCode == 86 && !event.ctrlKey){ // 'v' - toggle layer or group visibility
+                        if(event.shiftKey){
+
+                            if(true){ // buggy - experimental!
+                                let main = this.editor.image.main;
+                                if(isArray(main)){
+                                    main = main[this.editor.image.general.currentFrameIndex];
+                                }
+                                main.layers.filter(l => l.id != edt.selected.layerId).forEach(l => l.visible = !l.visible);
+                            }
+
+                            //layer
+                            if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
+                                edt.toggleLayerVisibility();
+                        }
+                        else {
+                            //group
+                            if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
+                                edt.toggleGroupVisibility();
+                        }
+                    }
+
+                    if(['e', 'a', 'm'].indexOf(event.key) != -1 && !edt.getModeState().disabled && edt.selected.groupId != undefined){
                         switch(event.key){
                             case 'a': 
-                                this.editor.editor.setModeState(true, 'add')
+                                edt.setModeState(true, 'add')
                                 break;
                             case 'e': 
-                                this.editor.editor.setModeState(true, 'edit')
+                                edt.setModeState(true, 'edit')
                                 break;
                             case 'm': 
-                                this.editor.editor.setMoveGroupModeState(true, 'movegroup')
+                                edt.setMoveGroupModeState(true, 'movegroup')
                                 break;
                             default:
                                 break;
@@ -97,7 +134,16 @@ class EditorScene extends Scene {
 
         this.mainGo = this.addGo(new EditorGO({
             position: this.sceneCenter
-        }),0, true);
+        }),1, true);
+
+        this.underlyingImg = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.mainGo.size,
+            // setImg(img) {
+            //     this.img = img;
+            //     this.needRecalcRenderProperties = true;
+            // }
+        }))
 
         this.editor = new Editor({
             parentElementSelector: '.controlsWrapper',
@@ -110,6 +156,7 @@ class EditorScene extends Scene {
     renderModel(model){
         console.log(model);
         let mg = this.mainGo;
+        let uimg = this.underlyingImg;
         let {general, main} = model;
 
         if(general.backgroundColor && this.bgColor != general.backgroundColor){
@@ -129,13 +176,18 @@ class EditorScene extends Scene {
             mg.img = PP.createImage(model);
     
             mg.originalSize = general.originalSize;
+            uimg.originalSize = general.originalSize;
+
             mg.size = general.size.mul(general.zoom);
+            uimg.size = general.size.mul(general.zoom);
+
             mg.showGrid = general.showGrid;
             mg.invalidate();
     
             SCG.UI.invalidate()
     
             mg.needRecalcRenderProperties = true;
+            uimg.needRecalcRenderProperties = true;
         }
         else {
             mg.isVisible = false;
@@ -170,7 +222,7 @@ class EditorScene extends Scene {
                                 this.currentFrame = 0;
                         })
                     }
-                }))
+                }), 10)
             }
             else {
                 this.animationDemo.setTimer(general.demo.delay)
@@ -196,5 +248,37 @@ SCG.scenes.cacheScene(new EditorScene({
 SCG.scenes.selectScene('editor');
 document.addEventListener("DOMContentLoaded", function() {
     SCG.main.start();
+})
+
+document.addEventListener("paste", function(event) {
+    //console.log('paste event')
+    let items = (event.clipboardData || event.originalEvent.clipboardData).items;
+    //console.log(items);
+    if(items.length == 0)
+        return;
+
+    let blob = null;
+    for(let i = 0; i < items.length; i++){
+        if(items[i].type.indexOf('image') != -1){
+            blob = items[i].getAsFile();
+            break;
+        }
+    }
+    
+    if(blob == null)
+        return;
+
+    //console.log(blob);
+    var img = new Image();
+    img.onload = function() {
+        let uimg = SCG.scenes.activeScene.underlyingImg;
+        uimg.img = createCanvas(uimg.originalSize, (ctx, size, hlp) => {
+            ctx.drawImage(img,0,0, size.x, size.y);
+        })
+    }
+
+    img.src = URL.createObjectURL(blob);
+    // let reader = new FileReader();
+    // reader.readAsDataURL
 })
 
