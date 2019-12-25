@@ -215,6 +215,16 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: small200_300_Viewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9DancingAnimationScene({
+        name:'dancing',
+        viewport: new V2(120, 100)
+    }));
+
+    SCG.scenes.cacheScene(new Demo9HealthbarScene({
+        name:'healthbar',
+        viewport: small200_300_Viewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();

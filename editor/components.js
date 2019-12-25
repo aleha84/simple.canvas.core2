@@ -380,6 +380,9 @@ var components = {
                 },
                 events: { 
                     click: function(e) { 
+                        if(!confirm('Remove all points?'))
+                            return;
+
                         listProps.callbacks.removeAll(e, select);
                     } 
                 }
