@@ -19,7 +19,7 @@ class Demo9HealthbarScene extends Scene {
             position: this.sceneCenter,
             size: new V2(1,1),
             init() {
-                this.cornersWidth = 5;
+                this.cornersWidth = 10;
                 this.height = 20;
                 this.segmentWidth = 10;
                 this.segmentsCount = 10;
@@ -60,9 +60,9 @@ class Demo9HealthbarScene extends Scene {
             createImage() {
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
                     ctx.drawImage(this.backgroundImg, 0,0);
-                    ctx.globalCompositeOperation = 'source-atop';
-                    hlp.setFillColor('rgba(255,255,255,0.5)');
-                    hlp.rect(0,0,size.x/2, size.y);
+                    // ctx.globalCompositeOperation = 'source-atop';
+                    // hlp.setFillColor('rgba(255,255,255,0.5)');
+                    // hlp.rect(0,0,size.x/2, size.y);
 
                     ctx.globalCompositeOperation = 'source-over';
                     ctx.drawImage(this.foregroundImg, 0,0);
