@@ -24,35 +24,32 @@ class Demo9HealthbarScene extends Scene {
                 this.segmentWidth = 10;
                 this.segmentsCount = 10;
                 this.size = new V2(this.segmentsCount*this.segmentWidth + this.cornersWidth*2, this.height).toInt();
-                this.models = Demo9HealthbarScene.models.hb1;
+                this.model = Demo9HealthbarScene.models.hb1;
 
                 this.backgroundImg = createCanvas(this.size, (ctx, size, hlp) => {
-                    ctx.drawImage(PP.createImage(this.models.background.left), 0,0);
-                    let bgSegImg = PP.createImage(this.models.background.segment);
+                    ctx.drawImage(PP.createImage(this.model, {renderOnly: ['bg_left']}), 0,0);
+
+                    let bgSegImg = PP.createImage(this.model, {renderOnly: ['bg_center']});
                     let currentX = this.cornersWidth;
                     for(let i = 0; i < this.segmentsCount; i++){
-                        ctx.drawImage(bgSegImg, currentX,0);
+                        ctx.drawImage(bgSegImg, currentX-this.cornersWidth,0);
                         currentX+=this.segmentWidth;
                     }
 
-                    ctx.drawImage(PP.createImage(this.models.background.right), currentX,0);
+                    ctx.drawImage(PP.createImage(this.model, {renderOnly: ['bg_right']}), currentX-this.cornersWidth-this.segmentWidth,0);
                 })
 
                 this.foregroundImg = createCanvas(this.size, (ctx, size, hlp) => {
-                    let segHeight = 2;
+                    ctx.drawImage(PP.createImage(this.model, {renderOnly: ['fg_left']}), 0,0);
 
-                    ctx.drawImage(PP.createImage(this.models.foreground.left), 0,0);
-                    let topSegImg = PP.createImage(this.models.foreground.top);
-                    let bottomSegImg = PP.createImage(this.models.foreground.bottom);
-
+                    let fgSegImg = PP.createImage(this.model, {renderOnly: ['fg_center']});
                     let currentX = this.cornersWidth;
                     for(let i = 0; i < this.segmentsCount; i++){
-                        ctx.drawImage(topSegImg, currentX,0);
-                        ctx.drawImage(bottomSegImg, currentX,size.y-segHeight);
+                        ctx.drawImage(fgSegImg, currentX-this.cornersWidth,0);
                         currentX+=this.segmentWidth;
                     }
 
-                    ctx.drawImage(PP.createImage(this.models.foreground.right), currentX,0);
+                    ctx.drawImage(PP.createImage(this.model, {renderOnly: ['fg_right']}), currentX-this.cornersWidth-this.segmentWidth,0);
                 })
 
                 this.createImage();
