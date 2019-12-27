@@ -6,7 +6,14 @@ class EditorScene extends Scene {
                 restrictBySpace: false
             },
             events: {
+                down: () => {
+                    if(document.activeElement && (document.activeElement.type == 'text' || document.activeElement.type == 'textarea' ))
+                        document.activeElement.blur();
+                },
                 keyup: (event) => {
+                    if(document.activeElement && (document.activeElement.type == 'text' || document.activeElement.type == 'textarea' ))
+                        return;
+
                    // console.log(this, event, event.keyCode)
                     let edt = this.editor.editor;
 
