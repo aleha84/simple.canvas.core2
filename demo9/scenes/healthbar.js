@@ -73,14 +73,20 @@ class Demo9HealthbarScene extends Scene {
                     totalTime
                 }})
 
-                this.contentWidth = 1;
+                this.contentWidth = 0.5;
                 
+                this.fallDots = [];
 
                 this.regTimerDefault(15, () => {
                     this.createImage();
                 })  
             },
+            setWidth(time, width) {
+                this.wChange = easing.createProps(time, this.contentWidth, width, 'quad', 'inOut')
+            },
             createContent() {
+                let currentContentWidth= this.size.x*this.contentWidth;
+                easing.commonProcess({context: this, targetpropertyName: 'contentWidth', propsName: 'wChange', removePropsOnComplete: true})
                 return createCanvas(this.size, (ctx, size, hlp) => {
                     
                     for(let i = 0; i < this.dots.length; i++){
@@ -95,17 +101,41 @@ class Demo9HealthbarScene extends Scene {
                         else if(dot.yDirection < 0 && dot.yTime == 0)
                             dot.yDirection = 1;
 
-                        hlp.setFillColor(`rgba(255,255,255,${dot.opacity})`).dot(dot.p.x, fast.r(dot.p.y));
+                        if(dot.p.x < currentContentWidth)
+                            hlp.setFillColor(`rgba(255,255,255,${dot.opacity})`).dot(dot.p.x, fast.r(dot.p.y));
 
-                        // dot.p.y+=dot.yChange*dot.yDirection;
-                        // if(dot.yDirection > 0 && dot.p.y > size.y)
-                        //     dot.p.y = 0;
-                        // else if(dot.yDirection < 0 && dot.p.y < 0)
-                        //     dot.p.y = size.y;
+                    }
+
+                    if(this.contentWidth < 1){
+                        if(getRandomInt(0,1) == 0){
+                            let time = getRandomInt(50,100);
+                            this.fallDots.push({
+                                alive: true,
+                                p: new V2(currentContentWidth, getRandomInt(0, size.y)),
+                                xChange: easing.createProps(time, currentContentWidth, currentContentWidth + getRandomInt(5, 10), 'quad', 'out', function() { this.alive = false; }),
+                                currentX : currentContentWidth,
+                                currentAlpha: 0.5, 
+                                aChange:  easing.createProps(time, 0.5, 0, 'quad', 'out'),
+                            })    
+                        }
+                        
                     }
 
                     
-                    hlp.setFillColor('rgba(74,255,61,0.5)').rect(0,0,fast.r(size.x*this.contentWidth), size.y)
+
+                    for(let i = 0; i < this.fallDots.length; i++){
+                        let fd = this.fallDots[i];
+
+                        hlp.setFillColor(`rgba(74,255,61,${fd.currentAlpha})`).rect(fd.currentX, fd.p.y, 1,1)
+
+                        easing.commonProcess({context: fd, targetpropertyName: 'currentX', propsName: 'xChange', round: true, callbacksUseContext: true, removePropsOnComplete: true })
+                        easing.commonProcess({context: fd, targetpropertyName: 'currentAlpha', propsName: 'aChange', setter: (value) => { fd.currentAlpha = fast.r(value, 2) } })
+                    }
+
+                    this.fallDots = this.fallDots.filter(d => d.alive)
+
+                    
+                    hlp.setFillColor('rgba(74,255,61,0.5)').rect(0,0,fast.r(currentContentWidth), size.y)
                 })
                 
             },
@@ -438,9 +468,11 @@ class Demo9HealthbarScene extends Scene {
                 }
 
                 return createCanvas(this.size, (ctx, size, hlp) => {
-                    hlp.setFillColor('#D886D8').rect(0,0,size.x,size.y);
-                    //D986DD
-                    hlp.setFillColor('#DEDEDE').rect(this.currentX, 0, 20, size.y)
+                    hlp.setFillColor('#08366D').rect(0,0,size.x,size.y);
+                    
+                    hlp.setFillColor('#780DFA').rect(this.currentX-5, 0, 30, size.y)
+                    hlp.setFillColor('#F081EF').rect(this.currentX, 0, 20, size.y)
+                    hlp.setFillColor('#FDFCFF').rect(this.currentX+5, 0, 10, size.y)
                 })
                 
             },
