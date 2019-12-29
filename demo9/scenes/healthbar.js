@@ -423,14 +423,24 @@ class Demo9HealthbarScene extends Scene {
                     this.createImage();
                 }) 
 
-                this.xShift = 0;
-                this.currentYShift = 0;
-                //this.yChange = easing.createProps(30, -2,2,'quad', 'inOut', () => { this.yShiftDirection*=-1; });
-                this.yShiftDirection = 1;
+                this.xChange = easing.createProps(45, this.size.x, 0, 'expo', 'in')
+                this.xTime = 0;
+                this.currentX = this.size.x;
             },
             createContent() {
+                this.xChange.time = this.xTime;
+                this.currentX = easing.process(this.xChange);
+
+                this.xTime++;
+
+                if(this.xTime > this.xChange.duration){
+                    this.xTime = 0;
+                }
+
                 return createCanvas(this.size, (ctx, size, hlp) => {
-                    
+                    hlp.setFillColor('#D886D8').rect(0,0,size.x,size.y);
+                    //D986DD
+                    hlp.setFillColor('#DEDEDE').rect(this.currentX, 0, 20, size.y)
                 })
                 
             },
