@@ -2,7 +2,7 @@ class Demo9HealthbarScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -43,6 +43,72 @@ class Demo9HealthbarScene extends Scene {
     }
 
     start(){
+        
+        this.sceneManager = this.addGo(new GO({
+            position: new V2(),
+            size: new V2(1,1),
+            init() {
+                this.startSequence();
+            },
+            startSequence() {
+                let scene = this.parentScene;
+                this.script.items = [
+                    this.addProcessScriptDelay(6000),
+                    function() {
+                        scene.hbs.forEach(hb => hb.setWidth(50, 0.85))
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(6000),
+                    function() {
+                        scene.hbs.forEach(hb => hb.setWidth(100, 0.7))
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(6000),
+                    function() {
+                        scene.hbs.forEach(hb => hb.setWidth(50, 0.5))
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(6000),
+                    function() {
+                        scene.hbs.forEach(hb => hb.setWidth(30, 0.4))
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(6000),
+                    function() {
+                        scene.hbs.forEach(hb => hb.setWidth(80, 0.2))
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(6000),
+                    function() {
+                        scene.hbs.forEach(hb => hb.setWidth(100, 0.3))
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(6000),
+                    function() {
+                        scene.hbs.forEach(hb => hb.setWidth(60, 0.55))
+                        this.processScript();
+                    },
+                    this.addProcessScriptDelay(6000),
+                    function() {
+                        scene.hbs.forEach(hb => hb.setWidth(50, 1))
+                        this.processScript();
+                    },
+                    function(){
+                        this.startSequence();
+                    }
+                ]
+
+                this.processScript();
+            }
+        }))
+
+        this.cpy = this.addGo(new GO({
+            position: new V2(this.viewport.x - 40,this.viewport.y - 15),
+            size: new V2(80,20),
+            init() {
+                this.img = PP.createImage(Demo9HealthbarScene.models.copyright)
+            }
+        }), 1)
 
         this.hb1 = this.addGo(new GO({
             position: this.sceneCenter,
@@ -73,7 +139,7 @@ class Demo9HealthbarScene extends Scene {
                     totalTime
                 }})
 
-                this.contentWidth = 0.5;
+                this.contentWidth = 1;
                 
                 this.fallDots = [];
 
@@ -101,12 +167,14 @@ class Demo9HealthbarScene extends Scene {
                         else if(dot.yDirection < 0 && dot.yTime == 0)
                             dot.yDirection = 1;
 
-                        if(dot.p.x < currentContentWidth)
+                        if(dot.p.x < currentContentWidth-1)
                             hlp.setFillColor(`rgba(255,255,255,${dot.opacity})`).dot(dot.p.x, fast.r(dot.p.y));
 
                     }
 
                     if(this.contentWidth < 1){
+                        hlp.setFillColor('rgba(255,255,255,0.05)').rect(currentContentWidth-2, 0,1,size.y);
+                        hlp.setFillColor('rgba(255,255,255,0.2)').rect(currentContentWidth-1, 0,1,size.y);
                         if(getRandomInt(0,1) == 0){
                             let time = getRandomInt(50,100);
                             this.fallDots.push({
@@ -173,8 +241,16 @@ class Demo9HealthbarScene extends Scene {
                 this.regTimerDefault(15, () => {
                     this.createImage();
                 }) 
+
+                this.fallWidth = 1;
+                this.fallwChangeDirection = -1;
+            },
+            setWidth(time, width) {
+                this.wChange = easing.createProps(time, this.contentWidth, width, 'quad', 'inOut')
             },
             createContent() {
+                easing.commonProcess({context: this, targetpropertyName: 'contentWidth', propsName: 'wChange', removePropsOnComplete: true})
+
                 if(true){
                     let currentWidth = fast.r(this.size.x*this.contentWidth);
                     let x = getRandomInt(0,3) == 0 ? getRandomInt(1, currentWidth*2/3) : getRandomInt(currentWidth/2, currentWidth-1);
@@ -204,14 +280,40 @@ class Demo9HealthbarScene extends Scene {
 
                 this.dots = this.dots.filter(d => d.alive);
 
-                return createCanvas(this.size, (ctx, size, hlp) => {
 
-                    for(let i = 0; i < this.dots.length; i++){
-                        let dot = this.dots[i];
-                        hlp.setFillColor(`rgba(255,255,255,${dot.alpha})`).dot(dot.p.x, dot.p.y);
+
+                return createCanvas(this.size, (ctx, size, hlp) => {
+                    let currentContentWidth = fast.r(size.x*this.contentWidth);
+                    if(this.contentWidth < 1){
+                        if(!this.fallWChange){
+                            this.fallwChangeDirection*=-1
+                            this.fallWChange = this.fallwChangeDirection > 0 ?
+                            easing.createProps(getRandomInt(30, 50), this.fallWidth, getRandomInt(4,5), 'quad', 'inOut') : 
+                            easing.createProps(getRandomInt(30, 50), this.fallWidth, 0, 'quad', 'inOut')
+                        }
+
+                        easing.commonProcess({context: this, targetpropertyName: 'fallWidth', propsName: 'fallWChange', round: true, removePropsOnComplete: true})
+
+                        let aChange = easing.createProps(this.fallWidth-1, 0.45, 0, 'quad', 'in');
+                        for(let i = 0; i < this.fallWidth; i++){
+                            let a = 0.5
+                            if( this.fallWidth > 1){
+                                a = fast.r(easing.process(aChange),3);
+                            }
+                            aChange.time = i;
+                            hlp.setFillColor(`rgba(172,33,40,${a})`).rect(currentContentWidth+0+i, 0, 1, size.y);
+                        }
+                        //hlp.setFillColor(`rgba(0,0,0,0.1`).rect(currentContentWidth, 0, 1, size.y);
                     }
 
-                    hlp.setFillColor('rgba(172,33,40,0.5)').rect(0,0,fast.r(size.x*this.contentWidth), size.y)
+                    
+                    for(let i = 0; i < this.dots.length; i++){
+                        let dot = this.dots[i];
+                        if(dot.p.x < currentContentWidth)
+                            hlp.setFillColor(`rgba(255,255,255,${dot.alpha})`).dot(dot.p.x, dot.p.y);
+                    }
+
+                    hlp.setFillColor('rgba(172,33,40,0.5)').rect(0,0,fast.r(currentContentWidth), size.y)
                 })
                 
             },
@@ -246,10 +348,16 @@ class Demo9HealthbarScene extends Scene {
                     this.createImage();
                 }) 
             },
+            setWidth(time, width) {
+                this.wChange = easing.createProps(time, this.contentWidth, width, 'quad', 'inOut')
+            },
             createContent() {
+
+                easing.commonProcess({context: this, targetpropertyName: 'contentWidth', propsName: 'wChange', removePropsOnComplete: true})
+                let currentContentWidth = fast.r(this.size.x*this.contentWidth);
                 let y= getRandomInt(this.size.y-5, this.size.y-2);
                 let dot = {
-                    p: new V2(getRandomInt(0, this.size.x-1), y),
+                    p: new V2(getRandomInt(0, currentContentWidth-1), y),
                     aTime: 0,
                     yTime: 0,
                     alpha: 0,
@@ -272,12 +380,18 @@ class Demo9HealthbarScene extends Scene {
 
                 return createCanvas(this.size, (ctx, size, hlp) => {
 
+                    
                     for(let i = 0; i < this.dots.length; i++){
                         let dot = this.dots[i];
-                        hlp.setFillColor(`rgba(255,255,255,${dot.alpha})`).dot(dot.p.x, dot.p.y);
+                        if(dot.p.x < currentContentWidth)
+                            hlp.setFillColor(`rgba(255,255,255,${dot.alpha})`).dot(dot.p.x, dot.p.y);
                     }
 
-                    hlp.setFillColor('rgba(66,181,196,0.5)').rect(0,0,fast.r(size.x*this.contentWidth), size.y)
+                    hlp.setFillColor('rgba(66,181,196,0.5)').rect(0,0,currentContentWidth, size.y)
+
+                    if(this.contentWidth < 1){
+                        hlp.rect(currentContentWidth, size.y-2, size.x - currentContentWidth-5, 2)
+                    }
                 })
                 
             },
@@ -302,7 +416,7 @@ class Demo9HealthbarScene extends Scene {
                 this.segmentWidth = 10;
                 this.segmentsCount = 10;
                 this.size = new V2(this.segmentsCount*this.segmentWidth + this.cornersWidth*2, this.height).toInt();
-                this.model = Demo9HealthbarScene.models.hb4;
+                this.model = Demo9HealthbarScene.models.hb4NoRightEmitter;
 
                
 
@@ -310,7 +424,8 @@ class Demo9HealthbarScene extends Scene {
 
                 this.contentWidth = 1;
                 
-                this.contentWidth = (this.segmentWidth * this.segmentsCount)-1 ;
+                this.fullContentWidth = (this.segmentWidth * this.segmentsCount)-1
+                this.currentContentWidth = this.contentWidth*(this.segmentWidth * this.segmentsCount)-1 ;
                 this.lighting = {
                     dotsCount: 5,
                 }
@@ -320,17 +435,20 @@ class Demo9HealthbarScene extends Scene {
                 this.currentFrame = 0;
                 this.framesPerLighting = 10;
                 this.colors = ['#023A6B', '#023A6B', '#023A6B', '#039ADD', '#023A6B',, '#0FEFFC', '#FCFFFE']
+
+                this.rightEmitter = PP.createImage(Demo9HealthbarScene.models.hb4OnlyRightEmitter);
+
                 for(let i = 0 ; i< 5; i++){
                     this.lightingFrames[i] = [];
                     
                     for(let j = 0; j < this.framesPerLighting; j++){
 
                         let dotsCount = getRandomInt(5,7);
-                    let segWidth = this.contentWidth/dotsCount;
+                    let segWidth = this.size.x/dotsCount;
                     let midDots = new Array(dotsCount+1).fill().map((el, i) => (
                         new V2(  i*segWidth, 
-                            ( i == 0 || i == dotsCount ? this.size.y/2 + getRandomInt(-2,1) : getRandomInt(5,this.size.y-7)) )
-                            .add(new V2(this.cornersWidth, 0)).toInt() ))
+                            ( i == 0 || i == dotsCount ? this.size.y/2 + getRandomInt(-1,0) : getRandomInt(5,this.size.y-7)) )
+                            .add(new V2(0, 0)).toInt() ))
 
                         this.lightingFrames[i][j] = createCanvas(this.size, (ctx, size, hlp) => {
                             let pp = new PerfectPixel({ctx});
@@ -348,15 +466,21 @@ class Demo9HealthbarScene extends Scene {
                     this.createImage();
                 }) 
             },
+            setWidth(time, width) {
+                this.wChange = easing.createProps(fast.r(time/2), this.contentWidth, width, 'quad', 'inOut')
+            },
             createContent() {
+                easing.commonProcess({context: this, targetpropertyName: 'contentWidth', propsName: 'wChange', removePropsOnComplete: true})
+                this.currentContentWidth = fast.r(this.contentWidth*(this.segmentWidth * this.segmentsCount)-1);
                 this.currentFrame++;
                 if(this.currentFrame == this.framesPerLighting){
                     this.currentFrame = 0;
                 }
 
                 return createCanvas(this.size, (ctx, size, hlp) => {
+                    //let w = this.cornersWidth
                     for(let i = 0 ; i< 5; i++){
-                        ctx.drawImage(this.lightingFrames[i][this.currentFrame],0,0);
+                        ctx.drawImage(this.lightingFrames[i][this.currentFrame],this.cornersWidth,0, this.currentContentWidth+1, this.size.y);
                     }
                 })
                 
@@ -368,6 +492,13 @@ class Demo9HealthbarScene extends Scene {
                     ctx.drawImage(this.createContent(),0,0)
 
                     ctx.globalCompositeOperation = 'source-over';
+                    ctx.drawImage(this.rightEmitter, this.currentContentWidth-this.cornersWidth/2-2, 0);
+                    
+                    for(let i = this.currentContentWidth+30; i < this.size.x; i++ ){
+                        hlp.setFillColor('#d4622c').rect(i,5, 1,10);
+                        hlp.setFillColor('#eebc5b').rect(i, 5, 1, i%2==0?2:3)
+                        hlp.setFillColor('#60341b').rect(i, 15-(i%2==0?3:2), 1, i%2==0?3:2)
+                    }
                     ctx.drawImage(this.foregroundImg, 0,0);
                 })
             }
@@ -396,17 +527,37 @@ class Demo9HealthbarScene extends Scene {
                 this.currentYShift = 0;
                 //this.yChange = easing.createProps(30, -2,2,'quad', 'inOut', () => { this.yShiftDirection*=-1; });
                 this.yShiftDirection = 1;
+                this.dots = [];
+            },
+            setWidth(time, width) {
+                this.wChange = easing.createProps(time, this.contentWidth, width, 'quad', 'inOut')
             },
             createContent() {
+                easing.commonProcess({context: this, targetpropertyName: 'contentWidth', propsName: 'wChange', removePropsOnComplete: true})
+                let currentContentWidth = fast.r(this.size.x*this.contentWidth);
+
+                if(this.contentWidth < 1){
+                    if(getRandomInt(0,1) == 0){
+                        this.dots.push({
+                            alive: true,
+                            p: new V2(currentContentWidth+getRandomInt(-2,2),this.size.y/2),
+                            currentY: this.size.y/2,
+                            yChange: easing.createProps(getRandomInt(15,45), this.size.y/2 + getRandomInt(-1,0),0, 'quad', 'out', function() { this.alive = false })
+                        })
+                    }
+                }
+
+                
+
                 return createCanvas(this.size, (ctx, size, hlp) => {
                     easing.commonProcess({context: this, targetpropertyName: 'currentYShift', propsName: 'yChange', round: true, removePropsOnComplete: true})
                     if(this.yChange == null){
                         this.yChange = easing.createProps(60, -3*this.yShiftDirection,3*this.yShiftDirection,'quad', 'inOut', () => { this.yShiftDirection*=-1; });
                     }
 
-                    hlp.setFillColor('#FB500A').rect(0,0,fast.r(size.x*this.contentWidth), size.y)
+                    hlp.setFillColor('#FB500A').rect(0,0,currentContentWidth, size.y)
 
-                    for(let x = 0; x < this.size.x; x++){
+                    for(let x = 0; x < currentContentWidth; x++){
                         let y = 3*Math.sin(x/8 + this.xShift) + this.size.y/2 + this.currentYShift -2;
                         hlp.setFillColor('#FEE85B').rect(x, fast.r(y), 1, size.y)
 
@@ -419,6 +570,8 @@ class Demo9HealthbarScene extends Scene {
                     if(this.xShift >= 360){
                         this.xShift-=360;
                     }
+
+                    
                 })
                 
             },
@@ -430,6 +583,16 @@ class Demo9HealthbarScene extends Scene {
 
                     ctx.globalCompositeOperation = 'source-over';
                     ctx.drawImage(this.foregroundImg, 0,0);
+
+                    hlp.setFillColor('#050505')
+                    for(let i = 0; i < this.dots.length; i++){
+                        let dot = this.dots[i];
+                        dot.p.x-=0.25
+                        easing.commonProcess({context: dot, targetpropertyName: 'currentY', propsName: 'yChange', round: true, callbacksUseContext: true, removePropsOnComplete: true})
+                        hlp.rect(fast.r(dot.p.x), dot.currentY, getRandomInt(1,3), getRandomInt(1,2));
+                    }
+
+                    this.dots = this.dots.filter(d => d.alive);
                 })
             }
         }));
@@ -457,7 +620,12 @@ class Demo9HealthbarScene extends Scene {
                 this.xTime = 0;
                 this.currentX = this.size.x;
             },
+            setWidth(time, width) {
+                this.wChange = easing.createProps(time, this.contentWidth, width, 'quad', 'inOut')
+            },
             createContent() {
+                let currentContentWidth = fast.r(this.size.x*this.contentWidth);
+                easing.commonProcess({context: this, targetpropertyName: 'contentWidth', propsName: 'wChange', removePropsOnComplete: true})
                 this.xChange.time = this.xTime;
                 this.currentX = easing.process(this.xChange);
 
@@ -468,8 +636,9 @@ class Demo9HealthbarScene extends Scene {
                 }
 
                 return createCanvas(this.size, (ctx, size, hlp) => {
-                    hlp.setFillColor('#08366D').rect(0,0,size.x,size.y);
+                    hlp.setFillColor('#08366D').rect(0,0,currentContentWidth,size.y);
                     
+                    ctx.globalCompositeOperation = 'source-atop';
                     hlp.setFillColor('#780DFA').rect(this.currentX-5, 0, 30, size.y)
                     hlp.setFillColor('#F081EF').rect(this.currentX, 0, 20, size.y)
                     hlp.setFillColor('#FDFCFF').rect(this.currentX+5, 0, 10, size.y)
@@ -487,5 +656,15 @@ class Demo9HealthbarScene extends Scene {
                 })
             }
         }));
+
+        
+        this.hbs = [this.hb1, this.hb2, this.hb3, this.hb4, this.hb5, this.hb6];
+        let height = 20;
+        let gap = 5;
+        let topY = fast.r(this.sceneCenter.y - this.hbs.length*(height+2*gap)/2) + 15;
+        console.log(topY)
+        this.hbs.forEach((hb, i) => {
+            hb.position.y = topY + (height+2*gap)*i;
+        })
     }
 }
