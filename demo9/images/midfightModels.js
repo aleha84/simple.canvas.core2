@@ -1,0 +1,3 @@
+Demo9MidFightScene.models = {
+    
+}

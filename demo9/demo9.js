@@ -225,6 +225,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: small200_300_Viewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9MidFightScene({
+        name:'midfight',
+        viewport: small200_300_Viewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
