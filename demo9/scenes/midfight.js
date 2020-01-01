@@ -25,7 +25,7 @@ class Demo9MidFightScene extends Scene {
             }
         })
 
-        this.knightSize = new V2(40,30);
+        this.knightSize = new V2(50,30);
 
         this.knight = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -68,5 +68,41 @@ class Demo9MidFightScene extends Scene {
             }
         }), 2)
         
+
+        this.grassItemsImg = Demo9MidFightScene.models.grassItems.map(model => PP.createImage(model));
+        this.grassItemSize = new V2(19,15)
+
+        // for (let j = 0; j < 2; j++) 
+        // for (let i = 0; i < 11; i++) {
+        //     this.addGo(new GO({
+        //         position: new V2(this.grassItemSize.x*i + (j%2 == 0? 2: 0),250-j*15),
+        //         size: this.grassItemSize,
+        //         init() {
+        //             this.img = this.parentScene.grassItemsImg[0]
+        //             //getRandomInt(0, this.parentScene.grassItemsImg.lenght-1)
+        //         }
+        //     }), 3)
+            
+        // }
+
+        this.addGo(new GO({
+            position: new V2(100,250),
+            size: new V2(200,100),
+            init() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    let h = 16;
+                    let cy = 0;
+                    let xShift = false;
+                    for(let y = 0; y < size.y; y+=3){
+                        for(let x = 0; x < fast.r(size.x/this.parentScene.grassItemSize.x); x++){
+                            ctx.drawImage(this.parentScene.grassItemsImg[getRandomInt(0, this.parentScene.grassItemsImg.length-1)],
+                             this.parentScene.grassItemSize.x*x + (xShift ? 2 : 0), y) //(xShift ? fast.r(-this.parentScene.grassItemSize.x/2) : 0)
+                        }
+
+                        xShift=!xShift;
+                    }
+                })
+            }
+        }), 3)
     }
 }
