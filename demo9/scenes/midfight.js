@@ -118,6 +118,7 @@ class Demo9MidFightScene extends Scene {
                     size: this.grassItemSize,
                     imgFrames: this.grassItemsImg[getRandomInt(0, this.grassItemsImg.length-1)],
                     xShift,
+                    isVisible: false,
                     init() {
                         this.currentFrame = 0;
                         this.img = isArray(this.imgFrames) ? this.imgFrames[this.currentFrame] : this.imgFrames
@@ -144,5 +145,38 @@ class Demo9MidFightScene extends Scene {
 
             xShift=!xShift;
         }
+
+        this.subScene1 = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport,
+            images: {
+                bg: PP.createImage(Demo9MidFightScene.models.swordBg),
+                sword: PP.createImage(Demo9MidFightScene.models.swordModel)
+            },
+            init() {
+                this.originalSizes = new V2(300, 300);
+
+                this.currentX = 100;
+                this.swCurrentX = 100;
+                this.xChange = easing.createProps(100, 100, 0, 'quad', 'out', function() { this.unregTimer(this.timer); console.log('timer removed') })
+                this.swXChange = easing.createProps(100, 100, -50, 'quad', 'out', )
+                this.createImage();
+
+//todo add start delay
+
+                this.timer = this.regTimerDefault(30, () => {
+                    easing.commonProcess({context: this, targetpropertyName: 'currentX', propsName: 'xChange', round: false, callbacksUseContext: true });
+                    easing.commonProcess({context: this, targetpropertyName: 'swCurrentX', propsName: 'swXChange', round: false });
+                    this.createImage();
+                })
+            },
+            createImage() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    ctx.drawImage(this.images.bg,this.currentX/2, 0,size.x, size.y, 0,0,size.x, size.y)
+                    
+                    ctx.drawImage(this.images.sword,this.swCurrentX, 0,size.x, size.y, 0,0,size.x, size.y)
+                })
+            }
+        }), 500)
     }
 }
