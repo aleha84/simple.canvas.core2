@@ -26,9 +26,20 @@ class Demo9MidFightScene extends Scene {
                 hlp.rect(getRandomInt(0,size.x), getRandomInt(0,size.y), getRandomInt(5,20), 1)
             }
 
-            let drops = [[80,140],[75,155], [76,150],[75,153],[76,156],[74,157],[75,158],[77,145]]
-            hlp.setFillColor('#822734')//.dot(80,140).dot(75,155).dot(76,150)
-            drops.forEach(d => hlp.dot(d[0], d[1]))
+            let drops = [[80,140],[75,155], [76,150],[75,153],[76,156],[74,157],[75,158],[77,145], [78,143], 
+            [100.3125, 131.25],[102.5, 131.5625],[107.5, 133.125],[110.9375, 134.375],[115.9375, 135.625],
+            [120.3125, 135.9375],[91.25, 109.375],[90.625, 109.6875],[85.625, 112.5],[78.125, 116.25],[70.625, 118.75],[64.6875, 118.4375],
+            [78.75, 116.25],[90.3125, 118.4375],[98.4375, 119.375],[103.75, 120.625],[110.625, 122.5],[118.4375, 124.0625],
+            [86.5625,102.1875],[89.375,102.1875],[92.1875,103.125],[94.0625,105],[86.25,119.375],[82.8125,120.625],[79.375,122.8125],
+            [75.9375,125.9375],[142.5,126.875],[139.375,126.5625],[136.5625,125.3125],[127.8125,122.8125],[125, 21.875],
+        [76.5625,148.4375],[76.5625,146.875],[81.875,138.125],[83.4375,135.625],[84.6875,134.375],[85.625,131.5625],[85.3125,129.0625],
+        [85.9375,124.375],[87.5,122.1875],[88.125,120.3125],[89.6875,116.25],[90.3125,114.0625],[90.9375,112.8125],[93.75,108.125],
+    [109.6875, 110.625],[111.25, 110.3125],[112.8125, 110.3125],[115.625, 111.25],[118.4375, 112.5],[120.625, 114.0625],[121.875, 115.625],[122.8125, 117.8125],[123.75, 120],
+        ]
+            hlp.setFillColor('rgba(216,26,45, 0.75)')//.dot(80,140).dot(75,155).dot(76,150)
+            drops.forEach(d => hlp.dot(fast.r(d[0]), fast.r(d[1])))
+
+            hlp.rect(90, 130, 5, 1).rect(95, 131, 3,1)
         })
 
         this.knightSize = new V2(50,30);
@@ -71,6 +82,14 @@ class Demo9MidFightScene extends Scene {
             size: new V2(50,30),
             init() {
                 this.img = PP.createImage(Demo9MidFightScene.models.enemyDead);
+            }
+        }), 3)
+
+        this.addGo(new GO({
+            position: new V2(150, 140),
+            size: new V2(55,33),
+            init() {
+                this.img = PP.createImage(Demo9MidFightScene.models.enemyDead2);
             }
         }), 3)
 
@@ -148,10 +167,19 @@ class Demo9MidFightScene extends Scene {
                             this.shake();
                     },
                     shake() {
+                        this.delayCounter = getRandomInt(5,10);
                         this.timer = this.regTimerDefault(200, () => {
+                            if(this.delayCounter > 0){
+                                this.delayCounter--;
+                                return;
+                            }
+
                             this.currentFrame++;
                             if(this.currentFrame == this.imgFrames.length){
                                 this.currentFrame = 0;
+                                if(getRandomBool()){
+                                    this.delayCounter = getRandomInt(5,10);
+                                }
                             }
 
                             this.img = this.imgFrames[this.currentFrame];
@@ -185,15 +213,23 @@ class Demo9MidFightScene extends Scene {
                             this.shake();
                     },
                     shake() {
+                        this.delayCounter = getRandomInt(5,10);
                         this.timer = this.regTimerDefault(200, () => {
+                            if(this.delayCounter > 0){
+                                this.delayCounter--;
+                                return;
+                            }
+
                             this.currentFrame++;
                             if(this.currentFrame == this.imgFrames.length){
                                 this.currentFrame = 0;
+                                if(getRandomBool()){
+                                    this.delayCounter = getRandomInt(5,10);
+                                }
                             }
 
                             this.img = this.imgFrames[this.currentFrame];
                         }) 
-                        
                     }
                 }), y)
 
@@ -418,8 +454,8 @@ class Demo9MidFightScene extends Scene {
                     //[[-10, 0], [0,-8], [-8,0], [0,-6], [-6, 0], [0, -4], [-4, 0]]
                     this.currentY = 0;
                     //let count = 4;
-                    let count = 2;
-                    let yClampChange = easing.createProps(count, -6, -2, 'quad', 'inOut');
+                    let count = 3;
+                    let yClampChange = easing.createProps(count, -6, -4, 'quad', 'inOut');
                     this.yClamps = []
                     for(let i = 0; i <=count; i++){
                         
