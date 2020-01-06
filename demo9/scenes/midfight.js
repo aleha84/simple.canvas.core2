@@ -25,6 +25,10 @@ class Demo9MidFightScene extends Scene {
             for(let i = 0; i < 100; i++){
                 hlp.rect(getRandomInt(0,size.x), getRandomInt(0,size.y), getRandomInt(5,20), 1)
             }
+
+            let drops = [[80,140],[75,155], [76,150],[75,153],[76,156],[74,157],[75,158],[77,145]]
+            hlp.setFillColor('#822734')//.dot(80,140).dot(75,155).dot(76,150)
+            drops.forEach(d => hlp.dot(d[0], d[1]))
         })
 
         this.knightSize = new V2(50,30);
@@ -61,6 +65,22 @@ class Demo9MidFightScene extends Scene {
                 this.img = PP.createImage(Demo9MidFightScene.models.rock2);
             }
         }), 2)
+
+        this.addGo(new GO({
+            position: new V2(100, 100),
+            size: new V2(50,30),
+            init() {
+                this.img = PP.createImage(Demo9MidFightScene.models.enemyDead);
+            }
+        }), 3)
+
+        this.addGo(new GO({
+            position: new V2(50, 130),
+            size: new V2(50,30),
+            init() {
+                this.img = PP.createImage(Demo9MidFightScene.models.enemyDead);
+            }
+        }), 3)
 
         this.addGo(new GO({
             position: new V2(170, 240),
@@ -118,8 +138,8 @@ class Demo9MidFightScene extends Scene {
                     size: this.grassItemSize,
                     imgFrames: this.grassItemsImg[getRandomInt(0, this.grassItemsImg.length-1)],
                     xShift,
-                    //isVisible: false,
-                    isVisible: true,
+                    isVisible: false,
+                    //isVisible: true,
                     init() {
                         this.currentFrame = 0;
                         this.img = isArray(this.imgFrames) ? this.imgFrames[this.currentFrame] : this.imgFrames
@@ -155,8 +175,8 @@ class Demo9MidFightScene extends Scene {
                     size: this.grassItemSize,
                     imgFrames: this.grassItemsImg[getRandomInt(0, this.grassItemsImg.length-1)],
                     xShift,
-                    //isVisible: false,
-                    isVisible: true,
+                    isVisible: false,
+                    //isVisible: true,
                     init() {
                         this.currentFrame = 0;
                         this.img = isArray(this.imgFrames) ? this.imgFrames[this.currentFrame] : this.imgFrames
@@ -221,7 +241,56 @@ class Demo9MidFightScene extends Scene {
             // }
         }), 265)
 
-        return;
+        this.fadeOuter = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            isVisible: false,
+            init() {
+                this.frames = [];
+                this.count = 10;
+                this.aChange = easing.createProps(this.count, 1, 0, 'quad', 'inOut');
+                for(let i = 0; i <= this.count; i++){
+                    this.aChange.time = i;
+                    let a = fast.r(easing.process(this.aChange),2);
+
+                    this.frames[i] = createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor(`rgba(0,0,0,${a})`).rect(0,0,size.x, size.y);
+                    });
+                }
+            },
+            fadeIn(callback) {
+                this.isVisible=  true
+                this.currentFrame = 10;
+                this.fadeInTimer = this.regTimerDefault(30, () => {
+                    this.currentFrame--;
+                    if(this.currentFrame <= 0){
+                        this.currentFrame = 0;
+                        this.unregTimer(this.fadeInTimer);
+                        callback();
+                        //this.isVisible = false;
+                    }
+
+                    this.img = this.frames[this.currentFrame];
+                })
+            },
+            fadeOut(callback) {
+                this.isVisible=  true
+                this.currentFrame = 0;
+                this.fadeOutTimer = this.regTimerDefault(30, () => {
+                    this.currentFrame++;
+                    if(this.currentFrame >= this.frames.length){
+                        this.currentFrame = this.frames.length;
+                        this.unregTimer(this.fadeOutTimer);
+                        callback();
+                        this.isVisible = false;
+                    }
+
+                    this.img = this.frames[this.currentFrame];
+                })
+            }
+        }), 501)
+
+        //return;
         this.subScene1 = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport,
@@ -261,8 +330,14 @@ class Demo9MidFightScene extends Scene {
                                         this.delayCounter = 20;
                                     }
                                     else {
-                                        this.parent.parentScene.startSubScene3();
-                                        this.parent.setDead();
+                                        this.parent.parentScene.fadeOuter.fadeIn(() => {
+                                            this.parent.parentScene.startSubScene3();
+                                            this.parent.parentScene.fadeOuter.fadeOut(() => {})
+                                            this.parent.setDead();
+
+                                            
+                                        })
+                                        
                                     }
                                 }
     
@@ -342,7 +417,8 @@ class Demo9MidFightScene extends Scene {
                 init() {
                     //[[-10, 0], [0,-8], [-8,0], [0,-6], [-6, 0], [0, -4], [-4, 0]]
                     this.currentY = 0;
-                    let count = 4;
+                    //let count = 4;
+                    let count = 2;
                     let yClampChange = easing.createProps(count, -6, -2, 'quad', 'inOut');
                     this.yClamps = []
                     for(let i = 0; i <=count; i++){
@@ -388,8 +464,16 @@ class Demo9MidFightScene extends Scene {
                             }
                             else {
                                 this.unregTimer(this.timer);
-                                this.parentScene.subScene1.startDelay();
-                                this.setDead();
+                                this.parentScene.fadeOuter.fadeIn(() => {
+                                    this.setDead();
+                                    this.parentScene.subScene1.startDelay();
+                                    this.parentScene.fadeOuter.fadeOut(() => {
+                                        
+                                    })
+                                })
+                                
+                                
+                                
                             }
                             
                         }
