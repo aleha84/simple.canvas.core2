@@ -2,7 +2,7 @@ class Demo9MidFightScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -16,6 +16,12 @@ class Demo9MidFightScene extends Scene {
     }
     startSubScene3() {
         this.grass.forEach(g => g.isVisible = true);
+
+        this.delayTimer = this.registerTimer(createTimer(8000, () => {
+            this.unregTimer(this.delayTimer);
+            this.delayTimer = undefined;
+            this.fadeOuter.fadeIn(() => {});
+        }, this, false));
     }
     start(){
 
@@ -48,7 +54,101 @@ class Demo9MidFightScene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.knightSize,
             init() {
-                this.img = PP.createImage(Demo9MidFightScene.models.knightIdle)
+                this.body = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    init() {
+
+                        this.imgFrames = PP.createImage(Demo9MidFightScene.models.knightIdleFrames)
+                        this.currentFrame = 0;
+
+                        this.timer = this.regTimerDefault(1000, () => {
+                            this.currentFrame++;
+                            if(this.currentFrame == this.imgFrames.length){
+                                this.currentFrame = 0;
+                            }
+
+                            this.img = this.imgFrames[this.currentFrame];
+                        }) 
+                    }
+                }))
+
+                this.head = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    init() {
+
+                        this.imgFrames = PP.createImage(Demo9MidFightScene.models.headRotationFrames)
+                        this.currentFrame = 0;
+                        this.delayCounter = 0;
+                        this.timer = this.regTimerDefault(150, () => {
+                            if(this.delayCounter > 0){
+                                this.delayCounter--;
+                                return;
+                            }
+
+                            this.currentFrame++;
+                            if(this.currentFrame == this.imgFrames.length){
+                                this.delayCounter = getRandomInt(5,10);
+                                this.currentFrame = 0;
+                            }
+
+                            this.img = this.imgFrames[this.currentFrame];
+                        }) 
+                    }
+                }))
+
+                this.sword = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    init() {
+
+                        this.imgFrames = PP.createImage(Demo9MidFightScene.models.swordAnimationFrames)
+                        this.currentFrame = 0;
+                        this.delayCounter = 0;
+                        this.timer = this.regTimerDefault(150, () => {
+                            if(this.delayCounter > 0){
+                                this.delayCounter--;
+                                return;
+                            }
+
+                            this.currentFrame++;
+                            if(this.currentFrame == this.imgFrames.length){
+                                this.delayCounter = getRandomInt(20,30);
+                                this.currentFrame = 0;
+                            }
+
+                            this.img = this.imgFrames[this.currentFrame];
+                        }) 
+                    }
+                }))
+
+                this.shield = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    init() {
+
+                        this.imgFrames = PP.createImage(Demo9MidFightScene.models.shieldAnimationFrames)
+                        this.currentFrame = 0;
+                        this.delayCounter = 0;
+                        this.timer = this.regTimerDefault(150, () => {
+                            if(this.delayCounter > 0){
+                                this.delayCounter--;
+                                return;
+                            }
+
+                            this.currentFrame++;
+                            if(this.currentFrame == this.imgFrames.length){
+                                this.delayCounter = getRandomInt(20,30);
+                                this.currentFrame = 0;
+                            }
+
+                            this.img = this.imgFrames[this.currentFrame];
+                        }) 
+                    }
+                }))
+                //this.img = PP.createImage(Demo9MidFightScene.models.knightIdle)
+                
             }
         }), 1)
 
@@ -241,46 +341,33 @@ class Demo9MidFightScene extends Scene {
         }
 
         this.enemyImg = PP.createImage(Demo9MidFightScene.models.enemyIdle)
-        this.enemy1 = this.addGo(new GO({
-            position: new V2(40, 270),
+        this.enemyFrames = PP.createImage(Demo9MidFightScene.models.enemyIdleFrames)
+        this.enemyP = [new V2(40, 270), new V2(90, 245), new V2(130, 255), new V2(165, 265)]
+        this.enemies = this.enemyP.map(p => this.addGo(new GO({
+            position: p,
             size: new V2(50,30),
-            img: this.enemyImg
-            // init() {
-            //     //
-            // }
-        }), 270)
+            img: this.enemyImg,
+            imgFrames:this.enemyFrames,
+            init() {
+                this.currentFrame= 0;
+                this.timer = this.regTimerDefault(1000, () => {
 
-        this.enemy2 = this.addGo(new GO({
-            position: new V2(90, 245),
-            size: new V2(50,30),
-            img: this.enemyImg
-            // init() {
-            //     //
-            // }
-        }), 245)
+                    this.currentFrame++;
+                    if(this.currentFrame == this.imgFrames.length){
+                        this.currentFrame = 0;
+                    
+                    }
 
-        this.enemy3 = this.addGo(new GO({
-            position: new V2(130, 255),
-            size: new V2(50,30),
-            img: this.enemyImg
-            // init() {
-            //     //
-            // }
-        }), 255)
+                    this.img = this.imgFrames[this.currentFrame];
+                }) 
+            }
+        }), p.y))
 
-        this.enemy4 = this.addGo(new GO({
-            position: new V2(165, 265),
-            size: new V2(50,30),
-            img: this.enemyImg
-            // init() {
-            //     //
-            // }
-        }), 265)
 
         this.fadeOuter = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            isVisible: false,
+            isVisible: true,
             init() {
                 this.frames = [];
                 this.count = 10;
@@ -293,6 +380,9 @@ class Demo9MidFightScene extends Scene {
                         hlp.setFillColor(`rgba(0,0,0,${a})`).rect(0,0,size.x, size.y);
                     });
                 }
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
             },
             fadeIn(callback) {
                 this.isVisible=  true
@@ -326,6 +416,15 @@ class Demo9MidFightScene extends Scene {
             }
         }), 501)
 
+        this.delayTimer = this.registerTimer(createTimer(2000, () => {
+            this.unregTimer(this.delayTimer);
+            this.delayTimer = undefined;
+            this.fadeOuter.fadeOut(() => {
+                this.subScene2.startAnimation();
+            })
+        }, this, false));
+
+        
         //return;
         this.subScene1 = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -448,7 +547,8 @@ class Demo9MidFightScene extends Scene {
                             hlp.rect(x, 220-getRandomInt(0,8), 1, 8);
                         }
                     }),
-                    helmet: PP.createImage(Demo9MidFightScene.models.helmModel)
+                    helmet: PP.createImage(Demo9MidFightScene.models.helmModel, {exclude: ['body']}),
+                    body: PP.createImage(Demo9MidFightScene.models.helmModel, {renderOnly: ['body']})
                 },
                 init() {
                     //[[-10, 0], [0,-8], [-8,0], [0,-6], [-6, 0], [0, -4], [-4, 0]]
@@ -465,31 +565,12 @@ class Demo9MidFightScene extends Scene {
                         this.yClamps.push([y,0])
                     }
 
-                    // this.addChild(new GO({
-                    //     position: new V2(-66,-21),
-                    //     size: new V2(6,2),
-                    //     img1: createCanvas(new V2(6,2), (ctx, size, hlp) => {
-                    //         hlp.setFillColor('rgba(255,255,255,0.3)').dot(0,1).dot(1,1).dot(2,1).dot(2,0).dot(5,0);
-                    //         hlp.setFillColor('rgba(255,255,255,0.65)').dot(3,0).dot(4,0);
-                    //     }),
-                    //     img2: createCanvas(new V2(6,2), (ctx, size, hlp) => {
-                    //         hlp.setFillColor('rgba(255,255,255,0.3)').dot(0,0).dot(1,0).dot(2,0).dot(5,0);
-                    //         hlp.setFillColor('rgba(255,255,255,0.65)').dot(3,0).dot(4,0);
-                    //     }),
-                    //     init() {
-                    //         this.toggle = false;
-                    //         this.originalPosition = this.position.clone();
-                    //         this.img = this.img1;
-                    //         this.timer = this.regTimerDefault(150, () => {
-                    //             this.toggle = !this.toggle;
-                    //             // this.position.y = this.originalPosition.y+(this.toggle ? 1 : 0);
 
-                    //             // this.needRecalcRenderProperties = true;
-                    //             this.img = this.toggle ? this.img2 : this.img1;
-                    //         })
-                    //     }
-                    // }))
-
+                    
+                   
+                   this.createImage();
+                },
+                startAnimation() {
                     this.timer = this.regTimerDefault(50, () => {
                         easing.commonProcess({context: this, targetpropertyName: 'currentY', propsName: 'yChange', round: false, callbacksUseContext: true, removePropsOnComplete: true });
                         if(this.yChange == undefined){
@@ -515,13 +596,11 @@ class Demo9MidFightScene extends Scene {
                         }
                         this.createImage();
                     })
-                   
-                   this.createImage();
                 },
                 createImage() {
                     this.img = createCanvas(this.size, (ctx, size, hlp) => {
                         ctx.drawImage(this.images.bg,0,this.currentY)
-                        
+                        ctx.drawImage(this.images.body,0,-this.currentY/2)
                         ctx.drawImage(this.images.helmet,0,0)
                     })
                 }
