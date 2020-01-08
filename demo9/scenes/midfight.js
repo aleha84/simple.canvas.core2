@@ -554,8 +554,8 @@ class Demo9MidFightScene extends Scene {
                     //[[-10, 0], [0,-8], [-8,0], [0,-6], [-6, 0], [0, -4], [-4, 0]]
                     this.currentY = 0;
                     //let count = 4;
-                    let count = 3;
-                    let yClampChange = easing.createProps(count, -6, -4, 'quad', 'inOut');
+                    let count = 4;
+                    let yClampChange = easing.createProps(count, -6, -6, 'quad', 'inOut');
                     this.yClamps = []
                     for(let i = 0; i <=count; i++){
                         
