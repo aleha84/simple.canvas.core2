@@ -6,12 +6,17 @@ class EditorScene extends Scene {
                 restrictBySpace: false
             },
             events: {
+                checkTextInput() {
+                    return document.activeElement.type == 'text' 
+                    || document.activeElement.type == 'textarea' 
+                    || (document.activeElement.tagName.toLowerCase() == 'input' && document.activeElement.type == 'number' )
+                },
                 down: () => {
-                    if(document.activeElement && (document.activeElement.type == 'text' || document.activeElement.type == 'textarea' ))
+                    if(document.activeElement && this.events.checkTextInput())
                         document.activeElement.blur();
                 },
                 keyup: (event) => {
-                    if(document.activeElement && (document.activeElement.type == 'text' || document.activeElement.type == 'textarea' ))
+                    if(document.activeElement && this.events.checkTextInput())
                         return;
 
                    // console.log(this, event, event.keyCode)
@@ -154,10 +159,9 @@ class EditorScene extends Scene {
 
         this.editor = new Editor({
             parentElementSelector: '.controlsWrapper',
-            renderCallback: this.renderModel.bind(this)
-        })
-
-        
+            renderCallback: this.renderModel.bind(this),
+            mainGo: this.mainGo
+        });
     }
 
     renderModel(model){

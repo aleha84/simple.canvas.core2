@@ -877,7 +877,7 @@ var components = {
         return arr; // for testing
     },
     createDraggablePanel({parent, title, position, closable = false, panelClassNames = [], expandable = true, contentWidth = undefined, contentItems = [],
-        onClose = () => {}
+        onClose = () => {}, onCreate = () => {}
     }) {
         let editorBr = parent.querySelector('#editor').getBoundingClientRect();
         let panelBr = undefined;
@@ -993,6 +993,8 @@ var components = {
 
         dragPanel.onmousedown  = events.dragStart;
 
+        onCreate();
+
         return {
             panel,
             panelHeader,
@@ -1037,6 +1039,29 @@ var components = {
         container.setValue = (value) => {
             color1.setValue(value);
         }
+
+        return container;
+    },
+
+    createRotationControl(angleChangeCallback) {
+        let container = htmlUtils.createElement('div');
+
+        let angleValueWrapper = htmlUtils.createElement('div', { classNames: ['inputBox', 'rowFlex'] });
+        angleValueWrapper.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Angle' }))
+        let angleValue = htmlUtils.createElement('input', { classNames: ['marginLeft5', 'paddingLeft2'], attributes: { type: 'number' }, value: '0',events: {
+            change: (event) => {
+                let value = angleValue.value;
+                let parsed = parseInt(value);
+                if(isNaN(parsed))
+                    parsed = 0;
+                    
+                angleChangeCallback(parsed);
+            }
+        } });
+        angleValue.style.width = '30px';
+        angleValueWrapper.appendChild(angleValue);
+        
+        container.appendChild(angleValueWrapper);
 
         return container;
     }

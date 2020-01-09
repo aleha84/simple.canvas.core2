@@ -30,6 +30,10 @@ class Editor {
                             that.editor.panels.colorPicker.remove();
                         }
 
+                        if(this.value == 'rotate' && value != 'rotate' && that.editor.panels.rotate){
+                            that.editor.panels.rotate.remove();
+                        }
+
                         value = value || this.value;
                         this.value = value
                         let text = '';
@@ -43,6 +47,8 @@ class Editor {
                                 text = '"Move group" mode'; break;
                             case 'colorpick':
                                 text = '"Color pick" mode'; break;
+                            case 'rotate':
+                                text = '"Rotate" mode'; break;
                         }
                         
                         this.stateElement.innerText = text;
@@ -58,6 +64,9 @@ class Editor {
                     },
                     toggleColorPicker() {
                         this.setValue(this.value == 'colorpick' ? 'edit' : 'colorpick');
+                    },
+                    toggleRotate() {
+                        this.setValue(this.value == 'rotate' ? 'edit' : 'rotate');
                     }
                 },
                 getModeState() {
@@ -117,6 +126,7 @@ class Editor {
                     ]
                 }
             },
+            mainGo: undefined,
             parentElementSelector: '',
             parentElement: undefined,
             renderCallback: function(){ console.log(this) }
@@ -192,9 +202,109 @@ class Editor {
                             cp.contentItems[0].setValue(value);
                         }
                     }
-                    
                 }
-            } })
+            } }),
+            htmlUtils.createElement('input', { value: 'Rotate',  attributes: { type: 'button' }, events: {
+                click: function() {
+                    if(that.editor.panels.rotate){
+                        that.editor.panels.rotate.remove();
+                        return;
+                    }
+
+                    if(that.editor.selected.groupId == undefined){
+                        alert('No group selected!');
+                        return;
+                    }
+
+                    let layer = that.image.main.layers.filter(l => l.id == that.editor.selected.layerId)[0];
+                    let group = layer.groups.filter(g => g.id == that.editor.selected.groupId)[0];
+                    if(group.points.length < 2){
+                        alert('Current group has to few points!');
+                        return;
+                    }
+
+                    
+                    that.editor.mode.toggleRotate();
+                    that.updateEditor();
+
+                    let rDemo = undefined;
+                    let angleChangeCallback = (angle) => {
+                        rDemo.createImage(angle);
+                    }
+
+                    let rotate = components.createDraggablePanel({
+                        title: 'Rotate', 
+                        parent: document.body, 
+                        position: new V2(80,60), 
+                        closable: true,
+                        expandable: false,
+                        onClose: () => { 
+                            that.editor.panels.rotate = undefined;
+                            that.mainGo.removeChild(that.mainGo.rDemo);
+                            that.editor.mode.toggleRotate();
+                            that.updateEditor();
+                            
+                        },
+                        onCreate: () => {
+                            console.log(that.mainGo)
+                            that.mainGo.rDemo = that.mainGo.addChild(new GO({
+                                position: new V2(),
+                                size: that.mainGo.size.clone(),
+                                init() {
+                                    let groupMapped = modelUtils.groupMapper(group, true);
+                                    this.originPoints = groupMapped.points;
+                                    let size = new V2(that.image.general.originalSize);
+
+                                    this.rotationOrigin = new V2();
+                                    this.model = {
+                                        general: {
+                                            size
+                                        },
+                                        main: {
+                                            layers: [
+                                                {
+                                                    visible: true,
+                                                    groups: [
+                                                        {
+                                                            ...groupMapped,
+                                                            points: this.originPoints,
+                                                            strokeColor: 'rgba(255,255,255,0.75)',
+                                                            fillColor: 'rgba(255,255,255,0.5)',
+                                                            visible: true
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                    
+                                    this.createImage(0);
+                                    
+                                },
+                                createImage(angle) {
+                                    this.angle = angle;
+                                    this.model.main.layers[0].groups[0].points = 
+                                        this.originPoints.map(p => {
+                                            return {
+                                                ...p,
+                                                point: new V2(p.point).substract(this.rotationOrigin, true).rotate(this.angle, false, true).add(this.rotationOrigin, true).toInt(true)
+                                            };
+                                        })
+
+                                    this.img = PP.createImage(this.model)
+                                }
+                            }));
+
+                            rDemo = that.mainGo.rDemo;
+                        },
+                        contentItems: [
+                            components.createRotationControl(angleChangeCallback)
+                        ]
+                    });
+
+                    that.editor.panels.rotate = rotate;
+                }
+            }})
         ]});
         //createDraggablePanel({title: 'closable', parent: document.body, position: new V2(20,60), closable: true});
     }

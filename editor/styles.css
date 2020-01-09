@@ -90,6 +90,10 @@ html,
         clear: both;
       }
 
+      .rowFlex {
+        display: flex;
+      }
+
     .V2>.value.edit > .read,
     .inputBox>.value.edit > .read {
         display: none;
@@ -254,4 +258,12 @@ html,
 
     .panel.utilities .content.visible {
       display: block;
+    }
+
+    .marginLeft5 {
+      margin-left: 5px;
+    }
+
+    .paddingLeft2 {
+      padding-left: 2px;
     }
