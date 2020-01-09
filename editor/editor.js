@@ -228,8 +228,8 @@ class Editor {
                     that.updateEditor();
 
                     let rDemo = undefined;
-                    let angleChangeCallback = (angle) => {
-                        rDemo.createImage(angle);
+                    let angleChangeCallback = (angle, origin) => {
+                        rDemo.createImage(angle, origin);
                     }
 
                     let rotate = components.createDraggablePanel({
@@ -238,6 +238,7 @@ class Editor {
                         position: new V2(80,60), 
                         closable: true,
                         expandable: false,
+                        contentWidth: 220,
                         onClose: () => { 
                             that.editor.panels.rotate = undefined;
                             that.mainGo.removeChild(that.mainGo.rDemo);
@@ -271,7 +272,15 @@ class Editor {
                                                             strokeColor: 'rgba(255,255,255,0.75)',
                                                             fillColor: 'rgba(255,255,255,0.5)',
                                                             visible: true
-                                                        }
+                                                        },
+                                                        {
+                                                            strokeColor: 'rgba(0,255,0,0.5)',
+                                                            visible: true,
+                                                            type: 'dots',
+                                                            points: [{
+                                                                point: this.rotationOrigin
+                                                            }]
+                                                        },
                                                     ]
                                                 }
                                             ]
@@ -281,8 +290,17 @@ class Editor {
                                     this.createImage(0);
                                     
                                 },
-                                createImage(angle) {
-                                    this.angle = angle;
+                                createImage(angle, rotationOrigin) {
+                                    if(rotationOrigin){
+                                        this.rotationOrigin = rotationOrigin;
+
+                                        this.model.main.layers[0].groups[1].points[0].point = this.rotationOrigin;
+                                    }
+
+                                    if(angle != undefined){
+                                        this.angle = angle;
+                                    }
+                                    
                                     this.model.main.layers[0].groups[0].points = 
                                         this.originPoints.map(p => {
                                             return {
@@ -298,7 +316,7 @@ class Editor {
                             rDemo = that.mainGo.rDemo;
                         },
                         contentItems: [
-                            components.createRotationControl(angleChangeCallback)
+                            components.createRotationControl(angleChangeCallback, new V2())
                         ]
                     });
 
@@ -339,6 +357,10 @@ class Editor {
     }
 
     updateEditor() {
+        if(this.editor.panels.rotate){
+            this.editor.panels.rotate.remove();
+        }
+
         this.controlsHeightSet();
         this.renderCallback(this.prepareModel(undefined, { singleFrame: true}));
     }
