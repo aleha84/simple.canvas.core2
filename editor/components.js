@@ -1059,7 +1059,7 @@ var components = {
         return container;
     },
 
-    createRotationControl(angleChangeCallback, rotationOrigin) {
+    createRotationControl(angleChangeCallback, rotationOrigin, applyCallback) {
         let container = htmlUtils.createElement('div');
 
         let currentAngle = 0;
@@ -1092,9 +1092,21 @@ var components = {
             angleChangeCallback(angleRange.current);
         }, { rowClassName: 'rowFlex' });
 
+        let applyBtn = htmlUtils.createElement('input', {
+            attributes: { 
+                type: 'button', 
+                value: 'Apply' 
+            },
+            events: { 
+                click: function(e) { 
+                    applyCallback();
+                } }
+        });
+
         container.appendChild(angleValueWrapper);
         container.appendChild(range);
         container.appendChild(rOrigin);
+        container.appendChild(applyBtn);
 
         return container;
     }

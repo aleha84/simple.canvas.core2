@@ -218,10 +218,20 @@ class Editor {
 
                     let layer = that.image.main.layers.filter(l => l.id == that.editor.selected.layerId)[0];
                     let group = layer.groups.filter(g => g.id == that.editor.selected.groupId)[0];
+                    
                     if(group.points.length < 2){
                         alert('Current group has to few points!');
                         return;
                     }
+
+                    
+                    let allX = group.points.map(p => p.point.x);
+                    let allY = group.points.map(p => p.point.y);
+                    let minX = Math.min.apply(null, allX);
+                    let maxX = Math.max.apply(null, allX);
+                    let minY = Math.min.apply(null, allY);
+                    let maxY = Math.max.apply(null, allY);
+                    let rotationOrigin = new V2((minX+maxX)/2, (minY+maxY)/2).toInt();
 
                     
                     that.editor.mode.toggleRotate();
@@ -247,7 +257,7 @@ class Editor {
                             
                         },
                         onCreate: () => {
-                            console.log(that.mainGo)
+                            //console.log(that.mainGo)
                             that.mainGo.rDemo = that.mainGo.addChild(new GO({
                                 position: new V2(),
                                 size: that.mainGo.size.clone(),
@@ -256,7 +266,7 @@ class Editor {
                                     this.originPoints = groupMapped.points;
                                     let size = new V2(that.image.general.originalSize);
 
-                                    this.rotationOrigin = new V2();
+                                    this.rotationOrigin = rotationOrigin;
                                     this.model = {
                                         general: {
                                             size
@@ -310,13 +320,25 @@ class Editor {
                                         })
 
                                     this.img = PP.createImage(this.model)
+                                },
+                                getCurrentPoints() {
+                                    return this.model.main.layers[0].groups[0].points;
                                 }
                             }));
 
                             rDemo = that.mainGo.rDemo;
                         },
                         contentItems: [
-                            components.createRotationControl(angleChangeCallback, new V2())
+                            components.createRotationControl(angleChangeCallback, rotationOrigin, () => {
+                                let currentPoints = rDemo.getCurrentPoints();
+                                currentPoints.forEach((modifiedPoint,i) => {
+                                    //group.points[i].point = p.toPlain();
+                                    group.points.filter(targetPoint => targetPoint.id == modifiedPoint.id)[0].point = modifiedPoint.point;
+                                });
+
+                                components.fillPoints(group, that.updateEditor.bind(that))
+                                that.updateEditor();
+                            })
                         ]
                     });
 
