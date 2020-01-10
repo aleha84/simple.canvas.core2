@@ -1,0 +1,135 @@
+class Demo9TrainScene extends Scene {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            debug: {
+                enabled: true,
+                showFrameTimeLeft: true,
+                additional: [],
+            },
+        }, options)
+        super(options);
+    }
+
+    backgroundRender() {
+        this.backgroundRenderDefault('#362013');
+    }
+
+    start(){
+        this.background = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.main = this.addChild(new GO({
+                    size: this.size,
+                    position: new V2(),
+                    img: PP.createImage(Demo9TrainScene.models.background)
+                }))
+            }
+        }), 1)
+
+        this.wires = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    let pp = new PerfectPixel({ctx});
+                    pp.setFillStyle('#1F0A07');
+                    let lines = [{from: {x: 51, y: 0},to: {x: 199,y: 12} }, {from: {x: 0, y: 66},to: {x: 199,y: 78} }]
+                    lines.forEach(l => {
+                        pp.lineL(l)
+                    })
+
+                    lines = [{from: {x: 0, y: 35},to: {x: 199,y: 46} }, {from: {x: 0, y: 37},to: {x: 199,y: 54} },
+                        {from: {x: 0, y: 53},to: {x: 199,y: 60} },  {from: {x: 0, y: 77},to: {x: 199,y: 81} }, {from: {x: 0, y: 84},to: {x: 199,y: 94} }]
+
+                    pp.setFillStyle('#2b150d');
+                    lines.forEach(l => {
+                        pp.lineL(l)
+                    })
+                })
+            }
+        }), 4)
+
+        this.train = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.main = this.addChild(new GO({
+                    size: this.size,
+                    position: new V2(),
+                    img: PP.createImage(Demo9TrainScene.models.train)
+                }))
+            }
+        }), 5)
+
+        this.foreground = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.main = this.addChild(new GO({
+                    size: this.size,
+                    position: new V2(),
+                    img: PP.createImage(Demo9TrainScene.models.foreground)
+                }))
+
+                this.snowflakes = this.addChild(new GO({
+                    size: this.size,
+                    position: new V2(),
+                    init() {
+                        this.mask = createCanvas(this.size, (ctx, size, hlp) => {
+                            let maskCorners = [new V2(45,35), new V2(78,18), new V2(94,10), new V2(100,8), new V2(107,7), new V2(118,10), new V2(124,14), new V2(131,22), new V2(136,31)
+                                , new V2(139,39), new V2(148,41), new V2(157,35), new V2(165,29), new V2(172,26), new V2(181,26), new V2(191,31), new V2(199,38), new V2(199,199), new V2(0,199), new V2(0,59)];
+
+                            let lightEmitters = [new V2(104,19),new V2(105,19),new V2(106,19),new V2(107,20),new V2(108,20),new V2(109,21),new V2(110,21),new V2(111,21)
+                                ,new V2(112,22),new V2(113,22),new V2(114,23),new V2(115,23),new V2(116,23),new V2(117,24),
+                                new V2(169,30),new V2(170,30),new V2(171,29),new V2(172,29),new V2(173,29),new V2(174,29),new V2(175,29),new V2(176,28),new V2(177,28),new V2(178,28),new V2(179,28),new V2(180,28),new V2(181,28),new V2(182,28),
+                            ]
+
+                            let pp = new PerfectPixel({ctx});
+                            let maxDistance = 100;
+                            let aChange = easing.createProps(maxDistance, 1, 0.1, 'quad', 'out');
+
+                            pp.fillStyleProvider = (x,y) => {
+                                let p = new V2(x,y);
+
+                                let dd = lightEmitters.map(l => ({
+                                    distance: l.distance(p),
+                                    direction: l.direction(p)
+                                }));
+
+
+
+                                let closesDistanceToLight = Math.min.apply(null, dd.map(l => l.distance));
+                                let closestDirection = dd.filter(l => l.distance == closesDistanceToLight)[0].direction;
+
+                                // if(closestDirection.y < 0){
+                                //     closesDistanceToLight *=2;
+                                // }
+
+                                closesDistanceToLight = fast.r(closesDistanceToLight);
+
+                                //let closestDirection = 
+                                if(closesDistanceToLight > maxDistance)
+                                    closesDistanceToLight = maxDistance;
+
+                                aChange.time = closesDistanceToLight;
+                                let a = easing.process(aChange);
+
+                                return `rgba(255,255,255,${a})`;
+                            }
+
+                            pp.fillByCornerPoints(maskCorners)
+                        })
+
+                        this.img = this.mask;
+                    },
+                    createImage() {
+
+                    }
+                }));
+            }
+        }), 10)
+
+        console.log(this.foreground)
+    }
+}

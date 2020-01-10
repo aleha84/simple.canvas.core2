@@ -230,6 +230,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: small200_300_Viewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9TrainScene({
+        name:'train',
+        viewport: smallSquareDefaultViewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
