@@ -76,6 +76,7 @@ class Demo9TrainScene extends Scene {
                     size: this.size,
                     position: new V2(),
                     init() {
+
                         this.mask = createCanvas(this.size, (ctx, size, hlp) => {
                             let maskCorners = [new V2(45,35), new V2(78,18), new V2(94,10), new V2(100,8), new V2(107,7), new V2(118,10), new V2(124,14), new V2(131,22), new V2(136,31)
                                 , new V2(139,39), new V2(148,41), new V2(157,35), new V2(165,29), new V2(172,26), new V2(181,26), new V2(191,31), new V2(199,38), 
@@ -147,7 +148,7 @@ class Demo9TrainScene extends Scene {
 
                                 distanceLe = fast.r(distanceLe);
                                 let distanceLEtoLP = fast.r(segmentIntersection.distance(closestLe));
-                                let aChange = easing.createProps(distanceLEtoLP, 1, 0, 'quad', 'out');
+                                let aChange = easing.createProps(distanceLEtoLP, 1, 0.1, 'quad', 'out');
                                 aChange.time = distanceLe > distanceLEtoLP ? distanceLEtoLP : distanceLe;
                                 let a = easing.process(aChange);
 
@@ -160,34 +161,61 @@ class Demo9TrainScene extends Scene {
 
                         //this.img = this.mask;
                         //this.createImage();
+                        this.speedClamps =   [0.25,0.75]
                         this.dots = [];
-                        this.dotsCount = 500;
+                        this.dotsCount = 1000;
                         for(let i = 0; i < this.dotsCount; i++){
                             let pointX = getRandomInt(0,this.size.x)
                             let pointY = getRandomInt(0,this.size.y)
             
-                            this.dots.push(new V2(pointX, pointY))
+                            //this.dots.push(new V2(pointX, pointY))
+                            this.dots.push(this.pointGenerator(true));
                         }
-                        this.timer = this.regTimerDefault(30, () => {
-
-
-
+                        this.timer = this.regTimerDefault(15, () => {
                             this.createImage();
                         })
                     },
+                    pointGenerator(init = false) {
+                        let point = {
+                            position: new V2(init ? getRandomInt(0, this.size.x) : getRandomInt(-this.size.x, this.size.x*2), init? getRandomInt(0, this.size.y) : -1),
+                            speed:  V2.right.rotate(getRandomInt(45,135)).mul(getRandom(this.speedClamps[0],this.speedClamps[1])),
+                            alive: true,
+                        };
+
+                        point.originSpeed = point.speed.clone();
+                        point.speedXChangeDirection = 1;
+                        //point.speedXChange = easing.createProps(getRandomInt(50,150), point.speed.x, point.speedXChangeDirection*point.originSpeed.x, 'quad', 'inOut')
+
+                        return point;
+                    },
                     createImage() {
                         let snowImg = createCanvas(this.size, (ctx, size, hlp) => {
-                            hlp.setFillColor('#BCCCCE');
+                            //hlp.setFillColor('#BCCCCE');
+                            hlp.setFillColor('#f6fbfd')
                             for(let i = 0; i < this.dots.length; i++){
-                                hlp.dot(this.dots[i].x, fast.r(this.dots[i].y));
+                                let dot = this.dots[i];
+                                hlp.dot(fast.r(dot.position.x), fast.r(dot.position.y));
 
-                                this.dots[i].y+=0.5
+                                dot.position.add(dot.speed, true)//y+=0.5
+
+                                if(!dot.speedXChange){
+                                    dot.speedXChangeDirection*=-1;
+                                    dot.speedXChange = easing.createProps(getRandomInt(50,150), dot.speed.x, dot.speedXChangeDirection*dot.originSpeed.x, 'quad', 'inOut')
+                                }
+                                else {
+                                    easing.commonProcess({
+                                        context: dot, propsName: 'speedXChange', removePropsOnComplete: true, setter: (value) => {dot.speed.x = value;}
+                                    })
+
+                                    //dot.speed.x = easing.process(dot.speedXChange);
+                                }
                             }
 
-                            this.dots = this.dots.filter(d => d.y < size.y);
+                            this.dots = this.dots.filter(d => d.position.y < size.y && d.position.x >= 0 && d.position.x < size.x);
 
                             while(this.dots.length < this.dotsCount){
-                                this.dots.push(new V2(getRandomInt(0,size.x), 0))
+                                //this.dots.push(new V2(getRandomInt(0,size.x), 0))
+                                this.dots.push(this.pointGenerator());
                             }
                         })
 
