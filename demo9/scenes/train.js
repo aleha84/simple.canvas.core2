@@ -233,16 +233,16 @@ class Demo9TrainScene extends Scene {
                         this.frames = [
                         ]
 
-                        for(let i = 0; i < 10; i++){
-                            let rotate = getRandomInt(-45,45);
-                            let xClamps = [-this.size.x, this.size.x];
-                            if(rotate > 0){
-                                xClamps = [0, this.size.x*2];
-                            }
+                        // for(let i = 0; i < 10; i++){
+                        //     let rotate = getRandomInt(-45,45);
+                        //     let xClamps = [-this.size.x, this.size.x];
+                        //     if(rotate > 0){
+                        //         xClamps = [0, this.size.x*2];
+                        //     }
 
-                            this.frames[this.frames.length] = this.createFrames({ framesCount: 250*getRandomInt(1,3), 
-                                direction: V2.down.rotate(rotate), dotsCount: 300, xClamps: xClamps })
-                        }
+                        //     this.frames[this.frames.length] = this.createFrames({ framesCount: 250*getRandomInt(1,3), 
+                        //         direction: V2.down.rotate(rotate), dotsCount: 300, xClamps: xClamps })
+                        // }
 
                         this.snowflakesLayers = this.frames.map(f => 
                             this.addChild(new GO({
