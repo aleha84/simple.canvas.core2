@@ -77,6 +77,10 @@ class EditorGO extends GO {
                     };
                 },
                 down: function(relativePosition) {
+                    if(this.model.editor.mode == 'add'){
+                        SCG.viewport.scrollOptions.enabled = false;
+                    }
+
                     if(this.model.editor.mode == 'movelayer' && this.model.editor.selectedLayer){
                         this.drag.downOn = {
                             index: new V2(
@@ -105,6 +109,7 @@ class EditorGO extends GO {
                         d.disable();
                     }
                     else if(this.model.editor.mode == 'add'){
+                        SCG.viewport.scrollOptions.enabled = true;
                         let e = this.model.editor;
                         let sg = e.selectedLayer.selectedGroup
                         if(!sg){

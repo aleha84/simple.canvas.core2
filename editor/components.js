@@ -1,6 +1,6 @@
 var components = {
-    createRange(value, title, changeCallback) {
-        let el = htmlUtils.createElement('div', { classNames: ['range', 'row'] });
+    createRange(value, title, changeCallback, inputCallback, params = {}) {
+        let el = htmlUtils.createElement('div', { classNames: ['range', params.rowClassName ? params.rowClassName : 'row'] });
         if(title){    
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
         }
@@ -21,7 +21,17 @@ var components = {
 
                         currentValueElement.innerText = value.current;
                         changeCallback(event.target, value.current);
-                    }
+                    },
+                    input: inputCallback ? (event) => {
+                        if(value.round){
+                            value.current = fast.r(parseFloat(event.target.value), value.round);
+                        }
+                        else 
+                            value.current = parseInt(event.target.value);
+
+                        currentValueElement.innerText = value.current;
+                        inputCallback(value.current);
+                    } : () => {}
                 }
              }))
 
@@ -29,6 +39,12 @@ var components = {
 
              divValue.appendChild(currentValueElement);
              el.label = currentValueElement;
+
+             el.setValue = (newValue) => {
+                currentValueElement.innerText = newValue.toString();
+                el.range.value = newValue.toString();
+                value.current = newValue;
+             }
 
              return divValue;
         })());
@@ -81,8 +97,8 @@ var components = {
 
         return el;
     },
-    createV2(value, title, changeCallback) {
-        let el = htmlUtils.createElement('div', { classNames: ['V2', 'row'] });
+    createV2(value, title, changeCallback, params = {}) {
+        let el = htmlUtils.createElement('div', { classNames: ['V2', params.rowClassName ? params.rowClassName : 'row'] });
 
         if(title){    
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
@@ -877,7 +893,7 @@ var components = {
         return arr; // for testing
     },
     createDraggablePanel({parent, title, position, closable = false, panelClassNames = [], expandable = true, contentWidth = undefined, contentItems = [],
-        onClose = () => {}
+        onClose = () => {}, onCreate = () => {}
     }) {
         let editorBr = parent.querySelector('#editor').getBoundingClientRect();
         let panelBr = undefined;
@@ -993,6 +1009,8 @@ var components = {
 
         dragPanel.onmousedown  = events.dragStart;
 
+        onCreate();
+
         return {
             panel,
             panelHeader,
@@ -1037,6 +1055,58 @@ var components = {
         container.setValue = (value) => {
             color1.setValue(value);
         }
+
+        return container;
+    },
+
+    createRotationControl(angleChangeCallback, rotationOrigin, applyCallback) {
+        let container = htmlUtils.createElement('div');
+
+        let currentAngle = 0;
+        let angleRange = {current: currentAngle, max: 180, min: -180, step: 1, round: 0};
+
+        let angleValueWrapper = htmlUtils.createElement('div', { classNames: ['inputBox', 'rowFlex'] });
+        angleValueWrapper.appendChild(htmlUtils.createElement('div', { className: 'title', text: 'Angle' }))
+        let angleValue = htmlUtils.createElement('input', { classNames: ['marginLeft5', 'paddingLeft2'], attributes: { type: 'number' }, value: currentAngle.toString(),events: {
+            change: (event) => {
+                let value = angleValue.value;
+                let parsed = parseInt(value);
+                if(isNaN(parsed))
+                    parsed = 0;
+                    
+                currentAngle = parsed;
+                angleChangeCallback(parsed);
+                range.setValue(parsed);
+            }
+        } });
+        angleValue.style.width = '30px';
+        angleValueWrapper.appendChild(angleValue);
+        
+        let rOrigin = components.createV2(rotationOrigin, 'Origin', (value) => {
+            angleChangeCallback(undefined, rotationOrigin);
+        }, { rowClassName: 'rowFlex' })
+
+        let range = components.createRange(angleRange, 'Angle', () => {}, (value) => {
+            //console.log(angleRange.current);
+            angleValue.value = value.toString();
+            angleChangeCallback(angleRange.current);
+        }, { rowClassName: 'rowFlex' });
+
+        let applyBtn = htmlUtils.createElement('input', {
+            attributes: { 
+                type: 'button', 
+                value: 'Apply' 
+            },
+            events: { 
+                click: function(e) { 
+                    applyCallback();
+                } }
+        });
+
+        container.appendChild(angleValueWrapper);
+        container.appendChild(range);
+        container.appendChild(rOrigin);
+        container.appendChild(applyBtn);
 
         return container;
     }

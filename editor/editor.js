@@ -30,6 +30,10 @@ class Editor {
                             that.editor.panels.colorPicker.remove();
                         }
 
+                        if(this.value == 'rotate' && value != 'rotate' && that.editor.panels.rotate){
+                            that.editor.panels.rotate.remove();
+                        }
+
                         value = value || this.value;
                         this.value = value
                         let text = '';
@@ -43,6 +47,8 @@ class Editor {
                                 text = '"Move group" mode'; break;
                             case 'colorpick':
                                 text = '"Color pick" mode'; break;
+                            case 'rotate':
+                                text = '"Rotate" mode'; break;
                         }
                         
                         this.stateElement.innerText = text;
@@ -58,6 +64,9 @@ class Editor {
                     },
                     toggleColorPicker() {
                         this.setValue(this.value == 'colorpick' ? 'edit' : 'colorpick');
+                    },
+                    toggleRotate() {
+                        this.setValue(this.value == 'rotate' ? 'edit' : 'rotate');
                     }
                 },
                 getModeState() {
@@ -117,6 +126,7 @@ class Editor {
                     ]
                 }
             },
+            mainGo: undefined,
             parentElementSelector: '',
             parentElement: undefined,
             renderCallback: function(){ console.log(this) }
@@ -192,9 +202,149 @@ class Editor {
                             cp.contentItems[0].setValue(value);
                         }
                     }
-                    
                 }
-            } })
+            } }),
+            htmlUtils.createElement('input', { value: 'Rotate',  attributes: { type: 'button' }, events: {
+                click: function() {
+                    if(that.editor.panels.rotate){
+                        that.editor.panels.rotate.remove();
+                        return;
+                    }
+
+                    if(that.editor.selected.groupId == undefined){
+                        alert('No group selected!');
+                        return;
+                    }
+
+                    let layer = that.image.main.layers.filter(l => l.id == that.editor.selected.layerId)[0];
+                    let group = layer.groups.filter(g => g.id == that.editor.selected.groupId)[0];
+                    
+                    if(group.points.length < 2){
+                        alert('Current group has to few points!');
+                        return;
+                    }
+
+                    
+                    let allX = group.points.map(p => p.point.x);
+                    let allY = group.points.map(p => p.point.y);
+                    let minX = Math.min.apply(null, allX);
+                    let maxX = Math.max.apply(null, allX);
+                    let minY = Math.min.apply(null, allY);
+                    let maxY = Math.max.apply(null, allY);
+                    let rotationOrigin = new V2((minX+maxX)/2, (minY+maxY)/2).toInt();
+
+                    
+                    that.editor.mode.toggleRotate();
+                    that.updateEditor();
+
+                    let rDemo = undefined;
+                    let angleChangeCallback = (angle, origin) => {
+                        rDemo.createImage(angle, origin);
+                    }
+
+                    let rotate = components.createDraggablePanel({
+                        title: 'Rotate', 
+                        parent: document.body, 
+                        position: new V2(80,60), 
+                        closable: true,
+                        expandable: false,
+                        contentWidth: 220,
+                        onClose: () => { 
+                            that.editor.panels.rotate = undefined;
+                            that.mainGo.removeChild(that.mainGo.rDemo);
+                            that.editor.mode.toggleRotate();
+                            that.updateEditor();
+                            
+                        },
+                        onCreate: () => {
+                            //console.log(that.mainGo)
+                            that.mainGo.rDemo = that.mainGo.addChild(new GO({
+                                position: new V2(),
+                                size: that.mainGo.size.clone(),
+                                init() {
+                                    let groupMapped = modelUtils.groupMapper(group, true);
+                                    this.originPoints = groupMapped.points;
+                                    let size = new V2(that.image.general.originalSize);
+
+                                    this.rotationOrigin = rotationOrigin;
+                                    this.model = {
+                                        general: {
+                                            size
+                                        },
+                                        main: {
+                                            layers: [
+                                                {
+                                                    visible: true,
+                                                    groups: [
+                                                        {
+                                                            ...groupMapped,
+                                                            points: this.originPoints,
+                                                            strokeColor: 'rgba(255,255,255,0.75)',
+                                                            fillColor: 'rgba(255,255,255,0.5)',
+                                                            visible: true
+                                                        },
+                                                        {
+                                                            strokeColor: 'rgba(0,255,0,0.5)',
+                                                            visible: true,
+                                                            type: 'dots',
+                                                            points: [{
+                                                                point: this.rotationOrigin
+                                                            }]
+                                                        },
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                    
+                                    this.createImage(0);
+                                    
+                                },
+                                createImage(angle, rotationOrigin) {
+                                    if(rotationOrigin){
+                                        this.rotationOrigin = rotationOrigin;
+
+                                        this.model.main.layers[0].groups[1].points[0].point = this.rotationOrigin;
+                                    }
+
+                                    if(angle != undefined){
+                                        this.angle = angle;
+                                    }
+                                    
+                                    this.model.main.layers[0].groups[0].points = 
+                                        this.originPoints.map(p => {
+                                            return {
+                                                ...p,
+                                                point: new V2(p.point).substract(this.rotationOrigin, true).rotate(this.angle, false, true).add(this.rotationOrigin, true).toInt(true)
+                                            };
+                                        })
+
+                                    this.img = PP.createImage(this.model)
+                                },
+                                getCurrentPoints() {
+                                    return this.model.main.layers[0].groups[0].points;
+                                }
+                            }));
+
+                            rDemo = that.mainGo.rDemo;
+                        },
+                        contentItems: [
+                            components.createRotationControl(angleChangeCallback, rotationOrigin, () => {
+                                let currentPoints = rDemo.getCurrentPoints();
+                                currentPoints.forEach((modifiedPoint,i) => {
+                                    //group.points[i].point = p.toPlain();
+                                    group.points.filter(targetPoint => targetPoint.id == modifiedPoint.id)[0].point = modifiedPoint.point;
+                                });
+
+                                components.fillPoints(group, that.updateEditor.bind(that))
+                                that.updateEditor();
+                            })
+                        ]
+                    });
+
+                    that.editor.panels.rotate = rotate;
+                }
+            }})
         ]});
         //createDraggablePanel({title: 'closable', parent: document.body, position: new V2(20,60), closable: true});
     }
@@ -229,6 +379,10 @@ class Editor {
     }
 
     updateEditor() {
+        if(this.editor.panels.rotate){
+            this.editor.panels.rotate.remove();
+        }
+
         this.controlsHeightSet();
         this.renderCallback(this.prepareModel(undefined, { singleFrame: true}));
     }
