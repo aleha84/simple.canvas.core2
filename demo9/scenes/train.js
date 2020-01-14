@@ -2,7 +2,7 @@ class Demo9TrainScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -42,7 +42,7 @@ class Demo9TrainScene extends Scene {
                     lines = [{from: {x: 0, y: 35},to: {x: 199,y: 46} }, {from: {x: 0, y: 37},to: {x: 199,y: 54} },
                         {from: {x: 0, y: 53},to: {x: 199,y: 60} },  {from: {x: 0, y: 77},to: {x: 199,y: 81} }, {from: {x: 0, y: 84},to: {x: 199,y: 94} }]
 
-                    pp.setFillStyle('#2b150d');
+                    pp.setFillStyle('#200B03');
                     lines.forEach(l => {
                         pp.lineL(l)
                     })
@@ -233,16 +233,16 @@ class Demo9TrainScene extends Scene {
                         this.frames = [
                         ]
 
-                        // for(let i = 0; i < 10; i++){
-                        //     let rotate = getRandomInt(-45,45);
-                        //     let xClamps = [-this.size.x, this.size.x];
-                        //     if(rotate > 0){
-                        //         xClamps = [0, this.size.x*2];
-                        //     }
+                        for(let i = 0; i < 10; i++){
+                            let rotate = getRandomInt(-45,45);
+                            let xClamps = [-this.size.x, this.size.x];
+                            if(rotate > 0){
+                                xClamps = [0, this.size.x*2];
+                            }
 
-                        //     this.frames[this.frames.length] = this.createFrames({ framesCount: 250*getRandomInt(1,3), 
-                        //         direction: V2.down.rotate(rotate), dotsCount: 300, xClamps: xClamps })
-                        // }
+                            this.frames[this.frames.length] = this.createFrames({ framesCount: 250*getRandomInt(1,3), 
+                                direction: V2.down.rotate(rotate), dotsCount: 300, xClamps: xClamps })
+                        }
 
                         this.snowflakesLayers = this.frames.map(f => 
                             this.addChild(new GO({
@@ -250,12 +250,27 @@ class Demo9TrainScene extends Scene {
                                 size: this.size, 
                                 frames: f,
                                 init() {
+                                    // this.shouldRed = this.frames.length == 750;
+                                    // this.shouldRedFireCounter = 2;
                                     this.currentFrame = 0;
                                     this.timer = this.regTimerDefault(15, () => {
-            
+                                        
+
                                         this.img = this.frames[this.currentFrame++];
                                         if(this.currentFrame == this.frames.length){
                                             this.currentFrame = 0;
+                                            // if(this.shouldRed){
+                                            //     this.shouldRedFireCounter--
+                                            //     if(this.shouldRedFireCounter == 0){
+                                            //         this.addChild(new GO({
+                                            //             position: new V2(),
+                                            //             size: this.size,
+                                            //             img: createCanvas(this.size, (ctx, size, hlp) => {
+                                            //                 hlp.setFillStyle('red').strokeRect(0,0,size.x, size.y);
+                                            //             })
+                                            //         }))
+                                            //     }
+                                            // }
                                         }
                                     })
                                 }
