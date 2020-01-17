@@ -11,10 +11,16 @@ class RyanBusScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault('#352C2A');
+        this.backgroundRenderDefault('#3E3F43');
     }
 
     start(){
+        this.mountains = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            img: PP.createImage(RyanBusScene.models.mountains)
+        }), 1)
+
         this.road = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
