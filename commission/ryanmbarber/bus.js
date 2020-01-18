@@ -2,7 +2,7 @@ class RyanBusScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -40,7 +40,7 @@ class RyanBusScene extends Scene {
                 this.maskPointsProps1 = {
                     vFrom: 45,
                     vTo: 100,
-                    aFrom: 0.25,
+                    aFrom: 0.5,
                     aTo: 1
                 }
 
@@ -48,22 +48,24 @@ class RyanBusScene extends Scene {
                     vFrom: 15,
                     vTo: 100,
                     aFrom: 0.05,
-                    aTo: 0.5
+                    aTo: 0.75
                 }
 
                 this.maskPoints1 = [];
                 this.maskPoints2 = [];
+                this.maskPoints3 = [];
+                this.maskPoints4 = [];
                 let maskCorners = RyanBusScene.models.getLightMask().main.layers[0].groups[0].points.map(p => new V2(p.point));
                 let lightEmitters = RyanBusScene.models.getLightMask().main.layers[0].groups[1].points.map(p => new V2(p.point));
                 let maskLinePoints = [];
 
-                let leMaxDistance = fast.r(lightEmitters.reduce((acc, cur, index) => {   
-                    let distanceToOtherEmitters = lightEmitters.filter(le => le != cur).map(le => le.distance(cur));
-                    let max = Math.max.apply(null, distanceToOtherEmitters)
+                // let leMaxDistance = fast.r(lightEmitters.reduce((acc, cur, index) => {   
+                //     let distanceToOtherEmitters = lightEmitters.filter(le => le != cur).map(le => le.distance(cur));
+                //     let max = Math.max.apply(null, distanceToOtherEmitters)
                     
-                    if(max > acc) return max;
-                    return acc;
-                    }, 0));
+                //     if(max > acc) return max;
+                //     return acc;
+                //     }, 0));
 
                 let lines = [];
                 for(let i = 0; i < maskCorners.length;i++){
@@ -210,7 +212,35 @@ class RyanBusScene extends Scene {
                     }
                 }
 
+                this.maskPointsProps3 = {
+                    vFrom: 50,
+                    vTo: 50,
+                    aFrom: 0.5,
+                    aTo: 1
+                }
 
+                let rgb3 = hsvToRgb(197,2,this.maskPointsProps3.vFrom, false, true);
+                let color3 = `rgba(${rgb3.r}, ${rgb3.g}, ${rgb3.b}, ${this.maskPointsProps3.aFrom})` 
+                
+                for(let y = 0; y < this.size.y; y++){
+                    this.maskPoints3[y] = new Array(this.size.x).fill(color3);
+                }
+
+                this.maskPointsProps4 = {
+                    vFrom: 40,
+                    vTo: 50,
+                    aFrom: 0.3,
+                    aTo: 1
+                }
+
+                let rgb4 = hsvToRgb(197,2,this.maskPointsProps4.vFrom, false, true);
+                let color4 = `rgba(${rgb4.r}, ${rgb4.g}, ${rgb4.b}, ${this.maskPointsProps4.aFrom})` 
+                for(let y = 0; y < this.size.y; y++){
+                    this.maskPoints4[y] = new Array(this.size.x).fill(color4);
+                }
+
+
+                this.frames = [];
                 this.frames = [
                     this.createFrames({ framesCount: 100,  direction: V2.down.rotate(getRandomInt(25,45)), dotsCount: 50, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints1 }),
                     this.createFrames({ framesCount: 100,  direction: V2.down.rotate(getRandomInt(25,45)), dotsCount: 50, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints1 }),
@@ -221,10 +251,58 @@ class RyanBusScene extends Scene {
                     this.createFrames({ framesCount: 200,  direction: V2.down.rotate(getRandomInt(25,45)), dotsCount: 300, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints1 }),
                     this.createFrames({ framesCount: 200,  direction: V2.down.rotate(getRandomInt(25,45)), dotsCount: 300, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints1 }),
                     this.createFrames({ framesCount: 200,  direction: V2.down.rotate(getRandomInt(25,45)), dotsCount: 300, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints1 }),
-                    // this.createFrames({ framesCount: 200,  direction: V2.down.rotate(getRandomInt(25,45)), dotsCount: 300, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints1 }),
-                    // this.createFrames({ framesCount: 200,  direction: V2.down.rotate(getRandomInt(25,45)), dotsCount: 300, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints1 }),
+
                     this.createFrames({ framesCount: 300,  direction: V2.down.rotate(getRandomInt(25,45)), dotsCount: 1000, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints2 }),
                 ]
+
+                this.parentScene.addGo(new GO({
+                    position: new V2(this.parentScene.sceneCenter.x, this.parentScene.sceneCenter.y-50),
+                    size: this.parentScene.viewport,
+                    frames: this.createFrames({ framesCount: 400,  direction: V2.down.rotate(35), dotsCount: 1000, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints3 }),
+                    init() {
+                        this.currentFrame = 0;
+                        this.timer = this.regTimerDefault(15, () => {
+                            
+
+                            this.img = this.frames[this.currentFrame++];
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+
+                            }
+                        })
+                    }
+                }),2)
+
+                this.parentScene.addGo(new GO({
+                    position: new V2(this.parentScene.sceneCenter.x, this.parentScene.sceneCenter.y-100),
+                    size: this.parentScene.viewport,
+                    frames: this.createFrames({ framesCount: 600,  direction: V2.down.rotate(30), dotsCount: 2000, xClamps: [0, this.size.x*2], maskPoints: this.maskPoints4 }),
+                    init() {
+                        this.shouldRed = true;
+                        this.shouldRedFireCounter = 4;
+                        this.currentFrame = 0;
+                        this.timer = this.regTimerDefault(15, () => {
+                             
+                            this.img = this.frames[this.currentFrame++];
+                            //console.log(this.currentFrame, this.shouldRedFireCounter)
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                                if(this.shouldRed){
+                                    this.shouldRedFireCounter--
+                                    if(this.shouldRedFireCounter == 0){
+                                        this.addChild(new GO({
+                                            position: new V2(),
+                                            size: this.size,
+                                            img: createCanvas(this.size, (ctx, size, hlp) => {
+                                                hlp.setFillStyle('red').strokeRect(0,0,size.x, size.y);
+                                            })
+                                        }))
+                                    }
+                                }
+                            }
+                        })
+                    }
+                }),2)
 
                 // for(let i = 0; i < 5; i++){
                 //     let rotate = getRandomInt(25,45);
@@ -244,8 +322,7 @@ class RyanBusScene extends Scene {
                         size: this.size, 
                         frames: f,
                         init() {
-                            // this.shouldRed = this.frames.length == 750;
-                            // this.shouldRedFireCounter = 2;
+
                             this.currentFrame = 0;
                             this.timer = this.regTimerDefault(15, () => {
                                 
@@ -253,18 +330,7 @@ class RyanBusScene extends Scene {
                                 this.img = this.frames[this.currentFrame++];
                                 if(this.currentFrame == this.frames.length){
                                     this.currentFrame = 0;
-                                    // if(this.shouldRed){
-                                    //     this.shouldRedFireCounter--
-                                    //     if(this.shouldRedFireCounter == 0){
-                                    //         this.addChild(new GO({
-                                    //             position: new V2(),
-                                    //             size: this.size,
-                                    //             img: createCanvas(this.size, (ctx, size, hlp) => {
-                                    //                 hlp.setFillStyle('red').strokeRect(0,0,size.x, size.y);
-                                    //             })
-                                    //         }))
-                                    //     }
-                                    // }
+
                                 }
                             })
                         }
