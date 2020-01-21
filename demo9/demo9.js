@@ -235,6 +235,12 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: smallSquareDefaultViewport
     }));
 
+    SCG.scenes.cacheScene(new Demo9MetroScene({
+        name:'metro',
+        viewport: smallSquareDefaultViewport
+    }));
+    
+
     sceneSelectByHashValue();
     
     SCG.main.start();
