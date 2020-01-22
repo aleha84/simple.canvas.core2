@@ -81,7 +81,7 @@ class Demo9Metro2Scene extends Scene {
                     let circleRadiusChange = easing.createProps(steps, 0, fast.r(size.divide(2).distance(new V2(size.x, 0))), 'quad', 'in');
                     let cOriginYShiftChange = easing.createProps(steps, 0, 20, 'quad', 'in');
                     let cOriginXShiftChange = easing.createProps(steps, 0, -40, 'quad', 'in');
-                    hlp.setFillStyle('yellow')
+                    hlp.setFillStyle('#3A2916')
                     for(let i =1; i <= steps; i++){
                         circleRadiusChange.time = i;
                         cOriginYShiftChange.time = i;
@@ -94,6 +94,10 @@ class Demo9Metro2Scene extends Scene {
                     }
 
                     //hlp.setFillColor('#382A1A').rect(0, pCenter.y, size.x, size.y);
+                    
+                    pp.setFillStyle('#1E0E05');
+                    pp.fillByCornerPoints([new V2(199,129), pCenter, new V2(199,146)])
+
                     pp.setFillStyle('#382A1A');
                     pp.fillByCornerPoints([new V2(66,199), pCenter, new V2(165,199)])
 
@@ -115,7 +119,22 @@ class Demo9Metro2Scene extends Scene {
                     pp.setFillStyle('#592913');
                     pp.fillByCornerPoints([new V2(199, 139), pCenter, new V2(199,162)])
 
-                    hlp.setFillStyle('blue').dot(0,27).dot(104,61).dot(refCircleCenter.x, refCircleCenter.y)
+                    pp.setFillStyle('#382814');
+                    pp.fillByCornerPoints([new V2(28, 199), pCenter, new V2(42,199)])
+
+                    pp.setFillStyle('#1D1509');
+                    pp.fillByCornerPoints([new V2(8, 199), pCenter, new V2(33,199)])
+
+                    pp.setFillStyle('#090603');
+                    pp.fillByCornerPoints([new V2(28, 199), pCenter, new V2(33,199)])
+
+                    pp.setFillStyle('#1D1509');
+                    pp.fillByCornerPoints([new V2(0, 135), pCenter, new V2(0,144)])
+
+                    pp.setFillStyle('#090603');
+                    pp.fillByCornerPoints([new V2(0, 140), pCenter, new V2(0,144)])
+
+                    //hlp.setFillStyle('blue').dot(0,27).dot(104,61).dot(refCircleCenter.x, refCircleCenter.y)
                     //
                     /*
                     
