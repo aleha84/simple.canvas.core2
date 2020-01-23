@@ -25,6 +25,21 @@ class Demo9Metro2Scene extends Scene {
                     size: this.size,
                     img: PP.createImage(Demo9Metro2Scene.models.person)
                 }));
+
+                this.hairs = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Demo9Metro2Scene.models.hairsFrames),
+                    init() {
+                        this.currentFrame = 0;
+                        this.timer = this.regTimerDefault(100, () => {
+                            this.img = this.frames[this.currentFrame++];
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    },
+                })); 
             }
         }), 5)
 
