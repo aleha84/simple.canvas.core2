@@ -2,7 +2,7 @@ class Demo9Metro2Scene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -49,7 +49,7 @@ class Demo9Metro2Scene extends Scene {
             init() {
                 this.colorsCache = {};
                 this.hsvMap = [];
-               this.framesCount = 10; //40
+               this.framesCount = 40;
                 this.frames = new Array(this.framesCount).fill().map((el, i) => this.createFrame(i))
 
                 this.currentFrame = 0;
@@ -57,6 +57,16 @@ class Demo9Metro2Scene extends Scene {
                     this.img = this.frames[this.currentFrame++];
                     if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
+
+                        if(!this.frame){
+                            this.frame = this.addChild(new GO({
+                                position: new V2(),
+                                size: this.size,
+                                img: createCanvas(this.size, (ctx, size, hlp) => {
+                                    hlp.setFillStyle('red').strokeRect(0,0,size.x, size.y);
+                                })
+                            }))
+                        }
                     }
                 })
             },
@@ -177,6 +187,12 @@ class Demo9Metro2Scene extends Scene {
                     let detailDirection = pCenter.direction(detailTarget);
                     let detailDistance = pCenter.distance(detailTarget);
                     let detailDistanceChange = easing.createProps(totalSteps, 0, detailDistance, 'quad', 'in');
+
+                    let detailLenChange1 = easing.createProps(totalSteps, 1, 20, 'quad', 'in');
+                    let detailTarget1 = new V2(0, 80);
+                    let detailDirection1 = pCenter.direction(detailTarget1);
+                    let detailDistance1 = pCenter.distance(detailTarget1);
+                    let detailDistanceChange1 = easing.createProps(totalSteps, 0, detailDistance1, 'quad', 'in');
                     
                     hlp.setFillStyle('#3A2916')
                     for(let i =0; i <= steps; i++){ 
@@ -202,6 +218,16 @@ class Demo9Metro2Scene extends Scene {
                         let len = fast.r(easing.process(detailLenChange));
                         let p = pCenter.add(detailDirection.mul(easing.process(detailDistanceChange))).toInt();
                         pp.lineV2(p, p.add(detailDirection.mul(len)).toInt());
+
+                        // detailLenChange1.time = currentStep;
+                        // detailDistanceChange1.time = currentStep;
+                        // len = fast.r(easing.process(detailLenChange1));
+                        // p = pCenter.add(detailDirection1.mul(easing.process(detailDistanceChange)*1.2)).toInt();
+                        // pp.fillStyleProvider = (x,y) => {
+                        //     return fillStyleProvider('#443016',x,y,2);
+                        // }
+                        // pp.lineV2(p, p.add(detailDirection1.mul(len)).toInt());
+                        // pp.fillStyleProvider = undefined;
                     }
 
                     
@@ -266,12 +292,31 @@ class Demo9Metro2Scene extends Scene {
                         }
                     }
 
+                    let drawHLines = ({targetPoint, targetWidth, baseColor}) => {
+                        let hLinesCount = 5;
+                        let totalLinesSteps = this.framesCount*hLinesCount;
+                        let dir1 = pCenter.direction(targetPoint);
+                        let distance1 = fast.r(pCenter.distance(targetPoint));
+                        let distanceChange = easing.createProps(totalLinesSteps, 0,distance1, 'quad', 'in');
+                        let widthChange = easing.createProps(totalLinesSteps, 0,targetWidth, 'quad', 'in');
+                        for(let i = 0; i <= hLinesCount; i++){
+                            let currentStep = fast.r((i*this.framesCount)+frameIndex);
+                            distanceChange.time = currentStep;
+                            widthChange.time = currentStep;
+                            let p = pCenter.add(dir1.mul( fast.r(easing.process(distanceChange)))).toInt();
+                            hlp.setFillStyle(fillStyleProvider(baseColor,p.x,p.y,2)).rect(p.x,p.y, fast.r(easing.process(widthChange)), 1);
+                        }
+                    }
+
+                    
                     //pp.setFillStyle('#592913');
                     pp.fillStyleProvider = (x,y) => {
                         return fillStyleProvider('#592913',x,y,2);
                     }
                     pp.fillByCornerPoints([new V2(0,112), pCenter, new V2(0,122)])
-                    
+
+                    //drawHLines({ targetPoint: new V2(-50,119), targetWidth: 50, baseColor: '#492110' })
+
                     //pp.setFillStyle('#382416');
                     pp.fillStyleProvider = (x,y) => {
                         return fillStyleProvider('#382416',x,y,2);
@@ -287,6 +332,8 @@ class Demo9Metro2Scene extends Scene {
                         }
                     pp.fillByCornerPoints([new V2(0,141), pCenter, new V2(41,199), bl])
                     
+                    drawHLines({ targetPoint: raySegmentIntersectionVector2(pCenter, pCenter.direction(new V2(0,141)),{begin: new V2(-size.x,this.size.y), end: new V2(0, this.size.y)}), targetWidth: 150, baseColor: '#492110' })
+
 
                     //pp.setFillStyle('#382416');
                     pp.fillStyleProvider = (x,y) => {
@@ -311,6 +358,8 @@ class Demo9Metro2Scene extends Scene {
                         return fillStyleProvider('#592913',x,y,2);
                     }
                     pp.fillByCornerPoints([new V2(199, 139), pCenter, new V2(199,162)])
+
+                    drawHLines({ targetPoint: new V2(199,151), targetWidth: 50, baseColor: '#492110' })
 
                     //pp.setFillStyle('#382814');
                     pp.fillStyleProvider = (x,y) => {
