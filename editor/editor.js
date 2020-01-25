@@ -470,6 +470,32 @@ class Editor {
                     })
                     components.fillPoints(g, that.updateEditor.bind(that))
                     callback();
+                },
+                addPointsCallback(points) {
+                    if(!points || points.lenght == 0)
+                        return;
+                        
+                    let callback = that.updateEditor.bind(that);
+                    if(g.currentPointId == undefined){
+                        g.currentPointId = 0;
+                    }
+
+                    for(let i = 0; i< points.length; i++){
+                        let p = points[i];
+                        let nextPointId = `${g.id}_p_${g.currentPointId++}`;
+                        while(g.points.filter(p => p.id == nextPointId).length > 0){
+                            nextPointId = `${g.id}_p_${g.currentPointId++}`;
+                        }
+
+                        g.points.push({
+                            id: nextPointId,
+                            order: g.points.length,
+                            point: {x: p.x, y: p.y},
+                        })
+                    }
+
+                    components.fillPoints(g, that.updateEditor.bind(that))
+                    callback();
                 }
             }
         }
