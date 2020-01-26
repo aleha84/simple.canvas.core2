@@ -75,6 +75,7 @@ var modelUtils = {
             type: 'dots',
             pointsEl: undefined,
             pointEl: undefined,
+            showPoints: false,
             points: []
         }
     }
