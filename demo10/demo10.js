@@ -22,14 +22,15 @@ document.addEventListener("DOMContentLoaded", function() {
     let verticalDefaultViewport = new V2(300,500);
     let squareDefaultViewport = new V2(300,300);
     let smallSquareDefaultViewport = new V2(200,200);
+    let _200_250_viewport = new V2(200,250);
     let small200_300_Viewport = new V2(200, 300);
     let small300_200_Viewport = new V2(300, 200);
     
     
 
     SCG.scenes.cacheScene(new Demo10ParadeScene({
-        name:'metro',
-        viewport: smallSquareDefaultViewport
+        name:'rain1',
+        viewport: _200_250_viewport
     }));
     
 

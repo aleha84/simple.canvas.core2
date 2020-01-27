@@ -522,6 +522,10 @@ var components = {
 
         groupEl.appendChild(components.createSelect(groupProps.type, ['dots','lines'],'Type', function(value){
             groupProps.type = value;
+            groupProps.showPoints = value == 'lines';
+            //console.log(groupProps.showPoints);
+            components.fillPoints(groupProps, changeCallback) 
+
             changeCallback();
         } ))
 
@@ -782,6 +786,11 @@ var components = {
         }
 
         htmlUtils.removeChilds(pointsEl);
+
+        if(!groupProps.showPoints){
+            pointsEl.appendChild(htmlUtils.createElement('div', { text: 'Points hidden' }))
+            return;
+        }
 
         let removePointCallback = function(e, select) {
             points = points.filter(p => p.id != select.value);  
