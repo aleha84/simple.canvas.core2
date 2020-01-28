@@ -100,5 +100,111 @@ class Demo10ParadeScene extends Scene {
                 }))
             }
         }), 5)
+
+        this.rainFramesGenerator = ({framesCount, xClamps, color1,color2, dropsCount, lCamps, targetParams}) => {
+            let direction = V2.down;
+            let count = dropsCount;
+            let positions = [];
+            let result = [];
+            for(let i = 0; i < count; i++){
+                let x= getRandomInt(xClamps[0], xClamps[1]);
+                let start = new V2(x, -20);
+                let target = new V2(x, this.viewport.y/2);
+
+                if(targetParams){
+                    let lowerY = targetParams.lowerY;
+                    let upperY = undefined;
+                    let line = {begin:start , end: new V2(x, lowerY)};
+                    for(let pi = 0; pi < targetParams.upperPoints.length-2; pi++){
+                        let l2 = {begin:targetParams.upperPoints[pi] , end: targetParams.upperPoints[pi+1]};
+                        let intersection = segmentsIntersectionVector2_1_noV2(line, l2);
+                        if(intersection){
+                            upperY = fast.r(intersection.y);
+                            break;
+                        }
+                    }
+
+                    target.y = getRandomInt(upperY, lowerY);
+                }
+
+                let distance = start.distance(target);
+
+                let dChange = easing.createProps(framesCount-1, 0, distance, 'linear', 'base');
+                positions[i] = {
+                    points: [],
+                    startIndex: getRandomInt(0, framesCount-1),
+                    length: getRandomInt(lCamps[0], lCamps[1])
+                }
+
+                let points = positions[i].points;
+
+                for(let frameIndex = 0; frameIndex < framesCount; frameIndex++){
+                    dChange.time = frameIndex;
+                    let d = easing.process(dChange);
+                    points[frameIndex] = start.add(direction.mul(d)).toInt();
+                }
+            }
+
+            for(let f = 0; f < framesCount; f++){
+                result[f] = createCanvas(this.viewport, (ctx, size, hlp) => {
+                    
+                    for(let dropIndex = 0; dropIndex < positions.length; dropIndex++){
+                        let drop = positions[dropIndex];
+                        let currentPIndex = drop.startIndex + f;
+                        if(currentPIndex > (drop.points.length - 1)){
+                            currentPIndex -= drop.points.length;
+                        }
+
+                        let p = drop.points[currentPIndex];
+
+                        hlp.setFillColor(color1).rect(p.x, p.y-drop.length, 1, drop.length);
+                        hlp.setFillColor(color2).rect(p.x, p.y-2, 1, 2);
+                    }
+                })
+            }
+
+            return result;
+        }
+
+        let that = this;
+
+        this.rainUpper = this.addGo(new GO({
+            position: new V2(this.sceneCenter.x+2, this.sceneCenter.y),
+            size:  this.viewport.clone(),
+            init() {
+                let targetParams = { lowerY: 121, upperPoints: [
+                    new V2(76,121),new V2(84,115),new V2(92,109),new V2(100,108),new V2(107,109),new V2(114,111),new V2(119,116),new V2(124,120)
+                ] }
+
+                let colors = [
+                    {c1:'#647277',  c2:'#6D7B7F'},
+                    {c1:'#768281',  c2:'#7F8C8B'},
+                    {c1: '#566264', c2: '#637072'},
+                    {c1: '#B8B8B0', c2: '#C4C4BC'},
+                    {c1: '#979d99', c2: '#A3A8A4'}
+                    
+                ]
+
+                this.dropw = colors.map((params) => this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: that.rainFramesGenerator({ framesCount: 40, xClamps: [76,121], color1: params.c1, 
+                    color2: params.c2, dropsCount: 40, lCamps: [3,5], targetParams }),
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+        
+                        this.timer = this.regTimerDefault(15, () => {
+            
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                })))
+            }
+        }), 8)
     }
 }

@@ -428,13 +428,15 @@ class Editor {
                                         select.options[i].text = `x: ${p.point.x}, y: ${p.point.y}`
                                     }
                                 }
-
-                                if(!skipEventDispatch)
-                                    select.dispatchEvent(new Event('change'));
                             }
-                            
-                            g.points.forEach(_p => p.selected = false);
+
+                            g.points.forEach(_p => _p.selected = false);
                             p.selected = true;
+
+                            if(!skipEventDispatch){
+                                that.updateEditor.bind(that)();
+                            }
+                                
                         },
                         selectCallback() {
                             let select = g.pointsEl.querySelector('select');
@@ -445,8 +447,16 @@ class Editor {
 
                                 select.dispatchEvent(new CustomEvent('change', { detail: 'skipSelectChangeCallback' }));
                             }
+                            else {
+                                e.selected.pointId = p.id;
+                                e.removeSelectedPoint = () => {
+                                    g.points = g.points.filter(gp => gp.id != p.id);  
+                                    g.points.forEach((p, i) => {p.order = i; p.selected = false});
+                                    that.updateEditor.bind(that)();
+                                };
+                            }
                             
-                            g.points.forEach(_p => p.selected = false);
+                            g.points.forEach(_p => _p.selected = false);
                             p.selected = true;
                         }
                     }
@@ -474,7 +484,7 @@ class Editor {
                 addPointsCallback(points) {
                     if(!points || points.lenght == 0)
                         return;
-                        
+
                     let callback = that.updateEditor.bind(that);
                     if(g.currentPointId == undefined){
                         g.currentPointId = 0;
