@@ -32,7 +32,7 @@ class Demo10ParadeScene extends Scene {
                     hlp.setFillColor('#3E4E59').rect(37,0, 125, 120); // средняя глубина
                     hlp.setFillColor('#37454F').rect(61, 0, 77, 120) // центральная секция
                     hlp.setFillColor('#2A3843').rect(37, 0, 1, 120).rect(61, 0, 1, 120).rect(138, 0, 1, 120).rect(162, 0, 1, 120) // темные вертикали
-                    hlp.setFillColor('#34434e').rect(38, 0, 1, 120).rect(161, 0, 1, 120) // полутона в средней части
+                    hlp.setFillColor('#34434e').rect(38, 0, 1, 120).rect(161, 0, 1, 120).rect(38,119,23,1).rect(139, 119, 22, 1) // полутона в средней части
                     hlp.setFillColor('#313f49').rect(62, 0, 1, 120).rect(137, 0, 1, 120) // полутона в центральной части
                     //
                     hlp.setFillColor('#4C606D').rect(61,98, 78, 77).setFillColor('#42535e').rect(61,97,78,1)
@@ -44,7 +44,8 @@ class Demo10ParadeScene extends Scene {
                     .rect(0,10+37, 3, 1).rect(11,10+37, 6, 1).rect(24,10+37, 7, 1)
                     .rect(3,20+37, 8, 1).rect(17,20+37, 8, 1).rect(31,20+37, 6, 1)
                     .rect(0,10+74, 3, 1).rect(11,10+74, 6, 1).rect(24,10+74, 7, 1)
-                    .rect(3,20+74, 8, 1).rect(17,20+74, 8, 1).rect(31,20+74, 6, 1);
+                    .rect(3,20+74, 8, 1).rect(17,20+74, 8, 1).rect(31,20+74, 6, 1)
+                    .rect(0,119, 37, 1).rect(163,119, 37, 1)
 
                     let outerWindowsP = [
                         new V2(10,-10), new V2(24,-10),new V2(-4,-10), new V2(169,-10), new V2(183,-10), new V2(197,-10),
@@ -71,6 +72,24 @@ class Demo10ParadeScene extends Scene {
 
                     innerWindowsP.forEach(
                         (p) => drawWindow({p, s: new V2(7, 17), cOuter: '#2A4050', cInner: '#1F3A4D', cUpperShadow: '#1D313E'}))
+
+                    innerWindowsP.forEach(
+                        (p) => drawWindow({p, s: new V2(7, 17), cOuter: '#2A4050', cInner: '#1F3A4D', cUpperShadow: '#1D313E'}))
+
+                    let lowerWindowsP = [
+                        new V2(10,98), new V2(24,98),new V2(-4,98), new V2(169,98), new V2(183,98), new V2(197,98),
+                    ]
+
+                    lowerWindowsP.forEach(
+                        (p) => drawWindow({p, s: new V2(7, 17), cOuter: '#233846', cInner: '#1C343E', cUpperShadow: '#1D313E'}))
+
+                    let lowerMidWindowsP = [
+                        
+                        new V2(40,100), new V2(49,100), new V2(145,100), new V2(154,100)
+                    ]
+
+                    lowerMidWindowsP.forEach(
+                        (p) => drawWindow({p, s: new V2(6, 13), cOuter: '#233846', cInner: '#1C343E', cUpperShadow: '#1D313E'}))
 
                     hlp.setFillColor('#132E48').rect(0,175,size.x, 75)
                 })
