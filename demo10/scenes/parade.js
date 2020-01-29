@@ -38,14 +38,21 @@ class Demo10ParadeScene extends Scene {
                     hlp.setFillColor('#4C606D').rect(61,98, 78, 77).setFillColor('#42535e').rect(61,97,78,1)
 
                     //дополнительные линии
-                    hlp.setFillColor('#394A54').rect(2,0,1, 120).rect(10,0,1, 120).rect(16,0,1, 120).rect(24,0,1, 120).rect(30,0,1, 120)
-                    .rect(0,10, 3, 1).rect(11,10, 6, 1).rect(24,10, 7, 1)
-                    .rect(3,20, 8, 1).rect(17,20, 8, 1).rect(31,20, 6, 1)
-                    .rect(0,10+37, 3, 1).rect(11,10+37, 6, 1).rect(24,10+37, 7, 1)
-                    .rect(3,20+37, 8, 1).rect(17,20+37, 8, 1).rect(31,20+37, 6, 1)
-                    .rect(0,10+74, 3, 1).rect(11,10+74, 6, 1).rect(24,10+74, 7, 1)
-                    .rect(3,20+74, 8, 1).rect(17,20+74, 8, 1).rect(31,20+74, 6, 1)
-                    .rect(0,119, 37, 1).rect(163,119, 37, 1)
+                    for(let i = 0; i < 2; i++){
+                        let x = i == 0 ? 0 : 173
+
+                        hlp.setFillColor('#394A54').rect(x-4,0,1, 120).rect(x+2,0,1, 120).rect(x+10,0,1, 120).rect(x+16,0,1, 120).rect(x+24,0,1, 120).rect(x+30,0,1, 120)
+                    .rect(x-3,10, 6, 1).rect(x+11,10, 6, 1).rect(x+24,10, 7, 1)
+                    .rect(x+3,20, 8, 1).rect(x+17,20, 8, 1).rect(x+31,20, 6, 1)
+                    .rect(x-3,10+37, 6, 1).rect(x+11,10+37, 6, 1).rect(x+24,10+37, 7, 1)
+                    .rect(x+3,20+37, 8, 1).rect(x+17,20+37, 8, 1).rect(x+31,20+37, 6, 1)
+                    .rect(x-3,10+74, 6, 1).rect(x+11,10+74, 6, 1).rect(x+24,10+74, 7, 1)
+                    .rect(x+3,20+74, 8, 1).rect(x+17,20+74, 8, 1).rect(x+31,20+74, 6, 1)
+                    }
+                    
+
+                    hlp.setFillColor('#394A54')
+                    .rect(0,119, 37, 1).rect(163,119, 37, 1).rect(0,127, 61, 1).rect(139,127, 61, 1)
 
                     let outerWindowsP = [
                         new V2(10,-10), new V2(24,-10),new V2(-4,-10), new V2(169,-10), new V2(183,-10), new V2(197,-10),
@@ -90,6 +97,14 @@ class Demo10ParadeScene extends Scene {
 
                     lowerMidWindowsP.forEach(
                         (p) => drawWindow({p, s: new V2(6, 13), cOuter: '#233846', cInner: '#1C343E', cUpperShadow: '#1D313E'}))
+
+
+                    let blackWindowsP = [
+                        new V2(13,133), new V2(39,133), new V2(144,133), new V2(170,133)
+                    ]
+//54,161
+                    blackWindowsP.forEach(
+                        (p) => drawWindow({p, s: new V2(15, 28), cOuter: '#12263A', cInner: '#010510', cUpperShadow: '#010510'}))
 
                     hlp.setFillColor('#132E48').rect(0,175,size.x, 75)
                 })
