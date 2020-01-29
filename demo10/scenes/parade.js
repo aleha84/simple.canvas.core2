@@ -101,13 +101,38 @@ class Demo10ParadeScene extends Scene {
             }
         }), 5)
 
-        this.rainFramesGenerator = ({framesCount, xClamps, color1,color2, dropsCount, lCamps, targetParams,targetParams2, eType = 'linear', eMethod = 'base', startY}) => {
+        this.rainFramesGenerator = ({framesCount, xClamps, color1, color2, dropsCount, lCamps, targetParams,targetParams2,
+             eType = 'linear', eMethod = 'base', startY, lenIncrease = false, splashFramesCount = 10, invertedGaus = false}) => {
+            let size = xClamps[1] - xClamps[0];
             let direction = V2.down;
             let count = dropsCount;
             let positions = [];
             let result = [];
+
+            let lengths = [];
+            let lChange = undefined;
+            if(lenIncrease){
+                lChange = easing.createProps(framesCount-1, 1, lCamps[1], eType, eMethod);
+                for(let frameIndex = 0; frameIndex < framesCount; frameIndex++){
+                    lChange.time = frameIndex;
+                    lengths[frameIndex] = fast.r(easing.process(lChange));
+                }
+            }
+
             for(let i = 0; i < count; i++){
                 let x= getRandomInt(xClamps[0], xClamps[1]);
+                if(invertedGaus) {
+                    x = getRandomGaussian(xClamps[0], xClamps[1]);
+                    x -= xClamps[0];
+                    if(x < size/2){
+                        x = fast.r(-1*(x-(size/2)))
+                    }
+                    else {
+                        x = fast.r(-1*(x-size)+ size/2)
+                    }
+
+                    x+=xClamps[0];
+                }
                 let start = new V2(x, startY);
                 let target = new V2(x, this.viewport.y/2);
 
@@ -136,20 +161,37 @@ class Demo10ParadeScene extends Scene {
                 let dChange = easing.createProps(framesCount-1, 0, distance, eType, eMethod);
                 positions[i] = {
                     points: [],
-                    startIndex: getRandomInt(0, framesCount-1),
+                    startIndex: getRandomInt(0, (framesCount+splashFramesCount)-1),
                     length: getRandomInt(lCamps[0], lCamps[1])
                 }
 
                 let points = positions[i].points;
-
+                
                 for(let frameIndex = 0; frameIndex < framesCount; frameIndex++){
                     dChange.time = frameIndex;
                     let d = easing.process(dChange);
                     points[frameIndex] = start.add(direction.mul(d)).toInt();
                 }
+
+                
+                let pastP = points[framesCount-1];
+                let dir1 = V2.up.rotate(getRandomInt(-30,30));
+                let dir2 = V2.up.rotate(getRandomInt(-30,30));
+                let aChange = easing.createProps(splashFramesCount, 1, 0.5, 'quad', 'out');
+
+                for(let frameIndex = framesCount; frameIndex < framesCount+splashFramesCount; frameIndex++){
+                    aChange.time = frameIndex-framesCount;
+                    dir1.y+=0.05;
+                    dir2.y+=0.05;
+                    points[frameIndex] = {
+                        p1: pastP.add(dir1.mul(frameIndex-framesCount)).toInt(),
+                        p2: pastP.add(dir2.mul(frameIndex-framesCount)).toInt(),
+                        a: fast.r(easing.process(aChange),2)
+                    }
+                }
             }
 
-            for(let f = 0; f < framesCount; f++){
+            for(let f = 0; f < framesCount+splashFramesCount; f++){
                 result[f] = createCanvas(this.viewport, (ctx, size, hlp) => {
                     
                     //hlp.setFillColor('red').strokeEllipsis(0, 180, 1, new V2(98,230), 25, 7)
@@ -163,8 +205,20 @@ class Demo10ParadeScene extends Scene {
 
                         let p = drop.points[currentPIndex];
 
-                        hlp.setFillColor(color1).rect(p.x, p.y-drop.length, 1, drop.length);
-                        hlp.setFillColor(color2).rect(p.x, p.y-2, 1, 2);
+                        if(!(p instanceof V2)){
+                            ctx.globalAlpha = p.a;
+                            hlp.setFillColor(color1).dot(p.p1.x, p.p1.y).dot(p.p2.x, p.p2.y);;
+                            ctx.globalAlpha = 1;
+                        }
+                        else {
+                            let l = drop.length;
+                            if(lenIncrease){
+                                l = lengths[currentPIndex];
+                            }
+    
+                            hlp.setFillColor(color1).rect(p.x, p.y-l, 1, l);
+                            hlp.setFillColor(color2).rect(p.x, p.y-(l/2), 1, (l/2));   
+                        }
                     }
                 })
             }
@@ -193,11 +247,11 @@ class Demo10ParadeScene extends Scene {
                 targetParams2.points = distinct(targetParams2.points, (p) => p.x+'_'+p.y)
 
                 let colors = [
-                    {c1:'#647277',  c2:'#6D7B7F'},
-                    {c1:'#768281',  c2:'#7F8C8B'},
-                    {c1: '#566264', c2: '#637072'},
-                    {c1: '#B8B8B0', c2: '#C4C4BC'},
-                    {c1: '#979d99', c2: '#A3A8A4'}
+                    {c1:'#647277',  c2:'#6D7B7F', count: 25, invertedGaus: true},
+                    {c1:'#768281',  c2:'#7F8C8B', count: 25, invertedGaus: true},
+                    {c1: '#566264', c2: '#637072', count: 5, invertedGaus: false},
+                    {c1: '#B8B8B0', c2: '#C4C4BC', count: 5, invertedGaus: false},
+                    {c1: '#979d99', c2: '#A3A8A4', count: 5, invertedGaus: false}
                     
                 ]
 
@@ -224,8 +278,9 @@ class Demo10ParadeScene extends Scene {
                 this.dropsLower = colors.map((params) => this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
-                    frames: that.rainFramesGenerator({ framesCount: 40, xClamps: [76,121], color1: params.c1, 
-                    color2: params.c2, dropsCount: 5, lCamps: [3,5], targetParams2, eType: 'quad', eMethod: 'in', startY: 122 }),
+                    frames: that.rainFramesGenerator({ framesCount: 40, xClamps: [74,123], color1: params.c1, 
+                    color2: params.c2, dropsCount: params.count, lCamps: [3,4], targetParams2, eType: 'quad', eMethod: 'in', startY: 122, 
+                        lenIncrease: true,invertedGaus: params.invertedGaus }),
                     init() {
                         this.currentFrame = 0;
                         this.img = this.frames[this.currentFrame];
@@ -242,5 +297,55 @@ class Demo10ParadeScene extends Scene {
                 })))
             }
         }), 8)
+
+        this.beforeMan = this.addGo(new GO({
+            position: new V2(this.sceneCenter.x+2, this.sceneCenter.y),
+            size:  this.viewport.clone(),
+            init() {
+                let targetParams = { lowerY: 121, upperPoints: [
+                    new V2(76,121),new V2(84,115),new V2(92,109),new V2(100,108),new V2(107,109),new V2(114,111),new V2(119,116),new V2(124,120)
+                ] }
+
+                let targetParams2 = {
+                    points:  []
+                };
+
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    hlp.setFillColor('red').strokeEllipsis(180, 360, 1, new V2(98,230), 25, 7, targetParams2.points)
+                })
+
+                targetParams2.points = distinct(targetParams2.points, (p) => p.x+'_'+p.y)
+
+                let colors = [
+                    {c1:'#647277',  c2:'#6D7B7F', count: 25, invertedGaus: true},
+                    {c1:'#768281',  c2:'#7F8C8B', count: 25, invertedGaus: true},
+                    {c1: '#566264', c2: '#637072', count: 10, invertedGaus: false},
+                    {c1: '#B8B8B0', c2: '#C4C4BC', count: 10, invertedGaus: false},
+                    {c1: '#979d99', c2: '#A3A8A4', count: 15, invertedGaus: false}
+                    
+                ]
+
+                this.dropsLower = colors.map((params) => this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: that.rainFramesGenerator({ framesCount: 40, xClamps: [76,121], color1: params.c1, 
+                    color2: params.c2, dropsCount: params.count, lCamps: [3,4], targetParams2, eType: 'quad', eMethod: 'in', startY: 122, 
+                    lenIncrease: true,invertedGaus: params.invertedGaus }),
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+        
+                        this.timer = this.regTimerDefault(15, () => {
+            
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                })))
+            }
+        }), 4)
     }
 }
