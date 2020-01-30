@@ -522,6 +522,10 @@ var components = {
 
         groupEl.appendChild(components.createSelect(groupProps.type, ['dots','lines'],'Type', function(value){
             groupProps.type = value;
+            groupProps.showPoints = value == 'lines';
+            //console.log(groupProps.showPoints);
+            components.fillPoints(groupProps, changeCallback) 
+
             changeCallback();
         } ))
 
@@ -783,6 +787,14 @@ var components = {
 
         htmlUtils.removeChilds(pointsEl);
 
+        let pointsToShow = points;
+        
+        if(!groupProps.showPoints){
+            //pointsToShow =  points.length > 0 ? [points[0]] : [];
+            pointsEl.appendChild(htmlUtils.createElement('div', { text: 'Points hidden' }))
+            return;
+        }
+
         let removePointCallback = function(e, select) {
             points = points.filter(p => p.id != select.value);  
             points.forEach((p, i) => p.order = i);
@@ -797,7 +809,7 @@ var components = {
         // points list
         pointsEl.appendChild(components.createList({
             title: 'Points',
-            items: points.map(p => {return { title: `x: ${p.point.x}, y: ${p.point.y}`, value: p.id, selected: p.selected }}),
+            items: pointsToShow.map(p => {return { title: `x: ${p.point.x}, y: ${p.point.y}`, value: p.id, selected: p.selected }}),
             callbacks: {
                 select: function(e){ 
                     points.forEach(p => p.selected = false);

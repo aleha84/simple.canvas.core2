@@ -713,13 +713,13 @@ function rgbToHsv (r, g, b, asArray = false) {
   return result
 }
 
-function hsvToHex({hsv, hsvAsObject = false }) {
+function hsvToHex({hsv, hsvAsObject = false, hsvAsInt = true }) {
   let init = hsv;
   if(hsvAsObject) {
     init = [hsv.h, hsv.s, hsv.v];
   }
 
-  return '#' + rgbToHex(hsvToRgb(init[0]/360, init[1]/100, init[2]/100, true));
+  return '#' + rgbToHex(hsvToRgb(init[0]/(hsvAsInt ? 360 : 1), init[1]/(hsvAsInt ? 100:1), init[2]/(hsvAsInt ? 100 :1), true));
 }
 
 function hsvToRgb(h, s, v, asArray = false, hsvAsInt = false) {

@@ -703,6 +703,10 @@ var colors = {
     hsvToHex(hsv) {
         return hsvToHex({hsv});
     },
+    hexToHsv(hex) {
+        var rgb = hexToRgb(hex, false, true);
+        return rgbToHsv(rgb.r, rgb.g, rgb.b);
+    },
     rgbToString({value, isObject = false, opacity = 1}) {
         if(isObject)
             return `rgba(${value.r}, ${value.g}, ${value.b}, ${opacity})`;

@@ -39,6 +39,42 @@ class EditorGO extends GO {
                             }
                         }
                     }
+                    else if(this.model.editor.mode == 'add'){
+                        if(d.downOn){
+                            d.started = true;
+                            SCG.viewport.scrollOptions.enabled = false;
+                            let e = this.model.editor;
+                            let sg = e.selectedLayer.selectedGroup
+
+                            if(!d.downOn.index.equal(index)){
+
+                                let indexPoints = [];
+                                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                                    let pp = new PerfectPixel({ctx});
+                                    indexPoints = pp.line(d.downOn.index.x, d.downOn.index.y, index.x, index.y);
+                                })
+
+                                let pointsToAdd = [];
+                                for(let i = 0; i < indexPoints.length; i++){
+                                    let ci = indexPoints[i];
+                                    if(sg.points.filter(p => p.point.x == ci.x && p.point.y == ci.y).length > 0){
+                                        //console.log('existing point trying to add');
+                                        continue;//return;
+                                    }
+        
+                                    pointsToAdd.push(ci);
+                                }
+
+                                sg.addPointsCallback(pointsToAdd);
+
+                                d.downOn.index = index;
+                                d.downOn.indexChanged = true;
+                            }
+
+                            
+                        }
+                        
+                    }
                     else if(this.model.editor.mode == 'movelayer'){
                         if(d.downOn){
                             SCG.viewport.scrollOptions.enabled = false;
@@ -77,28 +113,27 @@ class EditorGO extends GO {
                     };
                 },
                 down: function(relativePosition) {
+                    relativePosition = relativePosition.add(SCG.viewport.shift);
                     if(this.model.editor.mode == 'add'){
+                        if(!this.model.editor.selectedLayer.selectedGroup){
+                            alert('No selected group in layer');
+                            return;
+                        }
+
                         SCG.viewport.scrollOptions.enabled = false;
+                        this.drag.downOn = this.getIndexByRelativePosition(relativePosition);
                     }
 
                     if(this.model.editor.mode == 'movelayer' && this.model.editor.selectedLayer){
-                        this.drag.downOn = {
-                            index: new V2(
-                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
-                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0)
-                                )
-                        }
+                        this.drag.downOn = this.getIndexByRelativePosition(relativePosition);
                     }
 
                     if(this.model.editor.mode == 'movegroup' && this.model.editor.selectedLayer && this.model.editor.selectedLayer.selectedGroup){
                         //console.log('down movegroup', this.model.editor.selectedLayer.points);
-                        this.drag.downOn = {
-                            index: new V2(
-                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
-                                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0)
-                                )
-                        }
+                        this.drag.downOn = this.getIndexByRelativePosition(relativePosition);
                     }
+
+                    //this.drag.downOn = this.getIndexByRelativePosition(relativePosition);
                 },
                 up: function(){
                     let d = this.drag;
@@ -109,20 +144,28 @@ class EditorGO extends GO {
                         d.disable();
                     }
                     else if(this.model.editor.mode == 'add'){
-                        SCG.viewport.scrollOptions.enabled = true;
+                        
                         let e = this.model.editor;
                         let sg = e.selectedLayer.selectedGroup
-                        if(!sg){
-                            console.log('No selected group in layer')
-                            return;
-                        }
-
-                        if(sg && sg.points.filter(p => p.point.x == e.index.x && p.point.y == e.index.y).length > 0){
+                        if(!e.index){
+                            d.disable();
                             console.log('existing point trying to add');
                             return;
                         }
+                        // if(!sg){
+                        //     d.disable();
+                        //     console.log('No selected group in layer')
+                        //     return;
+                        // }
 
+                        if(sg.points.filter(p => p.point.x == e.index.x && p.point.y == e.index.y).length > 0){
+                            d.disable();
+                            console.log('existing point trying to add');
+                            return;
+                        }
+                        
                         sg.addPointCallback(e.index);
+                        d.disable();
                     }
                     else if(this.model.editor.mode == 'movelayer' ){
                         d.disable();
@@ -164,6 +207,37 @@ class EditorGO extends GO {
                         }
                         d.disable();
                     }
+                    if(this.model.editor.mode == 'add'){
+                        let os  = this.model.general.originalSize;
+                        let sg = this.model.editor.selectedLayer.selectedGroup;
+
+                        if(d.started && d.downOn.indexChanged){
+                            let index = d.downOn.index;
+                            if(index.x < 0) index.x = 0;
+                            if(index.y < 0) index.y = 0;
+                            if(index.x >= os.x) index.x = os.x-1;
+                            if(index.y >= os.y) index.y = os.y-1;
+
+                            let indexPoints = [];
+                            createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                                let pp = new PerfectPixel({ctx});
+                                indexPoints = pp.line(d.downOn.index.x, d.downOn.index.y, index.x, index.y);
+                            })
+
+                            let pointsToAdd = [];
+                            for(let i = 0; i < indexPoints.length; i++){
+                                let ci = indexPoints[i];
+                                if(sg.points.filter(p => p.point.x == ci.x && p.point.y == ci.y).length > 0){
+                                    continue;
+                                }
+    
+                                pointsToAdd.push(ci);
+                            }
+
+                            sg.addPointsCallback(pointsToAdd);
+                        }
+                        d.disable();
+                    }
                     else if(this.model.editor.mode == 'movelayer'){
                         d.disable();
                     }
@@ -190,7 +264,14 @@ class EditorGO extends GO {
 
         super(options)
     }
-
+    getIndexByRelativePosition(relativePosition){
+        return {
+            index: new V2(
+                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.x, 0)/this.itemSize.x,0), 
+                fastFloorWithPrecision(fastRoundWithPrecision(relativePosition.y, 0)/this.itemSize.y,0)
+            )
+        };
+    }
     highlightChild(active) {
         this.childrenGO.filter(c => c.isGrid).forEach((ch) => {
             ch.highlight = false;
