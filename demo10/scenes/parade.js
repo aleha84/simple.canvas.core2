@@ -2,7 +2,7 @@ class Demo10ParadeScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -37,6 +37,11 @@ class Demo10ParadeScene extends Scene {
                     //
                     hlp.setFillColor('#4C606D').rect(61,98, 78, 77).setFillColor('#42535e').rect(61,97,78,1)
 
+                    for(let i = 0; i < 10000; i++){
+                        let c = getRandomBool() ? 0 : 255
+                        hlp.setFillColor(`rgba(${c}, ${c}, ${c}, ${0.025})`).rect(getRandomInt(0, size.x), getRandomInt(0, size.y), getRandomInt(1,2), getRandomInt(1,2))
+                    }
+
                     //дополнительные линии
                     for(let i = 0; i < 2; i++){
                         let x = i == 0 ? 0 : 173
@@ -49,7 +54,21 @@ class Demo10ParadeScene extends Scene {
                     .rect(x-3,10+74, 6, 1).rect(x+11,10+74, 6, 1).rect(x+24,10+74, 7, 1)
                     .rect(x+3,20+74, 8, 1).rect(x+17,20+74, 8, 1).rect(x+31,20+74, 6, 1)
                     }
-                    
+
+                    //дополнительные линии в средней глубине
+                    for(let i = 0; i < 2; i++){
+                        let x = i == 0 ? 0 : 100
+                        hlp.setFillColor('#35434C')
+                        .rect(x+39,10,22,1).rect(x+39,21,22,1).rect(x+39,47,22,1).rect(x+39,58,22,1).rect(x+39,84,22,1).rect(x+39,94,22,1)
+                        .rect(x+47,10, 1,11).rect(x+47,47, 1,11).rect(x+47,84, 1,11)
+                    }
+
+                    //дополнительные линии в центральной секции
+                    hlp.setFillColor('#303C44').rect(63,12,74, 1).rect(63,48,74, 1).rect(63,84,74, 1)
+                    .rect(70,0, 1, 97).rect(128,0, 1, 97)
+                    for(let i = 0; i < 4; i++){
+                        hlp.rect(12*i + 78,0, 1, 97).rect(12*i + 84, 0, 1, 97)
+                    }
 
                     hlp.setFillColor('#394A54')
                     .rect(0,119, 37, 1).rect(163,119, 37, 1).rect(0,127, 61, 1).rect(139,127, 61, 1)
@@ -90,8 +109,7 @@ class Demo10ParadeScene extends Scene {
                     lowerWindowsP.forEach(
                         (p) => drawWindow({p, s: new V2(7, 17), cOuter: '#233846', cInner: '#1C343E', cUpperShadow: '#1D313E'}))
 
-                    let lowerMidWindowsP = [
-                        
+                    let lowerMidWindowsP = [   
                         new V2(40,100), new V2(49,100), new V2(145,100), new V2(154,100)
                     ]
 
@@ -102,9 +120,24 @@ class Demo10ParadeScene extends Scene {
                     let blackWindowsP = [
                         new V2(13,133), new V2(39,133), new V2(144,133), new V2(170,133)
                     ]
-//54,161
+
+                    
+                    //детали на выступе
+                    hlp.setFillColor('#455863').rect(61,119, 78, 1).rect(61,127, 78, 1).rect(61,127, 78, 1).rect(128,128,1,50).rect(71,128,1,50)
+                    hlp.setFillColor('#2c3f4f').rect(81,128,37,63).setFillColor('#12263A')
+                    
+                    hlp.setFillColor('#394c59').rect(82,136,35,1).rect(82,145,35,1).rect(82,154,35,1).rect(82,163,35,1).rect(82,172,35,1)
+                    .rect(91,129,1,61).rect(107,129,1,61)
+
+                    hlp.setFillColor('#313E47').rect(59,120, 2, 100).rect(139,120, 2, 100)
+                    hlp.setFillColor('#3a4a54').rect(56,120, 3, 100).rect(141,120, 3, 100)
+
                     blackWindowsP.forEach(
                         (p) => drawWindow({p, s: new V2(15, 28), cOuter: '#12263A', cInner: '#010510', cUpperShadow: '#010510'}))
+
+                    hlp.setFillColor('#142435').rect(40,141,13,1).rect(46,134,1,7).rect(14,141,13,1).rect(20,134,1,7)
+                    .rect(145,141,13,1).rect(151,134,1,7).rect(177,134,1,7)
+
 
                     hlp.setFillColor('#132E48').rect(0,175,size.x, 75)
                 })
@@ -119,6 +152,16 @@ class Demo10ParadeScene extends Scene {
                     position: new V2(),
                     size: this.size,
                     img: PP.createImage(Demo10ParadeScene.models.mid)
+                }))
+                this.r = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor('rgba(0,0,0,0.05)')
+                        for(let i = 0; i < 1000; i++){
+                            hlp.rect(getRandomInt(0, size.x), getRandomInt(176, size.y), getRandomInt(1,5), 1)
+                        }
+                    })
                 }))
             }
         }), 2)
@@ -136,7 +179,7 @@ class Demo10ParadeScene extends Scene {
         }), 5)
 
         this.rainFramesGenerator = ({framesCount, xClamps, color1, color2, dropsCount, lCamps, targetParams,targetParams2,
-             eType = 'linear', eMethod = 'base', startY, lenIncrease = false, splashFramesCount = 10, invertedGaus = false}) => {
+             eType = 'linear', eMethod = 'base', startY, lenIncrease = false, splashFramesCount = 10, invertedGaus = false, sideSplash = false}) => {
             let size = xClamps[1] - xClamps[0];
             let direction = V2.down;
             let count = dropsCount;
@@ -213,13 +256,24 @@ class Demo10ParadeScene extends Scene {
                 let dir2 = V2.up.rotate(getRandomInt(-30,30));
                 let aChange = easing.createProps(splashFramesCount, 1, 0.5, 'quad', 'out');
 
+                let dirs = []
+                if(sideSplash ){
+                    if(x <= xClamps[0] + size*0.2)
+                        dirs[dirs.length] = V2.left.rotate(getRandomInt(-45,-15)).mul(getRandom(1,2));       
+                    else if (x >= xClamps[1] - size*0.2)
+                        dirs[dirs.length] = V2.right.rotate(getRandomInt(45,15)).mul(getRandom(1,2));       
+                }
+
                 for(let frameIndex = framesCount; frameIndex < framesCount+splashFramesCount; frameIndex++){
                     aChange.time = frameIndex-framesCount;
                     dir1.y+=0.05;
                     dir2.y+=0.05;
+                    dirs.forEach(d => d.y+=0.05)
+
                     points[frameIndex] = {
                         p1: pastP.add(dir1.mul(frameIndex-framesCount)).toInt(),
                         p2: pastP.add(dir2.mul(frameIndex-framesCount)).toInt(),
+                        pn: dirs.map(d => pastP.add(d.mul(frameIndex-framesCount)).toInt()),
                         a: fast.r(easing.process(aChange),2)
                     }
                 }
@@ -241,7 +295,10 @@ class Demo10ParadeScene extends Scene {
 
                         if(!(p instanceof V2)){
                             ctx.globalAlpha = p.a;
-                            hlp.setFillColor(color1).dot(p.p1.x, p.p1.y).dot(p.p2.x, p.p2.y);;
+                            hlp.setFillColor(color1).dot(p.p1.x, p.p1.y).dot(p.p2.x, p.p2.y);
+
+                            p.pn.forEach(p => hlp.dot(p.x, p.y));
+
                             ctx.globalAlpha = 1;
                         }
                         else {
@@ -285,31 +342,52 @@ class Demo10ParadeScene extends Scene {
                     {c1:'#768281',  c2:'#7F8C8B', count: 25, invertedGaus: true},
                     {c1: '#566264', c2: '#637072', count: 5, invertedGaus: false},
                     {c1: '#B8B8B0', c2: '#C4C4BC', count: 5, invertedGaus: false},
-                    {c1: '#979d99', c2: '#A3A8A4', count: 5, invertedGaus: false}
+                    {c1: '#979d99', c2: '#A3A8A4', count: 5, invertedGaus: false},
+                    {c1: '#878d8a', c2: '#929995', count: 10, invertedGaus: true, upperUseIG: true},
                     
                 ]
 
                 this.drops = colors.map((params) => this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
-                    frames: that.rainFramesGenerator({ framesCount: 40, xClamps: [76,121], color1: params.c1, 
-                    color2: params.c2, dropsCount: 40, lCamps: [3,5], targetParams, startY: -20 }),
+                    frames: that.rainFramesGenerator({ framesCount: 40, xClamps: [76,122], color1: params.c1, 
+                    color2: params.c2, dropsCount: 40, lCamps: [3,5], targetParams, startY: -20, sideSplash: true, invertedGaus: params.upperUseIG }),
                     init() {
                         this.currentFrame = 0;
                         this.img = this.frames[this.currentFrame];
         
+                        this.counter = 10;
                         this.timer = this.regTimerDefault(15, () => {
             
+                            
                             this.img = this.frames[this.currentFrame];
                             this.currentFrame++;
                             if(this.currentFrame == this.frames.length){
                                 this.currentFrame = 0;
+                                this.counter--;
+                                if(this.counter == 0){
+                                    this.counter = 10;
+                                    // if(!this.redFrame){
+                                    //     this.redFrame = this.addChild(new GO({
+                                    //         position: new V2(),
+                                    //         size: this.size, 
+                                    //         img: createCanvas(this.size, (ctx, size, hlp) => {
+                                    //             hlp.setFillColor('red').strokeRect(0,0,size.x, size.y);
+                                    //         })
+                                    //     }))
+                                    // }
+                                    // else {
+                                    //     this.redFrame.setDead();
+                                    //     this.redFrame = undefined;
+                                    // }
+                                }
+                                
                             }
                         })
                     }
                 })))
 
-                this.dropsLower = colors.map((params) => this.addChild(new GO({
+                this.dropsLower = colors.filter( c => !c.upperUseIG).map((params) => this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
                     frames: that.rainFramesGenerator({ framesCount: 40, xClamps: [74,123], color1: params.c1, 
