@@ -32,6 +32,11 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'rain1',
         viewport: _200_250_viewport
     }));
+
+    SCG.scenes.cacheScene(new Demo10EndScene({
+        name:'end',
+        viewport: smallSquareDefaultViewport
+    }));
     
 
     sceneSelectByHashValue();
