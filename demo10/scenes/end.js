@@ -48,7 +48,7 @@ class Demo10EndScene extends Scene {
                         point.visible = true;
                         point.aChange = easing.createProps(fadeOutFramesCount-1, 1, 0, 'quad', 'out');
                         point.xShift = 0;
-                        point.xShiftChange = getRandom(0.1,0.125)
+                        point.xShiftChange = getRandom(0.1,0.125)/8
 
                         
                         point.width = 1;
@@ -86,7 +86,7 @@ class Demo10EndScene extends Scene {
         this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            frames: this.createTrailFrames({framesCount: 100, fadeOutFramesCount: 100, from: this.sceneCenter.clone(), direction: V2.up.rotate(-15)}),
+            frames: this.createTrailFrames({framesCount: 500, fadeOutFramesCount: 400, from: this.sceneCenter.clone(), direction: V2.up.rotate(-15)}),
             init() {
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
