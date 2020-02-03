@@ -2,7 +2,7 @@ class Demo10EndScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -14,9 +14,8 @@ class Demo10EndScene extends Scene {
         this.backgroundRenderDefault(this.bgColor);
     }
 
-    createTrailFrames({framesCount, fadeOutFramesCount, from, direction, wClapms = [], xShiftClapms = [], pointerBgSize = 10}) {
-        let trailColor = '#545863';
-        let pointerColor = '#C2A181';
+    createTrailFrames({framesCount, fadeOutFramesCount, from, direction, wClapms = [], xShiftClapms = [], pointerBgSize = 10, 
+        pointerColor = '#C2A181', trailColor ='#545863' }) {
         let pointerMid1 = colors.getMidColor({color1: pointerColor, color2: trailColor});
         let pointerMid2 = colors.getMidColor({color1: pointerMid1, color2: trailColor});
 
@@ -48,7 +47,12 @@ class Demo10EndScene extends Scene {
             }
         })
 
-        let cChange = colors.createEasingChange({hsv: { from: {h:224,s:15,v:38}, to: {h:228,s:7,v:25} }, type: 'quad', method: 'out', time: fadeOutFramesCount});
+        let trailColorHsv = colors.hexToHsv(trailColor);
+        let bgColorHsv = colors.hexToHsv(this.bgColor);
+        console.log(trailColorHsv);
+        let cChange = //colors.createEasingChange({hsv: { from: {h:224,s:15,v:38}, to: {h:228,s:7,v:25} }, type: 'quad', method: 'out', time: fadeOutFramesCount});
+        colors.createEasingChange({hsv: { from: {h: fast.r(trailColorHsv.h*360) ,s:fast.r(trailColorHsv.s*100),v:fast.r(trailColorHsv.v*100)}, 
+                                            to: {h:fast.r(bgColorHsv.h*360),s:fast.r(bgColorHsv.s*100),v:fast.r(bgColorHsv.v*100)} }, type: 'quad', method: 'out', time: fadeOutFramesCount});
 
         createCanvas(new V2(), (ctx, size, hlp) => {
             let pp = new PerfectPixel({ctx});
@@ -168,103 +172,107 @@ class Demo10EndScene extends Scene {
         this.frames1 = this.createTrailFrames({framesCount: 500, fadeOutFramesCount: 400, from: this.sceneCenter.clone(), direction: V2.up.rotate(-15),
             wClapms: [20,22], xShiftClapms: [10,11]})
 
-        this.addGo(new GO({
+        this.frames2 = this.createTrailFrames({framesCount: 1000, fadeOutFramesCount: 800, from: this.sceneCenter.clone(), direction: V2.up.rotate(-10),
+            wClapms: [14,16], xShiftClapms: [6,8], pointerBgSize: 8, pointerColor: '#AA8D72', trailColor: '#474A54' })
+
+        let p1 = [{p: new V2(25, this.sceneCenter.y), f: 0}, //{p: new V2(70, this.sceneCenter.y), f: 600}, 
+            {p: new V2(140, this.sceneCenter.y), f: 600}, {p: new V2(183, this.sceneCenter.y), f: 300}]
+        
+        let p0 = [{p: new V2(171, this.sceneCenter.y), f: 0},
+             {p: new V2(80, this.sceneCenter.y), f: 800},
+             {p: new V2(60, this.sceneCenter.y), f: 1200},
+            {p: new V2(104, this.sceneCenter.y), f: 400}]
+
+        this.farLayer = p0.map(p => this.addGo(new GO({
+            position: p.p,
+            size: this.viewport.clone(),
+            frames: this.frames2,
+            initFrame: p.f,
+            showRedFrame: p.f == 0,
+            init() {
+                this.currentFrame = this.initFrame;
+                this.img = this.frames[this.currentFrame];
+
+                this.timer = this.regTimerDefault(15, () => {
+    
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        if(this.showRedFrame && !this.parentScene.redFrame){
+                            this.parentScene.redFrame = this.parentScene.addGo(new GO({
+                                size: this.parentScene.viewport,
+                                position: this.parentScene.sceneCenter.clone(),
+                                img: createCanvas(this.parentScene.viewport, (ctx, size, hlp) => {
+                                    hlp.setFillColor('red').strokeRect(0,0, size.x, size.y);
+                                })
+                            }))
+                        }
+                    }
+                })
+            }
+
+        }), 0))
+
+
+        this.closeLayer = p1.map(p => this.addGo(new GO({
+            position: p.p,
+            size: this.viewport.clone(),
+            frames: this.frames1,
+            initFrame: p.f,
+            init() {
+                this.currentFrame = this.initFrame;
+                this.img = this.frames[this.currentFrame];
+
+                this.timer = this.regTimerDefault(15, () => {
+    
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+
+        }), 1))
+
+        this.clouds2 = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            frames: this.frames1,
             init() {
-                this.currentFrame = 0;
-                this.img = this.frames[this.currentFrame];
+                this.cloudsImg = PP.createImage(Demo10EndScene.models.clouds3)   
 
+                this.c1 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: this.cloudsImg,
+                    originX: 0,
+                }))
+
+                this.c2 = this.addChild(new GO({
+                    position: new V2(-this.size.x, 0),
+                    size: this.size,
+                    img: this.cloudsImg,
+                    originX: -this.size.x,
+                }))
+
+                this.xChange = //easing.createProps(200, 0, size.x, 'linear', 'base')
+                this.currentX = 0;
                 this.timer = this.regTimerDefault(15, () => {
-    
-                    this.img = this.frames[this.currentFrame];
-                    this.currentFrame++;
-                    if(this.currentFrame == this.frames.length){
-                        this.currentFrame = 0;
+                    if(!this.xChange){
+                        this.xChange = easing.createProps(900, 0, this.size.x, 'linear', 'base');
                     }
+
+                    easing.commonProcess({context: this, targetpropertyName: 'currentX', propsName: 'xChange', round: true, removePropsOnComplete: true})
+
+                    this.c1.position.x = this.c1.originX+this.currentX;
+                    this.c2.position.x = this.c2.originX+this.currentX;
+
+                    this.c1.needRecalcRenderProperties = true;
+                    this.c2.needRecalcRenderProperties = true;
                 })
             }
-
-        }), 1)
-
-        this.addGo(new GO({
-            position: this.sceneCenter.add(new V2(-50, 0)),
-            size: this.viewport.clone(),
-            frames: this.frames1,
-            init() {
-                this.currentFrame = 300;
-                this.img = this.frames[this.currentFrame];
-
-                this.timer = this.regTimerDefault(15, () => {
-    
-                    this.img = this.frames[this.currentFrame];
-                    this.currentFrame++;
-                    if(this.currentFrame == this.frames.length){
-                        this.currentFrame = 0;
-                    }
-                })
-            }
-
-        }), 1)
-
-        this.addGo(new GO({
-            position: this.sceneCenter.add(new V2(50, 0)),
-            size: this.viewport.clone(),
-            frames: this.frames1,
-            init() {
-                this.currentFrame = 600;
-                this.img = this.frames[this.currentFrame];
-
-                this.timer = this.regTimerDefault(15, () => {
-    
-                    this.img = this.frames[this.currentFrame];
-                    this.currentFrame++;
-                    if(this.currentFrame == this.frames.length){
-                        this.currentFrame = 0;
-                    }
-                })
-            }
-
-        }), 1)
-
-        // this.clouds2 = this.addGo(new GO({
-        //     position: this.sceneCenter.clone(),
-        //     size: this.viewport.clone(),
-        //     init() {
-        //         this.cloudsImg = PP.createImage(Demo10EndScene.models.clouds2)   
-
-        //         this.c1 = this.addChild(new GO({
-        //             position: new V2(),
-        //             size: this.size,
-        //             img: this.cloudsImg,
-        //             originX: 0,
-        //         }))
-
-        //         this.c2 = this.addChild(new GO({
-        //             position: new V2(this.size.x, 0),
-        //             size: this.size,
-        //             img: this.cloudsImg,
-        //             originX: this.size.x,
-        //         }))
-
-        //         this.xChange = //easing.createProps(200, 0, size.x, 'linear', 'base')
-        //         this.currentX = 0;
-        //         this.timer = this.regTimerDefault(15, () => {
-        //             if(!this.xChange){
-        //                 this.xChange = easing.createProps(1800, 0, -this.size.x, 'linear', 'base');
-        //             }
-
-        //             easing.commonProcess({context: this, targetpropertyName: 'currentX', propsName: 'xChange', round: true, removePropsOnComplete: true})
-
-        //             this.c1.position.x = this.c1.originX+this.currentX;
-        //             this.c2.position.x = this.c2.originX+this.currentX;
-
-        //             this.c1.needRecalcRenderProperties = true;
-        //             this.c2.needRecalcRenderProperties = true;
-        //         })
-        //     }
-        // }), 2)
+        }), 2)
 
         this.clouds = this.addGo(new GO({
             position: this.sceneCenter.clone(),
