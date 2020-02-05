@@ -85,6 +85,32 @@ At work: https://aleha84.github.io/simple.canvas.core2/commission/epska/#verse1
 
 Sad message: https://aleha84.github.io/simple.canvas.core2/commission/epska/#verse1p2
 
+Tired: https://aleha84.github.io/simple.canvas.core2/commission/epska/#verse1p3
+
+Sunset: https://aleha84.github.io/simple.canvas.core2/demo9/#sunset
+
+Day sleep: https://aleha84.github.io/simple.canvas.core2/demo9/#dreams
+
+Flying in the void: https://aleha84.github.io/simple.canvas.core2/demo9/#exp3
+
+Snowy highway: https://aleha84.github.io/simple.canvas.core2/demo9/#winter
+
+Waiting: https://aleha84.github.io/simple.canvas.core2/demo9/#waiting
+
+Healthbars: https://aleha84.github.io/simple.canvas.core2/demo9/#healthbar
+
+Waiting for departure: https://aleha84.github.io/simple.canvas.core2/demo9/#train
+
+Norvegian bus: https://aleha84.github.io/simple.canvas.core2/commission/ryanmbarber/#bus
+
+Subway escalator: https://aleha84.github.io/simple.canvas.core2/demo9/#metro
+
+DEMO10
+
+Lonely man in the rain: https://aleha84.github.io/simple.canvas.core2/demo10/#rain1
+
+
+
 TODO: 
 
 - Add used colors panel
