@@ -14,8 +14,23 @@ class Demo10CityScene extends Scene {
         this.backgroundRenderDefault();
     }
 
-    flowGenerator({framesCount, itemsCount, from, to, path, upperY, fromShift= 0, lengthFrom = 0, forceSingleFrame = false}) {
+    flowGenerator({framesCount, itemsCount, from, to, pathes, upperY, fromShift= 0, lengthFrom = 0, forceSingleFrame = false, type = 'quad', method = 'out'}) {
         let items = []
+        let pathPoints = [];
+        if(pathes){
+            createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                let pp = new PerfectPixel({ctx});
+                for(let i = 0; i < pathes.length; i++){
+                    pathPoints[i] = [];
+                    for(let j = 0; j < pathes[i].length-1;j++){
+                        pathPoints[i].push(...pp.lineV2(pathes[i][j], pathes[i][j+1]))
+                    }
+
+                    pathPoints[i] = distinct(pathPoints[i], (p) => `${p.x}_${p.y}`);
+                }
+            })
+            
+        }
         for(let i = 0; i < itemsCount; i++){
             items[i] = {
                 initialIndex: getRandomInt(0, framesCount-1),
@@ -33,15 +48,20 @@ class Demo10CityScene extends Scene {
 
             let lChange = undefined;
             if(lengthFrom > 0){
-                lChange = easing.createProps(framesCount-1, lengthFrom, 0, 'quad', 'out');
+                lChange = easing.createProps(framesCount-1, lengthFrom, 0, type, method);
             }
 
             createCanvas(new V2(1,1), (ctx, size, hlp) => {
                 let pp = new PerfectPixel({ctx});
-                items[i].linePoints = pp.lineV2(startP, to);
+                if(!pathes){
+                    items[i].linePoints = pp.lineV2(startP, to);
+                }
+                else {
+                    items[i].linePoints = pathPoints[getRandomInt(0, pathPoints.length-1)]
+                }
             })
 
-            let indexChange = easing.createProps(framesCount-1, 0, items[i].linePoints.length-1, 'quad', 'out');
+            let indexChange = easing.createProps(framesCount-1, 0, items[i].linePoints.length-1, type, method);
 
             for(let f = 0; f < framesCount; f++){
                 indexChange.time = f;
@@ -125,12 +145,13 @@ class Demo10CityScene extends Scene {
         this.layers = {
             overMainRoadBuilding: 21,
             mainRoad: 20,
-            mainRightBuilding: 19,
+            lowerRoad1: 19,
+            mainRightBuilding: 17,
             leftBuildings: 15,
             centralBuildings: 17,
         }
 
-        this.flowAnimationDisabled = true;
+        this.flowAnimationDisabled = false;
         let scene = this;
 
         this.flowColors = [
@@ -188,8 +209,94 @@ class Demo10CityScene extends Scene {
                         })
                     }
                 }))
+
+                this.flow3 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.parentScene.flowGenerator({framesCount: 800, itemsCount: 50, from: new V2(48,207), to: new V2(199,49), upperY: 0, 
+                        pathes: [
+                            [new V2(82, 199),new V2(161,106),new V2(163,105),new V2(167,103),new V2(199,97)]
+                        ],
+                        lengthFrom: 2, forceSingleFrame: scene.flowAnimationDisabled}),
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+        
+                        this.timer = this.regTimerDefault(15, () => {
+        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame--;
+                            if(this.currentFrame < 0){
+                                this.currentFrame = this.frames.length-1;
+                            }
+                        })
+                    }
+                }))
+
+                this.mainRightBuildingRoadCover = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(Demo10CityScene.models.mainRightBuildingRoadCover)
+                }))
             }
         }), this.layers.mainRoad)
+
+        this.lowerRoad1 = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.main = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(Demo10CityScene.models.lowerRoad1)
+                }));
+
+                this.flow1 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.parentScene.flowGenerator({framesCount: 800, itemsCount: 50, from: new V2(200,166), to: new V2(51,132), upperY: 0,
+                    type: 'linear', method: 'base', forceSingleFrame: scene.flowAnimationDisabled}),
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        this.timer = this.regTimerDefault(15, () => {
+        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
+
+                this.flow2 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.parentScene.flowGenerator({framesCount: 800, itemsCount: 50, from: new V2(200,170), to: new V2(51,134), upperY: 0,
+                        type: 'linear', method: 'base', forceSingleFrame: scene.flowAnimationDisabled}),
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+        
+                        this.timer = this.regTimerDefault(15, () => {
+        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame--;
+                            if(this.currentFrame < 0){
+                                this.currentFrame = this.frames.length-1;
+                            }
+                        })
+                    }
+                }))
+
+                this.lowerRoad1BuildingRoadCover = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(Demo10CityScene.models.lowerRoad1BuildingRoadCover)
+                }))
+            }
+        }), this.layers.lowerRoad1)
 
         this.mainRightBuilding = this.addGo(new GO({
             position: this.sceneCenter.clone(),
