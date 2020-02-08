@@ -14,7 +14,7 @@ class Demo10CityScene extends Scene {
         this.backgroundRenderDefault();
     }
 
-    flowGenerator({framesCount, itemsCount, from, to, pathes, upperY, fromShift= 0, lengthFrom = 0, forceSingleFrame = false, type = 'quad', method = 'out'}) {
+    flowGenerator({framesCount, itemsCount, from, to, pathes, showPathesPoints = false, upperY, fromShift= 0, lengthFrom = 0, forceSingleFrame = false, type = 'quad', method = 'out'}) {
         let items = []
         let pathPoints = [];
         if(pathes){
@@ -106,6 +106,9 @@ class Demo10CityScene extends Scene {
                         if(lengthFrom && item.lengths[currentPIndex] > 0) {
                             if( item.lengths[currentPIndex] == 1){
                                 hlp.setFillColor(item.color).dot(x-1, y+1)
+
+                                
+                                
                                 hlp.setFillColor('rgba(0,0,0,0.1)').dot(x, y+1)
                                 hlp.setFillColor('rgba(0,0,0,0.2)').dot(x-1, y+1)
 
@@ -115,6 +118,10 @@ class Demo10CityScene extends Scene {
                             }
                             if( item.lengths[currentPIndex] == 2){
                                 hlp.setFillColor(item.color).dot(x-1, y+1).dot(x-2, y+2)
+
+                                // if(getRandomInt(0,4) == 0){
+                                //     hlp.setFillColor(`rgba(255,255,255,${fast.r(getRandom(0.2,0.6),2)})`).dot(x-1, y+1)
+                                // }
 
                                 hlp.setFillColor('rgba(0,0,0,0.1)').dot(x, y+1).dot(x-1, y+2).dot(x+1, y-1);
                                 hlp.setFillColor('rgba(0,0,0,0.2)').dot(x-2, y+2)
@@ -135,6 +142,16 @@ class Demo10CityScene extends Scene {
                     }
                 }
                 
+                if(showPathesPoints && pathes){
+                    for(let pi = 0; pi < pathes.length;pi++){
+                        hlp.setFillColor(pi == 0? 'red' : (pi == 1 ? 'green' : 'blue') )
+                        for(let pj = 0; pj < pathes[pi].length; pj++){
+                            let d = pathes[pi][pj]
+                            hlp.dot(d.x, d.y)
+                        }
+                    }
+                }
+                
             })
         }
 
@@ -151,7 +168,7 @@ class Demo10CityScene extends Scene {
             centralBuildings: 17,
         }
 
-        this.flowAnimationDisabled = false;
+        this.flowAnimationDisabled = true;
         let scene = this;
 
         this.flowColors = [
@@ -213,9 +230,34 @@ class Demo10CityScene extends Scene {
                 this.flow3 = this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
-                    frames: this.parentScene.flowGenerator({framesCount: 800, itemsCount: 50, from: new V2(48,207), to: new V2(199,49), upperY: 0, 
+                    frames: this.parentScene.flowGenerator({framesCount: 800, itemsCount: 100, from: new V2(48,207), to: new V2(199,49), upperY: 0, 
                         pathes: [
-                            [new V2(82, 199),new V2(161,106),new V2(163,105),new V2(167,103),new V2(199,97)]
+                            [new V2(83, 200), new V2(160,107),new V2(167,104), new V2(210,96)],
+                            [new V2(86, 200), new V2(162,107),new V2(169,104), new V2(210,96)],
+                            [new V2(89, 200), new V2(163,108),new V2(170,105), new V2(210,97)]
+                        ],
+                        lengthFrom: 2, forceSingleFrame: scene.flowAnimationDisabled}),
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        this.timer = this.regTimerDefault(15, () => {
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
+
+                this.flow4 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.parentScene.flowGenerator({framesCount: 800, itemsCount: 100, from: new V2(48,207), to: new V2(199,49), upperY: 0, 
+                        pathes: [
+                            [new V2(37,200),new V2(130,110),new V2(129,98),new V2(120,83),new V2(126,76)],
+                            [new V2(40,200),new V2(131,110),new V2(130,98),new V2(121,83),new V2(126,76)],
+                            [new V2(42,200),new V2(132,111),new V2(131,99),new V2(122,84),new V2(126,76)],
                         ],
                         lengthFrom: 2, forceSingleFrame: scene.flowAnimationDisabled}),
                     init() {
