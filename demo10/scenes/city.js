@@ -293,6 +293,12 @@ class Demo10CityScene extends Scene {
                     img: PP.createImage(Demo10CityScene.models.lowerRoad1)
                 }));
 
+                this.main2 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(Demo10CityScene.models.lowerRoad2)
+                }));
+
                 this.flow1 = this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
