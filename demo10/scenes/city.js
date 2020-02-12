@@ -14,6 +14,37 @@ class Demo10CityScene extends Scene {
         this.backgroundRenderDefault();
     }
 
+    createAeroFrames({framesCount, from, to}) {
+        let aeroImg = PP.createImage(Demo10CityScene.models.aero);
+        let destOut = PP.createImage(Demo10CityScene.models.leftBuildings, {renderOnly: ['destOut']});
+        let pathPoints = [];
+        createCanvas(new V2(1,1), (ctx, size, hlp) => {
+            let pp = new PerfectPixel({ctx});
+            pathPoints = pp.lineV2(from, to);
+        })
+
+        let pathPointsIndexChange = easing.createProps(framesCount-1, 0, pathPoints.length-1, 'linear', 'base');
+
+        let frames = [];
+
+        for(let f = 0; f < framesCount-1; f++){
+            pathPointsIndexChange.time = f;
+            let pathPointsIndex = fast.r(easing.process(pathPointsIndexChange));
+            let pathPoint = pathPoints[pathPointsIndex];
+            frames[f] = createCanvas(this.viewport.clone(), (ctx, size, hlp) => {
+                let origignalFrame = createCanvas(this.viewport.clone(), (ctx, size, hlp) => {
+                    ctx.drawImage(aeroImg, pathPoint.x, pathPoint.y);
+                });
+
+                ctx.drawImage(origignalFrame,0,0);
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.drawImage(destOut,0,0);
+            })
+        }
+
+        return frames;
+    }
+
     flowGenerator({framesCount, itemsCount, from, to, pathes, showPathesPoints = false, upperY, fromShift= 0, lengthFrom = 0, forceSingleFrame = false, type = 'quad', method = 'out'}) {
         let items = []
         let pathPoints = [];
@@ -166,6 +197,7 @@ class Demo10CityScene extends Scene {
             mainRightBuilding: 17,
             leftBuildings: 15,
             centralBuildings: 17,
+            aero: 16
         }
 
         this.flowAnimationDisabled = true;
@@ -338,6 +370,54 @@ class Demo10CityScene extends Scene {
                     }
                 }))
 
+                this.flow3 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.parentScene.flowGenerator({framesCount: 400, itemsCount: 50, from: new V2(200,170), to: new V2(51,134), upperY: 0,
+                        type: 'quad', method: 'in',
+                        pathes: [
+                            [new V2(-20, 135),new V2(7, 151),new V2(10, 159),new V2(12, 176),new V2(13, 198)],
+                            [new V2(-20, 134),new V2(8, 151),new V2(12, 159),new V2(15, 176),new V2(15, 198)],
+                        ], forceSingleFrame: scene.flowAnimationDisabled }),//
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+        
+                        this.timer = this.regTimerDefault(15, () => {
+        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
+
+                this.flow4 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.parentScene.flowGenerator({framesCount: 400, itemsCount: 50, from: new V2(200,170), to: new V2(51,134), upperY: 0,
+                        type: 'quad', method: 'in',
+                        pathes: [
+                            [new V2(0, 143), new V2(56, 167)],
+                            [new V2(0, 143), new V2(15,152), new V2(56, 170)],
+                        ], forceSingleFrame: scene.flowAnimationDisabled }),//
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+        
+                        this.timer = this.regTimerDefault(15, () => {
+        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame--;
+                            if(this.currentFrame < 0){
+                                this.currentFrame = this.frames.length-1;
+                            }
+                        })
+                    }
+                }))
+
                 this.lowerRoad1BuildingRoadCover = this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
@@ -377,7 +457,7 @@ class Demo10CityScene extends Scene {
                 this.main = this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
-                    img: PP.createImage(Demo10CityScene.models.leftBuildings)
+                    img: PP.createImage(Demo10CityScene.models.leftBuildings, {exclude: ['destOut']})
                 }))
             }
         }), this.layers.leftBuildings)
@@ -393,5 +473,29 @@ class Demo10CityScene extends Scene {
                 }))
             }
         }), this.layers.centralBuildings)
+
+        this.aero = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            frames: this.createAeroFrames({framesCount: scene.flowAnimationDisabled?10: 1600, from: new V2(140, 0), to: new V2(-30, 100)}),
+            init() {
+
+                if(scene.flowAnimationDisabled){
+                    this.currentFrame = 5;
+                }
+                else {
+                    this.currentFrame = 0;
+                    this.timer = this.regTimerDefault(15, () => {
+
+                        this.img = this.frames[this.currentFrame];
+                        this.currentFrame++;
+                        if(this.currentFrame == this.frames.length){
+                            this.currentFrame = 0;
+                        }
+                    })
+                }
+                 this.img = this.frames[this.currentFrame];
+            }
+        }), this.layers.aero)
     }
 }
