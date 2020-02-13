@@ -2,7 +2,7 @@ class Demo10CityScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -45,7 +45,7 @@ class Demo10CityScene extends Scene {
         return frames;
     }
 
-    flowGenerator({framesCount, itemsCount, from, to, pathes, showPathesPoints = false, upperY, fromShift= 0, lengthFrom = 0, forceSingleFrame = false, type = 'quad', method = 'out'}) {
+    flowGenerator({noShadow, framesCount, itemsCount, from, to, pathes, showPathesPoints = false, upperY, fromShift= 0, lengthFrom = 0, forceSingleFrame = false, type = 'quad', method = 'out'}) {
         let items = []
         let pathPoints = [];
         if(pathes){
@@ -132,7 +132,8 @@ class Demo10CityScene extends Scene {
                         let y = fast.r(p.y)
 
                         hlp.setFillColor(item.color).dot(x, y);
-                        hlp.setFillColor('rgba(0,0,0,0.1)').dot(x+1, y);
+                        if(!noShadow)
+                            hlp.setFillColor('rgba(0,0,0,0.1)').dot(x+1, y);
 
                         if(lengthFrom && item.lengths[currentPIndex] > 0) {
                             if( item.lengths[currentPIndex] == 1){
@@ -197,10 +198,11 @@ class Demo10CityScene extends Scene {
             mainRightBuilding: 17,
             leftBuildings: 15,
             centralBuildings: 17,
-            aero: 16
+            aero: 16,
+            farCity: 10
         }
 
-        this.flowAnimationDisabled = true;
+        this.flowAnimationDisabled = false;
         let scene = this;
 
         this.flowColors = [
@@ -433,12 +435,12 @@ class Demo10CityScene extends Scene {
                 this.main = this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
-                    img: PP.createImage(Demo10CityScene.models.mainRightBuilding)
+                    img: PP.createImage(Demo10CityScene.models.mainRightBuilding, {exclude: ['tag']})
                 }))
             }
         }), this.layers.mainRightBuilding)
 
-        this.mainRightBuilding = this.addGo(new GO({
+        this.overMainRightBuilding = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
@@ -491,11 +493,86 @@ class Demo10CityScene extends Scene {
                         this.currentFrame++;
                         if(this.currentFrame == this.frames.length){
                             this.currentFrame = 0;
+                            if(!this.redFrame){
+                                this.redFrame = this.addChild(new GO({
+                                    position: new V2(),
+                                    size: this.size,
+                                    img: createCanvas(this.size, (ctx, size, hlp) => {
+                                        hlp.setFillColor('red').strokeRect(0,0, size.x, size.x)
+                                    })
+                                }));
+                            }
+                            else {
+                                this.removeChild(this.redFrame);
+                                this.redFrame = undefined;
+                            }
                         }
                     })
                 }
                  this.img = this.frames[this.currentFrame];
             }
         }), this.layers.aero)
+
+        this.farCity = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.main = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(Demo10CityScene.models.farCity)
+                }))
+
+                this.flow1 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.parentScene.flowGenerator({framesCount: 400, itemsCount: 20, from: new V2(76,54), to: new V2(107,35), upperY: 0,
+                    type: 'linear', method: 'base', noShadow: true, forceSingleFrame: scene.flowAnimationDisabled }),//
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        this.timer = this.regTimerDefault(15, () => {
+        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
+
+                this.flow2 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.parentScene.flowGenerator({framesCount: 400, itemsCount: 20, from: new V2(77,60), to: new V2(109,40), upperY: 0,
+                    type: 'linear', method: 'base', noShadow: true, forceSingleFrame: scene.flowAnimationDisabled }),//
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        this.timer = this.regTimerDefault(15, () => {
+        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame--;
+                            if(this.currentFrame < 0){
+                                this.currentFrame = this.frames.length-1;
+                            }
+                        })
+                    }
+                }))
+            }
+        }), this.layers.farCity)
+
+        this.tah = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.main = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(Demo10CityScene.models.mainRightBuilding, {renderOnly: ['tag']})
+                }))
+            }
+        }), 50)
     }
 }
