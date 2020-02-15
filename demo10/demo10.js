@@ -42,6 +42,11 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'city',
         viewport: smallSquareDefaultViewport
     }));
+
+    SCG.scenes.cacheScene(new Demo10Exp1Scene({
+        name:'exp1',
+        viewport: smallSquareDefaultViewport
+    }));
     
 
     sceneSelectByHashValue();
