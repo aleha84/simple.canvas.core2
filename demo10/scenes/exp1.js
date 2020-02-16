@@ -2,7 +2,7 @@ class Demo10Exp1Scene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -123,11 +123,14 @@ class Demo10Exp1Scene extends Scene {
 
 
         this.layered = [];
+        let layeredDataModel = Demo10Exp1Scene.models.layered();
+        layeredDataModel.main.layers.forEach(l => l.visible = true);
+
         for(let l = 2; l<10; l++){
             this.layered[l] = this.addGo(new GO({
                 position: this.sceneCenter,
                 size,
-                img: PP.createImage(Demo10Exp1Scene.models.layered, {renderOnly: ['l'+l]})
+                img: PP.createImage(layeredDataModel, {renderOnly: ['l'+l]})
                 
             }), l)
         }
