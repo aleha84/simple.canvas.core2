@@ -15,6 +15,7 @@ class Demo10Exp1Scene extends Scene {
     }
 
     start(){
+        let scene = this;
         let layersCount = 10;
         let dotsPerLayerClamps = [300, 100];
         let xChangeClamps = [1, 5];
@@ -97,12 +98,69 @@ class Demo10Exp1Scene extends Scene {
             //console.log({i, dotsPerLayer, maxXChange, framesLen: frames.length})
         }
 
+        // this.bg = this.addGo(new GO({
+        //     position: this.sceneCenter.clone(),
+        //     size: this.viewport.clone(),
+        //     init() {
+        //         let mainHsv = [200, 0, 100];
+        //         let rotationOrigin = new V2(this.size.x/2, this.size.y/2).add(new V2(-50, 50)).toInt();
+        //         let framesCount = framesPerLayer*5;//80;
+        //         let rotationSpeed = 0.05;
+
+        //         let repeats = fast.r(360/(framesCount*rotationSpeed))
+
+        //         let dotsCount = 100;
+        //         let dots = new Array(dotsCount).fill(undefined).map((_, i) => ({
+        //             p: new V2(getRandomInt(0, this.size.x+20), getRandomInt(-10, this.size.y/2)),
+        //             hsv: [mainHsv[0], mainHsv[1], getRandomInt(10, 40)]
+        //         }))
+
+        //         this.frames = [];
+
+        //         for(let f = 0; f < framesCount; f++){
+        //             this.frames[f] = createCanvas(this.size, (ctx, size, hlp) => {
+        //                 // let hsv = [...mainHsv];
+        //                 // hsv[2] = getRandomInt(10, 90);
+
+        //                 //hlp.setFillColor(hsvToHex({hsv: hsv, hsvAsObject: false, hsvAsInt: true}));
+        //                 //hlp.setFillColor('white');
+
+        //                 for(let r = 0; r < repeats; r++){
+        //                     for(let i = 0; i < dots.length; i++){
+        //                         let dot = dots[i];
+        //                         hlp.setFillColor(hsvToHex({hsv: dot.hsv, hsvAsObject: false, hsvAsInt: true}));
+        //                         let originalPosition = dot.p.clone();
+
+        //                         let repeated = originalPosition.substract(rotationOrigin).rotate(r*framesCount*rotationSpeed + rotationSpeed*f, false, false).add(rotationOrigin).toInt()
+
+        //                         hlp.dot(repeated.x, repeated.y);
+        //                     }
+        //                 }
+                        
+        //             })
+        //         }
+
+        //         this.currentFrame = 0;
+        //         this.img = this.frames[this.currentFrame];
+
+        //         this.timer = this.regTimerDefault(15, () => {
+    
+        //             this.img = this.frames[this.currentFrame];
+        //             this.currentFrame++;
+        //             if(this.currentFrame == this.frames.length){
+        //                 this.currentFrame = 0;
+        //             }
+        //         })
+        //     }
+        // }), 0)
+
         for(let l = 0; l < layers.length; l++){
                 
             this.layersGo[l] = this.addGo(new GO({
                 ...layers[l],
                 position: this.sceneCenter.clone(),
                 size,
+                //isVisible: false,
                 init() {
                     if(this.frames.length){
                         this.currentFrame = 0;
@@ -130,6 +188,7 @@ class Demo10Exp1Scene extends Scene {
             this.layered[l] = this.addGo(new GO({
                 position: this.sceneCenter,
                 size,
+                //isVisible: false,
                 img: PP.createImage(layeredDataModel, {renderOnly: ['l'+l]})
                 
             }), l)
