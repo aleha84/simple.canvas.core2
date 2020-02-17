@@ -135,6 +135,8 @@ class Demo10Exp1Scene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
+                return;
+
                 let mainHsv = [200, 0, 100];
                 let rotationOriginShift =new V2(-50, 50);
                 let framesCount = framesPerLayer*5//*5;//80;
