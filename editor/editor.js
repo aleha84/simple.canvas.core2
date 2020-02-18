@@ -388,7 +388,7 @@ class Editor {
     }
 
     exportModel(pretty, clean) {
-        let model = JSON.stringify(this.prepareModel(), (k,v) => {
+        let model = JSON.stringify(this.prepareModel(undefined, {ignoreVisibility: true}), (k,v) => {
             if(k == 'editor' || k == 'selected')
                 return undefined;
             
@@ -403,7 +403,7 @@ class Editor {
         else 
             return model;
     }
-    prepareModel(model, params = { singleFrame: false, returnOnlyMain: false }) {
+    prepareModel(model, params = { singleFrame: false, returnOnlyMain: false, ignoreVisibility: false }) {
         let that = model || this;
         let i = that.image;
         let e = that.editor;
@@ -512,7 +512,7 @@ class Editor {
         let layerMapper = (l) => {
             return {
                 ...modelUtils.layerMapper(l),
-                groups: l.groups.map(groupMapper),
+                groups: l.groups.filter(g => g.visible).map(groupMapper),
                 move(direction) {
                     let d = new V2(direction);
                     
@@ -535,20 +535,20 @@ class Editor {
         if(animated){
             if(params.singleFrame){
                 main = {
-                    layers: i.main[i.general.currentFrameIndex].layers.map(layerMapper)
+                    layers: i.main[i.general.currentFrameIndex].layers.filter(l => (params.ignoreVisibility ? true : l.visible)).map(layerMapper)
                 };
 
                 animated = false;
             }
             else {
                 main = i.main.map(frame => ({
-                    layers: frame.layers.map(layerMapper)
+                    layers: frame.layers.filter(l => (params.ignoreVisibility ? true : l.visible)).map(layerMapper)
                 }))
             } 
         }
         else {
             main = {
-                layers: i.main.layers.map(layerMapper)
+                layers: i.main.layers.filter(l => (params.ignoreVisibility ? true : l.visible)).map(layerMapper)
             }
         }
 
