@@ -93,6 +93,7 @@ class Editor {
                     originalSize: {x: 20, y: 20},//new V2(10, 10),
                     zoom: {current: 10, max: 10, min: 1, step: 1},
                     showGrid: false,
+                    renderOptimization: false,
                     animated: false,
                     element: undefined,
                     backgroundColor: '#000000'
@@ -532,23 +533,29 @@ class Editor {
         
         let main = undefined;
         let animated  = i.general.animated;
+        let ignoreVisibility = !i.general.renderOptimization;
+
+        if(params.ignoreVisibility){
+            ignoreVisibility = true;
+        }
+
         if(animated){
             if(params.singleFrame){
                 main = {
-                    layers: i.main[i.general.currentFrameIndex].layers.filter(l => (params.ignoreVisibility ? true : l.visible)).map(layerMapper)
+                    layers: i.main[i.general.currentFrameIndex].layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper)
                 };
 
                 animated = false;
             }
             else {
                 main = i.main.map(frame => ({
-                    layers: frame.layers.filter(l => (params.ignoreVisibility ? true : l.visible)).map(layerMapper)
+                    layers: frame.layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper)
                 }))
             } 
         }
         else {
             main = {
-                layers: i.main.layers.filter(l => (params.ignoreVisibility ? true : l.visible)).map(layerMapper)
+                layers: i.main.layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper)
             }
         }
 
@@ -561,6 +568,7 @@ class Editor {
                 size: new V2(i.general.originalSize),
                 zoom: i.general.zoom.current,
                 showGrid: i.general.showGrid, 
+                renderOptimization: i.general.renderOptimization,
                 animated,
                 backgroundColor:i.general.backgroundColor
             },
@@ -973,6 +981,12 @@ class Editor {
             general.showGrid = value;
             this.updateEditor();
         }.bind(this)));
+
+        generalEl.appendChild(components.createCheckBox(general.renderOptimization, 'Render optimization', function(value) {
+            general.renderOptimization = value;
+            this.updateEditor();
+        }.bind(this)));
+
         generalEl.appendChild(components.createCheckBox(general.animated, 'Animated', function(value) {
             
             if(value){
