@@ -408,6 +408,13 @@ class Editor {
         let that = model || this;
         let i = that.image;
         let e = that.editor;
+
+        let ignoreVisibility = !i.general.renderOptimization;
+
+        if(params.ignoreVisibility){
+            ignoreVisibility = true;
+        }
+
         let groupMapper = (g) => {
             return {
                 ...modelUtils.groupMapper(g),
@@ -513,7 +520,7 @@ class Editor {
         let layerMapper = (l) => {
             return {
                 ...modelUtils.layerMapper(l),
-                groups: l.groups.filter(g => g.visible).map(groupMapper),
+                groups: l.groups.filter(g => (ignoreVisibility ? true : g.visible)).map(groupMapper),
                 move(direction) {
                     let d = new V2(direction);
                     
@@ -533,11 +540,6 @@ class Editor {
         
         let main = undefined;
         let animated  = i.general.animated;
-        let ignoreVisibility = !i.general.renderOptimization;
-
-        if(params.ignoreVisibility){
-            ignoreVisibility = true;
-        }
 
         if(animated){
             if(params.singleFrame){
