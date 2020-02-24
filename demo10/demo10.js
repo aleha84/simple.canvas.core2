@@ -47,7 +47,16 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'exp1',
         viewport: smallSquareDefaultViewport
     }));
+
+    SCG.scenes.cacheScene(new Demo10WowScene({
+        name:'wow',
+        viewport: small300_200_Viewport
+    }));
     
+    SCG.scenes.cacheScene(new Demo10FlorianScene({
+        name:'florian',
+        viewport: smallSquareDefaultViewport
+    }));
 
     sceneSelectByHashValue();
     
