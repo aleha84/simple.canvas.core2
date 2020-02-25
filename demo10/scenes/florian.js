@@ -11,21 +11,21 @@ class Demo10FlorianScene extends Scene {
     }
 
     backgroundRender() {
-        //this.backgroundRenderDefault('#819188');
-        this.backgroundRenderImage(this.bgImg);
+        this.backgroundRenderDefault('#819188');
+        //this.backgroundRenderImage(this.bgImg);
     }
 
     start(){
 
-        this.bgImg = PP.createImage(Demo10FlorianScene.models.bg);
+        //this.bgImg = PP.createImage(Demo10FlorianScene.models.bg);
 
         this.flower = this.addGo(new GO({
-            position: this.sceneCenter.clone(),
+            position: this.sceneCenter.add(new V2(-10, 0)),
             size: this.viewport.clone(),
             init() {
 
                 this.particles = this.addChild(new GO({
-                    position: new V2(-60, -5),
+                    position: new V2(-60, -3),
                     size: new V2(60, 25),
                     init() {
                         this.frames = [];
@@ -49,6 +49,7 @@ class Demo10FlorianScene extends Scene {
 
                             particles[i] = {
                                 y,
+                                initialX: getRandomInt(0,10),
                                 inititialIndex: getRandomInt(0, xChanges.length-1)
                             }
                         }
@@ -63,8 +64,69 @@ class Demo10FlorianScene extends Scene {
                                         currentIndex-=xChanges.length;
                                     }
     
-                                    let x = xChanges[currentIndex];
+                                    let x = particle.initialX + xChanges[currentIndex];
                                     hlp.setFillColor(`rgba(255,255,0, ${aChanges[currentIndex]})`).dot(x, particle.y);
+                                }
+                            })
+                            
+                        }
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+
+                        this.timer = this.regTimerDefault(15, () => {
+            
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
+
+                this.particles2 = this.addChild(new GO({
+                    position: new V2(-50, -3),
+                    size: new V2(30, 50),
+                    init() {
+                        this.frames = [];
+                        let framesCount = 50;
+                        let itemsCount = 30;
+
+                        let particles = [];
+                        let xChange = easing.createProps(framesCount-1, this.size.x, 0, 'quad', 'in');
+                        let aChange = easing.createProps(framesCount-1, 1, 0, 'quad', 'in');
+                        let xChanges = [];
+                        let aChanges = [];
+                        for(let f = 0; f < framesCount; f++){
+                            xChange.time = f;
+                            aChange.time = f;
+                            xChanges[f] = fast.r(easing.process(xChange))
+                            aChanges[f] = fast.r(easing.process(aChange),1)
+                        }
+
+                        for(let i = 0; i < itemsCount; i++){
+                            let y = fast.r(getRandomGaussian(0, this.size.y));
+
+                            particles[i] = {
+                                y,
+                                initialX: getRandomInt(0,10),
+                                inititialIndex: getRandomInt(0, xChanges.length-1)
+                            }
+                        }
+
+                        for(let f = 0; f < framesCount; f++){
+                            this.frames[f] = createCanvas(this.size, (ctx, size, hlp) => {
+                                for(let i = 0; i < itemsCount; i++){
+                                    let particle = particles[i];
+    
+                                    let currentIndex = particle.inititialIndex + f;
+                                    if(currentIndex > (xChanges.length-1)){
+                                        currentIndex-=xChanges.length;
+                                    }
+    
+                                    let x = particle.initialX + xChanges[currentIndex];
+                                    hlp.setFillColor(`rgba(0,255,255, ${aChanges[currentIndex]})`).dot(x, particle.y);
                                 }
                             })
                             
@@ -266,12 +328,90 @@ class Demo10FlorianScene extends Scene {
         //     }
         // }), 1)
 
+        this.bg = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                this.img = PP.createImage(Demo10FlorianScene.models.bg)
+
+                this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        let framesCount = 100;
+                        let itemsCount = 500;
+                        let items = [];
+                        for(let i = 0;i< itemsCount; i++){
+                            let inititalFrame = getRandomInt(0, framesCount-1);
+                            let mainFrames = [];
+                            // let secondaryFrames = [];
+                            // let secondaryFrames = [];
+                            for(let j = 0; j < 20; j++){
+                                let mf = inititalFrame+j;
+                                if(mf >= framesCount){
+                                    mf-=framesCount;
+                                }
+
+                                mainFrames[j] = mf;
+                                // if(j <5)
+                                //     mainFrames[j] = mf;
+                                // else 
+                                //     secondaryFrames[j-5] = mf;
+
+                            }
+
+
+                            items[i] = {
+                                p: new V2(getRandomInt(0, this.size.x), getRandomInt(0, this.size.y)),
+                                inititalFrame: getRandomInt(0, framesCount-1),
+                                mainFrames,
+                                //secondaryFrames
+                            }
+                        }
+
+                        this.frames = [];
+                        for(let f = 0; f < framesCount; f++){
+                            this.frames[f] = createCanvas(this.size, (ctx, size, hlp) => {
+                                for(let i = 0;i< itemsCount; i++){
+                                    let item = items[i];
+                                
+                                    let index = item.mainFrames.indexOf(f)
+                                    if(index != -1){
+                                        let d = fast.f(index/8);
+
+                                        hlp.setFillColor(`rgba(255,255,255, ${fast.r(1/(d+1),1)})`).dot(item.p.x-d, item.p.y);
+                                    }
+                                    
+                                    // if(item.secondaryFrames.indexOf(f) != -1){
+                                    //     hlp.setFillColor('rgba(255,255,255, 0.6)').dot(item.p.x+1, item.p.y);
+                                    // }
+                                }
+                            })
+                        }
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+
+                        this.timer = this.regTimerDefault(15, () => {
+            
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
+
+            }
+        }), 0)
+
         this.iceTower1 = this.addGo(new GO({
             position: new V2(160,130),
             size: new V2(30,50),
             init() {
                 this.img = PP.createImage(Demo10FlorianScene.models.iceTower1)
             }
-        }), 0)
+        }), 1)
     }
 }
