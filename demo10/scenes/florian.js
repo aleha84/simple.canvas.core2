@@ -2,7 +2,7 @@ class Demo10FlorianScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -150,7 +150,51 @@ class Demo10FlorianScene extends Scene {
                     position: new V2(),
                     size: this.size,
                     init() {
-                        this.img = PP.createImage(Demo10FlorianScene.models.flower)
+                        //this.img = PP.createImage(Demo10FlorianScene.models.flower)
+                        this.tail = this.addChild(new GO({
+                            position: new V2(),
+                            size: this.size,
+                            img: PP.createImage(Demo10FlorianScene.models.flower, { exclude: ['frontal', 'l4', 'l3', 'l2', 'l1'] })
+                        }))
+
+                        this.leafs = this.addChild(new GO({
+                            position: new V2(),
+                            size: this.size,
+                            frames: PP.createImage(Demo10FlorianScene.models.leafsFrames),
+                            init() {
+                                this.currentFrame = 0;
+                                this.img = this.frames[this.currentFrame];
+
+                                this.timer = this.regTimerDefault(152, () => {
+                    
+                                    this.img = this.frames[this.currentFrame];
+                                    this.currentFrame++;
+                                    if(this.currentFrame == this.frames.length){
+                                        this.currentFrame = 0;
+
+                                        // if(!this.redFrame){
+                                        //     this.redFrame = this.addChild(new GO({
+                                        //         position: new V2(),
+                                        //         size: this.size,
+                                        //         img: createCanvas(this.size, (ctx, size, hlp) => {
+                                        //             hlp.setFillColor('red').strokeRect(0,0, size.x, size.x)
+                                        //         })
+                                        //     }));
+                                        // }
+                                        // else {
+                                        //     this.removeChild(this.redFrame);
+                                        //     this.redFrame = undefined;
+                                        // }
+                                    }
+                                })
+                            }
+                        }))
+
+                        this.frontal = this.addChild(new GO({
+                            position: new V2(),
+                            size: this.size,
+                            img: PP.createImage(Demo10FlorianScene.models.flower, { renderOnly: ['frontal'] })
+                        }))
                     }
                 }))
                 
@@ -332,7 +376,12 @@ class Demo10FlorianScene extends Scene {
             position: this.sceneCenter,
             size: this.viewport,
             init() {
-                this.img = PP.createImage(Demo10FlorianScene.models.bg)
+                //this.img = PP.createImage(Demo10FlorianScene.models.bg)
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    for(let i = 0; i < 500; i++){
+                        hlp.setFillColor('rgba(0,0,0,0.025)').rect(getRandomInt(-10, size.x-10), fast.r(getRandomGaussian(0, size.y)), getRandomInt(1,10), 1)
+                    }
+                })
 
                 this.addChild(new GO({
                     position: new V2(),
@@ -362,7 +411,7 @@ class Demo10FlorianScene extends Scene {
 
 
                             items[i] = {
-                                p: new V2(getRandomInt(0, this.size.x), getRandomInt(0, this.size.y)),
+                                p: new V2(getRandomInt(0, this.size.x), fast.r(getRandomGaussian(50, this.size.y-50))+20),
                                 inititalFrame: getRandomInt(0, framesCount-1),
                                 mainFrames,
                                 //secondaryFrames
@@ -377,7 +426,7 @@ class Demo10FlorianScene extends Scene {
                                 
                                     let index = item.mainFrames.indexOf(f)
                                     if(index != -1){
-                                        let d = fast.f(index/8);
+                                        let d = fast.f(index/10);
 
                                         hlp.setFillColor(`rgba(255,255,255, ${fast.r(1/(d+1),1)})`).dot(item.p.x-d, item.p.y);
                                     }
@@ -411,6 +460,46 @@ class Demo10FlorianScene extends Scene {
             size: new V2(30,50),
             init() {
                 this.img = PP.createImage(Demo10FlorianScene.models.iceTower1)
+            }
+        }), 1)
+
+        this.iceTower2 = this.addGo(new GO({
+            position: new V2(180,135),
+            size: new V2(20,20),
+            init() {
+                this.img = PP.createImage(Demo10FlorianScene.models.iceTower2)
+            }
+        }), 1)
+
+        this.iceTower3 = this.addGo(new GO({
+            position: new V2(175,145),
+            size: new V2(20,20),
+            init() {
+                this.img = PP.createImage(Demo10FlorianScene.models.iceTower2)
+            }
+        }), 1)
+
+        this.iceTower4 = this.addGo(new GO({
+            position: new V2(155,145),
+            size: new V2(20,20),
+            init() {
+                this.img = PP.createImage(Demo10FlorianScene.models.iceTower2)
+            }
+        }), 1)
+
+        this.iceTower5 = this.addGo(new GO({
+            position: new V2(135,135),
+            size: new V2(20,20),
+            init() {
+                this.img = PP.createImage(Demo10FlorianScene.models.iceTower3)
+            }
+        }), 1)
+
+        this.iceTower6 = this.addGo(new GO({
+            position: new V2(150,130),
+            size: new V2(10,20),
+            init() {
+                this.img = PP.createImage(Demo10FlorianScene.models.iceTower4)
             }
         }), 1)
     }
