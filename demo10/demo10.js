@@ -58,6 +58,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: smallSquareDefaultViewport
     }));
 
+    SCG.scenes.cacheScene(new Demo10Loading1Scene({
+        name:'loading1',
+        viewport: small200_300_Viewport
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
