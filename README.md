@@ -115,12 +115,11 @@ TODO:
 
 - Add used colors panel
 
-- Add Layer move
+- Shortcuts for adding new group (points/lines mode)
 
-- clone group to another frame if it is not exists
+- Select multiple points (select tool), move or remove selection
 
-- Fix bugs
-
+- Remove point on selection if R pressed
 
 
 
