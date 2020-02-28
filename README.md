@@ -121,7 +121,9 @@ TODO:
 
 - Remove point on selection if R pressed
 
+- Clone group
 
+- Optimization - render each layer as img, and update it if any group has changed
 
 
 
