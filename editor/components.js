@@ -541,8 +541,6 @@ var components = {
     createLayer(layerEl, layerProps, changeCallback, additionals = {}) {
         htmlUtils.removeChilds(layerEl);
 
-
-
         if(layerProps == undefined) {
             changeCallback();
             return;
@@ -561,6 +559,7 @@ var components = {
         }))
 
         let layerVisiblityEl = components.createCheckBox(layerProps.visible, 'Visible', function(value) {
+            layerProps.removeImage();
             layerProps.visible = value;
             changeCallback();
         })
@@ -611,7 +610,12 @@ var components = {
                         }
                     }
 
-                    components.createGroup(groupEl, selectedGroup, changeCallback);
+                    let groupChangeCallback = function() {   
+                        layerProps.removeImage();
+                        changeCallback(); 
+                    }
+
+                    components.createGroup(groupEl, selectedGroup, groupChangeCallback);
                     components.editor.editor.setMoveGroupModeState(true);
                     components.editor.editor.setModeState(true, 'edit');
                 },
@@ -632,6 +636,7 @@ var components = {
                     if(!confirm('Remove group?'))
                         return;
 
+                    layerProps.removeImage();
                     groups = groups.filter(g => g.id != select.value);  
                     groups.forEach((p, i) => p.order = i);
                     select.value = undefined;
@@ -682,6 +687,7 @@ var components = {
                     if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == groups.length-1))
                         return;
 
+                    layerProps.removeImage();
                     components.array_move(groups, currentIndex, currentIndex + direction);
                     groups.forEach((g, i) => g.order = i);
                     components.fillGroups(layerProps, changeCallback);

@@ -331,6 +331,7 @@ class Editor {
                         },
                         contentItems: [
                             components.createRotationControl(angleChangeCallback, rotationOrigin, () => {
+                                layer.removeImage();
                                 let currentPoints = rDemo.getCurrentPoints();
                                 currentPoints.forEach((modifiedPoint,i) => {
                                     //group.points[i].point = p.toPlain();
@@ -390,7 +391,7 @@ class Editor {
 
     exportModel(pretty, clean) {
         let model = JSON.stringify(this.prepareModel(undefined, {ignoreVisibility: true}), (k,v) => {
-            if(k == 'editor' || k == 'selected')
+            if(k == 'editor' || k == 'selected' || k=='layerImage')
                 return undefined;
             
             return v;
@@ -415,16 +416,19 @@ class Editor {
             ignoreVisibility = true;
         }
 
-        let groupMapper = (g) => {
+        let groupMapper = (g, layer) => {
             return {
                 ...modelUtils.groupMapper(g),
                 changeCallback() {
+                    layer.removeImage();
                     that.updateEditor.bind(that)();
                 },
                 points: g.points.map((p) => {
                     return {
                         ...modelUtils.pointMapper(p),
                         changeCallback(value, skipEventDispatch = false) {
+                            layer.removeImage();
+
                             p.point.x = value.x;
                             p.point.y = value.y;
 
@@ -458,6 +462,7 @@ class Editor {
                             else {
                                 e.selected.pointId = p.id;
                                 e.removeSelectedPoint = () => {
+                                    layer.removeImage();
                                     g.points = g.points.filter(gp => gp.id != p.id);  
                                     g.points.forEach((p, i) => {p.order = i; p.selected = false});
                                     that.updateEditor.bind(that)();
@@ -472,6 +477,8 @@ class Editor {
                 addPointCallback(p) {
                     let callback = that.updateEditor.bind(that);
                     
+                    layer.removeImage();
+
                     if(g.currentPointId == undefined){
                         g.currentPointId = 0;
                     }
@@ -492,6 +499,8 @@ class Editor {
                 addPointsCallback(points) {
                     if(!points || points.lenght == 0)
                         return;
+
+                    layer.removeImage();
 
                     let callback = that.updateEditor.bind(that);
                     if(g.currentPointId == undefined){
@@ -520,8 +529,9 @@ class Editor {
         let layerMapper = (l) => {
             return {
                 ...modelUtils.layerMapper(l),
-                groups: l.groups.filter(g => (ignoreVisibility ? true : g.visible)).map(groupMapper),
+                groups: l.groups.filter(g => (ignoreVisibility ? true : g.visible)).map(g => groupMapper(g, l)),
                 move(direction) {
+                    l.removeImage();
                     let d = new V2(direction);
                     
                     l.groups.forEach(g => {
@@ -534,6 +544,9 @@ class Editor {
                 },
                 changeCallback() {
                     that.updateEditor.bind(that)();
+                },
+                layerImageCreatedCallback(img){
+                    l.layerImage = img;
                 }
             }
         }

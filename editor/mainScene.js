@@ -44,7 +44,7 @@ class EditorScene extends Scene {
                                 if(isArray(main)){
                                     main = main[this.editor.image.general.currentFrameIndex];
                                 }
-                                main.layers.filter(l => l.id != edt.selected.layerId).forEach(l => l.visible = !l.visible);
+                                main.layers.filter(l => l.id != edt.selected.layerId).forEach(l => {l.visible = !l.visible; l.removeImage();});
                             }
 
                             //layer
@@ -165,7 +165,9 @@ class EditorScene extends Scene {
     }
 
     renderModel(model){
-        console.log(model);
+        if(model.logEnabled)
+            console.log(model);
+
         let mg = this.mainGo;
         let uimg = this.underlyingImg;
         let {general, main} = model;
@@ -184,7 +186,19 @@ class EditorScene extends Scene {
             mg.isVisible = true;
             mg.model = model;
     
-            mg.img = PP.createImage(model);
+            mg.img = createCanvas(general.size, (ctx, size, hlp) => {
+                model.main.layers.forEach(l => {
+                    if(!l.layerImage){
+                        l.layerImage = PP.createImage(model, {renderOnly: [l.name || l.id]});
+                        l.layerImageCreatedCallback(l.layerImage)
+                    }
+
+                    ctx.drawImage(l.layerImage, 0,0);
+                })
+            })
+            
+
+            //mg.img = PP.createImage(model);
     
             mg.originalSize = general.originalSize;
             uimg.originalSize = general.originalSize;
