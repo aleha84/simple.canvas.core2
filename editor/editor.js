@@ -1084,7 +1084,20 @@ class Editor {
                         commonCallback();
                     },
                     add: function(e, select){
-                        let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }));
+
+                        // let model = JSON.stringify(this.prepareModel(undefined, {ignoreVisibility: true}), (k,v) => {
+                        //     if(k == 'editor' || k == 'selected' || k=='layerImage')
+                        //         return undefined;
+                            
+                        //     return v;
+                        // }, pretty? 4: null);
+
+                        let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }), (k,v) => {
+                            if(k=='layerImage')
+                                return undefined;
+                            
+                            return v;
+                        });
                         let newItem = that.importModel(currentFrameModel).main;
                         that.image.main.push(newItem);
 

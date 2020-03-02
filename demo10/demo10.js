@@ -72,6 +72,11 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'dumplings',
         viewport: new V2(100,100)
     }));
+
+    SCG.scenes.cacheScene(new Demo10KeyScene({
+        name:'key',
+        viewport: new V2(200,200)
+    }));
     
 
     sceneSelectByHashValue();
