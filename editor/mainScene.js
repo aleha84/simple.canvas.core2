@@ -186,16 +186,20 @@ class EditorScene extends Scene {
             mg.isVisible = true;
             mg.model = model;
     
+            let imagesCreated = 0;
             mg.img = createCanvas(general.size, (ctx, size, hlp) => {
                 model.main.layers.forEach(l => {
                     if(!l.layerImage){
                         l.layerImage = PP.createImage(model, {renderOnly: [l.name || l.id]});
                         l.layerImageCreatedCallback(l.layerImage)
+                        imagesCreated++;
                     }
 
                     ctx.drawImage(l.layerImage, 0,0);
                 })
             })
+
+            console.log('renderModel: imagesCreated: ' + imagesCreated);
             
 
             //mg.img = PP.createImage(model);
