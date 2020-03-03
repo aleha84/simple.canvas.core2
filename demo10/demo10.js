@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo10MetroScene({
         name:'metro',
-        viewport: smallSquareDefaultViewport.add(new V2(-5,-5))
+        viewport: smallSquareDefaultViewport.add(new V2(-2,-2))
     }));
 
     SCG.scenes.cacheScene(new Demo10DumplingScene({
