@@ -16,6 +16,28 @@ class Demo10MetroScene extends Scene {
 
     start(){
 
+        // this.street = this.addGo(new GO({position: new V2(), size: new V2(1,1)}));
+
+        // this.timer = this.regTimerDefault(5000, () => {
+        //     if(this.street){
+        //         this.removeGo(this.street);
+        //         this.street = undefined;
+        //     }
+        //     else {
+        //         this.street = this.addGo(new GO({
+        //             position: this.sceneCenter,
+        //             size: this.viewport,
+        //             init() {
+        //                 this.changeStateTime = 1000;
+        //                 this.wChangeShow = easing.createProps(this.changeStateTime, 0, fast.r(this.size.x/2), 'quad', 'in');
+
+
+        //             }
+        //         }));
+        //     }
+        // })
+
+
         this.tonnel = this.addGo(new GO({
             position: this.sceneCenter,
             size: this.viewport,
@@ -65,6 +87,8 @@ class Demo10MetroScene extends Scene {
             }
         }), 1)
 
+
+
         this.cabin = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: new V2(200,200),
@@ -73,8 +97,8 @@ class Demo10MetroScene extends Scene {
                 this.img = PP.createImage(Demo10MetroScene.models.main);
                 this.xOriginal = this.position.x;
 
-                this.xChange = easing.createProps(20, 0,2,'quad', 'in');
-                this.xChangeBack = easing.createProps(20, 2,0,'quad', 'in');
+                this.xChange = easing.createProps(20, 0,1,'quad', 'in');
+                this.xChangeBack = easing.createProps(20, 1,0,'quad', 'in');
                 this.direction = 1;
 
                 this.delayCounter = 20;
