@@ -2,7 +2,7 @@ class Demo10MetroScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -48,19 +48,20 @@ class Demo10MetroScene extends Scene {
 
                         //console.log(this.changeStateValues);
 
-                        this.composition = 'destination-in';
-                        this.changeStateMaskFramesIndex = 0;
+                        // this.composition = 'destination-in';
+                        // this.changeStateMaskFramesIndex = 0;
                         
                         this.startTonnelFrames();
 
-                        this.delayTimer = this.registerTimer(createTimer(5000, () => {
-                            this.unregTimer(this.delayTimer);
-                            this.delayTimer = undefined;
-                            this.composition = 'destination-out';
-                            this.changeStateMaskFramesIndex = 0;
-                        }, this, false));
+                        // this.delayTimer = this.registerTimer(createTimer(5000, () => {
+                        //     this.unregTimer(this.delayTimer);
+                        //     this.delayTimer = undefined;
+                        //     this.composition = 'destination-out';
+                        //     this.changeStateMaskFramesIndex = 0;
+                        // }, this, false));
                     },
                     startTonnelFrames() {
+                        this.redFrameCounter = 10;
                         this.currentFrame = 0;
                         //this.img = this.frames[this.currentFrame];
 
@@ -70,6 +71,25 @@ class Demo10MetroScene extends Scene {
                             this.currentFrame++;
                             if(this.currentFrame == this.frames.length){
                                 this.currentFrame = 0;
+
+                                this.redFrameCounter--;
+
+                                if(this.redFrameCounter == 0){
+                                    this.redFrameCounter= 10;
+                                    if(!this.redFrame){
+                                        this.redFrame = this.addChild(new GO({
+                                            position: new V2(),
+                                            size: this.size,
+                                            img: createCanvas(this.size, (ctx, size, hlp) => {
+                                                hlp.setFillColor('red').strokeRect(45,0, size.x, size.x)
+                                            })
+                                        }));
+                                    }
+                                    else {
+                                        this.removeChild(this.redFrame);
+                                        this.redFrame = undefined;
+                                    }
+                                } 
                             }
 
                             if(this.composition){
@@ -125,7 +145,17 @@ class Demo10MetroScene extends Scene {
                     let startIndex = this.tonnelFramesCount*i;
                     let index = startIndex+f;
                     hlp.setFillColor('#222222');
-                    hlp.strokeEllipsis(0,360, 0.1, this.pCenter, this.rValues[index], this.rValues[index]*2);
+                    //hlp.strokeEllipsis(0,360, 0.1, this.pCenter, this.rValues[index], this.rValues[index]*2);
+                    hlp.rect(this.pCenter.x+this.rValues[index], 0, 1, size.y)
+                    hlp.rect(this.pCenter.x-this.rValues[index], 0, 1, size.y)
+
+                    hlp.setFillColor('#111111')
+                    hlp.rect(this.pCenter.x+this.rValues[index]+1, 0, 1, size.y)
+                    hlp.rect(this.pCenter.x-this.rValues[index]-1, 0, 1, size.y)
+
+                    hlp.setFillColor('#090909')
+                    hlp.rect(this.pCenter.x+this.rValues[index]+2, 0, 1, size.y)
+                    hlp.rect(this.pCenter.x-this.rValues[index]-2, 0, 1, size.y)
                 }
 
                 
@@ -151,12 +181,13 @@ class Demo10MetroScene extends Scene {
             init() {
                 this.img = PP.createImage(Demo10MetroScene.models.main);
                 this.xOriginal = this.position.x;
+                this.yOriginal = this.position.y;
 
                 this.xChange = easing.createProps(20, 0,1,'quad', 'in');
                 this.xChangeBack = easing.createProps(20, 1,0,'quad', 'in');
                 this.direction = 1;
 
-                this.delayCounter = 20;
+                this.delayCounter = 29;
 
                 this.shakeTimer = this.regTimerDefault(15, () => {
                     if(this.delayCounter > 0){
@@ -172,7 +203,7 @@ class Demo10MetroScene extends Scene {
 
                     
                     let x = fast.r(easing.process(xChange));
-                    this.position.x = this.xOriginal+ x;
+                    this.position.y = this.yOriginal+ (x/3);
                     this.needRecalcRenderProperties = true;
 
                     xChange.time++;
