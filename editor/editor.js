@@ -217,7 +217,16 @@ class Editor {
                         return;
                     }
 
-                    let layer = that.image.main.layers.filter(l => l.id == that.editor.selected.layerId)[0];
+                    let layer = undefined;
+
+                    if(that.image.general.animated){
+                        layer = that.image.main[that.image.general.currentFrameIndex].layers.filter(l => l.id == that.editor.selected.layerId)[0];
+                    }
+                    else {
+                        layer = that.image.main.layers.filter(l => l.id == that.editor.selected.layerId)[0];
+                    }
+
+                    
                     let group = layer.groups.filter(g => g.id == that.editor.selected.groupId)[0];
                     
                     if(group.points.length < 2){
