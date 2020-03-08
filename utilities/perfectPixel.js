@@ -328,11 +328,11 @@ PP.createImage = function(model, params = {}) {
                     continue;
     
                 if(params.renderOnly.length > 0){
-                    if(params.renderOnly.indexOf(layer.name) == -1)
+                    if(params.renderOnly.indexOf(layer.name || layer.id) == -1)
                         continue;
                 }
                 else if(params.exclude.length > 0) {
-                    if(params.exclude.indexOf(layer.name) != -1)
+                    if(params.exclude.indexOf(layer.name || layer.id) != -1)
                         continue;
                 }
 

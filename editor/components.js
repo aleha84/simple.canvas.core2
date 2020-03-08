@@ -541,8 +541,6 @@ var components = {
     createLayer(layerEl, layerProps, changeCallback, additionals = {}) {
         htmlUtils.removeChilds(layerEl);
 
-
-
         if(layerProps == undefined) {
             changeCallback();
             return;
@@ -561,6 +559,7 @@ var components = {
         }))
 
         let layerVisiblityEl = components.createCheckBox(layerProps.visible, 'Visible', function(value) {
+            layerProps.removeImage();
             layerProps.visible = value;
             changeCallback();
         })
@@ -611,7 +610,12 @@ var components = {
                         }
                     }
 
-                    components.createGroup(groupEl, selectedGroup, changeCallback);
+                    let groupChangeCallback = function() {   
+                        layerProps.removeImage();
+                        changeCallback(); 
+                    }
+
+                    components.createGroup(groupEl, selectedGroup, groupChangeCallback);
                     components.editor.editor.setMoveGroupModeState(true);
                     components.editor.editor.setModeState(true, 'edit');
                 },
@@ -632,6 +636,7 @@ var components = {
                     if(!confirm('Remove group?'))
                         return;
 
+                    layerProps.removeImage();
                     groups = groups.filter(g => g.id != select.value);  
                     groups.forEach((p, i) => p.order = i);
                     select.value = undefined;
@@ -682,6 +687,7 @@ var components = {
                     if((direction == -1 && currentIndex == 0) || (direction == 1 && currentIndex == groups.length-1))
                         return;
 
+                    layerProps.removeImage();
                     components.array_move(groups, currentIndex, currentIndex + direction);
                     groups.forEach((g, i) => g.order = i);
                     components.fillGroups(layerProps, changeCallback);
@@ -694,6 +700,61 @@ var components = {
                 changeCallback: changeCallback
             },
             buttons: components.editor.image.general.animated ? [
+                {
+                    text: 'Clone to all frames',
+                    click: () => {
+                        let frames = components.editor.image.main;
+                        let currentFrameIndex = components.editor.image.general.currentFrameIndex;
+                        let { groupId, layerId } = components.editor.editor.selected;
+
+                        if(!groupId || !layerId){
+                            alert('No group selected!');
+                            return;
+                        }
+
+                        if(!confirm('Clone (override) selected group to other frames?'))
+                            return;
+
+                        let selectedGroup = groups.filter(g => g.id == groupId)[0];
+                        for(let f = 0; f < frames.length; f++){
+                            if(f == currentFrameIndex)
+                                continue;
+
+                            let layer = frames[f].layers.filter(l => l.id == layerId);
+                            if(layer.length == 0){
+                                console.log('No layer with id: ' + layerId + ' found in frame index: ' + f );
+                                continue;
+                            }
+
+                            let gCloned = assignDeep(
+                                {},
+                                modelUtils.createDefaultGroup(selectedGroup.id, groups.length), 
+                                modelUtils.groupMapper(selectedGroup, true));
+
+                            layer = layer[0];
+
+                            let groupIndex = layer.groups.findIndex(g => g.id == groupId)
+                            //let group = layer.groups.filter(g => g.id == groupId);
+
+                            if(groupIndex == -1){
+                                layer.groups.push(gCloned);
+                            }
+                            else {
+                                
+                                layer.groups[groupIndex] = {
+                                    ...gCloned
+                                };
+
+                                // group[0].points = gCloned.points.map(p => ({
+                                //     ...p,
+                                //     point: {...p.point}
+                                // }));
+                            }
+                            
+                        }
+                        //console.log(selectedGroup);
+                    }
+                },
                 {
                     text: 'Update next frame',
                     click: () => {

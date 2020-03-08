@@ -6,6 +6,7 @@ var modelUtils = {
             id: l.id,
             name: l.name,
             visible: l.visible,
+            layerImage: l.layerImage
         }
     },
     groupMapper(g, deep = false) {
@@ -54,7 +55,11 @@ var modelUtils = {
             visible: true,
             groupsEl: undefined,
             groupEl: undefined,
-            groups: []
+            groups: [],
+            layerImage: undefined,
+            removeImage(){
+                this.layerImage = undefined;
+            }
         }
     },
     createDefaultGroup(id, order){

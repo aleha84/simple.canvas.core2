@@ -32,6 +32,56 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'rain1',
         viewport: _200_250_viewport
     }));
+
+    SCG.scenes.cacheScene(new Demo10EndScene({
+        name:'end',
+        viewport: smallSquareDefaultViewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo10CityScene({
+        name:'city',
+        viewport: smallSquareDefaultViewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo10Exp1Scene({
+        name:'exp1',
+        viewport: smallSquareDefaultViewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo10WowScene({
+        name:'wow',
+        viewport: small300_200_Viewport
+    }));
+    
+    SCG.scenes.cacheScene(new Demo10FlorianScene({
+        name:'florian',
+        viewport: smallSquareDefaultViewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo10Loading1Scene({
+        name:'loading1',
+        viewport: small200_300_Viewport
+    }));
+
+    SCG.scenes.cacheScene(new Demo10MetroScene({
+        name:'metro',
+        viewport: smallSquareDefaultViewport.add(new V2(-2,-2))
+    }));
+
+    SCG.scenes.cacheScene(new Demo10DumplingScene({
+        name:'dumplings',
+        viewport: new V2(100,100)
+    }));
+
+    SCG.scenes.cacheScene(new Demo10KeyScene({
+        name:'key',
+        viewport: new V2(200,200)
+    }));
+
+    SCG.scenes.cacheScene(new Demo10PDailyScene({
+        name:'pdaily',
+        viewport: new V2(200,200)
+    }));
     
 
     sceneSelectByHashValue();

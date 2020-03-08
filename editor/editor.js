@@ -93,6 +93,7 @@ class Editor {
                     originalSize: {x: 20, y: 20},//new V2(10, 10),
                     zoom: {current: 10, max: 10, min: 1, step: 1},
                     showGrid: false,
+                    renderOptimization: false,
                     animated: false,
                     element: undefined,
                     backgroundColor: '#000000'
@@ -216,7 +217,16 @@ class Editor {
                         return;
                     }
 
-                    let layer = that.image.main.layers.filter(l => l.id == that.editor.selected.layerId)[0];
+                    let layer = undefined;
+
+                    if(that.image.general.animated){
+                        layer = that.image.main[that.image.general.currentFrameIndex].layers.filter(l => l.id == that.editor.selected.layerId)[0];
+                    }
+                    else {
+                        layer = that.image.main.layers.filter(l => l.id == that.editor.selected.layerId)[0];
+                    }
+
+                    
                     let group = layer.groups.filter(g => g.id == that.editor.selected.groupId)[0];
                     
                     if(group.points.length < 2){
@@ -330,6 +340,7 @@ class Editor {
                         },
                         contentItems: [
                             components.createRotationControl(angleChangeCallback, rotationOrigin, () => {
+                                layer.removeImage();
                                 let currentPoints = rDemo.getCurrentPoints();
                                 currentPoints.forEach((modifiedPoint,i) => {
                                     //group.points[i].point = p.toPlain();
@@ -388,8 +399,8 @@ class Editor {
     }
 
     exportModel(pretty, clean) {
-        let model = JSON.stringify(this.prepareModel(), (k,v) => {
-            if(k == 'editor' || k == 'selected')
+        let model = JSON.stringify(this.prepareModel(undefined, {ignoreVisibility: true}), (k,v) => {
+            if(k == 'editor' || k == 'selected' || k=='layerImage')
                 return undefined;
             
             return v;
@@ -403,20 +414,30 @@ class Editor {
         else 
             return model;
     }
-    prepareModel(model, params = { singleFrame: false, returnOnlyMain: false }) {
+    prepareModel(model, params = { singleFrame: false, returnOnlyMain: false, ignoreVisibility: false }) {
         let that = model || this;
         let i = that.image;
         let e = that.editor;
-        let groupMapper = (g) => {
+
+        let ignoreVisibility = !i.general.renderOptimization;
+
+        if(params.ignoreVisibility){
+            ignoreVisibility = true;
+        }
+
+        let groupMapper = (g, layer) => {
             return {
                 ...modelUtils.groupMapper(g),
                 changeCallback() {
+                    layer.removeImage();
                     that.updateEditor.bind(that)();
                 },
                 points: g.points.map((p) => {
                     return {
                         ...modelUtils.pointMapper(p),
                         changeCallback(value, skipEventDispatch = false) {
+                            layer.removeImage();
+
                             p.point.x = value.x;
                             p.point.y = value.y;
 
@@ -450,6 +471,7 @@ class Editor {
                             else {
                                 e.selected.pointId = p.id;
                                 e.removeSelectedPoint = () => {
+                                    layer.removeImage();
                                     g.points = g.points.filter(gp => gp.id != p.id);  
                                     g.points.forEach((p, i) => {p.order = i; p.selected = false});
                                     that.updateEditor.bind(that)();
@@ -464,6 +486,8 @@ class Editor {
                 addPointCallback(p) {
                     let callback = that.updateEditor.bind(that);
                     
+                    layer.removeImage();
+
                     if(g.currentPointId == undefined){
                         g.currentPointId = 0;
                     }
@@ -484,6 +508,8 @@ class Editor {
                 addPointsCallback(points) {
                     if(!points || points.lenght == 0)
                         return;
+
+                    layer.removeImage();
 
                     let callback = that.updateEditor.bind(that);
                     if(g.currentPointId == undefined){
@@ -512,8 +538,9 @@ class Editor {
         let layerMapper = (l) => {
             return {
                 ...modelUtils.layerMapper(l),
-                groups: l.groups.map(groupMapper),
+                groups: l.groups.filter(g => (ignoreVisibility ? true : g.visible)).map(g => groupMapper(g, l)),
                 move(direction) {
+                    l.removeImage();
                     let d = new V2(direction);
                     
                     l.groups.forEach(g => {
@@ -526,29 +553,33 @@ class Editor {
                 },
                 changeCallback() {
                     that.updateEditor.bind(that)();
+                },
+                layerImageCreatedCallback(img){
+                    l.layerImage = img;
                 }
             }
         }
         
         let main = undefined;
         let animated  = i.general.animated;
+
         if(animated){
             if(params.singleFrame){
                 main = {
-                    layers: i.main[i.general.currentFrameIndex].layers.map(layerMapper)
+                    layers: i.main[i.general.currentFrameIndex].layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper)
                 };
 
                 animated = false;
             }
             else {
                 main = i.main.map(frame => ({
-                    layers: frame.layers.map(layerMapper)
+                    layers: frame.layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper)
                 }))
             } 
         }
         else {
             main = {
-                layers: i.main.layers.map(layerMapper)
+                layers: i.main.layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper)
             }
         }
 
@@ -561,6 +592,7 @@ class Editor {
                 size: new V2(i.general.originalSize),
                 zoom: i.general.zoom.current,
                 showGrid: i.general.showGrid, 
+                renderOptimization: i.general.renderOptimization,
                 animated,
                 backgroundColor:i.general.backgroundColor
             },
@@ -973,6 +1005,12 @@ class Editor {
             general.showGrid = value;
             this.updateEditor();
         }.bind(this)));
+
+        generalEl.appendChild(components.createCheckBox(general.renderOptimization, 'Render optimization', function(value) {
+            general.renderOptimization = value;
+            this.updateEditor();
+        }.bind(this)));
+
         generalEl.appendChild(components.createCheckBox(general.animated, 'Animated', function(value) {
             
             if(value){
@@ -1055,7 +1093,20 @@ class Editor {
                         commonCallback();
                     },
                     add: function(e, select){
-                        let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }));
+
+                        // let model = JSON.stringify(this.prepareModel(undefined, {ignoreVisibility: true}), (k,v) => {
+                        //     if(k == 'editor' || k == 'selected' || k=='layerImage')
+                        //         return undefined;
+                            
+                        //     return v;
+                        // }, pretty? 4: null);
+
+                        let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }), (k,v) => {
+                            if(k=='layerImage')
+                                return undefined;
+                            
+                            return v;
+                        });
                         let newItem = that.importModel(currentFrameModel).main;
                         that.image.main.push(newItem);
 
