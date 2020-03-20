@@ -103,8 +103,8 @@ class Demo10GodScene extends Scene {
             size: this.viewport.clone(),
             init() {
                 this.main = this.addChild(new GO({
-                    position: new V2(),
-                    size: this.size,
+                    position: new V2(0, 75),
+                    size: new V2(this.size.x, 50),
                     img: PP.createImage(Demo10GodScene.models.fg)
                 }))
             }
