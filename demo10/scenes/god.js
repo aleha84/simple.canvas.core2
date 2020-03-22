@@ -109,5 +109,25 @@ class Demo10GodScene extends Scene {
                 }))
             }
         }), 5)
+
+        this.bg = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.main = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(Demo10GodScene.models.bg)
+                }))
+
+                this.overlay = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor('rgba(0,0,0,0.6)').rect(0,0,size.x,size.y)
+                    })
+                }))
+            }
+        }), 1)
     }
 }
