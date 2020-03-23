@@ -25,21 +25,30 @@ class Demo10GodScene extends Scene {
 
                 this.framesCount = 200;
                 this.yClamps = [-1, 0];
+                this.aClamps = [1, 0.5];
                 this.yValues = [];
+                this.aValues = [];
 
                 let yChange1 = easing.createProps((this.framesCount/2)-1, this.yClamps[0], this.yClamps[1], 'quad', 'inOut');
                 let yChange2 = easing.createProps((this.framesCount/2)-1, this.yClamps[1], this.yClamps[0], 'quad', 'inOut');
 
+                let aChange1 = easing.createProps((this.framesCount/2)-1, this.aClamps[0], this.aClamps[1], 'quad', 'inOut');
+                let aChange2 = easing.createProps((this.framesCount/2)-1, this.aClamps[1], this.aClamps[0], 'quad', 'inOut');
+
                 for(let i = 0; i < this.framesCount/2; i++){
                     yChange1.time = i;
+                    aChange1.time = i;
                     let y = fast.r(easing.process(yChange1));
                     this.yValues[i] = y;
+                    this.aValues[i] = fast.r(easing.process(aChange1),2);
                 }
 
                 for(let i = 0; i < this.framesCount/2; i++){
                     yChange2.time = i;
+                    aChange2.time = i;
                     let y = fast.r(easing.process(yChange2));
                     this.yValues[i+(this.framesCount/2)] = y;
+                    this.aValues[i+(this.framesCount/2)] = fast.r(easing.process(aChange2),2);
                 }
 
                 this.points = [];
@@ -149,7 +158,10 @@ class Demo10GodScene extends Scene {
                                     let x = pointData.point.x;
                                     let y = pointData.point.y + this.yValues[currentIndex]
                                     
+                                    ctx.globalAlpha = this.aValues[currentIndex];
+
                                     hlp.dot(x,y);
+                                    ctx.globalAlpha = 1;
                                 }
                             })
                         }
