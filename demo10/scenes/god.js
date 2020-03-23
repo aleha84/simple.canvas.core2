@@ -45,10 +45,7 @@ class Demo10GodScene extends Scene {
                 this.points = [];
                 for(let l = 0; l < this.model.main.layers.length; l++){
                     let group = this.model.main.layers[l].groups[0];
-                    let points = group.points.map(p => ({
-                        point: p.point,
-                        initialIndex: getRandomInt(0, (this.framesCount-1))
-                    }))
+                    
                     // this.points[l] = {
                     //     color: group.strokeColor,
                         
@@ -57,24 +54,107 @@ class Demo10GodScene extends Scene {
 
 
                     let frames = [];
-                    for(let f = 0; f < this.framesCount; f++){
-                        frames[f] = createCanvas(this.size, (ctx, size, hlp) => {
-                            hlp.setFillColor(group.strokeColor);
+                    if(this.model.main.layers[l].name.indexOf('fadeout')!=-1){
+                        
+                        let particlesCount = 100;
+                        let yMax = -15;
+                        let yMin = -5;
 
-                            for(let p = 0; p < points.length; p++){
-                                let pointData = points[p];
-                                let currentIndex = pointData.initialIndex + f;
+                        if(this.model.main.layers[l].name.indexOf(':')!=-1){
+                            let [name, paramsRaw] = this.model.main.layers[l].name.split(':');
+                            let params = paramsRaw.split(';');
+                            particlesCount = params[0];
+                            yMax = parseInt(params[1]);
+                            yMin = parseInt(params[2]);
+                        }
+
+                        let particles = [];
+
+                        let aChange = easing.createProps(this.framesCount-1, 1, 0, 'quad', 'out');
+                        let aValues = new Array(this.framesCount).fill().map((el, i) => {
+                            aChange.time = i;
+                            return fast.r(easing.process(aChange),2)
+                        });
+
+                        for(let i = 0; i < particlesCount; i++){
+                            let yChange = easing.createProps(this.framesCount-1, 0, getRandomInt(yMax, yMin), 'quad', 'in');
+
+                            particles[i] = {
+                                startPoint: group.points[getRandomInt(0, group.points.length-1)].point,
+                                yChangeValues: new Array(this.framesCount).fill().map((el, i) => {
+                                    yChange.time = i;
+                                    return fast.r(easing.process(yChange));
+                                }),
+                                initialIndex: getRandomInt(0, (this.framesCount-1))
+                            }
+                        }
+
+                        for(let f = 0; f < this.framesCount; f++){
+                            frames[f] = createCanvas(this.size, (ctx, size, hlp) => {
+                                hlp.setFillColor(group.strokeColor); 
+                                for(let p = 0; p < particles.length; p++){
+                                    let particleData = particles[p];
+                                    let currentIndex = particleData.initialIndex + f;
                                     if(currentIndex > (this.framesCount-1)){
                                         currentIndex-=this.framesCount;
                                     }
-                                
-                                let x = pointData.point.x;
-                                let y = pointData.point.y + this.yValues[currentIndex]
-                                
-                                hlp.dot(x,y);
-                            }
-                        })
+
+                                    ctx.globalAlpha = aValues[currentIndex];
+
+                                    let x = particleData.startPoint.x;
+                                    let y = particleData.startPoint.y + particleData.yChangeValues[currentIndex]
+                                    
+                                    hlp.dot(x,y);
+
+                                    ctx.globalAlpha = 1;
+                                }
+                            })
+                        }
+
                     }
+                    else if(this.model.main.layers[l].name.indexOf('ignore')!=-1){
+                        for(let f = 0; f < this.framesCount; f++){
+                            frames[f] = createCanvas(this.size, (ctx, size, hlp) => {
+                                hlp.setFillColor(group.strokeColor);
+    
+                                for(let p = 0; p < group.points.length; p++){
+                                    let pointData = group.points[p];
+                                    
+                                    let x = pointData.point.x;
+                                    let y = pointData.point.y 
+                                    
+                                    hlp.dot(x,y);
+                                }
+                            })
+                        }
+                    }
+                    else {
+
+                        let points = group.points.map(p => ({
+                            point: p.point,
+                            initialIndex: getRandomInt(0, (this.framesCount-1))
+                        }))
+
+                        for(let f = 0; f < this.framesCount; f++){
+                            frames[f] = createCanvas(this.size, (ctx, size, hlp) => {
+                                hlp.setFillColor(group.strokeColor);
+    
+                                for(let p = 0; p < points.length; p++){
+                                    let pointData = points[p];
+                                    let currentIndex = pointData.initialIndex + f;
+                                        if(currentIndex > (this.framesCount-1)){
+                                            currentIndex-=this.framesCount;
+                                        }
+                                    
+                                    let x = pointData.point.x;
+                                    let y = pointData.point.y + this.yValues[currentIndex]
+                                    
+                                    hlp.dot(x,y);
+                                }
+                            })
+                        }
+                    }
+                    
 
                     this.addChild(new GO({
                         position: new V2(),
@@ -103,8 +183,8 @@ class Demo10GodScene extends Scene {
             size: this.viewport.clone(),
             init() {
                 this.main = this.addChild(new GO({
-                    position: new V2(0, 75),
-                    size: new V2(this.size.x, 50),
+                    position: new V2(),
+                    size: this.size,
                     img: PP.createImage(Demo10GodScene.models.fg)
                 }))
             }
