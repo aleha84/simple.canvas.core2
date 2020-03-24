@@ -2,7 +2,7 @@ class Demo10GodScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -20,6 +20,7 @@ class Demo10GodScene extends Scene {
             size: new V2(150,150),
             model: Demo10GodScene.models.god(),
             init() {
+                this.shouldAddRedFrames = true;
                 console.log(this.model);
                 //this.img = PP.createImage(this.model);
 
@@ -161,6 +162,7 @@ class Demo10GodScene extends Scene {
                                     ctx.globalAlpha = this.aValues[currentIndex];
 
                                     hlp.dot(x,y);
+                                    
                                     ctx.globalAlpha = 1;
                                 }
                             })
@@ -168,12 +170,15 @@ class Demo10GodScene extends Scene {
                     }
                     
 
+
                     this.addChild(new GO({
                         position: new V2(),
                         size: this.size,
                         frames,
+                        shouldAddRedFrames: this.shouldAddRedFrames,
                         init() {
                             this.currentFrame = 0;
+                            this.redFrameCounter = 5;
                             this.img = this.frames[this.currentFrame];
 
                             this.timer = this.regTimerDefault(15, () => {
@@ -182,10 +187,34 @@ class Demo10GodScene extends Scene {
                                 this.currentFrame++;
                                 if(this.currentFrame == this.frames.length){
                                     this.currentFrame = 0;
+
+                                    // if(this.shouldAddRedFrames){
+                                    //     this.redFrameCounter--;
+    
+                                    //     if(this.redFrameCounter == 0){
+                                    //         this.redFrameCounter= 5;
+                                    //         if(!this.redFrame){
+                                    //             this.redFrame = this.addChild(new GO({
+                                    //                 position: new V2(),
+                                    //                 size: this.size,
+                                    //                 img: createCanvas(this.size, (ctx, size, hlp) => {
+                                    //                     hlp.setFillColor('red').rect(0,0, 50,50)
+                                    //                 })
+                                    //             }));
+                                    //         }
+                                    //         else {
+                                    //             this.removeChild(this.redFrame);
+                                    //             this.redFrame = undefined;
+                                    //         }
+                                    //     }
+                                    // }
+                                     
                                 }
                             })
                         }
                     }))
+
+                    this.shouldAddRedFrames = false;
                 }
             }
         }), 3);
@@ -199,6 +228,36 @@ class Demo10GodScene extends Scene {
                     size: this.size,
                     img: PP.createImage(Demo10GodScene.models.fg)
                 }))
+
+                let candleFrames = PP.createImage(Demo10GodScene.models.candle);
+
+                let candlePositions = [new V2(-85, -9), new V2(-53, 10), new V2(-27, 22), ]
+                this.candles = candlePositions.map(p => this.addChild(new GO({
+                    position: p,
+                    size:  new V2(20,30),
+                    frames: candleFrames,
+                    init() {
+                        console.log(this.frames.length)
+                        this.frameRepeaterOrigin = 5;
+                        this.frameRepeater = this.frameRepeaterOrigin;
+                        this.currentFrame = getRandomInt(0, this.frames.length-1);
+                            this.img = this.frames[this.currentFrame];
+
+                            this.timer = this.regTimerDefault(15, () => {
+                
+                                this.img = this.frames[this.currentFrame];
+                                this.frameRepeater--;
+                                if(this.frameRepeater == 0){
+                                    this.currentFrame++;
+                                    this.frameRepeater = this.frameRepeaterOrigin;
+                                }
+                                
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                }
+                            })
+                    }
+                })))
             }
         }), 5)
 
