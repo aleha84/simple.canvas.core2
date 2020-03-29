@@ -197,6 +197,14 @@ html,
       width: 60px;
     }
 
+    .colorPicker.row {
+      display: flex;
+    }
+
+    .colorPicker.row input[type='text'] {
+      height: 16px;
+    }
+
     .panel {
       position: absolute;
       z-index: 10000;

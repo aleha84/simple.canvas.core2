@@ -87,6 +87,11 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'god',
         viewport: new V2(200,200)
     }));
+
+    SCG.scenes.cacheScene(new Demo10CarScene({
+        name:'car',
+        viewport: new V2(150,185)
+    }));
     
 
     sceneSelectByHashValue();
