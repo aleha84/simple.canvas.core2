@@ -92,7 +92,11 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'car',
         viewport: new V2(150,185)
     }));
-    
+
+    SCG.scenes.cacheScene(new Demo10BridgeScene({
+        name:'bridge',
+        viewport: new V2(150,150)
+    }));
 
     sceneSelectByHashValue();
     

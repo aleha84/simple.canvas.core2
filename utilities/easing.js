@@ -74,6 +74,13 @@ var easing = {
             }
         }
     },
+    fast({from, to, steps,type, method}){
+        var prop = this.createProps(steps-1, from, to, type, method);
+        return new Array(steps).fill().map((el, i) => {
+            prop.time = i;
+            return this.process(prop);
+        })
+    },
     process(props){
         let group = this[props.type];
         if(!group) {
@@ -159,3 +166,4 @@ var easing = {
     }
 
 }
+
