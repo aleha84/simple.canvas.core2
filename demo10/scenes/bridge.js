@@ -31,31 +31,109 @@ class Demo10BridgeScene extends Scene {
             position: this.sceneCenter,
             size: this.viewport,
             init() {
-                let rightClampPoints = [new V2(149,149), new V2(76,122)]
-                let leftClampPoints = [new V2(117,149), new V2(72,122)]
+                let rightClampCornerPoints = [new V2(76,122), new V2(149,149) ]
+                let leftClampCornerPoints = [new V2(72,122), new V2(117,149) ]
 
                 let leftClampPoints = [];
                 let rightClampPoints = [];
 
-                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                createCanvas(this.size, (ctx, size, hlp) => {
                     let pp = new PerfectPixel({ctx});
                     pp.setFillStyle('red');
 
-                    rightClampPoints = pp.lineV2(rightClampPoints[0], rightClampPoints[1])
-                    leftClampPoints = pp.lineV2(leftClampPoints[0], leftClampPoints[1])
+                    rightClampPoints = pp.lineV2(rightClampCornerPoints[0], rightClampCornerPoints[1])
+                    leftClampPoints = pp.lineV2(leftClampCornerPoints[0], leftClampCornerPoints[1])
 
                     //hlp.setFillColor('green').dot(66,118);
                 })
 
-                let itemCount = 10;
-                let framesCount = 10;
-                let pCenter = new V2(66,118);
+                let itemsCount = 250;
+                let framesCount = 40;
+                let maxFlowDistance = 15;
+                let maxFlowAlpha = 0.2;
+                let pCenter = new V2(65,118);
+                let maxDistance = new V2(149,149).distance(pCenter);
+                let maxWidth = 3;
                 
                 let items = new Array(itemsCount).fill().map((el, i) => {
-                    let y = getRandomInt()
+                    let y = getRandomInt(rightClampCornerPoints[0].y, rightClampCornerPoints[1].y)
+                    let xClamps = [leftClampPoints.filter(p => p.y == y)[0].x,  rightClampPoints.filter(p => p.y == y)[0].x]
+                    let x = getRandomInt(xClamps[0], xClamps[1])
+                    let point = new V2(x,y);
+                    let direction = point.direction(pCenter);
+                    let distance = point.distance(pCenter);
+                    let koef = distance/maxDistance;
+                    let flowDistance = fast.c(maxFlowDistance*koef);
+                    let pointsToPcenter = [];
+                    let color = colors.rgbStringToObject({value: (getRandomBool() ? 'rgba(255,255,255,1)': 'rgba(0,0,0,1)'), asObject: true});
+                    let maxAlpha = maxFlowAlpha//fast.c(maxFlowAlpha*koef,2)
+                    let width = fast.c(maxWidth*koef)
+
+                    createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                        pointsToPcenter = new PerfectPixel({ctx}).lineV2(point, point.add(direction.mul(flowDistance)));
+                    })
+
+                    let indexChangeValue = easing.fast({from: 0, to: pointsToPcenter.length-1, steps: framesCount, type: 'quad', method: 'inOut'  }).map(value => fast.r(value));
+                    let aChangeValue = [...easing.fast({from: 0, to: maxAlpha, steps: framesCount/2, type: 'quad', method: 'inOut'  }).map(value => fast.r(value,3)),
+                                        ...easing.fast({from: maxAlpha, to: 0, steps: framesCount/2, type: 'quad', method: 'inOut'  }).map(value => fast.r(value,3))]
+
+                    return {
+                        point,
+                        direction,
+                        pointsToPcenter,
+                        indexChangeValue,
+                        aChangeValue,
+                        color,
+                        width,
+                        initialIndex: getRandomInt(0, framesCount-1)
+                    }
                 })
+
+                let frames = new Array(framesCount).fill().map((el, f) => {
+                    //let currentIndex = f;
+                    return createCanvas(this.size, (ctx, size, hlp) => {
+                        //hlp.setFillColor('blue');
+                        for(let i = 0; i < items.length; i++){
+                            let item = items[i];
+
+                            let currentIndex = item.initialIndex + f;
+                            if(currentIndex > (framesCount-1)){
+                                currentIndex-=framesCount;
+                            }
+
+
+                            let index = item.indexChangeValue[currentIndex];
+                            let point = item.pointsToPcenter[index];
+                            let a = item.aChangeValue[currentIndex];
+
+                            hlp.setFillColor(colors.rgbToString({value: [item.color.red, item.color.green, item.color.blue, a], isObject: false}))
+                            hlp.rect(point.x, point.y, item.width, 1)//.dot(point.x+1, point.y);
+                        }
+                    })
+                });
+
+
+                this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames,
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+
+                        this.timer = this.regTimerDefault(15, () => {
+            
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                                    
+                            }
+                        })
+                    }
+                }))
             }
-        }), 2)
+        }), 3)
 
         this.rain = this.addGo(new GO({
             position: this.sceneCenter,
@@ -297,6 +375,6 @@ class Demo10BridgeScene extends Scene {
 
                 return frames;
             }
-        }), 0)
+        }), 1)
     }
 }
