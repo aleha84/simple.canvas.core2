@@ -1,8 +1,13 @@
+// todo: 
+// splashes
+// far lights ?
+// road shados from drops ?
+
 class Demo10BridgeScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 itemsCountMultiplier: 0.25,
                 showFrameTimeLeft: true,
                 additional: [],
@@ -12,7 +17,7 @@ class Demo10BridgeScene extends Scene {
     }
 
     backgroundRender() {
-        this.backgroundRenderDefault();
+        this.backgroundRenderDefault('#172C28');
     }
 
     start(){
@@ -146,15 +151,15 @@ class Demo10BridgeScene extends Scene {
                 
                 let frmesSet = [
                     {shift: new V2(0,-10), frames: this.rainGenerator2({framesCount: 70, itemsCount: fast.r(700*itemsCountMultiplier), direction: [3,5], 
-                        size: this.size, colorHex: '#191919', color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.02)'}), trailLenght: 2})},
+                        size: this.size, colorHex: '#191919', color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.04)'}), trailLenght: 2})},
                     {shift: new V2(0,-10), frames: this.rainGenerator2({framesCount: 60, itemsCount: fast.r(450*itemsCountMultiplier), direction: [3,6], 
-                        size: this.size, colorHex: '#191919', color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.04)'}), trailLenght: 3})},
+                        size: this.size, colorHex: '#191919', color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.06)'}), trailLenght: 3})},
                     {shift: new V2(0,-15),frames: this.rainGenerator2({framesCount: 50, itemsCount: fast.r(250*itemsCountMultiplier), direction: [3,7], 
-                        size: this.size, colorHex: '#212121', color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.06)'}), trailLenght: 4})},
+                        size: this.size, colorHex: '#212121', color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.08)'}), trailLenght: 4})},
                     {shift: new V2(0,-5),frames: this.rainGenerator2({framesCount: 40, itemsCount: fast.r(100*itemsCountMultiplier), direction: [3,8], 
-                        size: this.size,colorHex: '#282828', color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.08)'}), trailLenght: 5})},
+                        size: this.size,colorHex: '#282828', color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.10)'}), trailLenght: 5})},
                     {shift: new V2(0,-20),frames: this.rainGenerator2({framesCount: 30, itemsCount: fast.r(25*itemsCountMultiplier), direction: [3,9], 
-                        size: this.size, colorHex: '#333333',color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.1)'}), trailLenght: 6})},
+                        size: this.size, colorHex: '#333333',color: colors.rgbStringToObject({value: 'rgba(255,255,255,0.15)'}), trailLenght: 6})},
                     
                     
                 ]
@@ -374,6 +379,223 @@ class Demo10BridgeScene extends Scene {
                 }
 
                 return frames;
+            }
+        }), 0)
+
+
+        this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                let color = colors.rgbStringToObject({value: 'rgba(255,255,255, 0.15)', asObject: true});
+
+
+                let lightEllipsis = {
+                    position: new V2(this.size.x, 0),
+                    size: new V2(150, 100),
+                }
+                lightEllipsis.rxSq = lightEllipsis.size.x*lightEllipsis.size.x;
+                lightEllipsis.rySq = lightEllipsis.size.y*lightEllipsis.size.y;
+                let dropsAChange = easing.createProps(100, 1, 0, 'quad', 'out')
+
+                let mask = createCanvas(this.size, (ctx, size, hlp) => {
+                    hlp.setFillColor('red').strokeEllipsis(0,360, 1, lightEllipsis.position, lightEllipsis.size.x, lightEllipsis.size.y )
+                })
+
+                let frames = [];
+                let framesCount = 50;
+                let itemsCount = 300;
+
+                let heightClamp = [10,15];
+                
+
+                let aChanges = [];
+                for(let i = 2; i <= heightClamp[1]; i++){
+                    aChanges[i] = easing.fast({from: 0, to: color.opacity, steps: i, type: 'quad', method: 'inOut'}).map(value => fast.r(value, 3));
+                }
+
+
+                let bottomDots = [];
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    let pp = new PerfectPixel({ctx});
+                    bottomDots = [...pp.lineV2(new V2(0, 121), new V2(74, 121)), ...pp.lineV2(new V2(75, 120), new V2(134, 116))]
+                }) 
+
+                let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                    let x = getRandomInt(0, 134)
+                    let maxY = bottomDots.filter(d => d.x == x)[0].y;
+                    let yShift = 121-maxY;
+                    let yChangeValues = easing.fast({from: yShift, to: maxY + getRandomInt(-3,0), steps: framesCount, type:'quad', method: 'in'}).map(value => fast.r(value));
+                    let heightChangeValues = easing.fast({from: 1, to: getRandomInt(heightClamp[0],heightClamp[1]), steps: framesCount, type:'quad', method: 'in'}).map(value => fast.r(value));
+                
+                    return {
+                        x,
+                        yChangeValues,
+                        heightChangeValues,
+                        initialIndex: getRandomInt(0, framesCount-1)
+                    }
+                })
+
+                let getDropA = (x, y) => {
+                    let dx = fast.r(
+                        (((x-lightEllipsis.position.x)*(x-lightEllipsis.position.x)/lightEllipsis.rxSq) 
+                        + ((y-lightEllipsis.position.y)*(y-lightEllipsis.position.y)/lightEllipsis.rySq))*100);
+
+                    
+                    if(dx > 100){
+                        dx = 100;
+                    }
+
+                    dropsAChange.time = dx;
+                    return fast.r(easing.process(dropsAChange), 3);
+                }
+
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(this.size, (ctx, size, hlp) => {
+                        if(this.parentScene.debug.enabled){
+                            ctx.drawImage(mask, 0,0);
+                        }
+                        
+                        for(let p = 0; p < itemsCount; p++){
+                            let pointData = itemsData[p];
+
+                            let currentIndex = pointData.initialIndex + f;
+                            if(currentIndex > (framesCount-1)){
+                                currentIndex-=framesCount;
+                            }
+
+                            let y = pointData.yChangeValues[currentIndex];
+                            let height = pointData.heightChangeValues[currentIndex];
+                            // hlp.setFillColor(colors.rgbToString({value: [color.red, color.green, color.blue, color.opacity], isObject: false}))
+                            // .rect(pointData.x,y, 1, pointData.heightChangeValues[currentIndex])
+                            if(height == 1){
+                                let additionalA = getDropA(pointData.x,y);
+                                hlp.setFillColor(colors.rgbToString({value: [color.red, color.green, color.blue, color.opacity + additionalA], isObject: false}))
+                                    .dot(pointData.x,y)
+                            }
+                            else {
+                                let aValues = aChanges[height];
+                                for(let i = 0; i < height; i++){
+                                    let a = aValues[i];
+
+                                    let additionalA1 = getDropA(pointData.x,y+i);
+                                    let additionalA2 = getDropA(pointData.x,y+height*2 - i - 1);
+                                    
+
+                                    hlp.setFillColor(colors.rgbToString({value: [color.red, color.green, color.blue, a + additionalA1], isObject: false}))
+                                    .dot(pointData.x,y+i);
+
+                                    hlp.setFillColor(colors.rgbToString({value: [color.red, color.green, color.blue, a + additionalA2], isObject: false}))
+                                    .dot(pointData.x,y+height*2 - i - 1)
+                                }
+                            }
+                            
+                            
+                        }
+                    })
+                }
+
+                this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames,
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+
+                        this.timer = this.regTimerDefault(15, () => {
+            
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                                    
+                            }
+                        })
+                    }
+                }))
+
+                color = colors.rgbStringToObject({value: 'rgba(255,255,255, 0.5)', asObject: true});
+                framesCount = 30;
+                let aChangeValues = easing.fast({from:color.opacity, to: 0, steps: framesCount, type: 'quad', method: 'in'}).map(value => fast.r(value, 3))
+                let splashData = new Array(300).fill().map((el, i) => {
+                    let currentDot = new V2(bottomDots[getRandomInt(0, bottomDots.length-1)]).add(new V2(0, getRandomInt(-3, 0)));
+                    let direction = V2.up.rotate(getRandomInt(-20, 20));
+                    let speed = getRandom(0.25,0.75);
+                    let yDelta = getRandom(0.025,0.05);
+                    let ds = direction.mul(speed);
+                    let points = [];
+                    for(let f = 0; f < framesCount; f++){
+                        points[f] = currentDot.toInt();
+                        currentDot = currentDot.add(ds);
+                        ds.y+=yDelta;
+                    }
+
+                    return {
+                        points, 
+                        initialIndex: getRandomInt(0, framesCount-1)
+                    }
+                })
+
+                let splashFrames = []
+                for(let f = 0; f < framesCount; f++){
+                    splashFrames[f] = createCanvas(this.size, (ctx, size, hlp) => {
+                        // if(this.parentScene.debug.enabled){
+                        //     ctx.drawImage(mask, 0,0);
+                        // }
+                        
+                        for(let p = 0; p < splashData.length; p++){
+                            let pointData = splashData[p];
+
+                            let currentIndex = pointData.initialIndex + f;
+                            if(currentIndex > (framesCount-1)){
+                                currentIndex-=framesCount;
+                            }
+
+                            let point = pointData.points[currentIndex];
+                            let a = aChangeValues[currentIndex];
+                            hlp.setFillColor(colors.rgbToString({value: [color.red, color.green, color.blue, a]})).dot(point.x, point.y)
+                        }
+                    })
+                }
+
+                this.splashes = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: splashFrames,
+                    init() {
+                        let fCounter = 420;
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+
+                        this.timer = this.regTimerDefault(15, () => {
+                            fCounter--;
+                            // if(fCounter == 0)
+                            //     {
+                            //         fCounter = 420;
+                            //         if(!this.redFrame){
+                            //             this.redFrame = this.addChild(new GO({
+                            //                 position: new V2(),
+                            //                 size: this.size,
+                            //                 img: createCanvas(this.size, (ctx, size, hlp) => {
+                            //                     hlp.setFillColor('red').rect(0,0, 50,50)
+                            //                 })
+                            //             }));
+                            //         }
+                            //         else {
+                            //             this.removeChild(this.redFrame);
+                            //             this.redFrame = undefined;
+                            //         }
+                            //     }
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                                    
+                            }
+                        })
+                    }
+                }))
             }
         }), 1)
     }
