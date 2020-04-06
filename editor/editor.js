@@ -1,3 +1,6 @@
+// TODO. Bugs:
+// 1. R - not updateing layer img
+
 class Editor {
     constructor(options = {}){
         assignDeep(this, {
