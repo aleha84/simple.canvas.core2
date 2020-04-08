@@ -108,6 +108,8 @@ class WildYarrowForestScene extends Scene {
                 heightClamp: prop.heightClamp, yShiftClamps: prop.yShiftClamps}),
                 init() {
                     //this.shouldCreateRedFrame = this.frames.length == 180;
+
+                    this.redFrameCounter = 5;
                     this.currentFrame = 0;
                     this.img = this.frames[this.currentFrame];
     
@@ -119,20 +121,25 @@ class WildYarrowForestScene extends Scene {
                             this.currentFrame = 0;
                                 
                             if(this.shouldCreateRedFrame){
+                                this.redFrameCounter--;
+                                if(this.redFrameCounter == 0){
+                                    this.redFrameCounter = 3;
                                     if(!this.redFrame){
-                                //alert('1')
-                                this.redFrame = this.addChild(new GO({
-                                    position: new V2(),
-                                    size: this.size,
-                                    img: createCanvas(this.size, (ctx, size, hlp) => {
-                                        hlp.setFillColor('red').rect(0,0, 50,50)
-                                    })
-                                }));
-                            }
-                            else {
-                                this.removeChild(this.redFrame);
-                                this.redFrame = undefined;
-                            }
+                                        //alert('1')
+                                            this.redFrame = this.addChild(new GO({
+                                                position: new V2(),
+                                                size: this.size,
+                                                img: createCanvas(this.size, (ctx, size, hlp) => {
+                                                    hlp.setFillColor('red').rect(0,0, 50,50)
+                                                })
+                                            }));
+                                        }
+                                        else {
+                                            this.removeChild(this.redFrame);
+                                            this.redFrame = undefined;
+                                        }
+                                }
+                                
                             }
                         }
                     })
