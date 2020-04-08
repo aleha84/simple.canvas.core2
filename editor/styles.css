@@ -197,6 +197,12 @@ html,
       width: 60px;
     }
 
+    .colorPicker .readOnlyBlock {
+      width: 20px;
+      margin-right: 5px;
+      border: 1px solid black;
+    }
+
     .colorPicker.row {
       display: flex;
     }

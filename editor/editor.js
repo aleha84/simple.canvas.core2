@@ -1,5 +1,7 @@
 // TODO. Bugs:
 // 1. R - not updateing layer img
+// 2. Current palettes list
+// 4. gradient tool, update, add easings support
 
 class Editor {
     constructor(options = {}){
@@ -206,6 +208,29 @@ class Editor {
                             cp.contentItems[0].setValue(value);
                         }
                     }
+                }
+            } }),
+            htmlUtils.createElement('input', { value: 'CShift',  attributes: { type: 'button' }, events: {
+                click: function(){
+                    if(that.editor.panels.cShift){
+                        that.editor.panels.cShift.remove();
+                        return;
+                    }
+
+                    that.editor.panels.cShift = components.createDraggablePanel({
+                        title: 'C shift', 
+                        parent: document.body, 
+                        position: new V2(80,60), 
+                        closable: true,
+                        expandable: false,
+                        contentWidth: 150,
+                        onClose: () => { that.editor.panels.cShift = undefined; },
+                        contentItems: [
+                            components.createCShift()
+                        ]
+                    });
+
+
                 }
             } }),
             htmlUtils.createElement('input', { value: 'Rotate',  attributes: { type: 'button' }, events: {

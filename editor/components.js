@@ -200,7 +200,7 @@ var components = {
 
         return el;
     },
-    createColorPicker(value, title, changeCallback){
+    createColorPicker(value, title, changeCallback, params = {readOnly: false}){
         let el = htmlUtils.createElement('div', { classNames: ['colorPicker', 'row'] });
         if(title){    
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
@@ -213,7 +213,13 @@ var components = {
             }
         } })
 
-        let hexInput = htmlUtils.createElement('input', {attributes: { type: 'text', value}, events: {
+        let inputProps = {};
+        if(params.readOnly){
+            cPicker.style.display = 'none'; 
+            inputProps.readonly = true;
+        }
+
+        let hexInput = htmlUtils.createElement('input', {attributes: { type: 'text', value}, props: inputProps, events: {
             blur: (event) => {
                 if(!/^#[0-9A-F]{6}$/i.test(event.target.value)){
                     event.target.value = cPicker.value;
@@ -226,6 +232,11 @@ var components = {
         } })
 
         el.appendChild(cPicker);
+        if(params.readOnly){
+            let readOnlyDiv = htmlUtils.createElement('div', { className: 'readOnlyBlock' });
+            readOnlyDiv.style.backgroundColor = value;
+            el.appendChild(readOnlyDiv);
+        }
         el.appendChild(hexInput);
 
         el.cPicker = cPicker;
@@ -1116,6 +1127,13 @@ var components = {
         container.appendChild(color2);
         container.appendChild(result);
 
+        container.appendChild(htmlUtils.createElement('input', { value: 'Reset',  attributes: { type: 'button' }, events: {
+            click: function(){
+                color1.setValue('#FFFFFF')
+                color2.setValue('#FFFFFF')
+                result.setValue('#FFFFFF')
+            }}}));  
+
         return container;
     },
 
@@ -1127,7 +1145,65 @@ var components = {
         container.appendChild(color1);
         container.setValue = (value) => {
             color1.setValue(value);
+
+            let hexInput = color1.hexInput;
+            hexInput.focus();
+            hexInput.select();
+
+            try {
+                var successful = document.execCommand('copy');
+            } catch (err) {
+            alert('Failed to copy to clipboard');
+            }
         }
+
+
+        return container;
+    },
+
+    createCShift() {
+
+        let midColorFoo = (c1, c2, count) => {
+            count = parseInt(count);
+            if(isNaN(count))
+                count = 3;
+
+            let c1rgb = hexToRgb(c1, true);
+            let c2rgb = hexToRgb(c2, true);
+
+            htmlUtils.removeChilds(result);
+            let steps = count+2;
+            let rValues = easing.fast({from: c1rgb[0], to: c2rgb[0], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
+            let gValues = easing.fast({from: c1rgb[1], to: c2rgb[1], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
+            let bValues = easing.fast({from: c1rgb[2], to: c2rgb[2], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
+            for(let i = 0; i < steps; i++){
+                result.appendChild(this.createColorPicker('#' + rgbToHex([rValues[i], gValues[i], bValues[i]]), 'C'+i, () => {}, { readOnly: true }))
+            }
+            //return '#' + rgbToHex( c1rgb.map((el, i) => fast.r((c1rgb[i] + c2rgb[i])/2)) )
+        }
+
+        let container = htmlUtils.createElement('div');
+
+        let result = htmlUtils.createElement('div');
+
+        let color1 = this.createColorPicker('#FFFFFF', 'C1', () => {
+            midColorFoo(color1.getValue(), color2.getValue(), count.value);
+        })
+        let color2 = this.createColorPicker('#FFFFFF', 'C2', (value) => {
+            midColorFoo(color1.getValue(), color2.getValue(), count.value);
+        })
+
+        let count = htmlUtils.createElement('input', { value: '1', attributes: { type: 'number' },
+        events: {
+            change: (event) => {
+                midColorFoo(color1.getValue(), color2.getValue(), count.value);
+            }
+        } });
+
+        container.appendChild(color1);
+        container.appendChild(color2);
+        container.appendChild(count);
+        container.appendChild(result);
 
         return container;
     },
