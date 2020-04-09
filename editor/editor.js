@@ -1,7 +1,7 @@
 // TODO. Bugs:
-// 1. R - not updateing layer img
 // 2. Current palettes list
 // 4. gradient tool, update, add easings support
+// 5. Shift+v - hide just image not layers visibility ?
 
 class Editor {
     constructor(options = {}){

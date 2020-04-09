@@ -16,11 +16,10 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.src = {
     }
 
-    let smallSquareDefaultViewport = new V2(128,150);
     
     SCG.scenes.cacheScene(new DeclanSaxForestScene({
-        name:'forest',
-        viewport: smallSquareDefaultViewport
+        name:'sphere',
+        viewport: new V2(200,200)
     }));
 
     sceneSelectByHashValue();
