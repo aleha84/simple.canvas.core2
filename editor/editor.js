@@ -369,13 +369,19 @@ class Editor {
                         contentItems: [
                             components.createRotationControl(angleChangeCallback, rotationOrigin, () => {
                                 layer.removeImage();
+                                let callback = () => {  
+                                    //console.log('createRotationControl'); 
+                                    layer.removeImage(); 
+                                    that.updateEditor.call(that); 
+                                };
+                                
                                 let currentPoints = rDemo.getCurrentPoints();
                                 currentPoints.forEach((modifiedPoint,i) => {
                                     //group.points[i].point = p.toPlain();
                                     group.points.filter(targetPoint => targetPoint.id == modifiedPoint.id)[0].point = modifiedPoint.point;
                                 });
 
-                                components.fillPoints(group, that.updateEditor.bind(that))
+                                components.fillPoints(group, callback)
                                 that.updateEditor();
                             })
                         ]
@@ -512,9 +518,13 @@ class Editor {
                     }
                 }),
                 addPointCallback(p) {
-                    let callback = that.updateEditor.bind(that);
+                    let callback = () => {  
+                        //console.log('addPointCallback'); 
+                        layer.removeImage(); 
+                        that.updateEditor.call(that); 
+                    };
                     
-                    layer.removeImage();
+                    //layer.removeImage();
 
                     if(g.currentPointId == undefined){
                         g.currentPointId = 0;
@@ -530,7 +540,9 @@ class Editor {
                         order: g.points.length,
                         point: {x: p.x, y: p.y},
                     })
-                    components.fillPoints(g, that.updateEditor.bind(that))
+
+                    components.fillPoints(g, callback);
+
                     callback();
                 },
                 addPointsCallback(points) {
@@ -539,7 +551,12 @@ class Editor {
 
                     layer.removeImage();
 
-                    let callback = that.updateEditor.bind(that);
+                    let callback = () => {  
+                        //console.log('addPointCallback'); 
+                        layer.removeImage(); 
+                        that.updateEditor.call(that); 
+                    };
+
                     if(g.currentPointId == undefined){
                         g.currentPointId = 0;
                     }
@@ -558,7 +575,7 @@ class Editor {
                         })
                     }
 
-                    components.fillPoints(g, that.updateEditor.bind(that))
+                    components.fillPoints(g, callback)
                     callback();
                 }
             }

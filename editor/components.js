@@ -545,7 +545,7 @@ var components = {
         groupEl.appendChild(groupProps.pointsEl);
         groupEl.appendChild(groupProps.pointEl);
 
-        this.fillPoints(groupProps, changeCallback) 
+        components.fillPoints(groupProps, changeCallback) 
 
         changeCallback();
     },
@@ -622,6 +622,7 @@ var components = {
                     }
 
                     let groupChangeCallback = function() {   
+                        console.log('groupChangeCallback')
                         layerProps.removeImage();
                         changeCallback(); 
                     }
@@ -860,10 +861,24 @@ var components = {
         htmlUtils.removeChilds(pointsEl);
 
         let pointsToShow = points;
-        
+
+        let removeAllPoints = function() {
+            while(points.length){
+                points.pop();
+            }
+
+            components.fillPoints(groupProps, changeCallback);
+            components.editor.editor.setModeState(true, 'edit');
+            changeCallback();
+        }
+
         if(!groupProps.showPoints){
             //pointsToShow =  points.length > 0 ? [points[0]] : [];
-            pointsEl.appendChild(htmlUtils.createElement('div', { text: 'Points hidden' }))
+            pointsEl.appendChild(htmlUtils.createElement('div', { text: 'Points hidden: ' + points.length }))
+            pointsEl.appendChild(htmlUtils.createElement('input', { value: 'Remove all', attributes: { type: 'button' }, events: {
+                click: removeAllPoints
+            } }))
+
             return;
         }
 
@@ -916,13 +931,7 @@ var components = {
                     removePointCallback(e, select);
                 },
                 removeAll(e, select) {
-                    while(points.length){
-                        points.pop();
-                    }
-
-                    components.fillPoints(groupProps, changeCallback);
-                    components.editor.editor.setModeState(true, 'edit');
-                    changeCallback();
+                    removeAllPoints();
                 },
                 add: function(e, select) {
                     
