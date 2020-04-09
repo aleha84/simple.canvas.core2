@@ -1171,6 +1171,57 @@ class Editor {
             className: 'layers',
             items: main.layers.map(l => {return { title: l.name || l.id, value: l.id, selected: l.id == that.editor.selected.layerId }}),
             maxSize: 5,
+            buttons: [
+                {
+                    text: 'Clone',
+                    click: (select) => {
+                        let { layerId } = components.editor.editor.selected;
+
+                        if(layerId == undefined){
+                            alert('No layers selected!')
+                            return;
+                        }
+
+                        let selectedLayer = main.layers.find(l => l.id == layerId);
+                        if(!selectedLayer){
+                            alert(`Layer ${layerId} not found!`)
+                            return;
+                        }
+
+                        let nextLayerId = `m_${main.currentLayerId++}`;
+                        while(main.layers.filter(g => g.id == nextLayerId).length > 0){
+                            nextLayerId = `m_${main.currentLayerId++}`;
+                        }
+
+                        main.layers.forEach(l => l.selected = false);
+                        
+                        let lCloned = assignDeep(
+                            {},
+                            modelUtils.createDefaultLayer(nextLayerId, main.layers.length),
+                            modelUtils.layerMapper(selectedLayer)
+                        )
+
+                        lCloned.id = nextLayerId;
+                        lCloned.visible = true;
+                        lCloned.order = main.layers.length;
+                        lCloned.name = (selectedLayer.name || selectedLayer.id) + '_cloned';
+                        lCloned.selected = true;
+                        lCloned.removeImage();
+
+                        lCloned.groups = selectedLayer.groups.map(g => assignDeep(
+                            {},
+                            modelUtils.createDefaultGroup(g.id, g.order), 
+                            modelUtils.groupMapper(g, true)));
+
+                        
+                        main.layers.push(lCloned);
+                        select.options[select.options.length] = new Option(lCloned.name, lCloned.id);
+                        select.value = lCloned.id;
+                        that.editor.selected.layerId = lCloned.id;
+                        select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+                    }
+                }
+            ],
             callbacks: {
                 select: function(e){ 
                     main.layers.forEach(l => l.selected = false);

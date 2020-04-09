@@ -355,7 +355,7 @@ var components = {
                         }, 
                         events: { 
                             click: function(e) { 
-                                button.click();
+                                button.click(select);
                             } 
                         } }));
                 })
