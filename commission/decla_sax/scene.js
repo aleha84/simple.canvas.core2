@@ -2,7 +2,7 @@ class DeclanSaxForestScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -21,7 +21,7 @@ class DeclanSaxForestScene extends Scene {
         this.particles = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            createParticleFrames({framesCount, itemsCount, size, distanceClamps, color}) {
+            createParticleFrames({framesCount, itemsCount, size, distanceClamps, color, startRadiusClamps}) {
                 let sc = this.parentScene.sceneCenter;
                 let startPoints = [];
                 let frames = [];
@@ -30,7 +30,7 @@ class DeclanSaxForestScene extends Scene {
                     color = colors.rgbStringToObject({value: color, asObject: true});
 
                 createCanvas(new V2(1,1), (ctx, size, hlp) => {
-                    hlp.strokeEllipsis(0, 360, 0.1, sc.clone(), 73,73, startPoints)
+                    hlp.strokeEllipsis(0, 360, 0.1, sc.add(new V2(-1,0)), startRadiusClamps[0],startRadiusClamps[1], startPoints)
                 })
 
                 startPoints = distinct(startPoints, (d) => d.x+ '_' + d.y).map(p => new V2(p)).map(p => ({
@@ -80,19 +80,45 @@ class DeclanSaxForestScene extends Scene {
                 return frames;
             },
             init() {
-                this.frames = this.createParticleFrames({ framesCount: 200, itemsCount: 1000, size: this. size, distanceClamps: [5,25], color: 'rgba(171,188,216,1)' })
-
-                this.currentFrame = 0;
-                this.img = this.frames[this.currentFrame];
-                
-                this.timer = this.regTimerDefault(15, () => {
-                
-                    this.img = this.frames[this.currentFrame];
-                    this.currentFrame++;
-                    if(this.currentFrame == this.frames.length){
+                this.greenblueParticles = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.createParticleFrames({ framesCount: 200, itemsCount: 1000, size: this. size, distanceClamps: [5,25], color: 'rgba(171,188,216,1)', startRadiusClamps: [74,74] }),
+                    init() {
                         this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(15, () => {
+                        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
                     }
-                })
+                }))
+
+                this.blueParticles = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.createParticleFrames({ framesCount: 100, itemsCount: 1000, size: this. size, distanceClamps: [2,6], color: 'rgba(51,50,19,1)', startRadiusClamps: [72,72] }),
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(15, () => {
+                        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
+                
+                
             }
         }), 5)
 
@@ -100,8 +126,8 @@ class DeclanSaxForestScene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
-                // if(this.parentScene.debug.enabled)
-                //     return
+                if(this.parentScene.debug.enabled)
+                    return
 
                 let mainHsv = [200, 0, 100];
                 let rotationOriginShift =new V2(0, 0);
@@ -177,19 +203,19 @@ class DeclanSaxForestScene extends Scene {
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
-                        if(!this.redFrame){
-                            this.redFrame = this.addChild(new GO({
-                                position: new V2(),
-                                size: this.size,
-                                img: createCanvas(this.size, (ctx, size, hlp) => {
-                                    hlp.setFillColor('red').strokeRect(0,0, size.x, size.x)
-                                })
-                            }));
-                        }
-                        else {
-                            this.removeChild(this.redFrame);
-                            this.redFrame = undefined;
-                        }
+                        // if(!this.redFrame){
+                        //     this.redFrame = this.addChild(new GO({
+                        //         position: new V2(),
+                        //         size: this.size,
+                        //         img: createCanvas(this.size, (ctx, size, hlp) => {
+                        //             hlp.setFillColor('red').rect(0,0, 50, 50)
+                        //         })
+                        //     }));
+                        // }
+                        // else {
+                        //     this.removeChild(this.redFrame);
+                        //     this.redFrame = undefined;
+                        // }
                     }
                 })
             }
@@ -200,9 +226,104 @@ class DeclanSaxForestScene extends Scene {
             size: new V2(150,150),
             img: PP.createImage(DeclanSaxForestScene.models.main),
             init() {
-                //
+                //#7996b4
+                //#6b88af
+
+                let targetColor = '#7996b4'.toLowerCase();
+                let hideColor = '#7da3df';
+                let targetPoints = [];
+                DeclanSaxForestScene.models.main.main.layers.forEach(layer => {
+                    layer.groups.forEach(group => {
+                        if(group.strokeColor.toLowerCase() == targetColor){
+                            targetPoints.push(...group.points.map(p => new V2(p.point)))
+                        }
+                    });
+                });
+
+                targetColor = '#6b88af'.toLowerCase();
+                DeclanSaxForestScene.models.main.main.layers.forEach(layer => {
+                    layer.groups.forEach(group => {
+                        if(group.strokeColor.toLowerCase() == targetColor){
+                            targetPoints.push(...group.points.map(p => new V2(p.point)))
+                        }
+                    });
+                });
+
+                let frames = [];
+                let framesCount = 100;
+                let itemsCount = targetPoints.length;
+                
+                let itemsData = targetPoints.map((el, i) => {
+                    let hideLength = getRandomInt(10,15);
+                    let hideFrom = getRandomInt(0, framesCount-1);
+                    let hideTo = hideFrom + hideLength;
+                    let hideFrames = [];
+                    if(hideTo > (framesCount-1)){
+                        hideTo-=framesCount;
+                        for(let i = hideFrom; i < framesCount; i++)
+                            hideFrames.push(i);
+                        for(let i = 0; i <= hideTo; i++)
+                            hideFrames.push(i);
+                    }
+                    else {
+                        for(let i = hideFrom; i <= hideTo; i++)
+                            hideFrames.push(i);
+                    }
+
+                    return {
+                        p: el,
+                        hideFrames,
+                        initialIndex: getRandomInt(0, framesCount-1)
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(this.size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsCount; p++){
+                             let pointData = itemsData[p];
+                            
+                            // let currentIndex = pointData.initialIndex + f;
+                            // if(currentIndex > (framesCount-1)){
+                            //     currentIndex-=framesCount;
+                            // }
+                            
+                            hlp.setFillColor(hideColor);
+
+                            if(pointData.hideFrames.indexOf(f) != -1){
+                                hlp.dot(pointData.p.x, pointData.p.y);
+                            }
+                        }
+                    });
+                }
+
+                //console.log(targetPoints);
+
+                this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames,
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(15, () => {
+                        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
             }
         }), 10)
+
+        this.sphere = this.addGo(new GO({
+            position: new V2(170, 190),
+            size: new V2(40,20),
+            img: PP.createImage(DeclanSaxForestScene.models.signature),
+        }), 15) 
     }
     
 }

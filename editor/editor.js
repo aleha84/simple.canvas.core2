@@ -1,7 +1,11 @@
 // TODO. Bugs:
-// 2. Current palettes list
+// 2. Current palettes list - stored in json
 // 4. gradient tool, update, add easings support
 // 5. Shift+v - hide just image not layers visibility ?
+// 6. sceneColorPicker copy to clipboard without # 
+// 7. Code refactoring. To different files and subfilders
+// 8. 'a' shouldn't change mode if no group selected
+// 9. Make keyboard shortcuts case/lang insensitive, use keycodes instead
 
 class Editor {
     constructor(options = {}){
