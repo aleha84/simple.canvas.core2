@@ -6,6 +6,7 @@
 // 7. Code refactoring. To different files and subfilders
 // 8. 'a' shouldn't change mode if no group selected
 // 9. Make keyboard shortcuts case/lang insensitive, use keycodes instead
+// 10. 'c' shortcut for scene color picker
 
 class Editor {
     constructor(options = {}){
