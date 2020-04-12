@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.src = {
     }
 
-    let smallSquareDefaultViewport = new V2(200,200);
+    let smallSquareDefaultViewport = new V2(300,400);
     
     SCG.scenes.cacheScene(new YawnyblewWindowScene({
         name:'window',

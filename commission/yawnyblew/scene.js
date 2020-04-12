@@ -1,3 +1,9 @@
+// добавить силуэт
+// добавить переходы у овалов 
+// замедлить дождь
+// ещё несколько неоновых вывесок.
+// тени от капель
+
 class YawnyblewWindowScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
@@ -11,17 +17,27 @@ class YawnyblewWindowScene extends Scene {
     }
 
     backgroundRender() {
+        //this.backgroundRenderImage(this.bgImage);
         this.backgroundRenderDefault();
     }
 
     start(){
+
+        this.bg = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.img = PP.createImage(YawnyblewWindowScene.models.bg)
+            }
+        }), 1)
+
         this.window = this.addGo(new GO({
             position: this.sceneCenter.clone(),
-            size: new V2(150,150),
+            size: new V2(230,230),
             init() {
-                this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    hlp.setFillColor('#999').rect(0,0, size.x, size.y);
-                })
+                // this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                //     hlp.setFillColor('#999').rect(0,0, size.x, size.y);
+                // })
 
                 this.rain = this.addChild(new GO({
                     position: new V2(),
@@ -213,9 +229,10 @@ class YawnyblewWindowScene extends Scene {
                         
                         for(let f = 0; f < framesCount; f++){
                             frames[f] = createCanvas(size, (ctx, size, hlp) => {
-                                // coloredEllipsises.forEach(el => {
-                                //     hlp.setFillColor(colors.rgbToString({value: [el.color.red, el.color.green, el.color.blue, el.color.opacity], isObject: false})).elipsis(el.position, el.size)
-                                // });
+                                coloredEllipsises.forEach(el => {
+                                    if(el.render)
+                                        hlp.setFillColor(colors.rgbToString({value: [el.color.red, el.color.green, el.color.blue, el.color.opacity], isObject: false})).elipsis(el.position, el.size)
+                                });
 
 
                                 for(let p = 0; p < itemsCount; p++){
@@ -257,22 +274,22 @@ class YawnyblewWindowScene extends Scene {
                         return frames;
                     },
                     init() {
-                        this.frames = this.createRainDropsFrames({framesCount: 400, itemsCount: 400, size: this.size, movingCase: () => { return getRandomInt(0,2) == 0 },
+                        this.frames = this.createRainDropsFrames({framesCount: 400, itemsCount: 1500, size: this.size, movingCase: () => { return getRandomInt(0,2) == 0 },
                         coloredEllipsises: [
                             {
-                                position: new V2(140, 20).toInt(),
-                                size: new V2(30, 60),
-                                color: colors.rgbStringToObject({value: 'rgba(255,0,0,0.25)', asObject: true})
+                                position: new V2(120, 30).toInt(),
+                                size: new V2(100, 28),
+                                color: colors.rgbStringToObject({value: 'rgba(93,5,247,0.25)', asObject: true})
                             },
                             {
-                                position: new V2(30, 100).toInt(),
-                                size: new V2(60, 20),
-                                color: colors.rgbStringToObject({value: 'rgba(100,100,0,0.25)', asObject: true})
+                                position: new V2(180, 85).toInt(),
+                                size: new V2(70, 30),
+                                color: colors.rgbStringToObject({value: 'rgba(128,0,128,0.25)', asObject: true})
                             },
                             {
-                                position: new V2(60, 120).toInt(),
-                                size: new V2(30, 30),
-                                color: colors.rgbStringToObject({value: 'rgba(0,100,100,0.25)', asObject: true})
+                                position: new V2(187, 140).toInt(),
+                                size: new V2(80, 30),
+                                color: colors.rgbStringToObject({value: 'rgba(85,138,59,0.25)', asObject: true})
                             }
                         ]
                     });
@@ -291,6 +308,114 @@ class YawnyblewWindowScene extends Scene {
                     }
                 }))
             }
-        }), 1)
+        }), 3)
+
+        this.walls = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.circlesProps = [
+                    {
+                        r: fast.r(this.size.x*0.75/2),
+                        color: '#1D233A'
+                    },
+                    {
+                        r: fast.r(this.size.x*0.76/2),
+                        color: '#0F111E'//'#151728'
+                    },
+                    {
+                        r: fast.r(this.size.x*0.8/2),
+                        color: 'black'
+                    }
+                ]
+
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    let center = size.mul(0.5).toInt();
+                    let step = 0.25;
+
+                    let circlesProps = this.circlesProps;
+
+                    for(let i = 0; i < circlesProps.length; i++){
+                        let cProps = circlesProps[i];
+
+                        let r = cProps.r;
+                        let circleDots = [];
+                        for(let i = 0; i < 360; i+=step){
+                            let rad = degreeToRadians(i);
+                            let x = fast.r(center.x + r * Math.cos(rad));
+                            let y = fast.r(center.y + r * Math.sin(rad));
+
+                            circleDots.push({x,y});
+                        }
+
+                        //circleDots = distinct(circleDots, (p) => (p.x + '_' + p.y));
+                        cProps.rows = []
+                        let rows = cProps.rows;
+                        for(let i = 0; i < circleDots.length; i++){
+                            let d = circleDots[i];
+                            if(rows[d.y] == undefined){
+                                rows[d.y] = {max: d.x, min: d.x};
+                            }
+                            else {
+                                if(d.x < rows[d.y].min)
+                                    rows[d.y].min = d.x;
+                                if(d.x > rows[d.y].max)
+                                    rows[d.y].max = d.x
+
+                                
+                            }
+                        }
+
+                        for(let y = 0; y < size.y;y++){
+                            let r = rows[y];
+                            if(r == undefined){
+                                hlp.setFillColor(cProps.color).rect(0,y,size.x, 1);
+                            }
+                            else {
+                                hlp.setFillColor(cProps.color).rect(0,y, r.min, 1);
+                                hlp.setFillColor(cProps.color).rect(r.max,y, size.x, 1);
+
+                                // if(i == 1){
+                                //     if(y > 275 && y < 310){
+                                //         hlp.setFillColor('rgba(216,227,97,0.05)').rect(r.max, y, 20, 1)
+                                //     }
+                                // }
+
+                                if(i == 0){
+                                    if(r.min != r.max){
+                                        //'rgba(224,238,255,0.25)'
+                                        hlp.setFillColor('rgba(56,69,63,0.25)').rect(r.min, y, r.max-r.min,1)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    let vChange = easing.createProps(45, 30, 0, 'quad', 'out');
+                    let hsv = [212,12,14];
+                    for(let y = circlesProps[2].rows.length+1; y < size.y; y++){
+                        let delta = y - circlesProps[2].rows.length;
+                        if(delta <= 45){
+                            vChange.time = delta;
+                            let v =  easing.process(vChange);
+                            v = fast.f(v/1)*1;
+                            hsv[2] = v;
+                        }
+                        else {
+                            hsv[2] = 0;
+                        }
+                        
+                        let row = circlesProps[2].rows[circlesProps[2].rows.length-delta];
+                        hlp.setFillColor(colors.hsvToHex(hsv)).rect(row.min, y-1, row.max - row.min, 1);
+                    }
+
+                    for(let i = 0; i < 500; i++){
+                        hlp.setFillColor('rgba(0,0,0,0.1)').rect(
+                        fast.r(getRandomGaussian(0, size.x)), 
+                        getRandomInt(circlesProps[2].rows.length+1, size.y),  getRandomInt(10, 30), 1);   
+                    }
+                })
+            }
+        }), 10)
     }
 }
