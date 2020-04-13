@@ -1,14 +1,14 @@
-// добавить силуэт
-// добавить переходы у овалов 
-// замедлить дождь
-// ещё несколько неоновых вывесок.
-// тени от капель
+// добавить силуэт - done
+// добавить переходы у овалов done
+// замедлить дождь - done
+// ещё несколько неоновых вывесок. done
+// тени от капель - done
 
 class YawnyblewWindowScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -29,11 +29,14 @@ class YawnyblewWindowScene extends Scene {
             init() {
                 this.img = PP.createImage(YawnyblewWindowScene.models.bg)
             }
-        }), 1)
+        }), 1);
+
+        this.bottomFrames = [];
 
         this.window = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: new V2(230,230),
+            bottomFrames: this.bottomFrames,
             init() {
                 // this.img = createCanvas(this.size, (ctx, size, hlp) => {
                 //     hlp.setFillColor('#999').rect(0,0, size.x, size.y);
@@ -110,10 +113,10 @@ class YawnyblewWindowScene extends Scene {
                     },
                     init() {
                         let rainLayers = [
-                           {framesCount: 100, itemsCount: 400, color: 'rgba(76,76,76,0.25)', heightClamp: [2,3], yShiftClamps: [-25,25], yClamps: [-this.size.y, this.size.y*2]},
-                           {framesCount: 80, itemsCount: 200, color: 'rgba(102,102,102,0.5)', heightClamp: [3,5], yShiftClamps: [-35,35], yClamps: [-this.size.y, this.size.y*2]},
-                           {framesCount: 50, itemsCount: 100, color: 'rgba(153,153,153,0.5)', heightClamp: [5,8], yShiftClamps: [-45,45], yClamps: [-this.size.y, this.size.y*2]},
-                           {framesCount: 25, itemsCount: 50, color: 'rgba(178,178,178,0.5)', heightClamp: [10,15], yShiftClamps: [-60,60], yClamps: [-this.size.y, this.size.y*2]},
+                           {framesCount: 100, itemsCount: 400, color: 'rgba(76,76,76,0.25)', heightClamp: [2,3], yShiftClamps: [-25,25], yClamps: [-this.size.y*0.5, this.size.y*1]},
+                           {framesCount: 80, itemsCount: 200, color: 'rgba(102,102,102,0.5)', heightClamp: [3,5], yShiftClamps: [-35,35], yClamps: [-this.size.y*0.5, this.size.y*1]},
+                           {framesCount: 50, itemsCount: 100, color: 'rgba(153,153,153,0.5)', heightClamp: [5,8], yShiftClamps: [-45,45], yClamps: [-this.size.y*0.5, this.size.y*1]},
+                           {framesCount: 25, itemsCount: 50, color: 'rgba(178,178,178,0.5)', heightClamp: [10,15], yShiftClamps: [-60,60], yClamps: [-this.size.y*0.5, this.size.y*1]},
                        ]
 
                        rainLayers.map(layer => this.addChild(new GO({
@@ -144,7 +147,8 @@ class YawnyblewWindowScene extends Scene {
                 this.rainDrops = this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
-                    getColor(position, coloredEllipsises) {
+                    bottomFrames: this.bottomFrames,
+                    getColor(position, coloredEllipsises, moving = false) {
                         let {x, y} = position;
 
                         let inside = coloredEllipsises.map((el) => {
@@ -162,12 +166,25 @@ class YawnyblewWindowScene extends Scene {
                             return inside[0].el.color;
 
                         if(inside.length > 1){
-                            return inside[getRandomInt(0, inside.length-1)].el.color;
+                            if(moving){
+                                return inside[0].el.color;
+                            }
+                            else {
+                                return inside[getRandomInt(0, inside.length-1)].el.color;
+                            }
+                            
                         }
+                        
+                        
                     },
-                    createRainDropsFrames({framesCount, itemsCount, size, movingCase, coloredEllipsises = []}) {
+                    createRainDropsFrames({framesCount, itemsCount, size, movingCase, coloredEllipsises = [], bottomFrames}) {
                         let defaultOpacity = 0.5;
                         let frames = [];
+
+                        //let bottomFrames = [];
+
+                        if(!bottomFrames)
+                            bottomFrames = []
 
                         coloredEllipsises.forEach(el => {
                             el.rxSq = el.size.x*el.size.x;
@@ -195,7 +212,7 @@ class YawnyblewWindowScene extends Scene {
                                 currentXShiftsValues = new Array(framesCount).fill(xShift).map((el, i) => {
                                     if(i > freeze+5){
                                         if(getRandomInt(0,6) == 0){
-                                            xShift+=getRandom(-0.5,0.5);
+                                            xShift+=getRandom(-1,1);
                                         }
                                     }
                                     
@@ -227,7 +244,10 @@ class YawnyblewWindowScene extends Scene {
                             }
                         })
                         
+                        
                         for(let f = 0; f < framesCount; f++){
+                            let bottomItems = [];
+
                             frames[f] = createCanvas(size, (ctx, size, hlp) => {
                                 coloredEllipsises.forEach(el => {
                                     if(el.render)
@@ -247,14 +267,16 @@ class YawnyblewWindowScene extends Scene {
                                     let currentXShift = pointData.currentXShiftsValues[currentIndex];
                                     let pointToBottom = pointData.pointsToBottom[pointToBottomIndex].add(new V2(currentXShift)).toInt();
 
-                                    // if(getRandomInt(0,4) == 0){
-                                    //     pointData.currentXShift+=getRandom(-1,1);
-                                    // }
+                                    let toBottom = size.y - pointToBottom.y;
+                                    if(toBottom >= 0 ){
+                                        //rds.items.push(new V2(drop.p.x-54,toBottom).toInt())
+                                        bottomItems[bottomItems.length] = new V2(pointToBottom.x ,toBottom);
+                                    }
 
                                     let fillColor = pointData.color;
 
                                     if(pointData.moving){
-                                        let isInsideColoredEl = this.getColor(pointToBottom, coloredEllipsises);
+                                        let isInsideColoredEl = this.getColor(pointToBottom, coloredEllipsises, true);
                                         if(isInsideColoredEl){
                                             fillColor = isInsideColoredEl
                                         }
@@ -269,12 +291,20 @@ class YawnyblewWindowScene extends Scene {
                                     hlp.setFillColor('rgba(255,255,255,0.25)').rect(pointToBottom.x, pointToBottom.y,1,1)
                                 }
                             });
+
+                            bottomFrames[f] = createCanvas(size, (ctx, size, hlp) => {
+                                hlp.setFillColor('black');
+                                bottomItems.forEach(bi => {
+                                    hlp.rect(bi.x, bi.y,2,2)
+                                });
+                            });
                         }
                         
                         return frames;
                     },
                     init() {
-                        this.frames = this.createRainDropsFrames({framesCount: 400, itemsCount: 1500, size: this.size, movingCase: () => { return getRandomInt(0,2) == 0 },
+                        this.frames = this.createRainDropsFrames({framesCount: 400, itemsCount: 2500, size: this.size, movingCase: () => { return getRandomInt(0,5) == 0 },
+                        bottomFrames: this.bottomFrames,
                         coloredEllipsises: [
                             {
                                 position: new V2(120, 30).toInt(),
@@ -290,7 +320,20 @@ class YawnyblewWindowScene extends Scene {
                                 position: new V2(187, 140).toInt(),
                                 size: new V2(80, 30),
                                 color: colors.rgbStringToObject({value: 'rgba(85,138,59,0.25)', asObject: true})
+                            },
+                            {
+                                position: new V2(62, 112).toInt(),
+                                size: new V2(40, 58),
+                                color: colors.rgbStringToObject({value: 'rgba(37,200,232,0.25)', asObject: true}),
+                                render: false,
+                            },
+                            {
+                                position: new V2(50, 190).toInt(),
+                                size: new V2(70, 40),
+                                color: colors.rgbStringToObject({value: 'rgba(222,55,50,0.25)', asObject: true}),
+                                render: false,
                             }
+                            
                         ]
                     });
 
@@ -303,6 +346,22 @@ class YawnyblewWindowScene extends Scene {
                             this.currentFrame++;
                             if(this.currentFrame == this.frames.length){
                                 this.currentFrame = 0;
+/*
+                                if(!this.redFrame){
+                                //alert('1')
+                                    this.redFrame = this.addChild(new GO({
+                                        position: new V2(),
+                                        size: this.size,
+                                        img: createCanvas(this.size, (ctx, size, hlp) => {
+                                            hlp.setFillColor('red').rect(0,0, 50,50)
+                                        })
+                                    }));
+                                }
+                                else {
+                                    this.removeChild(this.redFrame);
+                                    this.redFrame = undefined;
+                                }
+                                */
                             }
                         })
                     }
@@ -313,6 +372,7 @@ class YawnyblewWindowScene extends Scene {
         this.walls = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
+            bottomFrames: this.bottomFrames,
             init() {
                 this.circlesProps = [
                     {
@@ -415,7 +475,111 @@ class YawnyblewWindowScene extends Scene {
                         getRandomInt(circlesProps[2].rows.length+1, size.y),  getRandomInt(10, 30), 1);   
                     }
                 })
+
+                this.rainDropsShadows = this.addChild(new GO({
+                    position: new V2(0,236),
+                    size:  new V2(230,230),
+                    frames: this.bottomFrames,
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(15, () => {
+                        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
             }
         }), 10)
+
+
+        this.girl = this.addGo(new GO({
+            position: new V2(140, 263+15),
+            size: new V2(86,170),
+            init() {
+                let model = YawnyblewWindowScene.models.girl;
+                model.main.layers.forEach(l => {
+                    l.groups.forEach(group => {
+                        if(l.name != 'shadow')
+                        group.strokeColor = '#060A0A';
+                        group.fillColor = '#060A0A';
+                    });
+                });
+
+                this.img = PP.createImage(model)
+            }
+        }), 15)
+
+        this.details = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.img = PP.createImage(YawnyblewWindowScene.models.details)
+            }
+        }), 16)
+
+        this.wires = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            createnameFrames({framesCount, angleClamps, size, length, x}) {
+                let frames1 = [];
+                
+                //let angleClamps = [-1,1];
+                let angleChange = easing.fast({from: angleClamps[0], to: angleClamps[1], steps: framesCount, type: 'sin', method: 'inOut' })
+                let angleChangeBack = easing.fast({from: angleClamps[1], to: angleClamps[0], steps: framesCount, type: 'quad', method: 'inOut' })
+                let from = new V2(x, 0);
+                let defaultDirection = V2.down;
+
+                for(let f = 0; f < framesCount; f++){
+                    frames1[f] = createCanvas(size, (ctx, size, hlp) => {
+                        let angle = angleChange[f];
+                        let to = from.add(defaultDirection.rotate(angle).mul(length));
+                        hlp.setFillColor('black');
+                        new PP({ctx}).lineV2(from, to);
+                    });
+                }
+
+                let frames = [];
+
+                frames.push(...(new Array(2).fill(frames1[0])),...frames1,...(new Array(2).fill(frames1[frames1.length-1])), ...frames1.reverse() );
+                
+                return frames;
+            },
+            init() {
+                let frameSets = [
+                    this.createnameFrames({framesCount: 50, size: this.size, angleClamps: [-1,1], length: 250, x: 70}),
+                    this.createnameFrames({framesCount: 50, size: this.size, angleClamps: [-0.5,0.5], length: 200, x: 55}),
+                    this.createnameFrames({framesCount: 50, size: this.size, angleClamps: [-0.25,0.25], length: 210, x: 50}),
+                    this.createnameFrames({framesCount: 50, size: this.size, angleClamps: [-0.4,0.4], length: 230, x: 80})
+                ]
+                
+                frameSets.map(frames => this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames,
+                    init() {
+                        this.currentFrame = getRandomInt(0, this.frames.length-1);
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(15, () => {
+                        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                })))
+
+
+                
+            }
+        }), 17)
     }
 }

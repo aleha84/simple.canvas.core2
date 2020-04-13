@@ -16,6 +16,27 @@
 	// 	"description": "Log output to console"
 	// }
 
+	"recordingRedRectangle": {
+		"scope": "javascript",
+		"prefix": "redRectangle",
+		"description": "Добавление моргающего красного прямоугольника при итерации через кадры",
+		"body": [
+			"if(!this.redFrame){",
+			"\tthis.redFrame = this.addChild(new GO({",
+			"\t\tposition: new V2(),",
+			"\t\tsize: this.size,",
+			"\t\timg: createCanvas(this.size, (ctx, size, hlp) => {",
+			"\t\t\thlp.setFillColor('red').rect(0,0, 50,50)",
+			"\t\t})",
+			"\t}));",
+			"}",
+			"else {",
+			"\tthis.removeChild(this.redFrame);",
+			"\tthis.redFrame = undefined;",
+			"}"
+		]
+	},
+
 	"useFrames": {
 		"scope": "javascript",
 		"prefix": "useFrames",
