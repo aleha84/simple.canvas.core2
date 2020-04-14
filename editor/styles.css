@@ -256,6 +256,14 @@ html,
       background: #5e0a6d;
     }
 
+    .panel .content {
+      display: none;
+    }
+
+    .panel .content.visible {
+      display: block;
+    }
+
     .panel.utilities {
       width: auto;
       height:auto;
@@ -267,11 +275,20 @@ html,
       /* height: 30px; */
       height:auto;
       width:200px;
-      display: none;
+      /* display: none; */
     }
 
-    .panel.utilities .content.visible {
-      display: block;
+    .panel.palettes .itemWrapper>.buttonBlock>.addNewItemWrapper>.itemValue {
+      width: 50px;
+    }
+
+    .panel.palettes .itemWrapper>.buttonBlock>.removeButton{
+      background-color: red;
+    }
+
+    .panel.palettes .paletteItem {
+      width: 20px;
+      height: 20px;
     }
 
     .marginLeft5 {

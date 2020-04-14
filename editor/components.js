@@ -52,7 +52,7 @@ var components = {
         return el;
     },
     createInput(value, title, changeCallback){
-        let el = htmlUtils.createElement('div', { classNames: ['inputBox', 'row'] });
+        let el = htmlUtils.createElement('div', { classNames: ['inputBox', 'rowFlex'] });
 
         if(title){    
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))

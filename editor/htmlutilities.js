@@ -63,5 +63,15 @@ var htmlUtils = {
         for(var key in attrs) {
             el.setAttribute(key, attrs[key]);
         }
+    },
+    appendChild(parent, child) {
+        let children = child;
+        if(!isArray(children)){
+            children = [children];
+        }
+
+        children.forEach(element => {
+            parent.appendChild(element);
+        });
     }
 }

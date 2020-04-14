@@ -107,7 +107,8 @@ class Editor {
                     renderOptimization: false,
                     animated: false,
                     element: undefined,
-                    backgroundColor: '#000000'
+                    backgroundColor: '#000000',
+                    palettes: []
                 },
                 main: {
                     element: undefined,
@@ -645,7 +646,8 @@ class Editor {
                 showGrid: i.general.showGrid, 
                 renderOptimization: i.general.renderOptimization,
                 animated,
-                backgroundColor:i.general.backgroundColor
+                backgroundColor:i.general.backgroundColor,
+                palettes: i.general.palettes.map(palette => modelUtils.paletteMapper(palette, true))
             },
             main
         }
@@ -1042,6 +1044,7 @@ class Editor {
             general.element.remove();
         }
 
+        paletteHelper.init(this, general.palettes);
         
         let generalEl = htmlUtils.createElement('div', { className: 'general' });
         generalEl.appendChild(components.createV2(general.originalSize, 'Size', this.updateEditor.bind(this)));
