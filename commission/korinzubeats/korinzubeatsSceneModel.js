@@ -1,0 +1,5 @@
+var KorinzubeatsScene = {
+	model:
+	{"general":{"originalSize":{"x":150,"y":150},"size":{"x":150,"y":150},"zoom":3,"showGrid":false,"renderOptimization":false,"animated":false,"backgroundColor":"#000000","palettes":[]},"main":{"layers":[{"order":0,"id":"m_0","name":"Sky","visible":true,"groups":[{"order":0,"type":"dots","strokeColor":"#FF0000","strokeColorOpacity":1,"fillColor":"#FF0000","fillColorOpacity":1,"closePath":false,"fill":false,"fillPattern":false,"visible":true,"clear":false,"id":"m_0_g_0","points":[]}]},{"order":1,"id":"m_1","name":"far_lanscape","visible":true,"groups":[]},{"order":2,"id":"m_2","name":"mountain","visible":true,"groups":[]},{"order":3,"id":"m_3","name":"small_tree","visible":true,"groups":[]},{"order":4,"id":"m_4","name":"big_tree","visible":true,"groups":[]},{"order":5,"id":"m_5","name":"guy","visible":true,"groups":[]}]}}
+	,
+}
