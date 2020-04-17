@@ -701,6 +701,10 @@ class Editor {
             throw 'importModel -> Wrong model type. '
         }
 
+        if(image.general.palettes == undefined){
+            image.general.palettes = [];
+        }
+
         image.general.element = that.image.general.element;
         image.general.zoom =  {current: 10, max: 10, min: 1, step: 1};
         // add support of animated property

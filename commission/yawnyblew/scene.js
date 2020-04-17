@@ -346,7 +346,7 @@ class YawnyblewWindowScene extends Scene {
                             this.currentFrame++;
                             if(this.currentFrame == this.frames.length){
                                 this.currentFrame = 0;
-/*
+
                                 if(!this.redFrame){
                                 //alert('1')
                                     this.redFrame = this.addChild(new GO({
@@ -361,7 +361,7 @@ class YawnyblewWindowScene extends Scene {
                                     this.removeChild(this.redFrame);
                                     this.redFrame = undefined;
                                 }
-                                */
+                               
                             }
                         })
                     }
