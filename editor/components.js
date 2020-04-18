@@ -267,7 +267,15 @@ var components = {
 
                     if(moveDownButton)
                         moveDownButton.disabled = false;
+
                     listProps.callbacks.select(e)
+
+                    let framesSelect = document.querySelector('.frames select')
+                    if(framesSelect && framesSelect.selectedOptions.length){
+                        let selectedOption = framesSelect.selectedOptions[0];
+                        framesSelect.scrollTop = (selectedOption.offsetTop - framesSelect.offsetTop) - fast.r(framesSelect.offsetHeight/2); 
+                        //console.log(framesSelect.scrollTop);
+                    }                    
                 }
                 else 
                     console.log(e.target.value)
