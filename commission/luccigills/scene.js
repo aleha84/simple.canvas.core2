@@ -41,6 +41,19 @@ class LuccigillsDesertScene extends Scene {
                             this.currentFrame++;
                             if(this.currentFrame == this.frames.length){
                                 this.currentFrame = 0;
+                                // if(!this.redFrame){
+                                //         this.redFrame = this.addChild(new GO({
+                                //             position: new V2(),
+                                //             size: this.size,
+                                //             img: createCanvas(this.size, (ctx, size, hlp) => {
+                                //                 hlp.setFillColor('red').rect(0,0, 50,50)
+                                //             })
+                                //         }));
+                                //     }
+                                //     else {
+                                //         this.removeChild(this.redFrame);
+                                //         this.redFrame = undefined;
+                                //     }
                             }
                         })
                     },
@@ -48,25 +61,55 @@ class LuccigillsDesertScene extends Scene {
                 }));
 
 
-                this.smoke = this.addChild(new GO({
-                    size: new V2(15, 30),
-                    position: new V2(45, 25),
-                    frames: PP.createImage(LuccigillsDesertScene.models.smoke),
+                this.smoke2 = this.addChild(new GO({
+                    size: new V2(20, 60),
+                    position: new V2(30, 5),
+                    frames: PP.createImage(LuccigillsDesertScene.models.smoke3),
                     init() {
                         this.currentFrame = 0;
                         this.img = this.frames[this.currentFrame];
 
-                        this.timer = this.regTimerDefault(100, () => {
-
+                        this.frameChangeDelay = 10;
+                        this.timer = this.regTimerDefault(15, () => {
+                            0
                             this.img = this.frames[this.currentFrame];
-                            this.currentFrame++;
+                            
+                            this.frameChangeDelay--;
+
+                            if(this.frameChangeDelay == 0){
+                                this.currentFrame++;
+                                this.frameChangeDelay= 10;
+                            }
+
+                            
                             if(this.currentFrame == this.frames.length){
                                 this.currentFrame = 0;
+                                
                             }
                         })
                     },
                     
                 }));
+
+                // this.smoke = this.addChild(new GO({
+                //     size: new V2(15, 30),
+                //     position: new V2(45, 25),
+                //     frames: PP.createImage(LuccigillsDesertScene.models.smoke),
+                //     init() {
+                //         this.currentFrame = 0;
+                //         this.img = this.frames[this.currentFrame];
+
+                //         this.timer = this.regTimerDefault(100, () => {
+
+                //             this.img = this.frames[this.currentFrame];
+                //             this.currentFrame++;
+                //             if(this.currentFrame == this.frames.length){
+                //                 this.currentFrame = 0;
+                //             }
+                //         })
+                //     },
+                    
+                // }));
             },
             getColor(hex, opacity){
                 if(!this.colorsCache){
@@ -110,7 +153,7 @@ class LuccigillsDesertScene extends Scene {
                     });
                 }
 
-                frames.push(...(new Array(2).fill(frames1[0])),...frames1,...(new Array(2).fill(frames1[frames1.length-1])), ...frames1.reverse() );
+                frames.push(...frames1, ...frames1.reverse() );
                 
                 return frames;
             }
@@ -161,7 +204,7 @@ class LuccigillsDesertScene extends Scene {
                 let xChangePerFrame = [...xChangePerFrameOrigin, ...xChangePerFrameOrigin.reverse()];
     
                 if(maxXChange > 0){
-                    for(let f = 0; f < framesPerLayer-1; f++){
+                    for(let f = 0; f < framesPerLayer; f++){
                         frames[f] = createCanvas(size, (ctx, size, hlp) => {
                             hlp.setFillColor(color);
                             for(let di = 0; di < layerDots.length; di++){
@@ -216,6 +259,7 @@ class LuccigillsDesertScene extends Scene {
                                 this.currentFrame++;
                                 if(this.currentFrame == this.frames.length){
                                     this.currentFrame = 0;
+                                
                                 }
                             })
                         }
