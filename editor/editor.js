@@ -8,6 +8,7 @@
 // 9. Make keyboard shortcuts case/lang insensitive, use keycodes instead
 // 10. 'c' shortcut for scene color picker
 // 11. Move layer slow moving
+// 12. add new layer - switch mode to add. Wrong
 
 class Editor {
     constructor(options = {}){
