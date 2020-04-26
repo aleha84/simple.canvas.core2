@@ -781,4 +781,23 @@ function createLine(begin, end) {
   };
 }
 
+function getPixels(img, size) {
+  let ctx = img.getContext("2d");
+  let  pixels = [];
+
+  let imageData = ctx.getImageData(0,0,size.x, size.y).data;
+
+  for(let i = 0; i < imageData.length;i+=4){
+      if(imageData[i+3] == 0)            
+          continue;
+
+      let y = fastFloorWithPrecision((i/4)/size.x);
+      let x = (i/4)%size.x;
+      let color = [imageData[i], imageData[i+1], imageData[i+2], fastRoundWithPrecision(imageData[i+3]/255, 4)] 
+
+      pixels[pixels.length] = { position: new V2(x,y), color };
+  }
+  return pixels;
+}
+
 
