@@ -22,6 +22,61 @@ class BlastingCompanyNostalgiaScene extends Scene {
                 let koef = (prop1[1]-prop1[0])/(value-prop1[0]);
                 return prop2[0] + (prop2[1]-prop2[0])/koef;
             },
+            createRainFrames3({framesCount, itemsCount, size, color, framesPerDropClamps, lengthClamps}) {
+                let frames = [];
+
+                if(typeof(color) == 'string')
+                    color = colors.rgbStringToObject({value: color, asObject: true});
+                
+                let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                    
+                    let x = getRandomInt(10, 140);
+                    //let start = new V2(, -lengthClamps[0]);
+                    let startY = getRandomInt(-lengthClamps[0]*2, -lengthClamps[0]);
+
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = getRandomInt(framesPerDropClamps[0], framesPerDropClamps[1]);
+                    let yValues = easing.fast({from: startY, to: size.y, steps: totalFrames, type: 'linear', method: 'base'}).map(v => fast.r(v));
+
+                    let length = getRandomInt(lengthClamps[0], lengthClamps[1]);
+
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+
+                        let y = yValues[f]
+                        frames[frameIndex] = {
+                            y
+                        };
+                    }
+
+                    return {
+                        x,
+                        length,
+                        frames
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsCount; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                let y = itemData.frames[f].y
+                                hlp.setFillColor(colors.rgbToString({value: [color.red, color.green, color.blue, color.opacity], isObject: false}))
+                                .rect(itemData.x, y, 1, itemData.length)
+                            }
+                            
+                        }
+                    });
+                }
+                
+                return frames;
+            },
             createRainFrames2({framesCount, itemsCount, size, color, angleClamps, framesPerDropClamps, lengthClamps}) {
                 let frames = [];
 
@@ -143,16 +198,16 @@ class BlastingCompanyNostalgiaScene extends Scene {
                 }))
 
                 let rainLayers = [
-                    { framesCount: 100, itemsCount: 25, size, color: '#9aa3a8', heightClamps: [25,30], yClamps: [-8*size.y, size.y], opacity: 0.75 },
-                    { framesCount: 100, itemsCount: 50, size, color: '#9aa3a8', heightClamps: [20,25], yClamps: [-4*size.y, size.y], opacity: 0.5 },
-                    { framesCount: 100, itemsCount: 75, size, color: '#9aa3a8', heightClamps: [5,10], yClamps: [-2*size.y, size.y], opacity: 0.25 },
+                    { framesCount: 1000, itemsCount: 25, size, color: 'rgba(154,163,168, 0.75)', lengthClamps: [25,30],framesPerDropClamps: [15,18] },
+                    { framesCount: 1000, itemsCount: 50, size, color: 'rgba(154,163,168, 0.75)', lengthClamps: [20,25],framesPerDropClamps: [19,23]  },
+                    // { framesCount: 1000, itemsCount: 75, size, color: 'rgba(154,163,168, 0.75)', lengthClamps: [10,15],framesPerDropClamps: [24,30] },
                 ]
 
 
                 this.rain = rainLayers.map(layer => this.addChild(new GO({
                     position: new V2(),
                     size,
-                    frames: this.createRainFrames(layer),
+                    frames: this.createRainFrames3(layer),
                     init() {
                         this.currentFrame = 0;
                         this.img = this.frames[this.currentFrame];
@@ -167,6 +222,32 @@ class BlastingCompanyNostalgiaScene extends Scene {
                         })
                     }
                 })))
+
+                // let rainLayers = [
+                //     { framesCount: 100, itemsCount: 25, size, color: '#9aa3a8', heightClamps: [25,30], yClamps: [-8*size.y, size.y], opacity: 0.75 },
+                //     { framesCount: 100, itemsCount: 50, size, color: '#9aa3a8', heightClamps: [20,25], yClamps: [-4*size.y, size.y], opacity: 0.5 },
+                //     { framesCount: 100, itemsCount: 75, size, color: '#9aa3a8', heightClamps: [5,10], yClamps: [-2*size.y, size.y], opacity: 0.25 },
+                // ]
+
+
+                // this.rain = rainLayers.map(layer => this.addChild(new GO({
+                //     position: new V2(),
+                //     size,
+                //     frames: this.createRainFrames(layer),
+                //     init() {
+                //         this.currentFrame = 0;
+                //         this.img = this.frames[this.currentFrame];
+                        
+                //         this.timer = this.regTimerDefault(15, () => {
+                        
+                //             this.img = this.frames[this.currentFrame];
+                //             this.currentFrame++;
+                //             if(this.currentFrame == this.frames.length){
+                //                 this.currentFrame = 0;
+                //             }
+                //         })
+                //     }
+                // })))
 
                 // let rainLayers = [
                 //     {framesCount: 1000, itemsCount: 25, size, color: '#afb9bf', angleClamps: [20, 30], framesPerDropClamps: [15,18], lengthClamps:[30, 25] },
