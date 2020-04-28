@@ -9,6 +9,8 @@
 // 10. 'c' shortcut for scene color picker
 // 11. Move layer slow moving
 // 12. add new layer - switch mode to add. Wrong
+// 13. Import model - dublicate palette if already exists
+// 14. imput - paddings/old value missing
 
 class Editor {
     constructor(options = {}){
