@@ -22,11 +22,11 @@ class EditorScene extends Scene {
                    // console.log(this, event, event.keyCode)
                     let edt = this.editor.editor;
 
-                    if(event.key == 'h'){
+                    if(event.keyCode == 72){ // 'h'
                         this.mainGo.showDots = !this.mainGo.showDots;
                     }
 
-                    if(event.key == 'r'){
+                    if(event.keyCode == 82){ // 'r'
                         if(edt.selected.pointId == undefined)
                         {
                             alert('No point selected');
@@ -34,6 +34,11 @@ class EditorScene extends Scene {
                         }
                         
                         edt.removeSelectedPoint()
+                    }
+
+                    if(event.keyCode == 83 && edt.selected.layerId && edt.selected.groupId){ // 's' - toggle selection
+                        edt.mode.toggleSelection();
+                        this.editor.updateEditor();
                     }
 
                     if(event.keyCode == 86 && !event.ctrlKey){ // 'v' - toggle layer or group visibility
@@ -58,16 +63,26 @@ class EditorScene extends Scene {
                         }
                     }
 
-                    if(['e', 'a', 'm'].indexOf(event.key) != -1 && !edt.getModeState().disabled && edt.selected.groupId != undefined){
-                        switch(event.key){
-                            case 'a': 
+                    if([69, 65, 77].indexOf(event.keyCode) != -1 && !edt.getModeState().disabled && edt.selected.groupId != undefined){ 
+                        switch(event.keyCode){
+                            case 65:  // 'a'
                                 edt.setModeState(true, 'add')
                                 break;
-                            case 'e': 
+                            case 69:  // 'e' 
                                 edt.setModeState(true, 'edit')
                                 break;
-                            case 'm': 
-                                edt.setMoveGroupModeState(true, 'movegroup')
+                            case 77:  // 'm'
+                                if(edt.getModeState().mode == 'selection'){
+                                    edt.mode.toggleMoveSelection();
+                                    //console.log(this.mainGo.childrenGO.filter(c => c.type == 'Dot' && c.selected));
+                                    if(edt.getModeState().mode == "moveselection"){
+                                        this.mainGo.selection.move.ids = this.mainGo.childrenGO.filter(c => c.type == 'Dot' && c.selected).map(p => p.pointModel.id);
+                                    }
+                                }
+                                else {
+                                    edt.setMoveGroupModeState(true, 'movegroup')
+                                }
+                                
                                 break;
                             default:
                                 break;
@@ -76,18 +91,17 @@ class EditorScene extends Scene {
                         this.editor.updateEditor();
                     }
 
-                    if(['-', '+', '='].indexOf(event.key) != -1){
+                    if([173, 61].indexOf(event.keyCode) != -1){
                         let zoom = this.editor.image.general.zoom;
                         let trigger = false;
-                        switch(event.key){
-                            case '-': 
+                        switch(event.keyCode){
+                            case 173: // '-' 
                                 if(zoom.current > zoom.min){
                                     zoom.current--;
                                     trigger = true;
                                 }
                                 break;
-                            case '+': 
-                            case '=':
+                            case 61: // '=', '+'
                                     if(zoom.current < zoom.max){
                                         zoom.current++;
                                         trigger = true;

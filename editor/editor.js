@@ -63,6 +63,10 @@ class Editor {
                                 text = '"Color pick" mode'; break;
                             case 'rotate':
                                 text = '"Rotate" mode'; break;
+                            case 'selection':
+                                text = '"Selection" mode'; break;
+                            case 'moveselection':
+                                text = '"Move selection" mode'; break;
                         }
                         
                         this.stateElement.innerText = text;
@@ -76,11 +80,17 @@ class Editor {
                     toggleMoveLayer() {
                         this.setValue(this.value == 'movelayer' ? 'edit' : 'movelayer');
                     },
+                    toggleMoveSelection() {
+                        this.setValue(this.value == 'moveselection' ? 'edit' : 'moveselection');
+                    },
                     toggleColorPicker() {
                         this.setValue(this.value == 'colorpick' ? 'edit' : 'colorpick');
                     },
                     toggleRotate() {
                         this.setValue(this.value == 'rotate' ? 'edit' : 'rotate');
+                    },
+                    toggleSelection() {
+                        this.setValue(this.value == 'selection' ? 'edit' : 'selection');
                     }
                 },
                 getModeState() {
