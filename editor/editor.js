@@ -11,6 +11,8 @@
 // 12. add new layer - switch mode to add. Wrong
 // 13. Import model - dublicate palette if already exists
 // 14. imput - paddings/old value missing
+// 15. Disable backspace button!!!
+// 16. Autosave model in localstorage
 
 class Editor {
     constructor(options = {}){
