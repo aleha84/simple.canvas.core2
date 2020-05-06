@@ -13,6 +13,7 @@
 // 14. imput - paddings/old value missing
 // 15. Disable backspace button!!!
 // 16. Autosave model in localstorage
+// 17. Move group yo layer
 
 class Editor {
     constructor(options = {}){
