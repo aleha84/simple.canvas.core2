@@ -2,7 +2,7 @@ class ZacnewsomeNeonScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -210,31 +210,190 @@ class ZacnewsomeNeonScene extends Scene {
     }
     start(){
         var model = ZacnewsomeNeonScene.models.main;
-
+        var exludes = ['f_1', 'f_2', 'l_d_1', 'l_d_2']
         for(let l = 0; l < model.main.layers.length; l++){
             let name = model.main.layers[l].name;
-            this.addGo(new GO({
-                position: this.sceneCenter,
-                size: this.viewport,
-                img: PP.createImage(model, {renderOnly: [name]}) 
-            }), l*10)
+            if(exludes.indexOf(name) == -1){
+                this.addGo(new GO({
+                    position: this.sceneCenter,
+                    size: this.viewport,
+                    img: PP.createImage(model, {renderOnly: [name]}) 
+                }), l*10)
+            }
+            else {
+                model.main.layers[l].visible = true;
+            }
+            
             
 
             console.log(l + ' - ' + name)
         }
 
+        this.f1 = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            img: PP.createImage(model, {renderOnly: ['f_1']}) ,
+            isVisible: false,
+            init() {
+
+                this.counter = 50;
+                this.timer = this.regTimerDefault(15, () => {
+                    this.counter--;
+
+                    if(this.counter == 0){
+                        this.isVisible = !this.isVisible;
+                        this.counter = 100;
+                    }
+                    
+                })
+            }
+        }), 200)
+
+        this.f2 = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            img: PP.createImage(model, {renderOnly: ['f_2']}) ,
+            isVisible: false,
+            init() {
+
+                this.counter = 25;
+                this.timer = this.regTimerDefault(15, () => {
+                    this.counter--;
+
+                    if(this.counter == 0){
+                        this.isVisible = !this.isVisible;
+                        this.counter = 100;
+                    }
+                    
+                })
+            }
+        }), 200)
+
+        this.l_d_2 = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            img: PP.createImage(model, {renderOnly: ['l_d_2']}) ,
+            isVisible: false,
+            init() {
+
+                this.counter = 100;
+                this.timer = this.regTimerDefault(15, () => {
+                    this.counter--;
+
+                    if(this.counter == 0){
+                        this.isVisible = !this.isVisible;
+                        this.counter = 100;
+                    }
+                    
+                })
+            }
+        }), 100)
+
+        this.l_d_1 = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            img: PP.createImage(model, {renderOnly: ['l_d_1']}) ,
+            isVisible: false,
+            init() {
+                this.sequence = [];
+                this.counter = 100;
+                this.timer = this.regTimerDefault(15, () => {
+                    if(this.sequence.length){
+                        this.isVisible = this.sequence.shift();
+                    }
+
+
+                    this.counter--;
+
+                    if(this.counter == 0){
+                        this.sequence = [true,true, false,false, true,true, false, false];
+                        this.counter = 100;
+                    }
+                    
+                })
+            }
+        }), 200)
+
+        this.flow = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            createFlowFrames({framesCount, itemsCount, size}) {
+                let frames = [];
+                
+                let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = 40;
+                    let direction = getRandomBool();
+                    let xValues = (direction 
+                        ? easing.fast({from: 108, to: 110, steps: totalFrames, type: 'linear', method: 'base'}) 
+                        : easing.fast({from: 110, to: 108, steps: totalFrames, type: 'linear', method: 'base'})).map(v => fast.r(v)) ;
+                    let y = getRandomInt(136,139);
+                    let frames = [];
+                    let color = direction ? `rgba(251,3,59,${getRandomInt(2,4)/10})` : `rgba(246,234,196,${getRandomInt(1,3)/10})`
+
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+        
+                        frames[frameIndex] = {
+                            x: xValues[f]
+                        };
+                    }
+
+                    return {
+                        y,
+                        color,
+                        frames
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsCount; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                hlp.setFillColor(itemData.color).dot(itemData.frames[f].x, itemData.y)
+                            }
+                            
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                this.frames = this.createFlowFrames({framesCount: 200, itemsCount: 10, size: this.size})
+              this.currentFrame = 0;
+              this.img = this.frames[this.currentFrame];
+              
+              this.timer = this.regTimerDefault(15, () => {
+              
+                  this.img = this.frames[this.currentFrame];
+                  this.currentFrame++;
+                  if(this.currentFrame == this.frames.length){
+                      this.currentFrame = 0;
+                  }
+              })  
+            }
+        }), 201)
+
         let size = this.viewport.clone();
         let frMul = 1;
         let rainLayers = [
+            { l: 51, framesCount: 1000, itemsCount: 1000, size, color: 'rgba(255,255,255,0.05)', lengthClamps: [2,3], xClamps: [90,135], bottomYClamp: [85,90], framesPerDropClamps: [40,45].map(v => fast.r(v*frMul)) },
             { l: 61, framesCount: 1000, itemsCount: 200, size, color: 'rgba(255,255,255,0.05)', lengthClamps: [5,10], xClamps: [62,80], bottomYClamp: [70,75], framesPerDropClamps: [20,25].map(v => fast.r(v*frMul)) },
             { l: 61, framesCount: 1000, itemsCount: 1000, size, color: 'rgba(255,255,255,0.1)', lengthClamps: [5,10], xClamps: [81, 140], bottomYClamp: [140,145], framesPerDropClamps: [40,45].map(v => fast.r(v*frMul)) },
-            { l: 170, framesCount: 1000, itemsCount: 1000, size, color: 'rgba(255,255,255,0.2)', lengthClamps: [10,15], xClamps: [0, size.x], framesPerDropClamps: [20,25].map(v => fast.r(v*frMul)) }
+            { createRedFrame: true, l: 170, framesCount: 1000, itemsCount: 1000, size, color: 'rgba(255,255,255,0.2)', lengthClamps: [10,15], xClamps: [0, size.x], framesPerDropClamps: [20,25].map(v => fast.r(v*frMul)) }
         ]
 
         this.rain = rainLayers.map(layer => this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size,
             frames: this.createnameRainFrames(layer),
+            createRedFrame: layer.createRedFrame,
             init() {
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
@@ -245,20 +404,22 @@ class ZacnewsomeNeonScene extends Scene {
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
-
-                //         if(!this.redFrame){
-                //     this.redFrame = this.addChild(new GO({
-                //         position: new V2(),
-                //         size: this.size,
-                //         img: createCanvas(this.size, (ctx, size, hlp) => {
-                //             hlp.setFillColor('red').rect(0,0, 50, 50)
-                //         })
-                //     }));
-                // }
-                // else {
-                //     this.removeChild(this.redFrame);
-                //     this.redFrame = undefined;
-                // }
+// if(this.createRedFrame){
+//     if(!this.redFrame){
+//         this.redFrame = this.addChild(new GO({
+//             position: new V2(),
+//             size: this.size,
+//             img: createCanvas(this.size, (ctx, size, hlp) => {
+//                 hlp.setFillColor('red').rect(0,0, 50, 50)
+//             })
+//         }));
+//     }
+//     else {
+//         this.removeChild(this.redFrame);
+//         this.redFrame = undefined;
+//     }
+// }
+                       
                     }
                 })
             }
@@ -339,8 +500,8 @@ class ZacnewsomeNeonScene extends Scene {
             }
         }), 62)
 
-
         let splashesLayers = [
+            {l: 171, framesCount: 100, itemsCount: 20, color: 'rgba(255,255,255,0.2)', size, poligon: [new V2(123,131), new V2(122,129), new V2(123,127), new V2(124,123), new V2(129,123) ]},
             {l: 171, framesCount: 100, itemsCount: 20, color: 'rgba(255,255,255,0.1)', size, poligon: [new V2(137,120), new V2(139,114), new V2(149, 114), new V2(149,120) ]},
             {l: 171, framesCount: 100, itemsCount: 40, color: 'rgba(255,255,255,0.2)', size, poligon: [new V2(138,121), new V2(149,121), new V2(149, 125), new V2(140,123) ]},
             {l: 171, framesCount: 100, itemsCount: 20, color: 'rgba(255,255,255,0.15)', size, line: createLine(new V2(139, 110), new V2(149,110))},
@@ -373,7 +534,13 @@ class ZacnewsomeNeonScene extends Scene {
             }
         }), layer.l))
 
+
         let fallDropsLayers = [
+            {l: 170, framesCount:200, itemsCount: 15, size, line: createLine(new V2(71, 96), new V2(114,93)), maxY:146, fallFramesLength: 40, maxLength: 3, color: 'rgba(255,255,255,0.15)'},
+            {l: 170, framesCount:200, itemsCount: 30, size, line: createLine(new V2(61, 59), new V2(114,57)), maxY:148, fallFramesLength: 40, maxLength: 5, color: 'rgba(255,255,255,0.2)'},
+            {l: 170, framesCount:200, itemsCount: 15, size, line: createLine(new V2(51, 115), new V2(70,125)), maxY:148, fallFramesLength: 30, maxLength: 2, color: 'rgba(255,255,255,0.1)'},
+            {l: 170, framesCount:200, itemsCount: 3, size, line: createLine(new V2(126, 123), new V2(129,123)), maxY:155, fallFramesLength: 20, maxLength: 2, color: 'rgba(255,255,255,0.3)'},
+            {l: 170, framesCount:200, itemsCount: 5, size, line: createLine(new V2(4, 42), new V2(20,43)), maxY:155, fallFramesLength: 40, maxLength: 4, color: 'rgba(255,255,255,0.3)'},
             {l: 170, framesCount:200, itemsCount: 20, size, line: createLine(new V2(43, 59), new V2(59,77)), maxY:155, fallFramesLength: 40, maxLength: 4, color: 'rgba(255,255,255,0.2)'},
             {l: 170, framesCount:200, itemsCount: 10, size, line: createLine(new V2(57,87), new V2(117,85)), maxY:147, fallFramesLength: 35, maxLength: 4, color: 'rgba(255,255,255,0.3)'},
             {l: 80, framesCount:200, itemsCount: 10, size, line: createLine(new V2(115,97), new V2(141,96)), maxY:155, fallFramesLength: 30, maxLength: 4, color: 'rgba(255,255,255,0.3)'}

@@ -14,6 +14,7 @@
 // 15. Disable backspace button!!!
 // 16. Autosave model in localstorage
 // 17. Move group yo layer
+// 18. -/+ in chrome and firefox has different codes
 
 class Editor {
     constructor(options = {}){
