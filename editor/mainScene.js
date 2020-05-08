@@ -10,6 +10,7 @@ class EditorScene extends Scene {
                     return document.activeElement.type == 'text' 
                     || document.activeElement.type == 'textarea' 
                     || (document.activeElement.tagName.toLowerCase() == 'input' && document.activeElement.type == 'number' )
+                    || (document.activeElement.tagName.toLowerCase() == 'select')
                 },
                 down: () => {
                     if(document.activeElement && this.events.checkTextInput())
@@ -19,7 +20,7 @@ class EditorScene extends Scene {
                     if(document.activeElement && this.events.checkTextInput())
                         return;
 
-                   // console.log(this, event, event.keyCode)
+                    console.log(this, event, event.keyCode)
                     let edt = this.editor.editor;
 
                     if(event.keyCode == 72){ // 'h'
@@ -91,17 +92,17 @@ class EditorScene extends Scene {
                         this.editor.updateEditor();
                     }
 
-                    if([173, 61].indexOf(event.keyCode) != -1){
+                    if(['Minus', 'Equal'].indexOf(event.code) != -1){
                         let zoom = this.editor.image.general.zoom;
                         let trigger = false;
-                        switch(event.keyCode){
-                            case 173: // '-' 
+                        switch(event.code){
+                            case 'Minus': // '-' 
                                 if(zoom.current > zoom.min){
                                     zoom.current--;
                                     trigger = true;
                                 }
                                 break;
-                            case 61: // '=', '+'
+                            case 'Equal': // '=', '+'
                                     if(zoom.current < zoom.max){
                                         zoom.current++;
                                         trigger = true;

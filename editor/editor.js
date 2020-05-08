@@ -15,6 +15,7 @@
 // 16. Autosave model in localstorage
 // 17. Move group yo layer
 // 18. -/+ in chrome and firefox has different codes
+// 19. Remove focus from select if main area clicked
 
 class Editor {
     constructor(options = {}){
