@@ -258,6 +258,10 @@ var components = {
         let selectHolder = htmlUtils.createElement('div', { className: 'selectHolder'});
         
         let select = htmlUtils.createElement('select', { attributes: { size: listProps.maxSize || 10 }, events: {
+            keypress: function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            },
             change: function(e) { 
                 if(listProps.callbacks.select) {
                     selected = true;
@@ -630,7 +634,7 @@ var components = {
                     }
 
                     let groupChangeCallback = function() {   
-                        console.log('groupChangeCallback')
+                        //console.log('groupChangeCallback')
                         layerProps.removeImage();
                         changeCallback(); 
                     }

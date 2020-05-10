@@ -17,6 +17,12 @@ class EditorScene extends Scene {
                         document.activeElement.blur();
                 },
                 keyup: (event) => {
+                    if(event.code == 'Backspace'){
+                        event.preventDefault();
+                        event.stopPropagation();
+                        return;
+                    }
+
                     if(document.activeElement && this.events.checkTextInput())
                         return;
 
@@ -325,4 +331,14 @@ document.addEventListener("paste", function(event) {
     // let reader = new FileReader();
     // reader.readAsDataURL
 })
+
+const rx = /INPUT|SELECT|TEXTAREA/i;
+addListenerMulti(document, "keydown keypress", function(e){
+    if( e.which == 8 ){ // 8 == backspace
+        if(!rx.test(e.target.tagName) || e.target.disabled || e.target.readOnly ){
+            e.preventDefault();
+        }
+    }
+})
+
 

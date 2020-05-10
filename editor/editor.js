@@ -11,11 +11,11 @@
 // 12. add new layer - switch mode to add. Wrong
 // 13. Import model - dublicate palette if already exists
 // 14. imput - paddings/old value missing
-// 15. Disable backspace button!!!
 // 16. Autosave model in localstorage
 // 17. Move group yo layer
-// 18. -/+ in chrome and firefox has different codes
-// 19. Remove focus from select if main area clicked
+// 18. colorpicker component add support for #-less values or double-## values for fast copy/paste cases
+
+
 
 class Editor {
     constructor(options = {}){
