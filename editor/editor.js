@@ -2,18 +2,14 @@
 // 2. Current palettes list - stored in json
 // 4. gradient tool, update, add easings support
 // 5. Shift+v - hide just image not layers visibility ?
-// 6. sceneColorPicker copy to clipboard without # 
 // 7. Code refactoring. To different files and subfilders
-// 8. 'a' shouldn't change mode if no group selected
-// 9. Make keyboard shortcuts case/lang insensitive, use keycodes instead
 // 10. 'c' shortcut for scene color picker
 // 11. Move layer slow moving
-// 12. add new layer - switch mode to add. Wrong
 // 13. Import model - dublicate palette if already exists
 // 14. imput - paddings/old value missing
 // 16. Autosave model in localstorage
-// 17. Move group yo layer
-// 18. colorpicker component add support for #-less values or double-## values for fast copy/paste cases
+// 17. Move\copy group to layer
+
 
 
 
@@ -816,8 +812,8 @@ class Editor {
 
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Export', attributes: { type: 'button' }, events: {
             click: function(){
-                let pretty = true;
-                let clean = false;
+                let pretty = false;
+                let clean = true;
                 that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
                 let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'export'] });
                 let textarea = htmlUtils.createElement('textarea', {
@@ -828,14 +824,34 @@ class Editor {
                     }
                 });
 
-                containerEl.appendChild(components.createCheckBox(true, 'Pretty', (value) => {
+                containerEl.appendChild(components.createCheckBox(pretty, 'Pretty', (value) => {
                     pretty = value;
                     textarea.value = that.exportModel(value, clean);
                 }))
 
-                containerEl.appendChild(components.createCheckBox(false, 'Clean', (value) => {
+                containerEl.appendChild(components.createCheckBox(clean, 'Clean', (value) => {
                     clean = value;
                     textarea.value = that.exportModel(pretty, value);
+                }))
+
+                containerEl.appendChild(components.createButton('Copy', (event) => {
+                    textarea.focus();
+                    textarea.select();
+
+                    try {
+                        var successful = document.execCommand('copy');
+                        if(!successful){
+                            notifications.add({message: 'Export json copying was not successful', type: notifications.types.error, position: notifications.positions.tc})
+                        }
+
+                        //notifications.add({message: 'Export json was successful', type: notifications.types.done, position: notifications.positions.tc, autoHide: 1000})
+                        notifications.done('Export json was successful', 1000);
+                        //alert('Copied' + (successful ? '' : 'NOT') + 'successfully' );
+
+                    } catch (err) {
+                        notifications.add({message: 'Failed to copy to clipboard', type: notifications.types.error, position: notifications.positions.tc})
+                    //alert('Failed to copy to clipboard');
+                    }
                 }))
 
                 containerEl.appendChild(textarea);
@@ -1248,7 +1264,11 @@ class Editor {
                         main.layers.push(lCloned);
                         select.options[select.options.length] = new Option(lCloned.name, lCloned.id);
                         select.value = lCloned.id;
+                        
                         that.editor.selected.layerId = lCloned.id;
+                        that.editor.selected.groupId = undefined;
+                        that.editor.selected.pointId = undefined;
+
                         select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
                     }
                 }
@@ -1258,7 +1278,11 @@ class Editor {
                     main.layers.forEach(l => l.selected = false);
                     let layer = main.layers.find(l => l.id == e.target.value);
                     layer.selected = true;
+
                     that.editor.selected.layerId = layer.id;
+                    that.editor.selected.groupId = undefined;
+                    that.editor.selected.pointId = undefined;
+
                     that.editor.setModeState(true, e.detail == 'setModeStateToAdd' ? 'add' : 'edit');
 
                     let selectedOption = undefined;
@@ -1286,6 +1310,8 @@ class Editor {
 
                     that.editor.setMoveGroupModeState(false);
                     that.editor.setMoveLayerModeState(false);
+
+                    that.updateEditor.call(that);
                 },
                 remove(e, select) {
                     if(!confirm('Remove layer?'))
@@ -1298,7 +1324,11 @@ class Editor {
                         select.options[select.options.length] = new Option(l.name || l.id, l.id);
                     }
                     select.value = undefined;
+                    
                     that.editor.selected.layerId = undefined;
+                    that.editor.selected.groupId = undefined;
+                    that.editor.selected.pointId = undefined;
+
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
                     that.editor.setModeState(false, 'edit');
                 },
@@ -1340,8 +1370,12 @@ class Editor {
                     main.layers.push(layer);
                     select.options[select.options.length] = new Option(layer.id, layer.id);
                     select.value = layer.id;
+                    
                     that.editor.selected.layerId = layer.id;
-                    select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+                    that.editor.selected.groupId = undefined;
+                    that.editor.selected.pointId = undefined;
+
+                    select.dispatchEvent(new CustomEvent('change'));
                     //that.editor.setModeState(true, 'add');
                 },
                 changeCallback: that.updateEditor.bind(that)

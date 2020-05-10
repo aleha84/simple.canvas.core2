@@ -185,8 +185,9 @@ class EditorGO extends GO {
                 down: function(relativePosition) {
                     relativePosition = relativePosition.add(SCG.viewport.shift);
                     if(this.model.editor.mode == 'add'){
-                        if(!this.model.editor.selectedLayer.selectedGroup){
+                        if(!this.model.editor.selectedLayer || !this.model.editor.selectedLayer.selectedGroup){
                             alert('No selected group in layer');
+                            //this.parentScene.editor.editor.setModeState(true, 'edit');
                             return;
                         }
 

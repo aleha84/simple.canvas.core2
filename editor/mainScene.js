@@ -10,10 +10,12 @@ class EditorScene extends Scene {
                     return document.activeElement.type == 'text' 
                     || document.activeElement.type == 'textarea' 
                     || (document.activeElement.tagName.toLowerCase() == 'input' && document.activeElement.type == 'number' )
-                    || (document.activeElement.tagName.toLowerCase() == 'select')
+                },
+                checkSelect() {
+                    return (document.activeElement.tagName.toLowerCase() == 'select')
                 },
                 down: () => {
-                    if(document.activeElement && this.events.checkTextInput())
+                    if(document.activeElement && (this.events.checkTextInput() || this.events.checkSelect()))
                         document.activeElement.blur();
                 },
                 keyup: (event) => {
@@ -26,7 +28,7 @@ class EditorScene extends Scene {
                     if(document.activeElement && this.events.checkTextInput())
                         return;
 
-                    console.log(this, event, event.keyCode)
+                    //console.log(this, event, event.keyCode)
                     let edt = this.editor.editor;
 
                     if(event.keyCode == 72){ // 'h'
@@ -36,29 +38,27 @@ class EditorScene extends Scene {
                     if(event.keyCode == 82){ // 'r'
                         if(edt.selected.pointId == undefined)
                         {
-                            alert('No point selected');
+                            //alert('No point selected');
+                            notifications.warning('No point selected', 500)
                             return;
                         }
                         
                         edt.removeSelectedPoint()
                     }
 
-                    if(event.keyCode == 83 && edt.selected.layerId && edt.selected.groupId){ // 's' - toggle selection
-                        edt.mode.toggleSelection();
-                        this.editor.updateEditor();
+                    if(event.keyCode == 83){ // 's' - toggle selection
+                        if(edt.selected.layerId && edt.selected.groupId){
+                            edt.mode.toggleSelection();
+                            this.editor.updateEditor();
+                        }
+                        else {
+                            notifications.warning('No layer or group selected', 1000)
+                        }
                     }
+                    
 
                     if(event.keyCode == 86 && !event.ctrlKey){ // 'v' - toggle layer or group visibility
                         if(event.shiftKey){
-
-                            if(true){ // buggy - experimental!
-                                let main = this.editor.image.main;
-                                if(isArray(main)){
-                                    main = main[this.editor.image.general.currentFrameIndex];
-                                }
-                                main.layers.filter(l => l.id != edt.selected.layerId).forEach(l => {l.visible = !l.visible; l.removeImage();});
-                            }
-
                             //layer
                             if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
                                 edt.toggleLayerVisibility();
@@ -68,6 +68,19 @@ class EditorScene extends Scene {
                             if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
                                 edt.toggleGroupVisibility();
                         }
+                    }
+
+                    if(event.keyCode == 86 && event.ctrlKey && event.shiftKey){
+                        let main = this.editor.image.main;
+                        if(isArray(main)){
+                            main = main[this.editor.image.general.currentFrameIndex];
+                        }
+                        main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
+
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        this.editor.updateEditor();
                     }
 
                     if([69, 65, 77].indexOf(event.keyCode) != -1 && !edt.getModeState().disabled && edt.selected.groupId != undefined){ 

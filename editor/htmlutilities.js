@@ -64,14 +64,21 @@ var htmlUtils = {
             el.setAttribute(key, attrs[key]);
         }
     },
-    appendChild(parent, child) {
+    appendChild(parent, child, params = {asFirst: false}) {
         let children = child;
         if(!isArray(children)){
             children = [children];
         }
 
         children.forEach(element => {
-            parent.appendChild(element);
+            if(params.asFirst){
+                parent.insertBefore(element,parent.firstChild)
+            }
+            else {
+                parent.appendChild(element);
+            }
+            
         });
     }
+
 }

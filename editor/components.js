@@ -51,6 +51,14 @@ var components = {
 
         return el;
     },
+    createButton(title, callback, params = { classNames: [] }){
+        let button = htmlUtils.createElement('input', { classNames: params.classNames, attributes: { type: 'button' }, 
+        events: { click: (event) => {
+            callback(event)
+        } }, value: title });
+
+        return button;
+    },
     createInput(value, title, changeCallback){
         let el = htmlUtils.createElement('div', { classNames: ['inputBox', 'rowFlex'] });
 
@@ -221,13 +229,20 @@ var components = {
 
         let hexInput = htmlUtils.createElement('input', {attributes: { type: 'text', value}, props: inputProps, events: {
             blur: (event) => {
-                if(!/^#[0-9A-F]{6}$/i.test(event.target.value)){
+                let match = /^#*([0-9A-F]{6})$/i.exec(event.target.value);
+                if(!match){
                     event.target.value = cPicker.value;
                     return;
                 }
+                // if(!/^#[0-9A-F]{6}$/i.test(event.target.value)){
+                //     event.target.value = cPicker.value;
+                //     return;
+                // }
 
-                cPicker.value = event.target.value;
-                changeCallback(event.target.value);
+                let hexValue = '#' + match[1];
+                event.target.value = hexValue;
+                cPicker.value = hexValue;
+                changeCallback(hexValue);
             }
         } })
 
@@ -623,6 +638,7 @@ var components = {
                     if(selectedGroup){
                         selectedGroup.selected = true;
                         components.editor.editor.selected.groupId = selectedGroup.id;
+                        components.editor.editor.selected.pointId = undefined;
                     }
 
                     let selectedOption = undefined;
@@ -664,7 +680,10 @@ var components = {
                     groups = groups.filter(g => g.id != select.value);  
                     groups.forEach((p, i) => p.order = i);
                     select.value = undefined;
+                    
                     components.editor.editor.selected.groupId = undefined;
+                    components.editor.editor.selected.pointId = undefined;
+
                     layerProps.groups = groups;
                     components.fillGroups(layerProps, changeCallback);
 
@@ -692,7 +711,10 @@ var components = {
 
                     select.options[select.options.length] = new Option(group.id, group.id);
                     select.value = group.id;
+                    
                     components.editor.editor.selected.groupId = group.id;
+                    components.editor.editor.selected.pointId = undefined;
+
                     select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
                     
                     components.editor.editor.setModeState(true, 'edit');
@@ -881,6 +903,7 @@ var components = {
 
             components.fillPoints(groupProps, changeCallback);
             components.editor.editor.setModeState(true, 'edit');
+            components.editor.editor.selected.pointId = undefined;
             changeCallback();
         }
 
@@ -901,6 +924,7 @@ var components = {
             groupProps.points = points;
             components.fillPoints(groupProps, changeCallback);
             components.editor.editor.setModeState(true, 'edit');
+            components.editor.editor.selected.pointId = undefined;
             changeCallback();
         }
 

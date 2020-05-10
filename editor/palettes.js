@@ -110,9 +110,13 @@ var paletteHelper = {
         let input = htmlUtils.createElement('input', { className: 'itemValue', value: '#' })
         let addButton = htmlUtils.createElement('input', { value: 'add', attributes: { type: 'button' }, events: {
             click: () => {
-                if(/^#[0-9A-F]{6}$/i.test(input.value)){
-                    this.addPaletteItem(modelUtils.createDefaultPaletteItem(input.value), paletteEl);
+                let match = /^#*([0-9A-F]{6})$/i.exec(input.value);
+                if(match){
+                    this.addPaletteItem(modelUtils.createDefaultPaletteItem('#' + match), paletteEl);
                 }
+                // if(/^#[0-9A-F]{6}$/i.test(input.value)){
+                //     this.addPaletteItem(modelUtils.createDefaultPaletteItem(input.value), paletteEl);
+                // }
                 
                 input.value = '#';
             }
