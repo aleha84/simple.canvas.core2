@@ -27,7 +27,7 @@ components.framesPreview = {
             }
         })
 
-        let showPrev = components.createCheckBox(framesPreview.showNext, 'Show prev', (value) => {
+        let showPrev = components.createCheckBox(framesPreview.showPrev, 'Show prev', (value) => {
             framesPreview.showPrev = value;
 
             if(value){

@@ -36,15 +36,35 @@ class EditorScene extends Scene {
                         this.mainGo.showDots = !this.mainGo.showDots;
                     }
 
-                    if(event.keyCode == 82){ // 'r'
-                        if(edt.selected.pointId == undefined)
-                        {
-                            //alert('No point selected');
-                            notifications.warning('No point selected', 500)
-                            return;
+                    if(event.keyCode == 82) { // 'r'
+                        if(edt.getModeState().mode == 'selection'){
+                            let pointsIds = this.mainGo.childrenGO.filter(c => c.type == 'Dot' && c.selected).map(p => p.pointModel.id);
+                            
+                            let main = this.editor.image.main;
+                            if(isArray(main)){
+                                main = main[this.editor.image.general.currentFrameIndex];
+                            }
+
+                            let layer = main.layers.filter(l => l.id == edt.selected.layerId)[0];
+                            layer.removeImage();
+                            let group = layer.groups.filter(g => g.id == edt.selected.groupId)[0];
+
+                            group.points = group.points.filter(gp => pointsIds.indexOf(gp.id) == -1);  
+                            group.points.forEach((p, i) => {p.order = i; });
+                            this.editor.updateEditor();
+
+                            notifications.done('points removed: ' + pointsIds.length, 500)
                         }
-                        
-                        edt.removeSelectedPoint()
+                        else {
+                            if(edt.selected.pointId == undefined)
+                            {
+                                //alert('No point selected');
+                                notifications.warning('No point selected', 500)
+                                return;
+                            }
+                            
+                            edt.removeSelectedPoint()
+                        }
                     }
 
                     if(event.keyCode == 83){ // 's' - toggle selection
@@ -71,7 +91,7 @@ class EditorScene extends Scene {
                         }
                     }
 
-                    if(event.keyCode == 86 && event.ctrlKey && event.shiftKey){
+                    if(event.keyCode == 86 && event.ctrlKey && event.shiftKey){ // 'v' 
                         let main = this.editor.image.main;
                         if(isArray(main)){
                             main = main[this.editor.image.general.currentFrameIndex];
