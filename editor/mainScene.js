@@ -30,6 +30,7 @@ class EditorScene extends Scene {
 
                     //console.log(this, event, event.keyCode)
                     let edt = this.editor.editor;
+                    let image = this.editor.image;
 
                     if(event.keyCode == 72){ // 'h'
                         this.mainGo.showDots = !this.mainGo.showDots;
@@ -137,6 +138,17 @@ class EditorScene extends Scene {
                             el.dispatchEvent(new Event('change'))
                         }
                     }
+
+                    if(image.general.animated){
+                        if(event.code == 'KeyN'){
+                            notifications.done('Show next frames', 1000)
+                        }
+
+                        if(event.code == 'KeyP'){
+                            notifications.done('Show prev frames', 1000)
+                        }
+                    }
+                    
                 }
             }
         }, options);
@@ -191,6 +203,29 @@ class EditorScene extends Scene {
             // }
         }))
 
+        this.framesPreview = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.mainGo.size,
+            init() {
+                this.prev = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size
+                }))
+
+                this.next = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size
+                }))
+            },
+            setSize(size) {
+                this.size = size;
+                if(this.prev)
+                    this.prev.size = size;
+                if(this.next)
+                    this.next.size = size;
+            }
+        }), 10)
+
         this.editor = new Editor({
             parentElementSelector: '.controlsWrapper',
             renderCallback: this.renderModel.bind(this),
@@ -204,6 +239,7 @@ class EditorScene extends Scene {
 
         let mg = this.mainGo;
         let uimg = this.underlyingImg;
+        let fp = this.framesPreview;
         let {general, main} = model;
 
         if(general.backgroundColor && this.bgColor != general.backgroundColor){
@@ -240,9 +276,12 @@ class EditorScene extends Scene {
     
             mg.originalSize = general.originalSize;
             uimg.originalSize = general.originalSize;
+            fp.originalSize = general.originalSize;
 
             mg.size = general.size.mul(general.zoom);
             uimg.size = general.size.mul(general.zoom);
+            fp.setSize(general.size.mul(general.zoom));
+            
 
             mg.showGrid = general.showGrid;
             mg.invalidate();
@@ -251,6 +290,7 @@ class EditorScene extends Scene {
     
             mg.needRecalcRenderProperties = true;
             uimg.needRecalcRenderProperties = true;
+            fp.needRecalcRenderProperties = true;
         }
         else {
             mg.isVisible = false;

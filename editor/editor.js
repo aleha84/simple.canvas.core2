@@ -120,6 +120,14 @@ class Editor {
                     showGrid: false,
                     renderOptimization: false,
                     animated: false,
+                    animatedProps: {
+                        framesPreview: {
+                            showPrevous: false,
+                            showNext: false,
+                            onlySelectedLayer: false,
+                            onlyGroup: false
+                        }
+                    },
                     element: undefined,
                     backgroundColor: '#000000',
                     palettes: []
@@ -715,6 +723,17 @@ class Editor {
             throw 'importModel -> Wrong model type. '
         }
 
+        if(image.general.animatedProps == undefined){
+            image.general.animatedProps = {
+                framesPreview: {
+                    showPrevous: false,
+                    showNext: false,
+                    onlySelectedLayer: false,
+                    onlyGroup: false
+                }
+            }
+        }
+
         if(image.general.palettes == undefined){
             image.general.palettes = [];
         }
@@ -1208,6 +1227,8 @@ class Editor {
                 },
 
             }))
+
+            mainEl.appendChild(components.framesPreview.create(that));
         }
 
         let layersWrapperEl = htmlUtils.createElement('div', { className: 'layersWrapper' });
@@ -1280,8 +1301,14 @@ class Editor {
                     layer.selected = true;
 
                     that.editor.selected.layerId = layer.id;
-                    that.editor.selected.groupId = undefined;
-                    that.editor.selected.pointId = undefined;
+                    if(e.detail != undefined && e.detail == 'keepSelectedGroup'){
+
+                    }
+                    else {
+                        that.editor.selected.groupId = undefined;
+                        that.editor.selected.pointId = undefined;
+                    }
+                    
 
                     that.editor.setModeState(true, e.detail == 'setModeStateToAdd' ? 'add' : 'edit');
 
@@ -1402,7 +1429,13 @@ class Editor {
         if(that.editor.selected.layerId){
             let selectedLayer = main.layers.filter(l => l.id == that.editor.selected.layerId);
             if(selectedLayer && selectedLayer.length > 0){
-                document.querySelector('.layers select').dispatchEvent(new CustomEvent('change'));
+                let eventParams = undefined;
+                if(params.setFocusToFrames){
+                    eventParams = {
+                        detail: 'keepSelectedGroup'
+                    }
+                }
+                document.querySelector('.layers select').dispatchEvent(new CustomEvent('change', eventParams));
             }
         }
     }

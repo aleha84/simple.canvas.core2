@@ -1,5 +1,5 @@
 var htmlUtils = {
-    createElement(tag, props) {
+    createElement(tag, props = { classNames: undefined, className: undefined, text: undefined, value: undefined, attributes: undefined, events: undefined, props: undefined } ) {
         if(!tag){
             console.error('No tag specified');
             throw 'No tag specified';
