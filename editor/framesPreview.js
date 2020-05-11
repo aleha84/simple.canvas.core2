@@ -38,8 +38,8 @@ components.framesPreview = {
             }
         })
 
-        showNext.disabled = currentFrameIndex == (this.frames.length-1);
-        showPrev.disabled = (currentFrameIndex == 0);
+        showNext.chk.disabled = currentFrameIndex == (this.frames.length-1);
+        showPrev.chk.disabled = (currentFrameIndex == 0);
 
         if(!showNext.disabled && framesPreview.showNext){
             this.showNextFrame();
