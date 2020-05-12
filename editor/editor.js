@@ -1177,6 +1177,49 @@ class Editor {
                 className: 'frames',
                 items: this.image.main.map((f, i) => ({ title: 'Frame_' + i, value: i, selected: i == general.currentFrameIndex })),
                 noReset: true,
+                buttons: [
+                    {
+                        text: 'Insert before', 
+                        click: () => {
+                            let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }), (k,v) => {
+                                if(k=='layerImage')
+                                    return undefined;
+                                
+                                return v;
+                            });
+
+                            let newItem = that.importModel(currentFrameModel).main;
+                            let index = general.currentFrameIndex;
+
+                            that.image.main.splice(index, 0, newItem);
+                            general.currentFrameIndex++;
+                            commonCallback();
+
+                            notifications.done('New frame inserted at position: ' + index, 1000);
+                            document.querySelectorAll('.frames select>option')[index].classList.add('blink');
+                        }
+                    },
+                    {
+                        text: 'Insert after', 
+                        click: () => {
+                            let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }), (k,v) => {
+                                if(k=='layerImage')
+                                    return undefined;
+                                
+                                return v;
+                            });
+
+                            let newItem = that.importModel(currentFrameModel).main;
+                            let index = general.currentFrameIndex+1;
+
+                            that.image.main.splice(index, 0, newItem);
+                            commonCallback();
+
+                            notifications.done('New frame inserted at position: ' + index, 1000);
+                            document.querySelectorAll('.frames select>option')[index].classList.add('blink');
+                        }
+                    }
+                ],
                 callbacks: {
                     select: function(e) {
                         general.currentFrameIndex = parseInt(e.target.value);
@@ -1189,7 +1232,9 @@ class Editor {
                         }
 
                         that.image.main.splice(general.currentFrameIndex, 1)
-                        general.currentFrameIndex = 0;
+                        general.currentFrameIndex = general.currentFrameIndex-1;
+                        if(general.currentFrameIndex < 0)
+                            general.currentFrameIndex = 0
 
                         commonCallback();
                     },

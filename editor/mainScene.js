@@ -81,28 +81,42 @@ class EditorScene extends Scene {
                     if(event.keyCode == 86 && !event.ctrlKey){ // 'v' - toggle layer or group visibility
                         if(event.shiftKey){
                             //layer
-                            if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
-                                edt.toggleLayerVisibility();
+                            // if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
+                            //     edt.toggleLayerVisibility();
+
+                            let main = this.editor.image.main;
+                            if(isArray(main)){
+                                main = main[this.editor.image.general.currentFrameIndex];
+                            }
+                            main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
+
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            this.editor.updateEditor();
                         }
                         else {
+                            layer
+                            if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
+                                edt.toggleLayerVisibility();
                             //group
-                            if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
-                                edt.toggleGroupVisibility();
+                            // if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
+                            //     edt.toggleGroupVisibility();
                         }
                     }
 
-                    if(event.keyCode == 86 && event.ctrlKey && event.shiftKey){ // 'v' 
-                        let main = this.editor.image.main;
-                        if(isArray(main)){
-                            main = main[this.editor.image.general.currentFrameIndex];
-                        }
-                        main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
+                    // if(event.keyCode == 86 && event.ctrlKey && event.shiftKey){ // 'v' 
+                    //     let main = this.editor.image.main;
+                    //     if(isArray(main)){
+                    //         main = main[this.editor.image.general.currentFrameIndex];
+                    //     }
+                    //     main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
 
-                        event.preventDefault();
-                        event.stopPropagation();
+                    //     event.preventDefault();
+                    //     event.stopPropagation();
 
-                        this.editor.updateEditor();
-                    }
+                    //     this.editor.updateEditor();
+                    // }
 
                     if([69, 65, 77].indexOf(event.keyCode) != -1 && !edt.getModeState().disabled && edt.selected.groupId != undefined){ 
                         switch(event.keyCode){
