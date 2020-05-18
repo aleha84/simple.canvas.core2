@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo10TrainScene({
         name:'train',
-        viewport: new V2(150,150)
+        viewport: new V2(200,150)
     }));
 
     sceneSelectByHashValue();

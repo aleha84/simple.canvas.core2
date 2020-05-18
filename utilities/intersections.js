@@ -266,10 +266,10 @@ function raySegmentIntersectionVector2(rayOrigin, direction, line){
 
 function rayBoxIntersection(rayOrigin, direction, box){
     return [
-        raySegmentIntersectionVector2(rayOrigin, direction, new Line(box.topLeft, box.topRight)),
-        raySegmentIntersectionVector2(rayOrigin, direction, new Line(box.topRight, box.bottomRight)),
-        raySegmentIntersectionVector2(rayOrigin, direction, new Line(box.bottomLeft, box.bottomRight)),
-        raySegmentIntersectionVector2(rayOrigin, direction, new Line(box.topLeft, box.bottomLeft))
+        raySegmentIntersectionVector2(rayOrigin, direction, new Line(box.topLeft.add(new V2(-1,0)), box.topRight.add(new V2(1,0)))),
+        raySegmentIntersectionVector2(rayOrigin, direction, new Line(box.topRight.add(new V2(0,-1)), box.bottomRight.add(new V2(0,1)))),
+        raySegmentIntersectionVector2(rayOrigin, direction, new Line(box.bottomLeft.add(new V2(-1,0)), box.bottomRight.add(new V2(1,0)))),
+        raySegmentIntersectionVector2(rayOrigin, direction, new Line(box.topLeft.add(new V2(0,-1)), box.bottomLeft.add(new V2(0,1))))
     ].filter((item) => item !== undefined);
 }
 
