@@ -120,8 +120,15 @@ class Demo10TrainScene extends Scene {
         this.test2 = this.addGo(new GO({
             position: this.sceneCenter,
             size: this.viewport,
-            createParticlesFrames({framesCount, itemsCount, size, itemFramesLengthClamps, angleClamps, color, length = 1, mask}) {
-                let rightLine = createLine(new V2(size.x, -size.y), new V2(size.x, 4*size.y))
+            createParticlesFrames({framesCount, itemsCount, size, itemFramesLengthClamps, angleClamps, color, length = 1, masks, lowerY, yClamps, xClamps, cubic = false}) {
+                let leftX = 0;
+                let rightX = size.x;
+                if(xClamps){
+                    leftX = xClamps[0];
+                    rightX = xClamps[1];
+                }
+
+                let leftLine = createLine(new V2(leftX, -size.y), new V2(leftX, 4*size.y))
                 let frames = [];
                 
                 let pp = undefined;
@@ -132,13 +139,22 @@ class Demo10TrainScene extends Scene {
                 if(typeof(color) == 'string')
                     color = colors.rgbStringToObject({value: color, asObject: true});
 
-                if(mask){
-                    mask.color = colors.rgbStringToObject({value: mask.color, asObject: true})
-                    mask.colorsChange = {
-                        red: easing.fast({from: color.red, to: mask.color.red, steps: 100, type: 'linear', method: 'base' }).map(v => fast.r(v)),
-                        green: easing.fast({from: color.green, to: mask.color.green, steps: 100, type: 'linear', method: 'base' }).map(v => fast.r(v)),
-                        blue: easing.fast({from: color.blue, to: mask.color.blue, steps: 100, type: 'linear', method: 'base' }).map(v => fast.r(v)),
+                if(masks){
+                    if(!Array.isArray(masks)){
+                        masks = [masks];
                     }
+
+                    masks.forEach(mask => {
+                        mask.color = colors.rgbStringToObject({value: mask.color, asObject: true})
+                        mask.colorsChange = {
+                            red: easing.fast({from: color.red, to: mask.color.red, steps: 101, type: 'linear', method: 'base' }).map(v => fast.r(v)),
+                            green: easing.fast({from: color.green, to: mask.color.green, steps: 101, type: 'linear', method: 'base' }).map(v => fast.r(v)),
+                            blue: easing.fast({from: color.blue, to: mask.color.blue, steps: 101, type: 'linear', method: 'base' }).map(v => fast.r(v)),
+                            opacity: easing.fast({from: color.opacity, to: mask.color.opacity, steps: 101, type: 'linear', method: 'base' }).map(v => fast.r(v, 2)),
+                        }
+                    })
+
+                    
                 }
 
                 // 
@@ -149,13 +165,25 @@ class Demo10TrainScene extends Scene {
                     let totalFrames = getRandomInt(itemFramesLengthClamps[0], itemFramesLengthClamps[1]);
                     let itemColor = assignDeep({}, color);
                     let startY = getRandomInt(-size.y/2 - 10,size.y);
-                    let point1 = new V2(getRandomInt(-20,0), startY)
-                    let direction = V2.right.rotate(getRandomInt(angleClamps[0], angleClamps[1]));
-                    let point2 = raySegmentIntersectionVector2(point1, direction, rightLine);
+                    if(yClamps){
+                        startY = getRandomInt(yClamps[0], yClamps[1])
+                    }
+                    let point1 = new V2(getRandomInt(rightX,rightX+20), startY)
+                    let direction = V2.left.rotate(getRandomInt(-angleClamps[0], -angleClamps[1]));
+                    let point2 = raySegmentIntersectionVector2(point1, direction, leftLine);
                     if(!point2)
-                        throw 'Failed to find right line intersection';
+                        throw 'Failed to find left line intersection';
 
                     let lineDots = pp.lineV2(point1, point2);
+                    if(cubic){
+                        var fx = mathUtils.getCubicSplineFormula([point2, new V2(point2.x + (point1.x - point2.x)/2, point1.y + fast.r((point2.y-point1.y)*cubic) ), point1]);
+                        lineDots = [];
+                        for(let x = point2.x; x <= point1.x; x++){
+                            lineDots.push({x, y: fast.r(fx(x))});
+                        }
+
+                        lineDots = [...lineDots.reverse()];
+                    }
                     let indexValues = easing.fast({from: 0, to: lineDots.length-1, steps: totalFrames, type: 'linear', method: 'base' }).map(v => fast.r(v));
                     let frames = [];
                     for(let f = 0; f < totalFrames; f++){
@@ -174,6 +202,42 @@ class Demo10TrainScene extends Scene {
                             if(_index >= 0){
                                 let point = lineDots[_index];
                                 let opacity = itemColor.opacity;
+                                let color = itemColor;
+
+                                if(masks){
+                                    masks.forEach(mask => {
+                                        let row = mask.dots[point.y];
+                                        if(row){
+                                            let dotValue =  mask.dots[point.y][point.x];
+                                            if(dotValue){
+                                                let values = dotValue.values;
+                                                if(!dotValue.average){
+                                                    dotValue.average = 0;
+                                                    for(let i = 0; i < values.length;i++){
+                                                        dotValue.average+=values[i];
+                                                    }
+    
+                                                    dotValue.average/=values.length;
+    
+                                                    dotValue.average100 = fast.r(dotValue.average*100)
+                                                }
+    
+                                                color = {
+                                                    red: mask.colorsChange.red[dotValue.average100],
+                                                    green: mask.colorsChange.green[dotValue.average100],
+                                                    blue: mask.colorsChange.blue[dotValue.average100]
+                                                }
+    
+                                                opacity = mask.colorsChange.opacity[dotValue.average100];
+                                            }
+                                        }
+                                    })
+                                    
+                                }
+
+                                if(opacity > 1)
+                                    opacity = 1;
+
                                 if(length > 4){
                                     if(i == 0 || i == length-1)
                                         opacity/=4;
@@ -185,33 +249,9 @@ class Demo10TrainScene extends Scene {
                                         opacity/=2;
                                 }
 
-                                let color = itemColor;
-
-                                if(mask){
-                                    let row = mask.dots[point.y];
-                                    if(row){
-                                        let dotValue =  mask.dots[point.y][point.x];
-                                        if(dotValue){
-                                            let values = dotValue.values;
-                                            if(!dotValue.average){
-                                                dotValue.average = 0;
-                                                for(let i = 0; i < values.length;i++){
-                                                    dotValue.average+=values[i];
-                                                }
-
-                                                dotValue.average/=values.length;
-
-                                                dotValue.average100 = fast.r(dotValue.average*100)
-                                            }
-
-                                            color = {
-                                                red: mask.colorsChange.red[dotValue.average100],
-                                                green: mask.colorsChange.green[dotValue.average100],
-                                                blue: mask.colorsChange.blue[dotValue.average100]
-                                            }
-                                        }
-                                    }
-                                }
+                                // if(Number.isNaN(opacity)){
+                                //     debugger;
+                                // }
 
                                 points.push({ 
                                     color: colors.rgbToString({value: [color.red, color.green, color.blue, opacity], isObject: false}),
@@ -228,7 +268,8 @@ class Demo10TrainScene extends Scene {
                     }
 
                     return {
-                        frames
+                        frames,
+                        lowerY: lowerY ? getRandomInt(lowerY-5, lowerY+5) : undefined
                     }
                 })
                 
@@ -240,6 +281,10 @@ class Demo10TrainScene extends Scene {
                                 let frameValues = itemData.frames[f];
                                 for(let i = 0; i < frameValues.points.length; i++){
                                     let point = frameValues.points[i];
+                                    if(itemData.lowerY &&  point.value.y > itemData.lowerY){
+                                        continue;
+                                    }
+
                                     hlp.setFillColor(point.color).dot(point.value.x, point.value.y)
                                 }
                                 
@@ -252,6 +297,21 @@ class Demo10TrainScene extends Scene {
                 return frames;
             },
             init() {
+                let renderFrontal = true;
+                let renderBeforeTrainPartivle = true;
+                let renderBeforeTrainPartivle2 = true;
+                let renderBeforeTrainPartivle3 = true;
+                let remderBeforeTrainSecondary1 = true;
+                let remderBeforeTrainSecondary2 = true;
+
+                let noParticles = false;
+
+                if(noParticles){
+                     renderFrontal = false;
+                    renderBeforeTrainPartivle = false;
+                    renderBeforeTrainPartivle2 = false;
+                }
+
                 let setter = (dot, aValue) => {
                     if(!dot.values){
                         dot.values = [];
@@ -260,63 +320,239 @@ class Demo10TrainScene extends Scene {
                     dot.values.push(aValue);
                 }
 
-                let dots = this.parentScene.createRadialGradient({size: this.size, center: new V2(0,50), radius: new V2(100,50), gradientOrigin: new V2(45,80), angle: 30, setter});
-
-                this.debugEllipsis = this.addChild(new GO({
-                    position:new V2(),
-                    size: this.size,
-                    init() {
-                        this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    for(let y = 0; y < dots.length; y++){
-                        if(!dots[y])
-                            continue;
-                        
-                        for(let x = 0; x < dots[y].length; x++){
-                            if(!dots[y][x])
-                                continue;
-
-                            let values = dots[y][x].values;
-                            let value = 0;
-                            for(let i = 0; i < values.length;i++){
-                                value+=values[i];
-                            }
-    
-                            value/=values.length;
-    
-                            hlp.setFillColor(`rgba(234,220,140, ${fast.r(value,2)/5})`).dot(x, y);
-                        }
+                let setterMul = (dot, aValue) => {
+                    if(!dot.values){
+                        dot.values = [];
                     }
-                })
-                    }
-                }))
 
-                let particlesFrames = [
-                    this.createParticlesFrames({framesCount:100, itemsCount: 1500, size: this.size, itemFramesLengthClamps: [70,70], 
-                        angleClamps: [26,30], color: 'rgba(60,60,60,0.60)', length: 4, mask: { dots, color: 'rgba(234,220,140)' }}),
-                    this.createParticlesFrames({framesCount:100, itemsCount: 1000, size: this.size, itemFramesLengthClamps: [60,60], 
-                        angleClamps: [23,30], color: 'rgba(75,75,75,0.75)', length: 5, mask: { dots, color: 'rgba(234,220,140)' }}),
-                    this.createParticlesFrames({framesCount:100, itemsCount: 1000, size: this.size, itemFramesLengthClamps: [50,50], 
-                        angleClamps: [20,30], color: 'rgba(90,90,90,0.9)', length: 6, mask: { dots, color: 'rgba(234,220,140)' }}),
-                ]
-                
-                this.praticles = particlesFrames.map(frames => this.addChild(new GO({
-                    position: new V2(),
-                    size: this.size, 
-                    frames,
-                    init() {
-                        this.currentFrame = 0;
-                        this.img = this.frames[this.currentFrame];
+                    
+                    let val = aValue*1.5;
+                    if(val > 1)
+                        val = 1;
+
+                    // console.log(val);
+                    dot.values.push(val);
+                }
+
+                // var fx = mathUtils.getCubicSplineFormula([new V2(0, 100), new V2(this.size.x/2, fast.r(100*5/12)), new V2(this.size.x, 0)]);
+                // let _dots = [];
+                // for(let x = 0; x < this.size.x; x++){
+                //     _dots.push(new V2(x, fast.r(fx(x))))
+                // }
+
+                // this.addChild(new GO({
+                //     position:new V2(),
+                //     size: this.size,
+                //     init() {
+                //         this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                //             hlp.setFillColor('red');
+                //             _dots.forEach(d => hlp.dot(d.x, d.y));
+                //         })
+                //     }
+                // }))
+
+                let mainLabpDots = this.parentScene.createRadialGradient({size: this.size, center: new V2(-10,20), radius: new V2(100,40), 
+                            gradientOrigin: new V2(68,61), angle: 25, setter});
+
+                let secondaryLampDots1 = this.parentScene.createRadialGradient({size: this.size, center: new V2(43,95), radius: new V2(25,15), 
+                    gradientOrigin: new V2(53,95), angle: -5, setter: setterMul});
+
+                let secondaryLampDots2 = this.parentScene.createRadialGradient({size: this.size, center: new V2(78,95), radius: new V2(15,15), 
+                    gradientOrigin: new V2(84,95), angle: -5, setter: setterMul});
+
+                // this.debugEllipsis = this.addChild(new GO({
+                //     position:new V2(),
+                //     size: this.size,
+                //     init() {
+                //         this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                //     for(let y = 0; y < secondaryLampDots2.length; y++){
+                //         if(!secondaryLampDots2[y])
+                //             continue;
                         
-                        this.timer = this.regTimerDefault(15, () => {
-                        
+                //         for(let x = 0; x < secondaryLampDots2[y].length; x++){
+                //             if(!secondaryLampDots2[y][x])
+                //                 continue;
+
+                //             let values = secondaryLampDots2[y][x].values;
+                //             let value = 0;
+                //             for(let i = 0; i < values.length;i++){
+                //                 value+=values[i];
+                //             }
+    
+                //             value/=values.length;
+    
+                //             hlp.setFillColor(`rgba(234,220,140, ${value})`).dot(x, y);//fast.r(value,2)/2
+                //         }
+                //     }
+                // })
+                //     }
+                // }))
+
+                // let particlesFrames = [
+                //     // this.createParticlesFrames({framesCount:100, itemsCount: 1500, size: this.size, itemFramesLengthClamps: [70,70], 
+                //     //     angleClamps: [26,30], color: 'rgba(60,60,60,0.60)', length: 4, mask: { dots, color: 'rgba(234,220,140)' }}),
+                //     // this.createParticlesFrames({framesCount:100, itemsCount: 1000, size: this.size, itemFramesLengthClamps: [60,60], 
+                //     //     angleClamps: [23,30], color: 'rgba(75,75,75,0.75)', length: 5, mask: { dots, color: 'rgba(234,220,140)' }}),
+                //     this.createParticlesFrames({framesCount:100, itemsCount: 1000, size: this.size, itemFramesLengthClamps: [50,50], 
+                //         angleClamps: [20,30], color: 'rgba(90,90,90,0.9)', length: 6 }),
+                // ]
+                if(renderBeforeTrainPartivle){
+                    this.BeforeTrainParticles = this.addChild(new GO({
+                        position: new V2(0,0),
+                        size: this.size, 
+                        frames:  this.createParticlesFrames({framesCount:400, itemsCount: 2000, size: this.size, itemFramesLengthClamps: [140,160], 
+                            angleClamps: [20,25], color: 'rgba(75,75,75,0.5)', length: 4, lowerY: this.size.y-10, //cubic: 7/12,
+                            masks: [{ dots: mainLabpDots, color: 'rgba(234,220,140,1)' },{ dots: secondaryLampDots1, color: 'rgba(234,220,140,1)' },{ dots: secondaryLampDots2, color: 'rgba(234,220,140,1)' }] }),
+                        init() {
+                            this.currentFrame = 0;
                             this.img = this.frames[this.currentFrame];
-                            this.currentFrame++;
-                            if(this.currentFrame == this.frames.length){
-                                this.currentFrame = 0;
-                            }
-                        })
-                    }
-                })))
+                            
+                            this.timer = this.regTimerDefault(15, () => {
+                            
+                                this.img = this.frames[this.currentFrame];
+                                this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                }
+                            })
+                        }
+                    }))
+                }
+
+                if(renderBeforeTrainPartivle3){
+                    this.BeforeTrainParticles3 = this.addChild(new GO({
+                        position: new V2(0,0),
+                        size: this.size, 
+                        frames:  this.createParticlesFrames({framesCount:200, itemsCount: 500, size: this.size, itemFramesLengthClamps: [75,75], 
+                            angleClamps: [23,27], color: 'rgba(75,75,75,0)', length: 2, yClamps: [0, 85],  xClamps: [40, 75],
+                            masks: { dots: mainLabpDots, color: 'rgba(234,220,140,1)' } }),
+                        init() {
+                            this.currentFrame = 0;
+                            this.img = this.frames[this.currentFrame];
+                            
+                            this.timer = this.regTimerDefault(15, () => {
+                            
+                                this.img = this.frames[this.currentFrame];
+                                this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                }
+                            })
+                        }
+                    }))
+                }
+
+                if(remderBeforeTrainSecondary1){
+                    //, 
+                    this.BeforeTrainParticles3 = this.addChild(new GO({
+                        position: new V2(0,0),size: this.size, 
+                        frames:  this.createParticlesFrames({framesCount:200, itemsCount: 250, size: this.size, itemFramesLengthClamps: [60,60], 
+                            angleClamps: [23,27], color: 'rgba(75,75,75,0)', length: 2, yClamps: [75, 105],  xClamps: [30, 60],
+                            masks: [{ dots: secondaryLampDots1, color: 'rgba(234,220,140,1)' }] }),
+                        init() {
+                            this.currentFrame = 0;
+                            this.img = this.frames[this.currentFrame];
+                            
+                            this.timer = this.regTimerDefault(15, () => {
+                            
+                                this.img = this.frames[this.currentFrame];
+                                this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                }
+                            })
+                        }
+                    }))
+
+                    this.BeforeTrainParticles3 = this.addChild(new GO({
+                        position: new V2(0,0),size: this.size, 
+                        frames:  this.createParticlesFrames({framesCount:200, itemsCount: 250, size: this.size, itemFramesLengthClamps: [60,60], 
+                            angleClamps: [23,27], color: 'rgba(75,75,75,0)', length: 2, yClamps: [75, 105],  xClamps: [70, 100],
+                            masks: [{ dots: secondaryLampDots2, color: 'rgba(234,220,140,1)' }] }),
+                        init() {
+                            this.currentFrame = 0;
+                            this.img = this.frames[this.currentFrame];
+                            
+                            this.timer = this.regTimerDefault(15, () => {
+                            
+                                this.img = this.frames[this.currentFrame];
+                                this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                }
+                            })
+                        }
+                    }))
+                }
+
+                if(renderBeforeTrainPartivle2){
+                    this.BeforeTrainParticles2 = this.addChild(new GO({
+                        position: new V2(0,0),
+                        size: this.size, 
+                        frames:  this.createParticlesFrames({framesCount:200, itemsCount: 1000, size: this.size, itemFramesLengthClamps: [100,100], 
+                            angleClamps: [23,27], color: 'rgba(75,75,75,0)', length: 4, lowerY: this.size.y-10, xClamps: [0, 85],
+                            masks: [{ dots: mainLabpDots, color: 'rgba(234,220,140,1)' }]}),
+                        init() {
+                            this.currentFrame = 0;
+                            this.img = this.frames[this.currentFrame];
+                            
+                            this.timer = this.regTimerDefault(15, () => {
+                            
+                                this.img = this.frames[this.currentFrame];
+                                this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                }
+                            })
+                        }
+                    }))
+                }
+
+
+                if(renderFrontal)
+                {
+                    this.frontalpraticles = this.addChild(new GO({
+                        position: new V2(),
+                        size: this.size, 
+                        frames:  this.createParticlesFrames({framesCount:100, itemsCount: 500, size: this.size, itemFramesLengthClamps: [75,75], 
+                            angleClamps: [21,28], color: 'rgba(85,85,85,0.85)', length: 6, cubic: 2/3 }),
+                        init() {
+                            this.currentFrame = 0;
+                            this.img = this.frames[this.currentFrame];
+                            
+                            this.timer = this.regTimerDefault(15, () => {
+                            
+                                this.img = this.frames[this.currentFrame];
+                                this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                }
+                            })
+                        }
+                    }))
+
+                    this.frontalpraticles = this.addChild(new GO({
+                        position: new V2(),
+                        size: this.size, 
+                        frames:  this.createParticlesFrames({framesCount:100, itemsCount: 500, size: this.size, itemFramesLengthClamps: [50,50], 
+                            angleClamps: [20,30], color: 'rgba(90,90,90,1)', length: 6, cubic: 2/3 }),
+                        init() {
+                            this.currentFrame = 0;
+                            this.img = this.frames[this.currentFrame];
+                            
+                            this.timer = this.regTimerDefault(15, () => {
+                            
+                                this.img = this.frames[this.currentFrame];
+                                this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                }
+                            })
+                        }
+                    }))
+                }
+
+                
 
                 
                 // let dots = this.parentScene.createRadialGradient({size: this.size, center: new V2(100,100), radius: new V2(30,15), gradientOrigin: new V2(100,100), angle: 45, setter});
