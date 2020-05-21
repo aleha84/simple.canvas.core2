@@ -108,16 +108,60 @@ class Demo10TrainScene extends Scene {
     }
 
     start(){
-        this.main = this.addGo(new GO({
-            position: this.sceneCenter,
-            size: this.viewport,
-            img: PP.createImage(Demo10TrainScene.models.main),
-            init() {
-                //
-            }
-        }), 1)
+        // this.main = this.addGo(new GO({
+        //     position: this.sceneCenter,
+        //     size: this.viewport,
+        //     model: PP.createImage(Demo10TrainScene.models.main),
+        //     init() {
+        
+        //     }
+        // }), 1)
 
-        this.test2 = this.addGo(new GO({
+        var model = Demo10TrainScene.models.main;
+        for(let l = 0; l < model.main.layers.length; l++){
+            let name = model.main.layers[l].name;
+
+            this.addGo(new GO({
+                position: this.sceneCenter,
+                size: this.viewport,
+                img: PP.createImage(model, {renderOnly: [name]}) 
+            }), l)
+        }
+
+        this.passangers = this.addGo(new GO({
+            position: this.sceneCenter.add(new V2(0,1)),
+            size: this.viewport,
+            frames: PP.createImage(Demo10TrainScene.models.passangersFrames),
+            init() {
+                let animationDelay = 200;
+                let currentAnimationDelay = 0;
+                let framesChangeDelay = 10;
+                let currentFramesChangeDelay = framesChangeDelay;
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(15, () => {
+                    if(currentAnimationDelay > 0){
+                        currentAnimationDelay--;
+                        return;
+                    }
+
+                    currentFramesChangeDelay--;
+                    if(currentFramesChangeDelay == 0){
+                        currentFramesChangeDelay = framesChangeDelay;
+                        this.img = this.frames[this.currentFrame];
+                        this.currentFrame++;
+                        if(this.currentFrame == this.frames.length){
+                            this.currentFrame = 0;
+                            currentAnimationDelay = animationDelay;
+                        }
+                    }
+                    
+                })
+            }
+        }), 5)
+
+        this.snowflakes = this.addGo(new GO({
             position: this.sceneCenter,
             size: this.viewport,
             createParticlesFrames({framesCount, itemsCount, size, itemFramesLengthClamps, angleClamps, color, length = 1, masks, lowerY, yClamps, xClamps, cubic = false}) {
@@ -302,14 +346,25 @@ class Demo10TrainScene extends Scene {
                 let renderBeforeTrainPartivle2 = true;
                 let renderBeforeTrainPartivle3 = true;
                 let remderBeforeTrainSecondary1 = true;
-                let remderBeforeTrainSecondary2 = true;
+
+                let renderLampParticles1 = true;
+                let renderLampParticles2 = true;
+                let renderLampParticles3 = true;
+                let renderLampParticles4 = true;
 
                 let noParticles = false;
 
                 if(noParticles){
-                     renderFrontal = false;
-                    renderBeforeTrainPartivle = false;
-                    renderBeforeTrainPartivle2 = false;
+                    renderFrontal = false
+                     renderBeforeTrainPartivle = false;
+                     renderBeforeTrainPartivle2 = false;
+                     renderBeforeTrainPartivle3 = false;
+                     remderBeforeTrainSecondary1 = false;
+    
+                     renderLampParticles1 = false;
+                     renderLampParticles2 = false;
+                     renderLampParticles3 = false;
+                     renderLampParticles4 = false;
                 }
 
                 let setter = (dot, aValue) => {
@@ -330,7 +385,19 @@ class Demo10TrainScene extends Scene {
                     if(val > 1)
                         val = 1;
 
-                    // console.log(val);
+                    dot.values.push(val);
+                }
+
+                let setterMul2 = (dot, aValue) => {
+                    if(!dot.values){
+                        dot.values = [];
+                    }
+
+                    
+                    let val = aValue*2;
+                    if(val > 1)
+                        val = 1;
+
                     dot.values.push(val);
                 }
 
@@ -360,49 +427,136 @@ class Demo10TrainScene extends Scene {
                 let secondaryLampDots2 = this.parentScene.createRadialGradient({size: this.size, center: new V2(78,95), radius: new V2(15,15), 
                     gradientOrigin: new V2(84,95), angle: -5, setter: setterMul});
 
-                // this.debugEllipsis = this.addChild(new GO({
-                //     position:new V2(),
-                //     size: this.size,
-                //     init() {
-                //         this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                //     for(let y = 0; y < secondaryLampDots2.length; y++){
-                //         if(!secondaryLampDots2[y])
-                //             continue;
-                        
-                //         for(let x = 0; x < secondaryLampDots2[y].length; x++){
-                //             if(!secondaryLampDots2[y][x])
-                //                 continue;
+                if(renderLampParticles1) {
+                    let mask1 = this.parentScene.createRadialGradient({size: this.size, center: new V2(141,91), radius: new V2(12,6), 
+                        gradientOrigin: new V2(150,85), angle: -25, setter: setterMul2});
 
-                //             let values = secondaryLampDots2[y][x].values;
-                //             let value = 0;
-                //             for(let i = 0; i < values.length;i++){
-                //                 value+=values[i];
-                //             }
-    
-                //             value/=values.length;
-    
-                //             hlp.setFillColor(`rgba(234,220,140, ${value})`).dot(x, y);//fast.r(value,2)/2
-                //         }
-                //     }
-                // })
-                //     }
-                // }))
+                        this.lamp1 = this.addChild(new GO({
+                            position: new V2(0,0),size: this.size, 
+                            frames:  this.createParticlesFrames({framesCount:200, itemsCount: 150, size: this.size, itemFramesLengthClamps: [70,80], 
+                                angleClamps: [20,23], color: 'rgba(75,75,75,0)', length: 1, yClamps: [78, 95],  xClamps: [134, 154],
+                                masks: [{ dots: mask1, color: 'rgba(167,176,155,1)' }] }),
+                            init() {
+                                this.currentFrame = 0; this.img = this.frames[this.currentFrame];
+                                this.timer = this.regTimerDefault(15, () => {
+                                    this.img = this.frames[this.currentFrame]; this.currentFrame++;
+                                    if(this.currentFrame == this.frames.length){ this.currentFrame = 0; }
+                                })
+                            }
+                        }))
+                }
 
-                // let particlesFrames = [
-                //     // this.createParticlesFrames({framesCount:100, itemsCount: 1500, size: this.size, itemFramesLengthClamps: [70,70], 
-                //     //     angleClamps: [26,30], color: 'rgba(60,60,60,0.60)', length: 4, mask: { dots, color: 'rgba(234,220,140)' }}),
-                //     // this.createParticlesFrames({framesCount:100, itemsCount: 1000, size: this.size, itemFramesLengthClamps: [60,60], 
-                //     //     angleClamps: [23,30], color: 'rgba(75,75,75,0.75)', length: 5, mask: { dots, color: 'rgba(234,220,140)' }}),
-                //     this.createParticlesFrames({framesCount:100, itemsCount: 1000, size: this.size, itemFramesLengthClamps: [50,50], 
-                //         angleClamps: [20,30], color: 'rgba(90,90,90,0.9)', length: 6 }),
-                // ]
+                if(renderLampParticles2) {
+                    let mask2 = this.parentScene.createRadialGradient({size: this.size, center: new V2(142,91), radius: new V2(18,9), 
+                        gradientOrigin: new V2(152,84), angle: -25, setter: setterMul2});
+
+                        this.lamp2 = this.addChild(new GO({
+                            position: new V2(0,0),size: this.size, 
+                            frames:  this.createParticlesFrames({framesCount:200, itemsCount: 200, size: this.size, itemFramesLengthClamps: [60,70], 
+                                angleClamps: [20,23], color: 'rgba(75,75,75,0)', length: 1, yClamps: [75, 100],  xClamps: [130, 160],
+                                masks: [{ dots: mask2, color: 'rgba(167,176,155,1)' }] }),
+                            init() {
+                                this.currentFrame = 0;this.img = this.frames[this.currentFrame];
+                                this.timer = this.regTimerDefault(15, () => {
+                                    this.img = this.frames[this.currentFrame];this.currentFrame++;
+                                    if(this.currentFrame == this.frames.length){ this.currentFrame = 0;}
+                                })
+                            }
+                        }))
+                }
+
+                if(renderLampParticles3) {
+                    let mask3 = this.parentScene.createRadialGradient({size: this.size, center: new V2(140,90), radius: new V2(25,12), 
+                        gradientOrigin: new V2(156,79), angle: -25, setter: setterMul2});
+
+                        this.lamp3 = this.addChild(new GO({
+                            position: new V2(0,0),size: this.size, 
+                            frames:  this.createParticlesFrames({framesCount:200, itemsCount: 300, size: this.size, itemFramesLengthClamps: [75,85], 
+                                angleClamps: [20,23], color: 'rgba(75,75,75,0)', length: 1, yClamps: [65, 110],  xClamps: [115, 165],
+                                masks: [{ dots: mask3, color: 'rgba(167,176,155,1)' }] }),
+                            init() {
+                                this.currentFrame = 0;this.img = this.frames[this.currentFrame];
+                                this.timer = this.regTimerDefault(15, () => {
+                                    this.img = this.frames[this.currentFrame];this.currentFrame++;
+                                    if(this.currentFrame == this.frames.length){ this.currentFrame = 0;}
+                                })
+                            }
+                        }))
+                }
+
+                if(renderLampParticles4) {
+                    let mask4 = this.parentScene.createRadialGradient({size: this.size, center: new V2(144,90), radius: new V2(30,16), 
+                        gradientOrigin: new V2(163,73), angle: -30, setter: setterMul2});
+
+                        this.lamp4 = this.addChild(new GO({
+                            position: new V2(0,0),size: this.size, 
+                            frames:  this.createParticlesFrames({framesCount:200, itemsCount: 350, size: this.size, itemFramesLengthClamps: [75,85], 
+                                angleClamps: [20,23], color: 'rgba(75,75,75,0)', length: 1, yClamps: [65, 110],  xClamps: [115, 170],
+                                masks: [{ dots: mask4, color: 'rgba(255,255,255,1)' }] }),
+                            init() {
+                                this.currentFrame = 0;this.img = this.frames[this.currentFrame];
+                                this.timer = this.regTimerDefault(15, () => {
+                                    this.img = this.frames[this.currentFrame];this.currentFrame++;
+                                    if(this.currentFrame == this.frames.length){ this.currentFrame = 0;}
+                                })
+                            }
+                        }))
+
+                }
+
+
                 if(renderBeforeTrainPartivle){
+
+                    let mask5 = this.parentScene.createRadialGradient({size: this.size, center: new V2(135,83), radius: new V2(40,22), 
+                        gradientOrigin: new V2(159,62), angle: -45, setter: setter});
+
+                    this.lamp5 = this.addChild(new GO({
+                        position: new V2(0,0),size: this.size, 
+                        frames:  this.createParticlesFrames({framesCount:100, itemsCount: 400, size: this.size, itemFramesLengthClamps: [60,65], 
+                            angleClamps: [20,23], color: 'rgba(75,75,75,0)', length: 2, yClamps: [50, 100],  xClamps: [110, 175],
+                            masks: [{ dots: mask5, color: 'rgba(255,255,255,1)' }] }),
+                        init() {
+                            this.currentFrame = 0;this.img = this.frames[this.currentFrame];
+                            this.timer = this.regTimerDefault(15, () => {
+                                this.img = this.frames[this.currentFrame];this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){ this.currentFrame = 0;}
+                            })
+                        }
+                    }))
+// this.debugEllipsis = this.addChild(new GO({
+//                     position:new V2(),
+//                     size: this.size,
+//                     init() {
+//                         this.img = createCanvas(this.size, (ctx, size, hlp) => {
+//                     for(let y = 0; y < mask5.length; y++){
+//                         if(!mask5[y])
+//                             continue;
+                        
+//                         for(let x = 0; x < mask5[y].length; x++){
+//                             if(!mask5[y][x])
+//                                 continue;
+
+//                             let values = mask5[y][x].values;
+//                             let value = 0;
+//                             for(let i = 0; i < values.length;i++){
+//                                 value+=values[i];
+//                             }
+    
+//                             value/=values.length;
+    
+//                             hlp.setFillColor(`rgba(234,220,140, ${value})`).dot(x, y);//fast.r(value,2)/2
+//                         }
+//                     }
+//                 })
+//                     }
+//                 }))
+
                     this.BeforeTrainParticles = this.addChild(new GO({
                         position: new V2(0,0),
                         size: this.size, 
                         frames:  this.createParticlesFrames({framesCount:400, itemsCount: 2000, size: this.size, itemFramesLengthClamps: [140,160], 
                             angleClamps: [20,25], color: 'rgba(75,75,75,0.5)', length: 4, lowerY: this.size.y-10, //cubic: 7/12,
-                            masks: [{ dots: mainLabpDots, color: 'rgba(234,220,140,1)' },{ dots: secondaryLampDots1, color: 'rgba(234,220,140,1)' },{ dots: secondaryLampDots2, color: 'rgba(234,220,140,1)' }] }),
+                            masks: [{ dots:mask5, color: 'rgba(255,255,255,1)' }, { dots: mainLabpDots, color: 'rgba(234,220,140,1)' },{ dots: secondaryLampDots1, color: 'rgba(234,220,140,1)' },{ dots: secondaryLampDots2, color: 'rgba(234,220,140,1)' }] }),
                         init() {
                             this.currentFrame = 0;
                             this.img = this.frames[this.currentFrame];
@@ -551,33 +705,6 @@ class Demo10TrainScene extends Scene {
                         }
                     }))
                 }
-
-                
-
-                
-                // let dots = this.parentScene.createRadialGradient({size: this.size, center: new V2(100,100), radius: new V2(30,15), gradientOrigin: new V2(100,100), angle: 45, setter});
-
-                // this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                //     for(let y = 0; y < dots.length; y++){
-                //         if(!dots[y])
-                //             continue;
-                        
-                //         for(let x = 0; x < dots[y].length; x++){
-                //             if(!dots[y][x])
-                //                 continue;
-
-                //             let values = dots[y][x].values;
-                //             let value = 0;
-                //             for(let i = 0; i < values.length;i++){
-                //                 value+=values[i];
-                //             }
-    
-                //             value/=values.length;
-    
-                //             hlp.setFillColor(`rgba(255,255,255, ${fast.r(value,2)})`).dot(x, y);
-                //         }
-                //     }
-                // })
             }
         }), 10)
     }
