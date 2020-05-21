@@ -118,15 +118,85 @@ class Demo10TrainScene extends Scene {
         // }), 1)
 
         var model = Demo10TrainScene.models.main;
+        let excludes = ['bg_overlay'];
         for(let l = 0; l < model.main.layers.length; l++){
             let name = model.main.layers[l].name;
-
-            this.addGo(new GO({
-                position: this.sceneCenter,
-                size: this.viewport,
-                img: PP.createImage(model, {renderOnly: [name]}) 
-            }), l)
+            if(excludes.indexOf(name) == -1)
+                this.addGo(new GO({
+                    position: this.sceneCenter,
+                    size: this.viewport,
+                    img: PP.createImage(model, {renderOnly: [name]}) 
+                }), l)
         }
+
+        this.flicker = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            createFrames({framesCount, dots, size}) {
+                let frames = [];
+                
+                let itemsData = dots.map((dot, i) => {
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = getRandomInt(fast.r(framesCount/4), fast.r(framesCount/2));
+
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+
+                        frames[frameIndex] = true;
+                    }
+
+                    return {
+                        dot,
+                        frames
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                let dot = itemData.dot;
+                                hlp.setFillColor(dot.color).dot(dot.p.x, dot.p.y)
+                            }
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                let layer = model.main.layers.find(l => l.name == 'bg_overlay');
+                let dots = [];
+                layer.groups.forEach(group => {
+                    group.points.forEach(point => {
+                        dots[dots.length] = {
+                            p: point.point,
+                            color: point.color
+                        };
+                    });
+                });
+
+                this.frames = this.createFrames({ framesCount: 400, dots, size: this.size });
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(15, () => {
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 2)
 
         this.passangers = this.addGo(new GO({
             position: this.sceneCenter.add(new V2(0,1)),
@@ -352,7 +422,7 @@ class Demo10TrainScene extends Scene {
                 let renderLampParticles3 = true;
                 let renderLampParticles4 = true;
 
-                let noParticles = false;
+                let noParticles = true;
 
                 if(noParticles){
                     renderFrontal = false
