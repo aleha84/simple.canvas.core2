@@ -11,63 +11,133 @@ class EditorScene extends Scene {
                     || document.activeElement.type == 'textarea' 
                     || (document.activeElement.tagName.toLowerCase() == 'input' && document.activeElement.type == 'number' )
                 },
+                checkSelect() {
+                    return (document.activeElement.tagName.toLowerCase() == 'select')
+                },
                 down: () => {
-                    if(document.activeElement && this.events.checkTextInput())
+                    if(document.activeElement && (this.events.checkTextInput() || this.events.checkSelect()))
                         document.activeElement.blur();
                 },
                 keyup: (event) => {
+                    if(event.code == 'Backspace'){
+                        event.preventDefault();
+                        event.stopPropagation();
+                        return;
+                    }
+
                     if(document.activeElement && this.events.checkTextInput())
                         return;
 
-                   // console.log(this, event, event.keyCode)
+                    //console.log(this, event, event.keyCode)
                     let edt = this.editor.editor;
+                    let image = this.editor.image;
 
-                    if(event.key == 'h'){
+                    if(event.keyCode == 72){ // 'h'
                         this.mainGo.showDots = !this.mainGo.showDots;
                     }
 
-                    if(event.key == 'r'){
-                        if(edt.selected.pointId == undefined)
-                        {
-                            alert('No point selected');
-                            return;
+                    if(event.keyCode == 82) { // 'r'
+                        if(edt.getModeState().mode == 'selection'){
+                            let pointsIds = this.mainGo.childrenGO.filter(c => c.type == 'Dot' && c.selected).map(p => p.pointModel.id);
+                            
+                            let main = this.editor.image.main;
+                            if(isArray(main)){
+                                main = main[this.editor.image.general.currentFrameIndex];
+                            }
+
+                            let layer = main.layers.filter(l => l.id == edt.selected.layerId)[0];
+                            layer.removeImage();
+                            let group = layer.groups.filter(g => g.id == edt.selected.groupId)[0];
+
+                            group.points = group.points.filter(gp => pointsIds.indexOf(gp.id) == -1);  
+                            group.points.forEach((p, i) => {p.order = i; });
+                            this.editor.updateEditor();
+
+                            notifications.done('points removed: ' + pointsIds.length, 500)
                         }
-                        
-                        edt.removeSelectedPoint()
+                        else {
+                            if(edt.selected.pointId == undefined)
+                            {
+                                //alert('No point selected');
+                                notifications.warning('No point selected', 500)
+                                return;
+                            }
+                            
+                            edt.removeSelectedPoint()
+                        }
                     }
+
+                    if(event.keyCode == 83){ // 's' - toggle selection
+                        if(edt.selected.layerId && edt.selected.groupId){
+                            edt.mode.toggleSelection();
+                            this.editor.updateEditor();
+                        }
+                        else {
+                            notifications.warning('No layer or group selected', 1000)
+                        }
+                    }
+                    
 
                     if(event.keyCode == 86 && !event.ctrlKey){ // 'v' - toggle layer or group visibility
                         if(event.shiftKey){
-
-                            if(true){ // buggy - experimental!
-                                let main = this.editor.image.main;
-                                if(isArray(main)){
-                                    main = main[this.editor.image.general.currentFrameIndex];
-                                }
-                                main.layers.filter(l => l.id != edt.selected.layerId).forEach(l => {l.visible = !l.visible; l.removeImage();});
-                            }
-
                             //layer
-                            if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
-                                edt.toggleLayerVisibility();
+                            // if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
+                            //     edt.toggleLayerVisibility();
+
+                            let main = this.editor.image.main;
+                            if(isArray(main)){
+                                main = main[this.editor.image.general.currentFrameIndex];
+                            }
+                            main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
+
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            this.editor.updateEditor();
                         }
                         else {
+                            layer
+                            if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
+                                edt.toggleLayerVisibility();
                             //group
-                            if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
-                                edt.toggleGroupVisibility();
+                            // if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
+                            //     edt.toggleGroupVisibility();
                         }
                     }
 
-                    if(['e', 'a', 'm'].indexOf(event.key) != -1 && !edt.getModeState().disabled && edt.selected.groupId != undefined){
-                        switch(event.key){
-                            case 'a': 
+                    // if(event.keyCode == 86 && event.ctrlKey && event.shiftKey){ // 'v' 
+                    //     let main = this.editor.image.main;
+                    //     if(isArray(main)){
+                    //         main = main[this.editor.image.general.currentFrameIndex];
+                    //     }
+                    //     main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
+
+                    //     event.preventDefault();
+                    //     event.stopPropagation();
+
+                    //     this.editor.updateEditor();
+                    // }
+
+                    if([69, 65, 77].indexOf(event.keyCode) != -1 && !edt.getModeState().disabled && edt.selected.groupId != undefined){ 
+                        switch(event.keyCode){
+                            case 65:  // 'a'
                                 edt.setModeState(true, 'add')
                                 break;
-                            case 'e': 
+                            case 69:  // 'e' 
                                 edt.setModeState(true, 'edit')
                                 break;
-                            case 'm': 
-                                edt.setMoveGroupModeState(true, 'movegroup')
+                            case 77:  // 'm'
+                                if(edt.getModeState().mode == 'selection'){
+                                    edt.mode.toggleMoveSelection();
+                                    //console.log(this.mainGo.childrenGO.filter(c => c.type == 'Dot' && c.selected));
+                                    if(edt.getModeState().mode == "moveselection"){
+                                        this.mainGo.selection.move.ids = this.mainGo.childrenGO.filter(c => c.type == 'Dot' && c.selected).map(p => p.pointModel.id);
+                                    }
+                                }
+                                else {
+                                    edt.setMoveGroupModeState(true, 'movegroup')
+                                }
+                                
                                 break;
                             default:
                                 break;
@@ -76,18 +146,17 @@ class EditorScene extends Scene {
                         this.editor.updateEditor();
                     }
 
-                    if(['-', '+', '='].indexOf(event.key) != -1){
+                    if(['Minus', 'Equal'].indexOf(event.code) != -1){
                         let zoom = this.editor.image.general.zoom;
                         let trigger = false;
-                        switch(event.key){
-                            case '-': 
+                        switch(event.code){
+                            case 'Minus': // '-' 
                                 if(zoom.current > zoom.min){
                                     zoom.current--;
                                     trigger = true;
                                 }
                                 break;
-                            case '+': 
-                            case '=':
+                            case 'Equal': // '=', '+'
                                     if(zoom.current < zoom.max){
                                         zoom.current++;
                                         trigger = true;
@@ -103,6 +172,17 @@ class EditorScene extends Scene {
                             el.dispatchEvent(new Event('change'))
                         }
                     }
+
+                    if(image.general.animated){
+                        if(event.code == 'KeyN'){
+                            notifications.done('Show next frames', 1000)
+                        }
+
+                        if(event.code == 'KeyP'){
+                            notifications.done('Show prev frames', 1000)
+                        }
+                    }
+                    
                 }
             }
         }, options);
@@ -157,6 +237,29 @@ class EditorScene extends Scene {
             // }
         }))
 
+        this.framesPreview = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.mainGo.size,
+            init() {
+                this.prev = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size
+                }))
+
+                this.next = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size
+                }))
+            },
+            setSize(size) {
+                this.size = size;
+                if(this.prev)
+                    this.prev.size = size;
+                if(this.next)
+                    this.next.size = size;
+            }
+        }), 10)
+
         this.editor = new Editor({
             parentElementSelector: '.controlsWrapper',
             renderCallback: this.renderModel.bind(this),
@@ -170,6 +273,7 @@ class EditorScene extends Scene {
 
         let mg = this.mainGo;
         let uimg = this.underlyingImg;
+        let fp = this.framesPreview;
         let {general, main} = model;
 
         if(general.backgroundColor && this.bgColor != general.backgroundColor){
@@ -206,9 +310,12 @@ class EditorScene extends Scene {
     
             mg.originalSize = general.originalSize;
             uimg.originalSize = general.originalSize;
+            fp.originalSize = general.originalSize;
 
             mg.size = general.size.mul(general.zoom);
             uimg.size = general.size.mul(general.zoom);
+            fp.setSize(general.size.mul(general.zoom));
+            
 
             mg.showGrid = general.showGrid;
             mg.invalidate();
@@ -217,6 +324,7 @@ class EditorScene extends Scene {
     
             mg.needRecalcRenderProperties = true;
             uimg.needRecalcRenderProperties = true;
+            fp.needRecalcRenderProperties = true;
         }
         else {
             mg.isVisible = false;
@@ -310,4 +418,14 @@ document.addEventListener("paste", function(event) {
     // let reader = new FileReader();
     // reader.readAsDataURL
 })
+
+const rx = /INPUT|SELECT|TEXTAREA/i;
+addListenerMulti(document, "keydown keypress", function(e){
+    if( e.which == 8 ){ // 8 == backspace
+        if(!rx.test(e.target.tagName) || e.target.disabled || e.target.readOnly ){
+            e.preventDefault();
+        }
+    }
+})
+
 

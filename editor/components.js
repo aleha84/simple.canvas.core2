@@ -51,8 +51,16 @@ var components = {
 
         return el;
     },
+    createButton(title, callback, params = { classNames: [] }){
+        let button = htmlUtils.createElement('input', { classNames: params.classNames, attributes: { type: 'button' }, 
+        events: { click: (event) => {
+            callback(event)
+        } }, value: title });
+
+        return button;
+    },
     createInput(value, title, changeCallback){
-        let el = htmlUtils.createElement('div', { classNames: ['inputBox', 'row'] });
+        let el = htmlUtils.createElement('div', { classNames: ['inputBox', 'rowFlex'] });
 
         if(title){    
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
@@ -200,7 +208,7 @@ var components = {
 
         return el;
     },
-    createColorPicker(value, title, changeCallback){
+    createColorPicker(value, title, changeCallback, params = {readOnly: false}){
         let el = htmlUtils.createElement('div', { classNames: ['colorPicker', 'row'] });
         if(title){    
             el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
@@ -213,19 +221,37 @@ var components = {
             }
         } })
 
-        let hexInput = htmlUtils.createElement('input', {attributes: { type: 'text', value}, events: {
+        let inputProps = {};
+        if(params.readOnly){
+            cPicker.style.display = 'none'; 
+            inputProps.readonly = true;
+        }
+
+        let hexInput = htmlUtils.createElement('input', {attributes: { type: 'text', value}, props: inputProps, events: {
             blur: (event) => {
-                if(!/^#[0-9A-F]{6}$/i.test(event.target.value)){
+                let match = /^#*([0-9A-F]{6})$/i.exec(event.target.value);
+                if(!match){
                     event.target.value = cPicker.value;
                     return;
                 }
+                // if(!/^#[0-9A-F]{6}$/i.test(event.target.value)){
+                //     event.target.value = cPicker.value;
+                //     return;
+                // }
 
-                cPicker.value = event.target.value;
-                changeCallback(event.target.value);
+                let hexValue = '#' + match[1];
+                event.target.value = hexValue;
+                cPicker.value = hexValue;
+                changeCallback(hexValue);
             }
         } })
 
         el.appendChild(cPicker);
+        if(params.readOnly){
+            let readOnlyDiv = htmlUtils.createElement('div', { className: 'readOnlyBlock' });
+            readOnlyDiv.style.backgroundColor = value;
+            el.appendChild(readOnlyDiv);
+        }
         el.appendChild(hexInput);
 
         el.cPicker = cPicker;
@@ -247,6 +273,10 @@ var components = {
         let selectHolder = htmlUtils.createElement('div', { className: 'selectHolder'});
         
         let select = htmlUtils.createElement('select', { attributes: { size: listProps.maxSize || 10 }, events: {
+            keypress: function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            },
             change: function(e) { 
                 if(listProps.callbacks.select) {
                     selected = true;
@@ -256,7 +286,15 @@ var components = {
 
                     if(moveDownButton)
                         moveDownButton.disabled = false;
+
                     listProps.callbacks.select(e)
+
+                    let framesSelect = document.querySelector('.frames select')
+                    if(framesSelect && framesSelect.selectedOptions.length){
+                        let selectedOption = framesSelect.selectedOptions[0];
+                        framesSelect.scrollTop = (selectedOption.offsetTop - framesSelect.offsetTop) - fast.r(framesSelect.offsetHeight/2); 
+                        //console.log(framesSelect.scrollTop);
+                    }                    
                 }
                 else 
                     console.log(e.target.value)
@@ -344,7 +382,7 @@ var components = {
                         }, 
                         events: { 
                             click: function(e) { 
-                                button.click();
+                                button.click(select);
                             } 
                         } }));
                 })
@@ -534,7 +572,7 @@ var components = {
         groupEl.appendChild(groupProps.pointsEl);
         groupEl.appendChild(groupProps.pointEl);
 
-        this.fillPoints(groupProps, changeCallback) 
+        components.fillPoints(groupProps, changeCallback) 
 
         changeCallback();
     },
@@ -600,6 +638,7 @@ var components = {
                     if(selectedGroup){
                         selectedGroup.selected = true;
                         components.editor.editor.selected.groupId = selectedGroup.id;
+                        components.editor.editor.selected.pointId = undefined;
                     }
 
                     let selectedOption = undefined;
@@ -611,6 +650,7 @@ var components = {
                     }
 
                     let groupChangeCallback = function() {   
+                        //console.log('groupChangeCallback')
                         layerProps.removeImage();
                         changeCallback(); 
                     }
@@ -640,7 +680,10 @@ var components = {
                     groups = groups.filter(g => g.id != select.value);  
                     groups.forEach((p, i) => p.order = i);
                     select.value = undefined;
+                    
                     components.editor.editor.selected.groupId = undefined;
+                    components.editor.editor.selected.pointId = undefined;
+
                     layerProps.groups = groups;
                     components.fillGroups(layerProps, changeCallback);
 
@@ -668,7 +711,10 @@ var components = {
 
                     select.options[select.options.length] = new Option(group.id, group.id);
                     select.value = group.id;
+                    
                     components.editor.editor.selected.groupId = group.id;
+                    components.editor.editor.selected.pointId = undefined;
+
                     select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
                     
                     components.editor.editor.setModeState(true, 'edit');
@@ -849,10 +895,25 @@ var components = {
         htmlUtils.removeChilds(pointsEl);
 
         let pointsToShow = points;
-        
+
+        let removeAllPoints = function() {
+            while(points.length){
+                points.pop();
+            }
+
+            components.fillPoints(groupProps, changeCallback);
+            components.editor.editor.setModeState(true, 'edit');
+            components.editor.editor.selected.pointId = undefined;
+            changeCallback();
+        }
+
         if(!groupProps.showPoints){
             //pointsToShow =  points.length > 0 ? [points[0]] : [];
-            pointsEl.appendChild(htmlUtils.createElement('div', { text: 'Points hidden' }))
+            pointsEl.appendChild(htmlUtils.createElement('div', { text: 'Points hidden: ' + points.length }))
+            pointsEl.appendChild(htmlUtils.createElement('input', { value: 'Remove all', attributes: { type: 'button' }, events: {
+                click: removeAllPoints
+            } }))
+
             return;
         }
 
@@ -863,6 +924,7 @@ var components = {
             groupProps.points = points;
             components.fillPoints(groupProps, changeCallback);
             components.editor.editor.setModeState(true, 'edit');
+            components.editor.editor.selected.pointId = undefined;
             changeCallback();
         }
 
@@ -905,13 +967,7 @@ var components = {
                     removePointCallback(e, select);
                 },
                 removeAll(e, select) {
-                    while(points.length){
-                        points.pop();
-                    }
-
-                    components.fillPoints(groupProps, changeCallback);
-                    components.editor.editor.setModeState(true, 'edit');
-                    changeCallback();
+                    removeAllPoints();
                 },
                 add: function(e, select) {
                     
@@ -1116,6 +1172,13 @@ var components = {
         container.appendChild(color2);
         container.appendChild(result);
 
+        container.appendChild(htmlUtils.createElement('input', { value: 'Reset',  attributes: { type: 'button' }, events: {
+            click: function(){
+                color1.setValue('#FFFFFF')
+                color2.setValue('#FFFFFF')
+                result.setValue('#FFFFFF')
+            }}}));  
+
         return container;
     },
 
@@ -1127,7 +1190,65 @@ var components = {
         container.appendChild(color1);
         container.setValue = (value) => {
             color1.setValue(value);
+
+            let hexInput = color1.hexInput;
+            hexInput.focus();
+            hexInput.select();
+
+            try {
+                var successful = document.execCommand('copy');
+            } catch (err) {
+            alert('Failed to copy to clipboard');
+            }
         }
+
+
+        return container;
+    },
+
+    createCShift() {
+
+        let midColorFoo = (c1, c2, count) => {
+            count = parseInt(count);
+            if(isNaN(count))
+                count = 3;
+
+            let c1rgb = hexToRgb(c1, true);
+            let c2rgb = hexToRgb(c2, true);
+
+            htmlUtils.removeChilds(result);
+            let steps = count+2;
+            let rValues = easing.fast({from: c1rgb[0], to: c2rgb[0], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
+            let gValues = easing.fast({from: c1rgb[1], to: c2rgb[1], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
+            let bValues = easing.fast({from: c1rgb[2], to: c2rgb[2], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
+            for(let i = 0; i < steps; i++){
+                result.appendChild(this.createColorPicker('#' + rgbToHex([rValues[i], gValues[i], bValues[i]]), 'C'+i, () => {}, { readOnly: true }))
+            }
+            //return '#' + rgbToHex( c1rgb.map((el, i) => fast.r((c1rgb[i] + c2rgb[i])/2)) )
+        }
+
+        let container = htmlUtils.createElement('div');
+
+        let result = htmlUtils.createElement('div');
+
+        let color1 = this.createColorPicker('#FFFFFF', 'C1', () => {
+            midColorFoo(color1.getValue(), color2.getValue(), count.value);
+        })
+        let color2 = this.createColorPicker('#FFFFFF', 'C2', (value) => {
+            midColorFoo(color1.getValue(), color2.getValue(), count.value);
+        })
+
+        let count = htmlUtils.createElement('input', { value: '1', attributes: { type: 'number' },
+        events: {
+            change: (event) => {
+                midColorFoo(color1.getValue(), color2.getValue(), count.value);
+            }
+        } });
+
+        container.appendChild(color1);
+        container.appendChild(color2);
+        container.appendChild(count);
+        container.appendChild(result);
 
         return container;
     },

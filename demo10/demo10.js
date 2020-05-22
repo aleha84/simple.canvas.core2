@@ -82,7 +82,31 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'pdaily',
         viewport: new V2(200,200)
     }));
-    
+
+    SCG.scenes.cacheScene(new Demo10GodScene({
+        name:'god',
+        viewport: new V2(200,200)
+    }));
+
+    SCG.scenes.cacheScene(new Demo10CarScene({
+        name:'car',
+        viewport: new V2(150,185)
+    }));
+
+    SCG.scenes.cacheScene(new Demo10BridgeScene({
+        name:'bridge',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.scenes.cacheScene(new Demo10TeaScene({
+        name:'tea',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.scenes.cacheScene(new Demo10TrainScene({
+        name:'train',
+        viewport: new V2(200,150)
+    }));
 
     sceneSelectByHashValue();
     

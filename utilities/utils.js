@@ -651,7 +651,29 @@ function createCanvasHelper({ctx}){
       }
       
       return this;
-    }
+    },
+    elipsisRotated(center, radius, angle, dots) {
+      let rxSq = radius.x*radius.x;
+      let rySq = radius.y*radius.y;
+
+      let maxSize = radius.x > radius.y ? radius.x : radius.y;
+      let _cos = Math.cos(angle);
+      let _sin = Math.sin(angle);
+
+      for(let y = center.y-maxSize-1;y < center.y+maxSize+1;y++){
+        for(let x = center.x-maxSize-1;x < center.x+maxSize+1;x++){
+          let _x = x-center.x;
+          let _y = y-center.y;
+
+          if(Math.pow(_x*_cos + _y*_sin,2)/rxSq + Math.pow(-_x*_sin + _y*_cos,2)/rySq < 1){
+            this.dot(x,y);
+
+            if(dots)
+              dots.push({x,y})
+          }
+        }
+      }
+    } 
   }
 }
 
@@ -779,6 +801,36 @@ function createLine(begin, end) {
   return {
     begin, end
   };
+}
+
+function getPixels(img, size) {
+  let ctx = img.getContext("2d");
+  let  pixels = [];
+
+  let imageData = ctx.getImageData(0,0,size.x, size.y).data;
+
+  for(let i = 0; i < imageData.length;i+=4){
+      if(imageData[i+3] == 0)            
+          continue;
+
+      let y = fastFloorWithPrecision((i/4)/size.x);
+      let x = (i/4)%size.x;
+      let color = [imageData[i], imageData[i+1], imageData[i+2], fastRoundWithPrecision(imageData[i+3]/255, 4)] 
+
+      pixels[pixels.length] = { position: new V2(x,y), color };
+  }
+  return pixels;
+}
+
+function getLineFunction(origin, direction){
+  let ox = origin.x;
+  let oy = origin.y;
+  let dx = direction.x;
+  let dy = direction.y;
+
+  return function(x) {
+    return (((x - ox)/dx)*dy) + oy;
+  }
 }
 
 

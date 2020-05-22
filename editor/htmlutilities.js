@@ -1,5 +1,5 @@
 var htmlUtils = {
-    createElement(tag, props) {
+    createElement(tag, props = { classNames: undefined, className: undefined, text: undefined, value: undefined, attributes: undefined, events: undefined, props: undefined } ) {
         if(!tag){
             console.error('No tag specified');
             throw 'No tag specified';
@@ -63,5 +63,22 @@ var htmlUtils = {
         for(var key in attrs) {
             el.setAttribute(key, attrs[key]);
         }
+    },
+    appendChild(parent, child, params = {asFirst: false}) {
+        let children = child;
+        if(!isArray(children)){
+            children = [children];
+        }
+
+        children.forEach(element => {
+            if(params.asFirst){
+                parent.insertBefore(element,parent.firstChild)
+            }
+            else {
+                parent.appendChild(element);
+            }
+            
+        });
     }
+
 }

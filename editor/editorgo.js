@@ -16,6 +16,22 @@ class EditorGO extends GO {
                 downOn: undefined,
                 started: false,
             },
+            selection: {
+                cancel() {
+                    this.start = undefined;
+                    this.current = undefined;
+                    this.go = undefined;
+                    this.boxParams = undefined;
+                    SCG.viewport.scrollOptions.enabled = true;
+                },
+                go: undefined,
+                boxParams: undefined, 
+                start: undefined,
+                current: undefined,
+                move: {
+                    ids: []
+                }
+            },
             handlers: {
                 move:function (relativePosition) {
                     relativePosition = relativePosition.add(SCG.viewport.shift);
@@ -36,6 +52,24 @@ class EditorGO extends GO {
                                 d.downOn.index = index;
                                 d.downOn.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*index.y);
                                 d.downOn.needRecalcRenderProperties = true;
+                            }
+                        }
+                    }
+                    else if(this.model.editor.mode == 'moveselection'){
+                        if(d.downOn){
+                            d.started = true;
+                            SCG.viewport.scrollOptions.enabled = false;
+                            if(!d.downOn.index.equal(index)){
+
+                                let direction = d.downOn.index.direction(index).toInt();
+                                this.dots.filter(d => d.selected).forEach(p => {
+                                    p.index.add(direction, true);
+                                    p.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.index.y)
+                                    p.needRecalcRenderProperties = true;
+                                })
+
+                                d.downOn.index = index;
+                                d.downOn.indexChanged = true;
                             }
                         }
                     }
@@ -105,6 +139,42 @@ class EditorGO extends GO {
                         }
                         
                     }
+                    else if(this.model.editor.mode == 'selection'){
+                        let s = this.selection;
+                        if(s.start){
+                            s.current = relativePosition.toInt();
+                            s.go.img = createCanvas(this.size, (ctx, size, hlp) => {
+                                let from = new V2();
+                                let to = new V2();
+                                if(s.start.x < s.current.x ){
+                                    from.x = s.start.x;
+                                    to.x = s.current.x;
+                                }
+                                else {
+                                    from.x = s.current.x;
+                                    to.x = s.start.x;
+                                }
+
+                                if(s.start.y < s.current.y){
+                                    from.y = s.start.y;
+                                    to.y = s.current.y;
+                                }
+                                else {
+                                    from.y = s.current.y;
+                                    to.y = s.start.y;
+                                }
+    
+                                s.boxParams = {
+                                    tl: from,
+                                    size: new V2(to.x-from.x, to.y - from.y)
+                                }
+
+                                hlp.setFillColor('white').strokeRect(from.x, from.y, s.boxParams.size.x, s.boxParams.size.y);
+                                
+                            })
+                        }
+                        
+                    }
 
                     this.parentScene.pointerDataLabel.invalidate();
 
@@ -115,8 +185,9 @@ class EditorGO extends GO {
                 down: function(relativePosition) {
                     relativePosition = relativePosition.add(SCG.viewport.shift);
                     if(this.model.editor.mode == 'add'){
-                        if(!this.model.editor.selectedLayer.selectedGroup){
+                        if(!this.model.editor.selectedLayer || !this.model.editor.selectedLayer.selectedGroup){
                             alert('No selected group in layer');
+                            //this.parentScene.editor.editor.setModeState(true, 'edit');
                             return;
                         }
 
@@ -133,6 +204,20 @@ class EditorGO extends GO {
                         this.drag.downOn = this.getIndexByRelativePosition(relativePosition);
                     }
 
+                    if(this.model.editor.mode == 'selection' && this.model.editor.selectedLayer && this.model.editor.selectedLayer.selectedGroup){
+                        this.selection.cancel();
+                        this.dots.forEach(d => {
+                            d.setSelected(false);
+                        });
+
+                        SCG.viewport.scrollOptions.enabled = false;
+                        this.selection.start = relativePosition.toInt();
+                        this.selection.go = this.addChild(new GO({
+                            position: new V2(),
+                            size: this.size
+                        }))
+                    }
+
                     //this.drag.downOn = this.getIndexByRelativePosition(relativePosition);
                 },
                 up: function(){
@@ -140,6 +225,16 @@ class EditorGO extends GO {
                     if(this.model.editor.mode == 'edit'){
                         if(d.started && d.downOn.indexChanged){
                             d.downOn.pointModel.changeCallback(d.downOn.index);
+                        }
+                        d.disable();
+                    }
+                    else if(this.model.editor.mode == 'moveselection'){
+                        if(d.started && d.downOn.indexChanged){
+                            this.dots.filter(d => d.selected).forEach(p => {
+                                p.pointModel.changeCallback(p.index, true);
+                            })
+
+                            this.model.editor.selectedLayer.selectedGroup.changeCallback();
                         }
                         d.disable();
                     }
@@ -187,7 +282,19 @@ class EditorGO extends GO {
                         //this.model.editor.panels.colorPicker
                         
                     }
-                    
+                    else if(this.model.editor.mode == 'selection'){
+                        if(this.selection.boxParams){
+                            let selectionBox = new Box(this.selection.boxParams.tl.substract(this.size.divide(2)).toInt(), this.selection.boxParams.size);
+
+                            let inSelection = this.dots.filter(d => new Box(d.position.substract(this.itemSize.divide(2)).toInt(), this.itemSize).isIntersectsWithBox(selectionBox));
+    
+                            inSelection.forEach(dot => dot.setSelected(true, { multiselect: true }))
+                        }
+                        
+
+                        this.removeChild(this.selection.go);
+                        this.selection.cancel();
+                    }
                 },
                 out: function(e) {
                     this.moveEventTriggered = false; 
@@ -241,7 +348,7 @@ class EditorGO extends GO {
                     else if(this.model.editor.mode == 'movelayer'){
                         d.disable();
                     }
-                    else if(this.model.editor.mode == 'movegroup'){
+                    else if(this.model.editor.mode == 'movegroup' || this.model.editor.mode == 'moveselection'){
                         if(d.started && d.downOn.indexChanged){
                             this.dots.forEach(p => {
                                 p.pointModel.changeCallback(p.index, true);
@@ -361,10 +468,16 @@ class EditorGO extends GO {
                     this.model.editor.selectedLayer.selectedGroup = selectedGroup;
 
                     selectedGroup.points.forEach(p => {
+                        let selected = p.selected;
+                        //if(this.parentScene.editor.editor.getModeState().mode == 'moveselection'){
+                        if(this.model.editor.mode == 'moveselection') {
+                            selected = this.selection.move.ids.indexOf(p.id) != -1;
+                        }
+
                         this.dots.push(this.addChild(new Dot({
                             size: this.itemSize,
                             pointModel: p,
-                            selected: p.selected,
+                            selected,
                             index: p.point.clone(),
                             position: new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.point.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.point.y),
                             notSelectedImg: this.notSelectedImg,
@@ -403,6 +516,9 @@ class Dot extends GO {
                         this.parent.drag.downOn.pointModel.selectCallback();
                         this.setSelected(true);
                     }
+                    else if(this.parent.model.editor.mode == 'moveselection'){
+                        this.parent.drag.downOn = this;
+                    }
                 }
             }
         }, options);
@@ -414,14 +530,18 @@ class Dot extends GO {
         }
     }
     init(){
-        this.setSelected(this.selected);
+        this.setSelected(this.selected, {  multiselect: this.parent.model.editor.mode == 'moveselection'});
     }
-    setSelected(selected) {
+    setSelected(selected, params = {multiselect: false }) {
         this.selected = selected;
         if(this.selected){
-            this.parent.childrenGO.filter(c => c.type == 'Dot').forEach(c => c.setSelected(false));
+            if(!params.multiselect){
+                this.parent.childrenGO.filter(c => c.type == 'Dot').forEach(c => c.setSelected(false));
+            }
+            
             this.img = this.selectedImg;
-            this.selectedEffect = this.addEffect(new FadeInOutEffect({effectTime: 500, max: 1, min: 0.5, updateDelay: 50, loop: true, initOnAdd: true}))
+            if(!this.selectedEffect)
+                this.selectedEffect = this.addEffect(new FadeInOutEffect({effectTime: 500, max: 1, min: 0.5, updateDelay: 50, loop: true, initOnAdd: true}))
         }
         else {
             this.img = this.notSelectedImg;

@@ -20,9 +20,9 @@ SCG.main = {
 			var now = new Date;
 
 			let p = SCG.main.performance;
-			if(_as.debug.enabled){
+			// if(_as.debug.enabled){
 				
-			}
+			// }
 
 			let second = now.getSeconds();
 			if(p.currentSecond != second){

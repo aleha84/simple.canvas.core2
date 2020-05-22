@@ -197,6 +197,20 @@ html,
       width: 60px;
     }
 
+    .colorPicker .readOnlyBlock {
+      width: 20px;
+      margin-right: 5px;
+      border: 1px solid black;
+    }
+
+    .colorPicker.row {
+      display: flex;
+    }
+
+    .colorPicker.row input[type='text'] {
+      height: 16px;
+    }
+
     .panel {
       position: absolute;
       z-index: 10000;
@@ -242,6 +256,14 @@ html,
       background: #5e0a6d;
     }
 
+    .panel .content {
+      display: none;
+    }
+
+    .panel .content.visible {
+      display: block;
+    }
+
     .panel.utilities {
       width: auto;
       height:auto;
@@ -253,11 +275,20 @@ html,
       /* height: 30px; */
       height:auto;
       width:200px;
-      display: none;
+      /* display: none; */
     }
 
-    .panel.utilities .content.visible {
-      display: block;
+    .panel.palettes .itemWrapper>.buttonBlock>.addNewItemWrapper>.itemValue {
+      width: 50px;
+    }
+
+    .panel.palettes .itemWrapper>.buttonBlock>.removeButton{
+      background-color: red;
+    }
+
+    .panel.palettes .paletteItem {
+      width: 20px;
+      height: 20px;
     }
 
     .marginLeft5 {
@@ -266,4 +297,84 @@ html,
 
     .paddingLeft2 {
       padding-left: 2px;
+    }
+
+    .notificationsHolder {
+      position: fixed;
+      z-index: 10001;
+      width:10px;
+    }
+
+    .notificationsHolder.topLeft {
+      left: 10px;
+      top: 10px;
+    }
+
+    .notificationsHolder.topCenter {
+      left: calc(50% - 160px);
+      top: 10px;
+    }
+
+    .notificationsHolder.topRight {
+      right: 10px;
+      top: 10px;
+    }
+
+    .notificationsHolder.bottomLeft {
+      left: 10px;
+      bottom: 10px;
+    }
+
+    .notificationsHolder.bottomCenter {
+      left: calc(50% - 160px);
+      bottom: 10px;
+    }
+
+    .notificationsHolder.bottomRight {
+      right: 10px;
+      top: 10px;
+    }
+
+    .notificationsHolder>.notification {
+      background-color: white;
+      min-height: 50px;
+      color: black;
+      padding: 5px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      opacity: 1;
+      transition: padding 250ms, opacity 250ms;
+      border-radius: 3px;
+      display: inline-block;
+      width:150px;
+    }
+
+    .notificationsHolder>.notification:hover {
+      padding: 10px;
+    }
+
+    .notificationsHolder>.notification.beforeRemove {
+      opacity: 0;
+    }
+
+    .notificationsHolder>.notification.done {
+      background-color: #99cc33;
+    }
+
+    .notificationsHolder>.notification.warning {
+      background-color: #ffcc00;
+    }
+
+    .notificationsHolder>.notification.error {
+      background-color: #cc3300;
+    }
+
+    .frames select>option.blink {
+      animation: blinker 0.5s;
+    }
+
+    @keyframes blinker {
+      50% {
+        background-color: blue;
+      }
     }

@@ -707,11 +707,28 @@ var colors = {
         var rgb = hexToRgb(hex, false, true);
         return rgbToHsv(rgb.r, rgb.g, rgb.b);
     },
+    rgbStringToObject({value, asObject = true}){
+        let match = value.match(/rgba?\((\d{1,3}), ?(\d{1,3}), ?(\d{1,3})\)?(?:, ?(\d(?:\.\d*)?)\))?/);
+        let result = undefined; 
+        if(match){
+            result = {
+                red: match[1] ? parseInt(match[1]): undefined,
+                green: match[2] ?parseInt(match[2]) : undefined,
+                blue: match[3] ? parseInt(match[3]) : undefined,
+                opacity: match[4] ? parseFloat(match[4]) : undefined
+              }
+        }
+        if(!asObject){
+            return [result.red,result.green,result.blue,result.opacity]
+        }
+
+        return result;
+    },
     rgbToString({value, isObject = false, opacity = 1}) {
         if(isObject)
-            return `rgba(${value.r}, ${value.g}, ${value.b}, ${opacity})`;
+            return `rgba(${value.r || value.red}, ${value.g || value.green}, ${value.b || value.blue}, ${(value.opacity != undefined ? value.opacity : opacity)})`;
 
-        return `rgba(${value[0]}, ${value[1]}, ${value[2]}, ${opacity})`;
+        return `rgba(${value[0]}, ${value[1]}, ${value[2]}, ${(value[3]!= undefined ? value[3] : opacity)})`;
     },
     toHsv({initialValue, isRgb = false, resultAsArray = false, asInt = false}){
         let rgb = undefined;

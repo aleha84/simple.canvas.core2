@@ -1,3 +1,18 @@
+// TODO. Bugs:
+// 2. Current palettes list - stored in json
+// 4. gradient tool, update, add easings support
+// 5. Shift+v - hide just image not layers visibility ?
+// 7. Code refactoring. To different files and subfilders
+// 10. 'c' shortcut for scene color picker
+// 11. Move layer slow moving
+// 13. Import model - dublicate palette if already exists
+// 14. imput - paddings/old value missing
+// 16. Autosave model in localstorage
+// 17. Move\copy group to layer
+
+
+
+
 class Editor {
     constructor(options = {}){
         assignDeep(this, {
@@ -49,6 +64,10 @@ class Editor {
                                 text = '"Color pick" mode'; break;
                             case 'rotate':
                                 text = '"Rotate" mode'; break;
+                            case 'selection':
+                                text = '"Selection" mode'; break;
+                            case 'moveselection':
+                                text = '"Move selection" mode'; break;
                         }
                         
                         this.stateElement.innerText = text;
@@ -62,11 +81,17 @@ class Editor {
                     toggleMoveLayer() {
                         this.setValue(this.value == 'movelayer' ? 'edit' : 'movelayer');
                     },
+                    toggleMoveSelection() {
+                        this.setValue(this.value == 'moveselection' ? 'edit' : 'moveselection');
+                    },
                     toggleColorPicker() {
                         this.setValue(this.value == 'colorpick' ? 'edit' : 'colorpick');
                     },
                     toggleRotate() {
                         this.setValue(this.value == 'rotate' ? 'edit' : 'rotate');
+                    },
+                    toggleSelection() {
+                        this.setValue(this.value == 'selection' ? 'edit' : 'selection');
                     }
                 },
                 getModeState() {
@@ -95,8 +120,17 @@ class Editor {
                     showGrid: false,
                     renderOptimization: false,
                     animated: false,
+                    animatedProps: {
+                        framesPreview: {
+                            showPrevous: false,
+                            showNext: false,
+                            onlySelectedLayer: false,
+                            onlyGroup: false
+                        }
+                    },
                     element: undefined,
-                    backgroundColor: '#000000'
+                    backgroundColor: '#000000',
+                    palettes: []
                 },
                 main: {
                     element: undefined,
@@ -203,6 +237,29 @@ class Editor {
                             cp.contentItems[0].setValue(value);
                         }
                     }
+                }
+            } }),
+            htmlUtils.createElement('input', { value: 'CShift',  attributes: { type: 'button' }, events: {
+                click: function(){
+                    if(that.editor.panels.cShift){
+                        that.editor.panels.cShift.remove();
+                        return;
+                    }
+
+                    that.editor.panels.cShift = components.createDraggablePanel({
+                        title: 'C shift', 
+                        parent: document.body, 
+                        position: new V2(80,60), 
+                        closable: true,
+                        expandable: false,
+                        contentWidth: 150,
+                        onClose: () => { that.editor.panels.cShift = undefined; },
+                        contentItems: [
+                            components.createCShift()
+                        ]
+                    });
+
+
                 }
             } }),
             htmlUtils.createElement('input', { value: 'Rotate',  attributes: { type: 'button' }, events: {
@@ -341,13 +398,19 @@ class Editor {
                         contentItems: [
                             components.createRotationControl(angleChangeCallback, rotationOrigin, () => {
                                 layer.removeImage();
+                                let callback = () => {  
+                                    //console.log('createRotationControl'); 
+                                    layer.removeImage(); 
+                                    that.updateEditor.call(that); 
+                                };
+                                
                                 let currentPoints = rDemo.getCurrentPoints();
                                 currentPoints.forEach((modifiedPoint,i) => {
                                     //group.points[i].point = p.toPlain();
                                     group.points.filter(targetPoint => targetPoint.id == modifiedPoint.id)[0].point = modifiedPoint.point;
                                 });
 
-                                components.fillPoints(group, that.updateEditor.bind(that))
+                                components.fillPoints(group, callback)
                                 that.updateEditor();
                             })
                         ]
@@ -484,9 +547,13 @@ class Editor {
                     }
                 }),
                 addPointCallback(p) {
-                    let callback = that.updateEditor.bind(that);
+                    let callback = () => {  
+                        //console.log('addPointCallback'); 
+                        layer.removeImage(); 
+                        that.updateEditor.call(that); 
+                    };
                     
-                    layer.removeImage();
+                    //layer.removeImage();
 
                     if(g.currentPointId == undefined){
                         g.currentPointId = 0;
@@ -502,7 +569,9 @@ class Editor {
                         order: g.points.length,
                         point: {x: p.x, y: p.y},
                     })
-                    components.fillPoints(g, that.updateEditor.bind(that))
+
+                    components.fillPoints(g, callback);
+
                     callback();
                 },
                 addPointsCallback(points) {
@@ -511,7 +580,12 @@ class Editor {
 
                     layer.removeImage();
 
-                    let callback = that.updateEditor.bind(that);
+                    let callback = () => {  
+                        //console.log('addPointCallback'); 
+                        layer.removeImage(); 
+                        that.updateEditor.call(that); 
+                    };
+
                     if(g.currentPointId == undefined){
                         g.currentPointId = 0;
                     }
@@ -530,7 +604,7 @@ class Editor {
                         })
                     }
 
-                    components.fillPoints(g, that.updateEditor.bind(that))
+                    components.fillPoints(g, callback)
                     callback();
                 }
             }
@@ -594,7 +668,8 @@ class Editor {
                 showGrid: i.general.showGrid, 
                 renderOptimization: i.general.renderOptimization,
                 animated,
-                backgroundColor:i.general.backgroundColor
+                backgroundColor:i.general.backgroundColor,
+                palettes: i.general.palettes.map(palette => modelUtils.paletteMapper(palette, true))
             },
             main
         }
@@ -646,6 +721,21 @@ class Editor {
         }
         else {
             throw 'importModel -> Wrong model type. '
+        }
+
+        if(image.general.animatedProps == undefined){
+            image.general.animatedProps = {
+                framesPreview: {
+                    showPrevous: false,
+                    showNext: false,
+                    onlySelectedLayer: false,
+                    onlyGroup: false
+                }
+            }
+        }
+
+        if(image.general.palettes == undefined){
+            image.general.palettes = [];
         }
 
         image.general.element = that.image.general.element;
@@ -741,8 +831,8 @@ class Editor {
 
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Export', attributes: { type: 'button' }, events: {
             click: function(){
-                let pretty = true;
-                let clean = false;
+                let pretty = false;
+                let clean = true;
                 that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
                 let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'export'] });
                 let textarea = htmlUtils.createElement('textarea', {
@@ -753,14 +843,34 @@ class Editor {
                     }
                 });
 
-                containerEl.appendChild(components.createCheckBox(true, 'Pretty', (value) => {
+                containerEl.appendChild(components.createCheckBox(pretty, 'Pretty', (value) => {
                     pretty = value;
                     textarea.value = that.exportModel(value, clean);
                 }))
 
-                containerEl.appendChild(components.createCheckBox(false, 'Clean', (value) => {
+                containerEl.appendChild(components.createCheckBox(clean, 'Clean', (value) => {
                     clean = value;
                     textarea.value = that.exportModel(pretty, value);
+                }))
+
+                containerEl.appendChild(components.createButton('Copy', (event) => {
+                    textarea.focus();
+                    textarea.select();
+
+                    try {
+                        var successful = document.execCommand('copy');
+                        if(!successful){
+                            notifications.add({message: 'Export json copying was not successful', type: notifications.types.error, position: notifications.positions.tc})
+                        }
+
+                        //notifications.add({message: 'Export json was successful', type: notifications.types.done, position: notifications.positions.tc, autoHide: 1000})
+                        notifications.done('Export json was successful', 1000);
+                        //alert('Copied' + (successful ? '' : 'NOT') + 'successfully' );
+
+                    } catch (err) {
+                        notifications.add({message: 'Failed to copy to clipboard', type: notifications.types.error, position: notifications.positions.tc})
+                    //alert('Failed to copy to clipboard');
+                    }
                 }))
 
                 containerEl.appendChild(textarea);
@@ -991,6 +1101,7 @@ class Editor {
             general.element.remove();
         }
 
+        paletteHelper.init(this, general.palettes);
         
         let generalEl = htmlUtils.createElement('div', { className: 'general' });
         generalEl.appendChild(components.createV2(general.originalSize, 'Size', this.updateEditor.bind(this)));
@@ -1066,6 +1177,49 @@ class Editor {
                 className: 'frames',
                 items: this.image.main.map((f, i) => ({ title: 'Frame_' + i, value: i, selected: i == general.currentFrameIndex })),
                 noReset: true,
+                buttons: [
+                    {
+                        text: 'Insert before', 
+                        click: () => {
+                            let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }), (k,v) => {
+                                if(k=='layerImage')
+                                    return undefined;
+                                
+                                return v;
+                            });
+
+                            let newItem = that.importModel(currentFrameModel).main;
+                            let index = general.currentFrameIndex;
+
+                            that.image.main.splice(index, 0, newItem);
+                            general.currentFrameIndex++;
+                            commonCallback();
+
+                            notifications.done('New frame inserted at position: ' + index, 1000);
+                            document.querySelectorAll('.frames select>option')[index].classList.add('blink');
+                        }
+                    },
+                    {
+                        text: 'Insert after', 
+                        click: () => {
+                            let currentFrameModel = JSON.stringify(that.prepareModel(undefined, { singleFrame: true }), (k,v) => {
+                                if(k=='layerImage')
+                                    return undefined;
+                                
+                                return v;
+                            });
+
+                            let newItem = that.importModel(currentFrameModel).main;
+                            let index = general.currentFrameIndex+1;
+
+                            that.image.main.splice(index, 0, newItem);
+                            commonCallback();
+
+                            notifications.done('New frame inserted at position: ' + index, 1000);
+                            document.querySelectorAll('.frames select>option')[index].classList.add('blink');
+                        }
+                    }
+                ],
                 callbacks: {
                     select: function(e) {
                         general.currentFrameIndex = parseInt(e.target.value);
@@ -1078,7 +1232,9 @@ class Editor {
                         }
 
                         that.image.main.splice(general.currentFrameIndex, 1)
-                        general.currentFrameIndex = 0;
+                        general.currentFrameIndex = general.currentFrameIndex-1;
+                        if(general.currentFrameIndex < 0)
+                            general.currentFrameIndex = 0
 
                         commonCallback();
                     },
@@ -1116,6 +1272,8 @@ class Editor {
                 },
 
             }))
+
+            mainEl.appendChild(components.framesPreview.create(that));
         }
 
         let layersWrapperEl = htmlUtils.createElement('div', { className: 'layersWrapper' });
@@ -1126,12 +1284,77 @@ class Editor {
             className: 'layers',
             items: main.layers.map(l => {return { title: l.name || l.id, value: l.id, selected: l.id == that.editor.selected.layerId }}),
             maxSize: 5,
+            buttons: [
+                {
+                    text: 'Clone',
+                    click: (select) => {
+                        let { layerId } = components.editor.editor.selected;
+
+                        if(layerId == undefined){
+                            alert('No layers selected!')
+                            return;
+                        }
+
+                        let selectedLayer = main.layers.find(l => l.id == layerId);
+                        if(!selectedLayer){
+                            alert(`Layer ${layerId} not found!`)
+                            return;
+                        }
+
+                        let nextLayerId = `m_${main.currentLayerId++}`;
+                        while(main.layers.filter(g => g.id == nextLayerId).length > 0){
+                            nextLayerId = `m_${main.currentLayerId++}`;
+                        }
+
+                        main.layers.forEach(l => l.selected = false);
+                        
+                        let lCloned = assignDeep(
+                            {},
+                            modelUtils.createDefaultLayer(nextLayerId, main.layers.length),
+                            modelUtils.layerMapper(selectedLayer)
+                        )
+
+                        lCloned.id = nextLayerId;
+                        lCloned.visible = true;
+                        lCloned.order = main.layers.length;
+                        lCloned.name = (selectedLayer.name || selectedLayer.id) + '_cloned';
+                        lCloned.selected = true;
+                        lCloned.removeImage();
+
+                        lCloned.groups = selectedLayer.groups.map(g => assignDeep(
+                            {},
+                            modelUtils.createDefaultGroup(g.id, g.order), 
+                            modelUtils.groupMapper(g, true)));
+
+                        
+                        main.layers.push(lCloned);
+                        select.options[select.options.length] = new Option(lCloned.name, lCloned.id);
+                        select.value = lCloned.id;
+                        
+                        that.editor.selected.layerId = lCloned.id;
+                        that.editor.selected.groupId = undefined;
+                        that.editor.selected.pointId = undefined;
+
+                        select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+                    }
+                }
+            ],
             callbacks: {
                 select: function(e){ 
                     main.layers.forEach(l => l.selected = false);
                     let layer = main.layers.find(l => l.id == e.target.value);
                     layer.selected = true;
+
                     that.editor.selected.layerId = layer.id;
+                    if(e.detail != undefined && e.detail == 'keepSelectedGroup'){
+
+                    }
+                    else {
+                        that.editor.selected.groupId = undefined;
+                        that.editor.selected.pointId = undefined;
+                    }
+                    
+
                     that.editor.setModeState(true, e.detail == 'setModeStateToAdd' ? 'add' : 'edit');
 
                     let selectedOption = undefined;
@@ -1159,6 +1382,8 @@ class Editor {
 
                     that.editor.setMoveGroupModeState(false);
                     that.editor.setMoveLayerModeState(false);
+
+                    that.updateEditor.call(that);
                 },
                 remove(e, select) {
                     if(!confirm('Remove layer?'))
@@ -1171,7 +1396,11 @@ class Editor {
                         select.options[select.options.length] = new Option(l.name || l.id, l.id);
                     }
                     select.value = undefined;
+                    
                     that.editor.selected.layerId = undefined;
+                    that.editor.selected.groupId = undefined;
+                    that.editor.selected.pointId = undefined;
+
                     components.createLayer(layerEl, undefined, that.updateEditor.bind(that)) 
                     that.editor.setModeState(false, 'edit');
                 },
@@ -1213,8 +1442,12 @@ class Editor {
                     main.layers.push(layer);
                     select.options[select.options.length] = new Option(layer.id, layer.id);
                     select.value = layer.id;
+                    
                     that.editor.selected.layerId = layer.id;
-                    select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+                    that.editor.selected.groupId = undefined;
+                    that.editor.selected.pointId = undefined;
+
+                    select.dispatchEvent(new CustomEvent('change'));
                     //that.editor.setModeState(true, 'add');
                 },
                 changeCallback: that.updateEditor.bind(that)
@@ -1241,7 +1474,13 @@ class Editor {
         if(that.editor.selected.layerId){
             let selectedLayer = main.layers.filter(l => l.id == that.editor.selected.layerId);
             if(selectedLayer && selectedLayer.length > 0){
-                document.querySelector('.layers select').dispatchEvent(new CustomEvent('change'));
+                let eventParams = undefined;
+                if(params.setFocusToFrames){
+                    eventParams = {
+                        detail: 'keepSelectedGroup'
+                    }
+                }
+                document.querySelector('.layers select').dispatchEvent(new CustomEvent('change', eventParams));
             }
         }
     }

@@ -16,6 +16,82 @@
 	// 	"description": "Log output to console"
 	// }
 
+	"recordingRedRectangle": {
+		"scope": "javascript",
+		"prefix": "redRectangle",
+		"description": "Добавление моргающего красного прямоугольника при итерации через кадры",
+		"body": [
+			"if(!this.redFrame){",
+			"\tthis.redFrame = this.addChild(new GO({",
+			"\t\tposition: new V2(),",
+			"\t\tsize: this.size,",
+			"\t\timg: createCanvas(this.size, (ctx, size, hlp) => {",
+			"\t\t\thlp.setFillColor('red').rect(0,0, 50,50)",
+			"\t\t})",
+			"\t}));",
+			"}",
+			"else {",
+			"\tthis.removeChild(this.redFrame);",
+			"\tthis.redFrame = undefined;",
+			"}"
+		]
+	},
+
+	"useFrames": {
+		"scope": "javascript",
+		"prefix": "useFrames",
+		"description": "Create common frames iteration usage",
+		"body": [
+			"this.currentFrame = 0;",
+			"this.img = this.frames[this.currentFrame];",
+			"",
+			"this.timer = this.regTimerDefault(15, () => {",
+			"",
+			"\tthis.img = this.frames[this.currentFrame];",
+			"\tthis.currentFrame++;",
+			"\tif(this.currentFrame == this.frames.length){",
+			"\t\tthis.currentFrame = 0;",
+			"\t}",
+			"})"
+		]
+	},
+
+	"createFrames": {
+		"scope": "javascript",
+		"prefix": "createFrames",
+		"description": "Create common frames preparer structure",
+		"body": [
+			"create${1:name}Frames({framesCount, itemsCount, size}) {",
+			"\tlet frames = [];",
+			"\t",
+			"\tlet itemsData = new Array(itemsCount).fill().map((el, i) => {",
+			"\t\treturn {",
+			"\t\t\t// other values",
+			"\t\t\tinitialIndex: getRandomInt(0, framesCount-1)",
+			"\t\t}",
+			"\t})",
+			"\t",
+			"\tfor(let f = 0; f < framesCount; f++){",
+			"\t\tframes[f] = createCanvas(size, (ctx, size, hlp) => {",
+			"\t\t\tfor(let p = 0; p < itemsCount; p++){",
+			"\t\t\t\tlet pointData = itemsData[p];",
+			"\t\t\t\t",
+			"\t\t\t\tlet currentIndex = pointData.initialIndex + f;",
+			"\t\t\t\tif(currentIndex > (framesCount-1)){",
+			"\t\t\t\t\tcurrentIndex-=framesCount;",
+			"\t\t\t\t}",
+			"\t\t\t\t",
+			"\t\t\t}",
+			"\t\t});",
+			"\t}",
+			"\t",
+			"\treturn frames;",
+			"}"		
+		]
+	},
+	
+
+
 	"AddGo": {
 		"scope": "javascript",
 		"prefix": "addgo",

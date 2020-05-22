@@ -83,5 +83,33 @@ var modelUtils = {
             showPoints: false,
             points: []
         }
+    },
+    createDefaultPalette(paletteIndex) {
+        return {
+            name: "Palette" + (paletteIndex != undefined ? paletteIndex : getRandomInt(1000, 2000)),
+            items: []
+        }
+    },
+    createDefaultPaletteItem(initialColor = '#FFFFFF') {
+        return {
+            color: initialColor
+        }
+    },
+    paletteMapper(palette, deep = true) {
+        if(!palette)
+            return modelUtils.createDefaultPalette();
+
+        return {
+            name: palette.name,
+            items: deep ? palette.items.map(modelUtils.paletteItemMapper) : []
+        }
+    },
+    paletteItemMapper(paletteItem) {
+        if(!paletteItem)
+            modelUtils.createDefaultPaletteItem();
+
+        return {
+            color: paletteItem.color
+        };
     }
 }
