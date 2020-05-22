@@ -2,7 +2,7 @@ class Demo10TrainScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -137,7 +137,7 @@ class Demo10TrainScene extends Scene {
                 
                 let itemsData = dots.map((dot, i) => {
                     let startFrameIndex = getRandomInt(0, framesCount-1);
-                    let totalFrames = getRandomInt(fast.r(framesCount/4), fast.r(framesCount/2));
+                    let totalFrames = getRandomInt(fast.r(framesCount/20), fast.r(framesCount/10));
 
                     let frames = [];
                     for(let f = 0; f < totalFrames; f++){
@@ -177,7 +177,7 @@ class Demo10TrainScene extends Scene {
                     group.points.forEach(point => {
                         dots[dots.length] = {
                             p: point.point,
-                            color: point.color
+                            color: group.strokeColor
                         };
                     });
                 });
@@ -192,6 +192,20 @@ class Demo10TrainScene extends Scene {
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
+                        if(!this.redFrame){
+                            this.redFrame = this.addChild(new GO({
+                                position: new V2(),
+                                size: this.size,
+                                img: createCanvas(this.size, (ctx, size, hlp) => {
+                                    hlp.setFillColor('red').rect(0,0, 50,50)
+                                })
+                            }));
+                        }
+                        else {
+                            this.removeChild(this.redFrame);
+                            this.redFrame = undefined;
+                        }
+
                         this.currentFrame = 0;
                     }
                 })
@@ -203,6 +217,15 @@ class Demo10TrainScene extends Scene {
             size: this.viewport,
             frames: PP.createImage(Demo10TrainScene.models.passangersFrames),
             init() {
+                this.frames = this.frames.map(frame => {
+                    return createCanvas(this.size, (ctx, size, hlp) => {
+                        ctx.drawImage(frame, 0,0);
+                        ctx.globalCompositeOperation = 'source-atop';
+                        hlp.setFillColor('rgba(0,0,0,0.2)');
+                        hlp.rect(0,0,size.x, size.y);
+                    })
+                })
+
                 let animationDelay = 200;
                 let currentAnimationDelay = 0;
                 let framesChangeDelay = 10;
@@ -412,6 +435,7 @@ class Demo10TrainScene extends Scene {
             },
             init() {
                 let renderFrontal = true;
+                let renderBehindTrain = true;
                 let renderBeforeTrainPartivle = true;
                 let renderBeforeTrainPartivle2 = true;
                 let renderBeforeTrainPartivle3 = true;
@@ -422,10 +446,11 @@ class Demo10TrainScene extends Scene {
                 let renderLampParticles3 = true;
                 let renderLampParticles4 = true;
 
-                let noParticles = true;
+                let noParticles = false;
 
                 if(noParticles){
-                    renderFrontal = false
+                    renderFrontal = false;
+                    renderBehindTrain = false;
                      renderBeforeTrainPartivle = false;
                      renderBeforeTrainPartivle2 = false;
                      renderBeforeTrainPartivle3 = false;
@@ -436,6 +461,8 @@ class Demo10TrainScene extends Scene {
                      renderLampParticles3 = false;
                      renderLampParticles4 = false;
                 }
+
+                
 
                 let setter = (dot, aValue) => {
                     if(!dot.values){
@@ -496,6 +523,54 @@ class Demo10TrainScene extends Scene {
 
                 let secondaryLampDots2 = this.parentScene.createRadialGradient({size: this.size, center: new V2(78,95), radius: new V2(15,15), 
                     gradientOrigin: new V2(84,95), angle: -5, setter: setterMul});
+
+                if(renderBehindTrain){
+                    let bgMask = this.parentScene.createRadialGradient({size: this.size, center: new V2(70,55), radius: new V2(100,100), 
+                        gradientOrigin: new V2(70,55), angle: 0, setter: setter});
+                    this.flakesBehindTrain = this.parentScene.addGo(new GO({
+                        position:this.parentScene.sceneCenter.add(new V2(25,0)),size: this.parentScene.viewport,
+                        frames:  this.createParticlesFrames({framesCount:400, itemsCount: 1500, size: this.size, itemFramesLengthClamps: [250,300], 
+                            angleClamps: [10,20], color: 'rgba(75,75,75,0)', length: 1, yClamps: [-50, 120],  xClamps: [0, 130],
+                            masks: [{ dots: bgMask, color: 'rgba(255,255,255,0.4)' }] }),
+                        init() {
+                            this.currentFrame = 0; this.img = this.frames[this.currentFrame];
+                            this.timer = this.regTimerDefault(15, () => {
+                                this.img = this.frames[this.currentFrame]; this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){ this.currentFrame = 0; }
+                            })
+                        }
+                    }),2)  
+                //     this.parentScene.addGo(new GO({
+                //         position:this.parentScene.sceneCenter,
+                //         size: this.parentScene.viewport,
+                //     //     this.debugEllipsis = this.addChild(new GO({
+                //     // position:new V2(),
+                //     // size: this.size,
+                //     init() {
+                //         this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                //     for(let y = 0; y < bgMask.length; y++){
+                //         if(!bgMask[y])
+                //             continue;
+                        
+                //         for(let x = 0; x < bgMask[y].length; x++){
+                //             if(!bgMask[y][x])
+                //                 continue;
+
+                //             let values = bgMask[y][x].values;
+                //             let value = 0;
+                //             for(let i = 0; i < values.length;i++){
+                //                 value+=values[i];
+                //             }
+    
+                //             value/=values.length;
+    
+                //             hlp.setFillColor(`rgba(255,255,255, ${value})`).dot(x, y);//fast.r(value,2)/2
+                //         }
+                //     }
+                // })
+                //     }
+                // }), 2)
+                }
 
                 if(renderLampParticles1) {
                     let mask1 = this.parentScene.createRadialGradient({size: this.size, center: new V2(141,91), radius: new V2(12,6), 
@@ -593,33 +668,7 @@ class Demo10TrainScene extends Scene {
                             })
                         }
                     }))
-// this.debugEllipsis = this.addChild(new GO({
-//                     position:new V2(),
-//                     size: this.size,
-//                     init() {
-//                         this.img = createCanvas(this.size, (ctx, size, hlp) => {
-//                     for(let y = 0; y < mask5.length; y++){
-//                         if(!mask5[y])
-//                             continue;
-                        
-//                         for(let x = 0; x < mask5[y].length; x++){
-//                             if(!mask5[y][x])
-//                                 continue;
 
-//                             let values = mask5[y][x].values;
-//                             let value = 0;
-//                             for(let i = 0; i < values.length;i++){
-//                                 value+=values[i];
-//                             }
-    
-//                             value/=values.length;
-    
-//                             hlp.setFillColor(`rgba(234,220,140, ${value})`).dot(x, y);//fast.r(value,2)/2
-//                         }
-//                     }
-//                 })
-//                     }
-//                 }))
 
                     this.BeforeTrainParticles = this.addChild(new GO({
                         position: new V2(0,0),
@@ -735,11 +784,14 @@ class Demo10TrainScene extends Scene {
 
                 if(renderFrontal)
                 {
+                    let maskFrontal = this.parentScene.createRadialGradient({size: this.size, center: new V2(this.size.x, 0), radius: new V2(100,60), 
+                        gradientOrigin: new V2(this.size.x, 0), angle: 0, setter: setterMul2});
+
                     this.frontalpraticles = this.addChild(new GO({
                         position: new V2(),
                         size: this.size, 
                         frames:  this.createParticlesFrames({framesCount:100, itemsCount: 500, size: this.size, itemFramesLengthClamps: [75,75], 
-                            angleClamps: [21,28], color: 'rgba(85,85,85,0.85)', length: 6, cubic: 2/3 }),
+                            angleClamps: [21,28], color: 'rgba(85,85,85,0.85)', length: 6, cubic: 2/3, masks: [{ dots: maskFrontal, color: 'rgba(255,255,255,1)' }] }),
                         init() {
                             this.currentFrame = 0;
                             this.img = this.frames[this.currentFrame];
