@@ -108,6 +108,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(200,150)
     }));
 
+    SCG.scenes.cacheScene(new Demo10Loading2Scene({
+        name:'loading2',
+        viewport: new V2(100,40)
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
