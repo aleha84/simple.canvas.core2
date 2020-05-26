@@ -280,25 +280,25 @@ class Demo10Loading2Scene extends Scene {
                             if(this.currentFrame == this.frames.length){
                                 this.currentFrame = 0;
 
-                                rfc--;
+                                // rfc--;
 
-                                if(rfc == 0){
-                                    rfc = 4;
+                                // if(rfc == 0){
+                                //     rfc = 4;
 
-                                    if(!this.redFrame){
-                                        this.redFrame = this.addChild(new GO({
-                                            position: new V2(),
-                                            size: this.size,
-                                            img: createCanvas(this.size, (ctx, size, hlp) => {
-                                                hlp.setFillColor('red').rect(0,0, 50,50)
-                                            })
-                                        }));
-                                    }
-                                    else {
-                                        this.removeChild(this.redFrame);
-                                        this.redFrame = undefined;
-                                    }
-                                }
+                                //     if(!this.redFrame){
+                                //         this.redFrame = this.addChild(new GO({
+                                //             position: new V2(),
+                                //             size: this.size,
+                                //             img: createCanvas(this.size, (ctx, size, hlp) => {
+                                //                 hlp.setFillColor('red').rect(0,0, 50,50)
+                                //             })
+                                //         }));
+                                //     }
+                                //     else {
+                                //         this.removeChild(this.redFrame);
+                                //         this.redFrame = undefined;
+                                //     }
+                                // }
                             }
                         })
                     }

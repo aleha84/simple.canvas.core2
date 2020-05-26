@@ -192,19 +192,19 @@ class Demo10TrainScene extends Scene {
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
-                        if(!this.redFrame){
-                            this.redFrame = this.addChild(new GO({
-                                position: new V2(),
-                                size: this.size,
-                                img: createCanvas(this.size, (ctx, size, hlp) => {
-                                    hlp.setFillColor('red').rect(0,0, 50,50)
-                                })
-                            }));
-                        }
-                        else {
-                            this.removeChild(this.redFrame);
-                            this.redFrame = undefined;
-                        }
+                        // if(!this.redFrame){
+                        //     this.redFrame = this.addChild(new GO({
+                        //         position: new V2(),
+                        //         size: this.size,
+                        //         img: createCanvas(this.size, (ctx, size, hlp) => {
+                        //             hlp.setFillColor('red').rect(0,0, 50,50)
+                        //         })
+                        //     }));
+                        // }
+                        // else {
+                        //     this.removeChild(this.redFrame);
+                        //     this.redFrame = undefined;
+                        // }
 
                         this.currentFrame = 0;
                     }

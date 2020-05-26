@@ -113,6 +113,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(100,40)
     }));
 
+    SCG.scenes.cacheScene(new Demo10SailorsScene({
+        name:'sailors',
+        viewport: new V2(150,150)
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
