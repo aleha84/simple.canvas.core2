@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let _200_250_viewport = new V2(200,250);
     let small200_300_Viewport = new V2(200, 300);
     let small300_200_Viewport = new V2(300, 200);
+    let square150_viewport = new V2(150,150);
     
     
 
@@ -117,6 +118,11 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'sailors',
         viewport: new V2(150,150)
     }));
+
+    SCG.scenes.cacheScene(new Demo10DriveScene({
+        name: 'drive',
+        viewport: square150_viewport
+    }))
 
     sceneSelectByHashValue();
     
