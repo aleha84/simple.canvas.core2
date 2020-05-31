@@ -192,13 +192,33 @@ class Demo10DriveScene extends Scene {
                     {framesCount: 400, framesPerModel: 400, 
                         modelsData: [
                             {
+                                model: Demo10DriveScene.models.buildings.b5,
+                                initialFrame: 50,
+                            },
+                            {
                                 model: Demo10DriveScene.models.buildings.b4,
                                 initialFrame: 100,
                             },
                             {
+                                model: Demo10DriveScene.models.buildings.b6,
+                                initialFrame: 175,
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b5,
+                                initialFrame: 250,
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b6,
+                                initialFrame: 275,
+                            },
+                            {
                                 model: Demo10DriveScene.models.buildings.b4,
                                 initialFrame: 300,
-                            }
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b6,
+                                initialFrame: 350,
+                            },
                         ], 
                         size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-50) })
 
@@ -224,8 +244,17 @@ class Demo10DriveScene extends Scene {
                     {framesCount: 300, framesPerModel: 300, 
                         modelsData: [
                             {
+                                model: Demo10DriveScene.models.buildings.b7,
+                                initialFrame: 25,
+                            },
+                            {
                                 model: Demo10DriveScene.models.buildings.b3,
                                 initialFrame: 100,
+                                
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b7,
+                                initialFrame: 150,
                             },
                             {
                                 model: Demo10DriveScene.models.buildings.b3,
@@ -248,7 +277,7 @@ class Demo10DriveScene extends Scene {
             }
         }), 4)
 
-        this.addGo(new GO({
+        this.addGo(new GO({ // забор
             position: this.sceneCenter,
             size: this.viewport,
             init() {
@@ -276,7 +305,7 @@ class Demo10DriveScene extends Scene {
             }
         }), 6)
 
-        this.addGo(new GO({
+        this.addGo(new GO({ //фонари
             position: this.sceneCenter,
             size: this.viewport,
             init() {
