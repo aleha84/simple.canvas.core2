@@ -14,9 +14,11 @@ class Demo10DriveScene extends Scene {
         this.backgroundRenderDefault();
     }
 
-    createSwipeFrames({framesCount, swipeFramesLength, center, r1, r2, angleClamps = [], itemsCount, size}) {
+    createSwipeFrames({framesCount, swipeFramesLength, swipers, itemsCount, size}) {
 
         //itemsCount = 0;
+
+        //center, r1, r2, angleClamps = []
 
         let initLinePoints = [];
         let sharedPP = undefined;
@@ -25,30 +27,53 @@ class Demo10DriveScene extends Scene {
             initLinePoints = sharedPP.lineV2(new V2(38,95), new V2(1,14));
         })
 
+        let mask = createCanvas(size, (ctx, size, hlp) => {
+            hlp.setFillColor('rgba(255,255,255,0.1)').rect(0,0,size.x, 14);
+            distinct(initLinePoints, p => p.x + '_' + p.y).forEach(pi => {
+                for(let x = pi.x; x < size.x; x++){
+                    let p = new V2(x,pi.y);
+                    let canSet = true;
+                    swipers.forEach(s => {
+                        let distance = s.center.distance(p);
+                        canSet &= x-pi.x < 6  || distance < s.r1 || distance > (s.r2+2)
+                        // if(x-pi.x < 6  || distance < r1 || distance > (r2+2)){
+                        
+                        // }
+                    })
+                    
+                    
+                    if(canSet)
+                        hlp.dot(x, pi.y);
+                }
+            })
 
+        })
 
-        let dropsDirection = V2.up.rotate(-20);
+        let dropsDirection = new V2();//V2.up.rotate(-20);
+        let dropColor = colors.rgbStringToObject({value: 'rgba(255,255,255,1)', asObject: true})
 
         let frames = [];
         
         let swipeOneDirectionFramesLength = fast.r(swipeFramesLength/2);
         let swipeStartFrameIndex = fast.r((framesCount/2) - swipeOneDirectionFramesLength);
-        let angleChangeValues1 = easing.fast({from: angleClamps[0], to: angleClamps[1], steps: swipeOneDirectionFramesLength, type:'linear', method:'base'});
-        let angleChangeValues2 = easing.fast({from: angleClamps[1], to: angleClamps[0], steps: swipeOneDirectionFramesLength, type:'linear', method:'base'});
+        // let angleChangeValues1 = easing.fast({from: angleClamps[0], to: angleClamps[1], steps: swipeOneDirectionFramesLength, type:'linear', method:'base'});
+        // let angleChangeValues2 = easing.fast({from: angleClamps[1], to: angleClamps[0], steps: swipeOneDirectionFramesLength, type:'linear', method:'base'});
 
-        let angleChangeValues = [...easing.fast({from: angleClamps[0], to: angleClamps[1], steps: swipeOneDirectionFramesLength, type:'linear', method:'base'}),
-                                 ...easing.fast({from: angleClamps[1], to: angleClamps[0], steps: swipeOneDirectionFramesLength, type:'linear', method:'base'})];
-
+        swipers.forEach((s,i) => {
+            s.angleChangeValues = [...easing.fast({from: s.angleClamps[0], to: s.angleClamps[1], steps: swipeOneDirectionFramesLength, type:'linear', method:'base'}),
+            ...easing.fast({from: s.angleClamps[1], to: s.angleClamps[0], steps: swipeOneDirectionFramesLength, type:'linear', method:'base'})];
+        })
+                                
         let itemsData = new Array(itemsCount).fill().map((el, i) => {
             let startFrameIndex = getRandomInt(0, framesCount-1);
-            let totalFrames = 200;
-
+            let totalFrames = fast.r(framesCount/4 + getRandomInt(-framesCount/20, framesCount/20)) //200;
+            let opacity = fast.r(getRandom(0.1,0.25),2);
             let initLinePoint = initLinePoints[getRandomInt(0, initLinePoints.length-1)];
             let y = initLinePoint.y;
             let x = getRandomInt(initLinePoint.x, size.x+20);
             let startP = new V2(x,y);
-            let dotsPositions = sharedPP.lineV2(startP, startP.add(dropsDirection.mul(90)));
-            let indexChangeValues = easing.fast({from: 0, to: dotsPositions.length-1, steps: totalFrames, type: 'quad', method: 'in'}).map(v => fast.r(v));
+            //let dotsPositions = sharedPP.lineV2(startP, startP.add(dropsDirection.mul(90)));
+            //let indexChangeValues = easing.fast({from: 0, to: dotsPositions.length-1, steps: totalFrames, type: 'quad', method: 'in'}).map(v => fast.r(v));
 
             let frames = [];
             for(let f = 0; f < totalFrames; f++){
@@ -57,18 +82,19 @@ class Demo10DriveScene extends Scene {
                     frameIndex-=framesCount;
                 }
 
-                let p = new V2(dotsPositions[indexChangeValues[f]]);
-                let dir = center.direction(p);
+                let p = startP//new V2(dotsPositions[indexChangeValues[f]]);
+                let dirs = swipers.map(s => s.center.direction(p));
                 frames[frameIndex] = { 
                     p,
-                    r: center.distance(p),
-                    dir,
-                    angle: V2.right.angleTo(dir)
+                    rs: swipers.map(s => s.center.distance(p)),//center.distance(p),
+                    dirs,
+                    angles: dirs.map(dir => V2.right.angleTo(dir))
                  };
             }
 
             return {
                 alive: true,
+                opacity,
                 frames,
             }
         })
@@ -84,43 +110,45 @@ class Demo10DriveScene extends Scene {
         //     frames: new Array(framesCount).fill().map((el, i) => (testDot))
         // })
 
-        let prevAngle = undefined;
+        let prevAngles = new Array(swipers.length).fill();
         for(let f = 0; f < framesCount; f++){
             frames[f] = createCanvas(size, (ctx, size, hlp) => {
-
+                ctx.drawImage(mask, 0,0);
 
                 if(f>= swipeStartFrameIndex && f <= swipeStartFrameIndex+swipeFramesLength){
-                    let angle = angleChangeValues[f-swipeStartFrameIndex];
-                    if(angle == undefined){
-                        angle = angleClamps[0];
-                    }
-
-                    ///hlp.setFillColor('#0A0F15');
-                    let d1 = V2.right.rotate(angle);
-                    let p1 = center.add(d1.mul(r1)).toInt();
-                    let p2 = center.add(d1.mul(r2)).toInt();
-                    let pp = new PP({ctx});
-                    pp.setFillStyle('#0A0F15');
-                    pp.lineV2(p1, p2);
+                    swipers.forEach((s,i) => {
+                        let angle = s.angleChangeValues[f-swipeStartFrameIndex];
+                        if(angle == undefined){
+                            angle = s.angleClamps[0];
+                        }
+    
+                        ///hlp.setFillColor('#0A0F15');
+                        let d1 = V2.right.rotate(angle);
+                        let p1 = s.center.add(d1.mul(s.r1)).toInt();
+                        let p2 = s.center.add(d1.mul(s.r2)).toInt();
+                        let pp = new PP({ctx});
+                        pp.setFillStyle('#0A0F15');
+                        pp.lineV2(p1, p2);
+                        
+                        if(prevAngles[i]){
+                            itemsData.filter(itemData => itemData.frames[f] && isBetween(itemData.frames[f].rs[i],s.r1,s.r2) && isBetween(itemData.frames[f].angles[i], prevAngles[i], angle))
+                                .forEach(itemData => {itemData.alive = false; console.log('removed')});
+                        }
+                        
+                        prevAngles[i] = angle;
+                    })
                     
-                    if(prevAngle){
-                        itemsData.filter(itemData => itemData.frames[f] && isBetween(itemData.frames[f].r,r1,r2) && isBetween(itemData.frames[f].angle, prevAngle, angle))
-                            .forEach(itemData => {itemData.alive = false; console.log('removed')});
-                    }
-                    
-                    prevAngle = angle;
                 }
                 else {
-                    prevAngle = undefined;
+                    prevAngles = new Array(swipers.length).fill();
                 }
 
                 for(let p = 0; p < itemsData.length; p++){
                     let itemData = itemsData[p];
                     
                     if(itemData.alive && itemData.frames[f]){
-                        hlp.setFillColor('rgba(255,255,255,0.25)').dot(itemData.frames[f].p.x, itemData.frames[f].p.y)
+                        hlp.setFillColor(colors.rgbToString({value: [dropColor.red, dropColor.green, dropColor.blue, itemData.opacity]})).dot(itemData.frames[f].p.x, itemData.frames[f].p.y)
                     }
-                    
                 }
 
             });
@@ -285,8 +313,9 @@ class Demo10DriveScene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             frames: this.createSwipeFrames({
-                framesCount: 400, swipeFramesLength: 70, center: new V2(45,90), r1: 15, r2: 70, 
-                angleClamps: [0, -115], itemsCount: 500, size: this.viewport}),
+                framesCount: 400, swipeFramesLength: 70, 
+                swipers: [{center: new V2(45,90),r1: 15, r2: 70, angleClamps: [0, -115]}] //100, 91
+                , itemsCount: 2000, size: this.viewport}),
             init() {
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
@@ -321,7 +350,7 @@ class Demo10DriveScene extends Scene {
             img: PP.createImage(Demo10DriveScene.models.road)
         }),5)
 
-        //return;
+        return;
 
         this.addGo(new GO({
             position: this.sceneCenter,
