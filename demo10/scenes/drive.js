@@ -314,7 +314,9 @@ class Demo10DriveScene extends Scene {
             size: this.viewport.clone(),
             frames: this.createSwipeFrames({
                 framesCount: 400, swipeFramesLength: 70, 
-                swipers: [{center: new V2(45,90),r1: 15, r2: 70, angleClamps: [0, -115]}] //100, 91
+                swipers: [
+                    {center: new V2(45,90),r1: 15, r2: 70, angleClamps: [0, -115]},
+                    {center: new V2(100,91),r1: 15, r2: 70, angleClamps: [0, -115]}] //100, 91
                 , itemsCount: 2000, size: this.viewport}),
             init() {
                 this.currentFrame = 0;
