@@ -61,9 +61,10 @@ class EditorGO extends GO {
                             SCG.viewport.scrollOptions.enabled = false;
                             if(!d.downOn.index.equal(index)){
 
-                                let direction = d.downOn.index.direction(index).toInt();
+                                let direction = d.downOn.index.direction(index)//.toInt();
+                                let distance = d.downOn.index.distance(index);
                                 this.dots.filter(d => d.selected).forEach(p => {
-                                    p.index.add(direction, true);
+                                    p.index.add(direction.mul(distance).toInt(), true);
                                     p.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.index.y)
                                     p.needRecalcRenderProperties = true;
                                 })

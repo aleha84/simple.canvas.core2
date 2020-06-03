@@ -91,5 +91,38 @@ class Hageray_coScene extends Scene {
                 this.img = this.frames[0];
             }
         }), 3)
+
+        this.coffeBag = this.addGo(new GO({
+            position: new V2(25, 75),
+            size: new V2(90,60),
+            img:  PP.createImage(Hageray_coScene.models.coffeBag)
+        }), 4)
+
+        this.coffeBeans = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            img:  PP.createImage(Hageray_coScene.models.coffeBeans)
+        }), 2)
+
+        let beansImgs = {
+            bean1: PP.createImage(Hageray_coScene.models.bean1),
+            bean2: PP.createImage(Hageray_coScene.models.bean2),
+            bean3: PP.createImage(Hageray_coScene.models.bean3),
+            bean4: PP.createImage(Hageray_coScene.models.bean4)
+        }
+        let beans = [
+            {p: new V2(138,93), img:beansImgs.bean1 },
+            {p: new V2(117,86), img:beansImgs.bean1 },
+            {p: new V2(101,94), img:beansImgs.bean2 },
+            {p: new V2(105,87), img:beansImgs.bean3 },
+            {p: new V2(63,95), img:beansImgs.bean3 },
+            {p: new V2(120,93), img:beansImgs.bean4 }
+        ]
+
+        this.beans = beans.map(bean => this.addGo(new GO({
+            position: bean.p,
+            size: new V2(6,6),
+            img:  bean.img
+        }), 2))
     }
 }

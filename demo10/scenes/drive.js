@@ -352,9 +352,58 @@ class Demo10DriveScene extends Scene {
             img: PP.createImage(Demo10DriveScene.models.road)
         }),5)
 
-        return;
+        //return;
 
-        this.addGo(new GO({
+        this.addGo(new GO({ // 2-ой ряд
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                this.frames = this.parentScene.createBuildingsFrames(
+                    {framesCount: 600, framesPerModel: 600, 
+                        modelsData: [
+                            {
+                                model: Demo10DriveScene.models.buildings.b9,
+                                initialFrame: 50,
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b9,
+                                initialFrame: 150,
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b9,
+                                initialFrame: 250,
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b9,
+                                initialFrame: 350,
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b9,
+                                initialFrame: 450,
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b9,
+                                initialFrame: 550,
+                            },
+                            
+                        ], 
+                        size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-60) })
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(15, () => {
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 2)
+
+        this.addGo(new GO({ // 2-ой ряд
             position: this.sceneCenter,
             size: this.viewport,
             init() {
@@ -406,7 +455,7 @@ class Demo10DriveScene extends Scene {
             }
         }), 3)
 
-        this.addGo(new GO({
+        this.addGo(new GO({ // первый ряд
             position: this.sceneCenter,
             size: this.viewport,
             init() {
@@ -418,9 +467,18 @@ class Demo10DriveScene extends Scene {
                                 initialFrame: 25,
                             },
                             {
+                                model: Demo10DriveScene.models.buildings.b8,
+                                initialFrame: 50,
+                            },
+
+                            {
                                 model: Demo10DriveScene.models.buildings.b3,
                                 initialFrame: 100,
                                 
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b8,
+                                initialFrame: 120,
                             },
                             {
                                 model: Demo10DriveScene.models.buildings.b7,
@@ -429,7 +487,12 @@ class Demo10DriveScene extends Scene {
                             {
                                 model: Demo10DriveScene.models.buildings.b3,
                                 initialFrame: 200,
+                            },
+                            {
+                                model: Demo10DriveScene.models.buildings.b8,
+                                initialFrame: 275,
                             }
+
                         ], 
                         size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-160) })
 
