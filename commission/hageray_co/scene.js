@@ -2,7 +2,7 @@ class Hageray_coScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -61,6 +61,7 @@ class Hageray_coScene extends Scene {
                         })
                     },
                     function(){
+                        //scene.redFrames.isVisible = !scene.redFrames.isVisible;
                         this.startSequence();
                     }
                 ]
@@ -160,5 +161,14 @@ class Hageray_coScene extends Scene {
             size: new V2(6,6),
             img:  bean.img
         }), 2))
+
+        this.redFrames = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            isVisible: false,
+            img: createCanvas(this.viewport, (ctx, size, hlp) => {
+                hlp.setFillColor('red').rect(0,0,50,50)
+            })
+        }), 10)
     }
 }
