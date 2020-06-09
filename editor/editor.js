@@ -69,6 +69,8 @@ class Editor {
                                 text = '"Selection" mode'; break;
                             case 'moveselection':
                                 text = '"Move selection" mode'; break;
+                            case 'removement':
+                                text = '"Removement" mode'; break;
                         }
                         
                         this.stateElement.innerText = text;
@@ -93,6 +95,9 @@ class Editor {
                     },
                     toggleSelection() {
                         this.setValue(this.value == 'selection' ? 'edit' : 'selection');
+                    },
+                    toggleRemovement() {
+                        this.setValue(this.value == 'removement' ? 'edit' : 'removement');
                     }
                 },
                 getModeState() {

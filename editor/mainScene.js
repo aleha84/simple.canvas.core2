@@ -37,6 +37,11 @@ class EditorScene extends Scene {
                     }
 
                     if(event.keyCode == 82) { // 'r'
+                        if(event.shiftKey){
+                            edt.mode.toggleRemovement();
+                            this.editor.updateEditor();
+                            return;
+                        }
                         if(edt.getModeState().mode == 'selection'){
                             let pointsIds = this.mainGo.childrenGO.filter(c => c.type == 'Dot' && c.selected).map(p => p.pointModel.id);
                             

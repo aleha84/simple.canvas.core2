@@ -34,6 +34,12 @@ class EditorGO extends GO {
             },
             handlers: {
                 move:function (relativePosition) {
+                    // if(this.model.editor.mode == 'removement'){
+                    //     console.log('return from move')
+                    //     return;
+                    // }
+                        
+
                     relativePosition = relativePosition.add(SCG.viewport.shift);
                     this.moveEventTriggered = true;
                     this.model.editor.index = new V2(
@@ -53,6 +59,11 @@ class EditorGO extends GO {
                                 d.downOn.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*index.y);
                                 d.downOn.needRecalcRenderProperties = true;
                             }
+                        }
+                    }
+                    else if(this.model.editor.mode == 'removement'){
+                        if(d.downOn){
+                            SCG.viewport.scrollOptions.enabled = false;
                         }
                     }
                     else if(this.model.editor.mode == 'moveselection'){
@@ -185,6 +196,10 @@ class EditorGO extends GO {
                 },
                 down: function(relativePosition) {
                     relativePosition = relativePosition.add(SCG.viewport.shift);
+                    if(this.model.editor.mode == 'removement'){
+                        SCG.viewport.scrollOptions.enabled = false;
+                        this.drag.started = true;
+                    }
                     if(this.model.editor.mode == 'add'){
                         if(!this.model.editor.selectedLayer || !this.model.editor.selectedLayer.selectedGroup){
                             alert('No selected group in layer');
@@ -223,6 +238,9 @@ class EditorGO extends GO {
                 },
                 up: function(){
                     let d = this.drag;
+                    if(this.model.editor.mode == 'removement'){
+                        d.disable();
+                    }
                     if(this.model.editor.mode == 'edit'){
                         if(d.started && d.downOn.indexChanged){
                             d.downOn.pointModel.changeCallback(d.downOn.index);
@@ -512,7 +530,11 @@ class Dot extends GO {
         options = assignDeep({}, {
             handlers: {
                 down: function(){
-                    if(this.parent.model.editor.mode == 'edit'){
+                    if(this.parent.model.editor.mode == 'removement'){
+                        this.parent.drag.downOn = this;
+                        return true;
+                    }
+                    else if(this.parent.model.editor.mode == 'edit'){
                         this.parent.drag.downOn = this;
                         this.parent.drag.downOn.pointModel.selectCallback();
                         this.setSelected(true);
@@ -520,6 +542,23 @@ class Dot extends GO {
                     else if(this.parent.model.editor.mode == 'moveselection'){
                         this.parent.drag.downOn = this;
                     }
+                },
+                move: function() {
+                    if(this.parent.model.editor.mode == 'removement' && this.parent.drag.started){
+                        this.parent.drag.downOn = this;
+                        this.parent.drag.downOn.pointModel.selectCallback();
+                        this.parent.parentScene.editor.editor.removeSelectedPoint();
+                    }
+                    return true;
+                },
+                up: function() {
+                    if(this.parent.model.editor.mode == 'removement'){
+                        this.parent.drag.downOn = this;
+                        this.parent.drag.downOn.pointModel.selectCallback();
+                        this.parent.parentScene.editor.editor.removeSelectedPoint();
+                    }
+
+                    return true;
                 }
             }
         }, options);
