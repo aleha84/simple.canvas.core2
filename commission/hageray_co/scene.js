@@ -61,7 +61,7 @@ class Hageray_coScene extends Scene {
                         })
                     },
                     function(){
-                        //scene.redFrames.isVisible = !scene.redFrames.isVisible;
+                        scene.redFrames.isVisible = !scene.redFrames.isVisible;
                         this.startSequence();
                     }
                 ]
