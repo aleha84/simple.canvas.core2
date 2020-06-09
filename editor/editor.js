@@ -9,6 +9,7 @@
 // 14. imput - paddings/old value missing
 // 16. Autosave model in localstorage
 // 17. Move\copy group to layer
+// 18. show hihglight status
 
 
 
@@ -418,7 +419,28 @@ class Editor {
 
                     that.editor.panels.rotate = rotate;
                 }
-            }})
+            }}),
+            htmlUtils.createElement('input', { value: 'ui Controls',  attributes: { type: 'button' }, events: {
+                click: function(){
+                    if(that.editor.panels.uiControls){
+                        that.editor.panels.uiControls.remove();
+                        return;
+                    }
+
+                    that.editor.panels.uiControls = components.createDraggablePanel({
+                        title: 'UI controls', 
+                        parent: document.body, 
+                        position: new V2(280,60), 
+                        closable: true,
+                        expandable: false,
+                        contentWidth: 150,
+                        onClose: () => { that.editor.panels.uiControls = undefined; },
+                        contentItems: [
+                            ...components.createUIControls(that)
+                        ]
+                    });
+                }
+            } })
         ]});
         //createDraggablePanel({title: 'closable', parent: document.body, position: new V2(20,60), closable: true});
     }
