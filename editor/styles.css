@@ -8,6 +8,10 @@ html,
         min-height: 100%;
       }
 
+      body.longPressInfo {
+        cursor: progress;
+      }
+
       input[type='button'] {
           cursor: pointer;
       }

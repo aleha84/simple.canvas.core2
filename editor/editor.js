@@ -186,6 +186,7 @@ class Editor {
         this.init();
 
         let that = this;
+        components.createUIControls(that);
         components.createDraggablePanel({title: 'utilities', panelClassNames: [ 'utilities'], parent: document.body, position: new V2(20,20), contentItems: [
             htmlUtils.createElement('input', { value: 'Mid',  attributes: { type: 'button' }, events: {
                 click: function(){
@@ -425,27 +426,16 @@ class Editor {
                     that.editor.panels.rotate = rotate;
                 }
             }}),
-            htmlUtils.createElement('input', { value: 'ui Controls',  attributes: { type: 'button' }, events: {
-                click: function(){
-                    if(that.editor.panels.uiControls){
-                        that.editor.panels.uiControls.remove();
-                        return;
-                    }
+            // htmlUtils.createElement('input', { value: 'ui Controls',  attributes: { type: 'button' }, events: {
+            //     click: function(){
+            //         if(that.editor.panels.uiControls){
+            //             that.editor.panels.uiControls.remove();
+            //             return;
+            //         }
 
-                    that.editor.panels.uiControls = components.createDraggablePanel({
-                        title: 'UI controls', 
-                        parent: document.body, 
-                        position: new V2(280,60), 
-                        closable: true,
-                        expandable: false,
-                        contentWidth: 150,
-                        onClose: () => { that.editor.panels.uiControls = undefined; },
-                        contentItems: [
-                            ...components.createUIControls(that)
-                        ]
-                    });
-                }
-            } })
+                    
+            //     }
+            // } })
         ]});
         //createDraggablePanel({title: 'closable', parent: document.body, position: new V2(20,60), closable: true});
     }

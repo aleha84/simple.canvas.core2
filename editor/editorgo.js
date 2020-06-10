@@ -7,6 +7,24 @@ class EditorGO extends GO {
             preventDiving: true,
             showDots: true,
             dots: [],
+            longPress: {
+                delay: 1500,
+                timer: undefined,
+                infoTimer: undefined,
+                index: undefined,
+                clear() {
+                    if(this.timer != undefined){
+                        clearTimeout(this.timer);
+                        this.timer = undefined;
+                        clearTimeout(this.infoTimer);
+                        this.infoTimer = undefined;
+                        this.index = undefined;
+
+                        document.body.classList.remove("longPressInfo");
+                    }
+                    
+                }
+            },
             drag: {
                 disable() {
                     this.started = false;
@@ -48,6 +66,10 @@ class EditorGO extends GO {
 
                     let d = this.drag;
                     let index = this.model.editor.index;
+
+                    if(this.longPress.timer && this.longPress.index && !this.longPress.index.equal(index)){
+                        this.longPress.clear();
+                    }
 
                     if(this.model.editor.mode == 'edit'){  
                         if(d.downOn){
@@ -196,6 +218,22 @@ class EditorGO extends GO {
                 },
                 down: function(relativePosition) {
                     relativePosition = relativePosition.add(SCG.viewport.shift);
+
+                    this.longPress.infoTimer = setTimeout(() => {
+                        document.body.classList.add("longPressInfo");
+                    }, fast.r(this.longPress.delay/2))
+
+                    this.longPress.timer = setTimeout(() => {
+                        
+                        let position = pointerEventToXY(SCG.controls.mouse.state.lastTriggeredOriginalEvent);
+                        let size = this.parentScene.editor.editor.panels.uiControls.methods.getSize();
+
+                        this.parentScene.editor.editor.panels.uiControls.methods.setPosition(new V2(position).substract(size.add(new V2(2,2))))
+                        this.longPress.clear();
+                    }, this.longPress.delay)
+
+                    this.longPress.index = this.getIndexByRelativePosition(relativePosition).index;
+
                     if(this.model.editor.mode == 'removement'){
                         SCG.viewport.scrollOptions.enabled = false;
                         this.drag.started = true;
@@ -238,6 +276,9 @@ class EditorGO extends GO {
                 },
                 up: function(){
                     let d = this.drag;
+
+                    this.longPress.clear();
+
                     if(this.model.editor.mode == 'removement'){
                         d.disable();
                     }
@@ -319,6 +360,8 @@ class EditorGO extends GO {
                     this.moveEventTriggered = false; 
                     this.highlightChild();
                     let d = this.drag;
+
+                    this.longPress.clear();
 
                     if(this.model.editor.mode == 'edit'){
                         

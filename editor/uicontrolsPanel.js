@@ -36,6 +36,16 @@ components.createUIControls = function(context){
     controls.push(modeSwitchButton);
     controls.push(removementModeSwitchButton);
 
-    return controls;
+    ///return controls;
 
+    context.editor.panels.uiControls = components.createDraggablePanel({
+        title: 'UI controls', 
+        parent: document.body, 
+        position: new V2(450,20), 
+        closable: false,
+        expandable: false,
+        contentWidth: 150,
+        onClose: () => { context.editor.panels.uiControls = undefined; },
+        contentItems: controls
+    });
 }

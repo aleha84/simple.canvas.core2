@@ -1189,12 +1189,26 @@ var components = {
 
         onCreate();
 
+        let setPosition = function(position) {
+            panel.style.left = position.x + 'px';
+            panel.style.top = position.y + 'px';
+        }
+
+        let getSize = function() {
+            let br = panel.getBoundingClientRect();
+            return new V2(br.width, br.height);
+        }
+
         return {
             panel,
             panelHeader,
             content,
             contentItems,
             events,
+            methods: {
+                setPosition,
+                getSize,
+            },
             remove() {
                 events.remove();
             }
