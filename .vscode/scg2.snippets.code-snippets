@@ -90,7 +90,52 @@
 		]
 	},
 	
-
+	"createFrames2": {
+		"scope": "javascript",
+		"prefix": "createFrames2",
+		"description": "Create common frames preparer structure V2",
+		"body": [
+			"create${1:name}Frames({framesCount, itemsCount, itemFrameslength, size}) {",
+			"\tlet frames = [];",
+			"\t",
+			"\tlet itemsData = new Array(itemsCount).fill().map((el, i) => {",
+			"\t\tlet startFrameIndex = getRandomInt(0, framesCount-1);",
+			"\t\tlet totalFrames = itemFrameslength;",
+			"\t",
+			"\t\tlet frames = [];",
+			"\t\tfor(let f = 0; f < totalFrames; f++){",
+			"\t\t\tlet frameIndex = f + startFrameIndex;",
+			"\t\t\tif(frameIndex > (framesCount-1)){",
+			"\t\t\t\tframeIndex-=framesCount;",
+			"\t\t\t}",
+			"\t",
+			"\t\t\tframes[frameIndex] = {",
+			"\t",
+			"\t\t\t};",
+			"\t\t}",
+			"\t",
+			"\t\treturn {",
+			"\t\t\tframes",
+			"\t\t}",
+			"\t})",
+			"\t",
+			"\tfor(let f = 0; f < framesCount; f++){",
+			"\t\tframes[f] = createCanvas(size, (ctx, size, hlp) => {",
+			"\t\t\tfor(let p = 0; p < itemsData.length; p++){",
+			"\t\t\t\tlet itemData = itemsData[p];",
+			"\t\t\t\t",
+			"\t\t\t\tif(itemData.frames[f]){",
+			"\t",
+			"\t\t\t\t}",
+			"\t\t\t\t",
+			"\t\t\t}",
+			"\t\t});",
+			"\t}",
+			"\t",
+			"\treturn frames;",
+			"}"		
+		]
+	},
 
 	"AddGo": {
 		"scope": "javascript",
