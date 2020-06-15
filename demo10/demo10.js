@@ -124,6 +124,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: square150_viewport
     }))
 
+    SCG.scenes.cacheScene(new Demo10RecordingScene({
+        name: 'rec',
+        viewport: square150_viewport
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();

@@ -1,9 +1,12 @@
 class Recorder {
-    constructor(canvas) {
+    constructor(canvas, frameRate) {
         this.recordedBlobs = [];
+        this.frameRate = frameRate;
         this.mimeType = 'video/webm'
         this.mediaRecorder = undefined;
         this.canvas = canvas;
+
+        this.stopped = false;
 
         if(!MediaRecorder.isTypeSupported(this.mimeType)){
             throw 'No webm support';
@@ -18,7 +21,7 @@ class Recorder {
 
         this.recordedBlobs = [];
 
-        this.stream = this.canvas.captureStream();
+        this.stream = this.canvas.captureStream(0);
         if(this.stream == undefined){
             throw 'No stream for record';
         }
@@ -42,6 +45,10 @@ class Recorder {
         if(event.data && event.data.size > 0){
             this.recordedBlobs.push(event.data);
         }
+
+        if(this.stopped){
+            this.download();
+        }
     }
 
     handleStop(event) {
@@ -50,7 +57,8 @@ class Recorder {
 
     stop() {
         this.mediaRecorder.stop();
-        this.download();
+        this.stopped = true;
+        //this.download();
     }
 
     download() {

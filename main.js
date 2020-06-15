@@ -10,6 +10,48 @@ SCG.main = {
 	cycle: {
 		process(){ //main work cycle, never stops
 			SCG.main.cycle.draw();
+
+			if(SCG.scenes.activeScene.capturing && SCG.scenes.activeScene.capturing.enabled){
+				let c = SCG.scenes.activeScene.capturing;
+				if(c.currentFrame < c.totalFramesToRecord){
+					let frame = createCanvas(c.size, (ctx, size, hlp) => {
+						ctx.drawImage(c.canvas, 0,0, size.x, size.y)
+					});
+
+					c.videoWriter.addFrame(frame);
+					console.log(`${c.currentFrame} from ${c.totalFramesToRecord} added`);
+					c.currentFrame++;
+				}
+				else {
+					if(c.addRedFrame){
+						let frame = createCanvas(c.size, (ctx, size, hlp) => {
+							hlp.setFillColor('red').rect(0,0, size.x, size.y)
+						});
+						c.videoWriter.addFrame(frame);
+					}
+					
+					console.log('recording is completed');
+
+					c.videoWriter.complete().then(function(blob){
+						let name = new Date().getTime() + '.webm';
+						// let blob = new Blob(this.recordedBlobs, { type: this.mimeType });
+						let url = window.URL.createObjectURL(blob);
+						let a = document.createElement('a');
+						a.style.display = 'none';
+						a.href = url;
+						a.download = name;
+						document.body.appendChild(a);
+						a.click();
+						setTimeout(() => {
+							document.body.removeChild(a);
+							window.URL.revokeObjectURL(url);
+						}, 100)
+					})
+
+					return;
+				}
+			}
+
 			requestAnimationFrame(SCG.main.cycle.process);
 		},
 		draw(){ // drawing on canvas based on current selected scene
@@ -112,6 +154,7 @@ SCG.main = {
 			if(SCG.audio)
 				SCG.audio.init();	
 	
+			SCG.scenes.activeScene.beforeProcessInner();
 			SCG.main.cycle.process();
 		}
 	},

@@ -5,6 +5,7 @@ class Scene {
         
         this.viewport = undefined;
         this.showLoadingOverlay = false;
+        this.capturing = undefined;
 
         assignDeep(this,{
             viewport: new V2(500, 300),
@@ -14,6 +15,10 @@ class Scene {
             ui: [],
             clearGOOnDispose: true,
             timers: [],
+            // capturing: {
+            //     enabled: false,
+            //     renderCallback: undefined
+            // },
             debug: {
                 enabled: false,
                 font: (25*SCG.viewport.scale) + 'px Arial',
@@ -322,6 +327,21 @@ class Scene {
         return go;
     }
 
+    beforeProcess() {}
+
+    beforeProcessInner() {
+
+        if(this.capturing){
+            let c = this.capturing;
+            if(!c.canvas){
+                c.canvas = SCG.canvases.main;
+                // c.enabled = true;
+            }
+        }
+
+        this.beforeProcess();
+    }
+
     innerStart(sceneProperties) {
         SCG.viewport.graphInit();
         SCG.UI.invalidate();
@@ -340,6 +360,40 @@ class Scene {
         // init collision detection matrix
         if(this.collisionDetection && this.collisionDetection.enabled){
             this.collisionDetection.init(this.space);
+        }
+
+        if(this.capturing && this.capturing.enabled){
+            let c = this.capturing;
+
+            //c.enabled = false;
+
+            if(c.videoWriter){
+                throw 'No scene switch is allowed while recording! Yet.'
+            }
+
+            if(!c.canvas){
+                c.canvas = SCG.canvases.main;
+            }
+
+            if(!c.size){
+                c.size = this.viewport.clone();
+            }
+
+            if(c.viewportSizeMultiplier){
+                c.size = this.viewport.mul(c.viewportSizeMultiplier);
+            }
+
+            if(!c.totalFramesToRecord){
+                throw 'No totalFramesToRecord provided for recording!'
+            }
+
+
+            c.currentFrame = 0;
+
+            c.videoWriter = new WebMWriter({
+                quality: c.quadlity || 0.99999,
+                frameRate: c.frameRate || 60,
+            });
         }
 
         if(this.showLoadingOverlay){

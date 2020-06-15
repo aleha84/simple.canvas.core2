@@ -782,7 +782,7 @@ var colors = {
             return '#' + rgbToHex(resultRgb);
         }
     },
-    saveImage(canvas, {size = undefined, name = 'export'}){
+    saveImage(canvas, {size = undefined, name = 'export', type = "image/png" }){
         let resultImg;
         if(size == undefined){
             resultImg = canvas;
@@ -796,7 +796,7 @@ var colors = {
         //window.location.href = resultImg;
         var link = document.createElement("a");
         link.download = name;
-        link.href = resultImg.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        link.href = resultImg.toDataURL(type).replace(type, "image/octet-stream");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
