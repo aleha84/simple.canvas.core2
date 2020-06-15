@@ -383,8 +383,13 @@ class Scene {
                 c.size = this.viewport.mul(c.viewportSizeMultiplier);
             }
 
-            if(!c.totalFramesToRecord){
+            if(!c.stopByCode && !c.totalFramesToRecord){
                 throw 'No totalFramesToRecord provided for recording!'
+            }
+
+            if(c.stopByCode){
+                console.log('Capturing will be stopped by code')
+                c.stop = false;
             }
 
 

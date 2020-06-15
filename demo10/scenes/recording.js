@@ -3,7 +3,8 @@ class Demo10RecordingScene extends Scene {
         options = assignDeep({}, {
             capturing: {
                 enabled: false,
-                addRedFrame: true,
+                addRedFrame: false,
+                stopByCode: true,
                 viewportSizeMultiplier: 10,
                 totalFramesToRecord: 601,
                 frameRate: 60,
@@ -94,11 +95,22 @@ class Demo10RecordingScene extends Scene {
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
                 
+                if(this.frames.length == 300){
+                    this.counter = 2;           
+                }
+
                 this.timer = this.regTimerDefault(10, () => {
                     //console.log(`${this.currentFrame} from ${this.frames.length} shown`)
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
+                        if(this.frames.length == 300){
+                            this.counter--;
+
+                            if(this.counter == 0){
+                                this.parentScene.capturing.stop = true;
+                            }
+                        }
                         this.currentFrame = 0;
                     }
                 })

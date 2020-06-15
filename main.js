@@ -13,13 +13,20 @@ SCG.main = {
 
 			if(SCG.scenes.activeScene.capturing && SCG.scenes.activeScene.capturing.enabled){
 				let c = SCG.scenes.activeScene.capturing;
-				if(c.currentFrame < c.totalFramesToRecord){
+				if(
+					(!c.stopByCode && c.currentFrame < c.totalFramesToRecord) ||
+					(c.stopByCode && !c.stop)
+					 ){
 					let frame = createCanvas(c.size, (ctx, size, hlp) => {
 						ctx.drawImage(c.canvas, 0,0, size.x, size.y)
 					});
 
 					c.videoWriter.addFrame(frame);
-					console.log(`${c.currentFrame} from ${c.totalFramesToRecord} added`);
+					if(!c.stopByCode)
+						console.log(`${c.currentFrame} from ${c.totalFramesToRecord} added`);
+					else 
+						console.log(`${c.currentFrame} frame added`);
+						
 					c.currentFrame++;
 				}
 				else {
