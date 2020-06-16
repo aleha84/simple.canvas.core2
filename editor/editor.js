@@ -34,6 +34,10 @@ class Editor {
                 toggleLayerVisibility: undefined,
                 toggleGroupVisibility: undefined,
                 panels: {},
+                highlight: {
+                    el: undefined,
+                    enabled: true,
+                },
                 mode: {
                     value: 'edit',
                     element: undefined,
@@ -438,6 +442,14 @@ class Editor {
             // } })
         ]});
         //createDraggablePanel({title: 'closable', parent: document.body, position: new V2(20,60), closable: true});
+    }
+
+    toggleHighlight(value, setUICheckbox) {
+        this.mainGo.showDots = value;
+
+        if(setUICheckbox){
+            this.editor.highlight.el.chk.checked = value;
+        }
     }
 
     init() {
@@ -1101,6 +1113,13 @@ class Editor {
         editorlEl.appendChild(modeSwitch);
         editorlEl.appendChild(moveGroup)
         
+        that.editor.highlight.el = components.createCheckBox(that.editor.highlight.enabled, 'highlight', (value) => {
+            that.editor.highlight.enabled = value;
+            that.toggleHighlight(value);
+        })
+
+        editorlEl.appendChild(that.editor.highlight.el)
+
         editor.element = editorlEl;
         
         editor.mode.element = modeSwitchButton;

@@ -33,8 +33,19 @@ components.createUIControls = function(context){
         }
     })
 
+    let highlightSwitchButton = htmlUtils.createElement('input', { 
+        value: 'Toggle H', 
+        attributes: { type: 'button' }, 
+        events: {
+            click: () => {
+                context.toggleHighlight(!context.mainGo.showDots, true);
+            }
+        }
+    })
+
     controls.push(modeSwitchButton);
     controls.push(removementModeSwitchButton);
+    controls.push(highlightSwitchButton);
 
     ///return controls;
 

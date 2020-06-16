@@ -33,7 +33,8 @@ class EditorScene extends Scene {
                     let image = this.editor.image;
 
                     if(event.keyCode == 72){ // 'h'
-                        this.mainGo.showDots = !this.mainGo.showDots;
+                        //this.mainGo.showDots = !this.mainGo.showDots;
+                        this.editor.toggleHighlight(!this.mainGo.showDots, true);
                     }
 
                     if(event.keyCode == 82) { // 'r'
