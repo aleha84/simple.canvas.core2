@@ -102,7 +102,7 @@ class EditorScene extends Scene {
                             this.editor.updateEditor();
                         }
                         else {
-                            layer
+                            //layer
                             if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
                                 edt.toggleLayerVisibility();
                             //group

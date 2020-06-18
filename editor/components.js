@@ -59,7 +59,7 @@ var components = {
 
         return button;
     },
-    createInput(value, title, changeCallback){
+    createInput(value, title, changeCallback, validation){
         let el = htmlUtils.createElement('div', { classNames: ['inputBox', 'rowFlex'] });
 
         if(title){    
@@ -87,7 +87,12 @@ var components = {
                 editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
                 events: { click: (event) => {
                     let newValue = editBlock.querySelector('.newValue').value;
+
+                    if(validation && !validation(newValue))
+                        return;
+
                     readBlock.innerText = newValue;
+                    value = newValue;
                     this.classList.remove('edit');
                     event.stopPropagation();
                     changeCallback(newValue);
@@ -585,7 +590,7 @@ var components = {
         }
 
         layerEl.appendChild(htmlUtils.createElement('div', { text: 'id: ' + layerProps.id }))
-        layerEl.appendChild(components.createInput(layerProps.name, 'Name', function(value) {
+        layerEl.appendChild(components.createInput(layerProps.name, 'Name: ', function(value) {
             if(value){
                 layerProps.name = value
                 if(additionals.selectedOption)
@@ -593,7 +598,13 @@ var components = {
     
                 changeCallback();
             }
-            
+        }, function(value) {
+            if(!additionals.nameChangeValidation(value)){
+                notifications.error('Layer name already exists', 2000)
+                return false;
+            }
+
+            return true;
         }))
 
         let layerVisiblityEl = components.createCheckBox(layerProps.visible, 'Visible', function(value) {

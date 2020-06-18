@@ -1402,7 +1402,10 @@ class Editor {
                     }
 
                     layer.groups.forEach(g => g.selected = false);
-                    components.createLayer(layerEl, layer, that.updateEditor.bind(that), { selectedOption });  
+                    components.createLayer(layerEl, layer, that.updateEditor.bind(that), { 
+                        selectedOption, 
+                        nameChangeValidation: (newName) => { return main.layers.filter(l => l.name == newName).length == 0 } 
+                    });  
 
                     that.editor.setMoveLayerModeState(true);
                 },
