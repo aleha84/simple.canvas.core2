@@ -240,12 +240,14 @@ PP.createImage = function(model, params = {}) {
 
     params = assignDeep({}, {
         renderOnly: [], 
-        exclude: []
+        exclude: [],
+        colorsSubstitutions: {},
     }, params);
 
     let renderGroup = (pp, group) => {
         let strokeColor = group.strokeColor;
         let scOpacity = group.strokeColorOpacity != undefined && group.strokeColorOpacity < 1;
+
         if(scOpacity){
             strokeColor = `rgba(${hexToRgb(group.strokeColor)},${group.strokeColorOpacity})`;
         }
@@ -253,6 +255,13 @@ PP.createImage = function(model, params = {}) {
         let fillColor = group.fillColor;
         if(group.fillColorOpacity !=undefined && group.fillColorOpacity < 1){
             fillColor = `rgba(${hexToRgb(group.fillColor)},${group.fillColorOpacity})`;
+        }
+
+        if(!isEmpty(params.colorsSubstitutions)){
+            let cSubst = params.colorsSubstitutions[Object.keys(params.colorsSubstitutions).find(key => key.toLowerCase() === strokeColor.toLowerCase())]
+            if(cSubst){
+                strokeColor = `rgba(${hexToRgb(cSubst.color)},${cSubst.opacity})`;
+            }
         }
 
         pp.setFillStyle(strokeColor)

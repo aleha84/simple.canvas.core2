@@ -9,7 +9,7 @@
 // 14. imput - paddings/old value missing
 // 16. Autosave model in localstorage
 // 17. Move\copy group to layer
-// 18. show hihglight status
+// 19. Remove all points from layer button
 
 
 
