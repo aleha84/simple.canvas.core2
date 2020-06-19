@@ -279,7 +279,7 @@ class Adrian10zScene extends Scene {
                 return frames;
             },
             init() {
-                this.frames = this.createTilesFrames({framesCount: 200, itemFrameslength: 20, size: this.size})
+                this.frames = this.createTilesFrames({framesCount: 350, itemFrameslength: 70, size: this.size})
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
                 
@@ -305,6 +305,39 @@ class Adrian10zScene extends Scene {
                 } });
 
                 this.frames = [...this.frames, ...this.frames.reverse().filter((el, i) => i > 0 && i < (this.frames.length-1))];
+
+                // let videoWriter = new WebMWriter({
+                //     quality: 0.99999,
+                //     frameRate:  7,
+                // });
+
+                // this.frames.forEach(frame => {
+                //     frame = createCanvas(this.size.mul(60), (ctx, size, hlp) => {
+                //         hlp.setFillColor('black').rect(0,0,size.x, size.y);
+                //         let s = this.size.mul(30);
+				// 		ctx.drawImage(frame, s.x/2,s.y/2, s.x, s.y)
+				// 	});
+
+				// 	videoWriter.addFrame(frame);
+                // })
+
+                // videoWriter.complete().then(function(blob){
+                //     let name = new Date().getTime() + '.webm';
+                //     // let blob = new Blob(this.recordedBlobs, { type: this.mimeType });
+                //     let url = window.URL.createObjectURL(blob);
+                //     let a = document.createElement('a');
+                //     a.style.display = 'none';
+                //     a.href = url;
+                //     a.download = name;
+                //     document.body.appendChild(a);
+                //     a.click();
+                //     setTimeout(() => {
+                //         document.body.removeChild(a);
+                //         window.URL.revokeObjectURL(url);
+                //     }, 100)
+                // })
+
+
 console.log(this.frames.length)
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
