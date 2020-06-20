@@ -1,8 +1,17 @@
 class Adrian10zScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 10,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'disco'
+            },
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -354,6 +363,8 @@ console.log(this.frames.length)
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
+
+                        this.parentScene.capturing.stop = true;
                     }
                 })
             }
@@ -392,5 +403,307 @@ console.log(this.frames.length)
                 })
             }
         }), 26)
+
+        this.bgParticles = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            createParticlesFrames({framesCount, itemsCount, itemFrameslength, size, poligon}) {
+                let frames = [];
+                let yClamp = [0, 35];
+
+                let dots = [];
+
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    let pp = new PP({ctx});
+                    dots = pp.fillByCornerPoints(poligon); 
+                })
+                
+                let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = itemFrameslength;
+                
+                    //let x, y;
+            
+                    let dot = dots[getRandomInt(0, dots.length-1)];
+                    let x = dot.x;
+                    let y = dot.y;
+
+                    // let y = getRandomInt(yClamp[0], yClamp[1]);
+                    // let x = getRandomInt(0, size.x-2);
+                    let opacity = getRandomInt(20, 60)/100;
+                    let xShift = getRandomInt(2,4);
+
+                    let opacityValues = easing.fast({from: opacity, to: 0, steps: itemFrameslength, type: 'quad', method: 'out'}).map(v => fast.r(v,2));
+                    let xValues = easing.fast({from: x, to: x+xShift, steps: itemFrameslength, type: 'quad', method: 'out'}).map(v => fast.r(v));
+
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                
+                        frames[frameIndex] = {
+                            opacity: opacityValues[f],
+                            x: xValues[f]
+                        };
+                    }
+                
+                    return {
+                        y,
+                        frames
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                hlp.setFillColor(`rgba(255,255,255, ${itemData.frames[f].opacity})`).dot(itemData.frames[f].x, itemData.y);
+                            }
+                            
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+
+                let poligon = [new V2(0, 0),
+                    new V2(129, 0),
+                    new V2(129, 56),
+                    new V2(111, 52),
+                    new V2(111, 19),
+                    new V2(103, 19),
+                    new V2(103, 30),
+                    new V2(94, 36),
+                    new V2(94, 54),
+                    new V2(36, 54),
+                    new V2(34, 33),
+                    new V2(28, 31),
+                    new V2(27, 42),
+                    new V2(0, 45)]
+                
+                this.frames = this.createParticlesFrames({framesCount: 350, itemsCount: 500, itemFrameslength: 10, size: this.size, poligon})
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 21)
+
+        this.steps = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            createStepsFrames({framesCount, itemFrameslength, startFrom, stepImages, size}) {
+                let frames = [];
+                
+                let itemsData = new Array(stepImages.length).fill().map((el, i) => {
+                    let startFrameIndex = startFrom + i*itemFrameslength;
+                    let totalFrames = itemFrameslength;
+                
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                
+                        frames[frameIndex] = true;
+                    }
+                
+                    return {
+                        index: i,
+                        frames
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                ctx.drawImage(stepImages[itemData.index], 0,0)
+                            }
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                let model = Adrian10zScene.models.steps;
+                let stepImages = model.main.layers.map(layer => PP.createImage(model, {renderOnly: [layer.name]}) )
+
+                this.frames = this.createStepsFrames({framesCount: 350, itemFrameslength: 50, startFrom: 100, size: this.size, stepImages});
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 21)
+
+        this.createLaserFrames = function({framesCount, emitter, itemsCount, itemFrameslength, size}) {
+            let frames = [];
+            //let itemsCount = framesCount/itemFrameslength;
+            let availableDots = [];
+            createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                let pp = new PP({ctx});
+                availableDots = pp.fillByCornerPoints(emitter.poligon); 
+            })
+
+            let itemsData = [];
+            for(let i = 0; i < fast.r(framesCount/itemFrameslength); i++){
+                let count = getRandomInt(3,4);
+
+                for(let j = 0; j <count; j++){
+                    let startFrameIndex = i*itemFrameslength;
+                    startFrameIndex+=getRandomInt(-itemFrameslength/4, itemFrameslength/4);
+                    let totalFrames = itemFrameslength + getRandomInt(-5,5);
+                
+                    let target = availableDots[getRandomInt(0, availableDots.length-1)];
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                        else if(frameIndex < 0){
+                            frameIndex=framesCount-frameIndex;
+                        }
+
+                
+                        frames[frameIndex] = true;
+                    }
+                
+                    itemsData.push( {
+                        target,
+                        frames
+                    })
+                }
+                
+            }
+
+            // let itemsData = new Array(itemsCount).fill().map((el, i) => {
+            //     let startFrameIndex = getRandomInt(0, framesCount-1);//i*itemFrameslength;
+            //     let totalFrames = itemFrameslength;
+            
+            //     let target = availableDots[getRandomInt(0, availableDots.length-1)];
+            //     let frames = [];
+            //     for(let f = 0; f < totalFrames; f++){
+            //         let frameIndex = f + startFrameIndex;
+            //         if(frameIndex > (framesCount-1)){
+            //             frameIndex-=framesCount;
+            //         }
+            
+            //         frames[frameIndex] = true;
+            //     }
+            
+            //     return {
+            //         target,
+            //         frames
+            //     }
+            // })
+            
+            for(let f = 0; f < framesCount; f++){
+                frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                    let pp = new PerfectPixel({ctx});
+
+                    for(let p = 0; p < itemsData.length; p++){
+                        let itemData = itemsData[p];
+                        
+                        if(itemData.frames[f]){
+                            hlp.setFillColor(`rgba(255,255,255, 0.1)`);
+
+                            pp.lineV2(emitter.p, itemData.target);
+
+                            hlp.dot(itemData.target.x, itemData.target.y);
+                        }
+                        
+                    }
+                });
+            }
+            
+            return frames;
+        }
+
+        this.laser1 = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                let emitter = {
+                    p: new V2(98,8),
+                    count: 5,
+                    poligon: [
+                        new V2(109, 61),
+                        new V2(160, 69),
+                        new V2(129, 82)
+                    ]
+                }
+
+                this.frames = this.parentScene.createLaserFrames({framesCount: 350, emitter, itemsCount: 50, itemFrameslength: 20, size: this.size});
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(15, () => {
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 29)
+
+        this.laser2 = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                let emitter = {
+                    p: new V2(33,8),
+                    count: 5,
+                    poligon: [
+new V2(20,63),
+new V2(0,85),
+new V2(-30,68)
+                    ]
+                }
+
+                this.frames = this.parentScene.createLaserFrames({framesCount: 350, emitter, itemsCount: 50, itemFrameslength: 20, size: this.size});
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(15, () => {
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 29)
     }
 }

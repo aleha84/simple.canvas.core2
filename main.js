@@ -26,7 +26,7 @@ SCG.main = {
 						console.log(`${c.currentFrame} from ${c.totalFramesToRecord} added`);
 					else 
 						console.log(`${c.currentFrame} frame added`);
-						
+
 					c.currentFrame++;
 				}
 				else {
@@ -40,7 +40,7 @@ SCG.main = {
 					console.log('recording is completed');
 
 					c.videoWriter.complete().then(function(blob){
-						let name = new Date().getTime() + '.webm';
+						let name = c.fileNamePrefix + '_' + new Date().getTime() + '.webm';
 						// let blob = new Blob(this.recordedBlobs, { type: this.mimeType });
 						let url = window.URL.createObjectURL(blob);
 						let a = document.createElement('a');

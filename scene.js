@@ -381,6 +381,7 @@ class Scene {
 
             if(c.viewportSizeMultiplier){
                 c.size = this.viewport.mul(c.viewportSizeMultiplier);
+                console.log('recording size: ' + c.size.toString());
             }
 
             if(!c.stopByCode && !c.totalFramesToRecord){
@@ -390,6 +391,10 @@ class Scene {
             if(c.stopByCode){
                 console.log('Capturing will be stopped by code')
                 c.stop = false;
+            }
+
+            if(!c.fileNamePrefix) {
+                c.fileNamePrefix = 'recording';
             }
 
 
