@@ -561,7 +561,49 @@ var components = {
             changeCallback();
         }));
 
-        
+        groupEl.appendChild(htmlUtils.createElement('button', { text: 'To points', attributes: {}, events: { 
+            click: function() { 
+                if(groupProps.points.length < 3){
+                    notifications.error('Points count should be > 2', 2000);
+                    return;
+                }
+                
+                if(groupProps.type == 'dots'){
+                    notifications.error('type shouldn\'t be dots', 2000);
+                    return;
+                }
+
+                if(!confirm('Convert poligon to points?')){
+                    return;
+                }
+
+
+                let dots = [];
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    dots = new PP({ctx}).fillByCornerPoints(groupProps.points.map(p => p.point))
+                })
+
+                groupProps.type = 'dots';
+                groupProps.fill = false;
+                groupProps.closePath = false;
+
+                groupProps.points = [];
+                for(let i = 0; i < dots.length; i++){
+                    // id: nextPointId,
+                    //     order: points.length,
+                    //     point: {x: 0, y: 0},
+                    groupProps.points.push({
+                        id: `${groupProps.id}_p_${groupProps.points.length}`,
+                        order: groupProps.points.length,
+                        point: dots[i]
+                    })
+                }
+
+                components.fillPoints(groupProps, changeCallback) 
+
+                changeCallback();
+             }
+        } }))
 
         groupEl.appendChild(components.createSelect(groupProps.type, ['dots','lines'],'Type', function(value){
             groupProps.type = value;
@@ -571,6 +613,8 @@ var components = {
 
             changeCallback();
         } ))
+
+
 
         groupProps.pointsEl = htmlUtils.createElement('div', { className: 'pointsListWrapper' });
         groupProps.pointEl = htmlUtils.createElement('div', { className: 'point'});
