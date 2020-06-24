@@ -76,11 +76,13 @@ class StarkblauScene extends Scene {
             }
         }), 0)
 
+        this.draktimeLayers = ['darktime', 'darktime_2']
+
         this.city = this.addGo(new GO({
             position: this.sceneCenter,
             size: this.viewport,
             isVisible: true,
-            img: PP.createImage(StarkblauScene.models.main, { exclude: ['darktime']}),
+            img: PP.createImage(StarkblauScene.models.main, { exclude: this.draktimeLayers}),
             init() {
             }
         }), 5)
@@ -89,8 +91,9 @@ class StarkblauScene extends Scene {
             position: this.sceneCenter,
             size: this.viewport,
             init() {
-                StarkblauScene.models.main.main.layers.find(l => l.name == 'darktime').visible = true;
-                this.main = PP.createImage(StarkblauScene.models.main, { renderOnly: ['darktime']});
+                let dt = this.parentScene.draktimeLayers;
+                StarkblauScene.models.main.main.layers.filter(l => dt.indexOf(l.name) != -1).forEach(l => l.visible = true);
+                this.main = PP.createImage(StarkblauScene.models.main, { renderOnly:dt});
 
                 //this.img = this.main;
 
