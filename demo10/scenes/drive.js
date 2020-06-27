@@ -697,7 +697,7 @@ class Demo10DriveScene extends Scene {
                                 }
     
                             ], 
-                            size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-160), makeDarkerBy: 2 })
+                            size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-160), makeDarkerBy: 3 })
     
                     this.currentFrame = 0;
                     this.img = this.frames[this.currentFrame];
