@@ -20,11 +20,16 @@ class Demo10DriveScene extends Scene {
 
         //center, r1, r2, angleClamps = []
 
+        let p1 = new V2();
+        let p2 = new V2(-1,-3);
+        let movementDots = [];
+
         let initLinePoints = [];
         let sharedPP = undefined;
         createCanvas(new V2(1,1), (ctx, size, hlp) => {
             sharedPP = new PP({ctx})
             initLinePoints = sharedPP.lineV2(new V2(38,95), new V2(1,14));
+            movementDots= sharedPP.lineV2(p1, p2);
         })
 
         let mask = createCanvas(size, (ctx, size, hlp) => {
@@ -72,6 +77,8 @@ class Demo10DriveScene extends Scene {
             let y = initLinePoint.y;
             let x = getRandomInt(initLinePoint.x, size.x+20);
             let startP = new V2(x,y);
+
+            let movementIndexValues = easing.fast({from: 0, to: movementDots.length-1, steps: totalFrames, type: 'linear', method: 'base'}).map(v => fast.r(v));
             //let dotsPositions = sharedPP.lineV2(startP, startP.add(dropsDirection.mul(90)));
             //let indexChangeValues = easing.fast({from: 0, to: dotsPositions.length-1, steps: totalFrames, type: 'quad', method: 'in'}).map(v => fast.r(v));
 
@@ -88,7 +95,8 @@ class Demo10DriveScene extends Scene {
                     p,
                     rs: swipers.map(s => s.center.distance(p)),//center.distance(p),
                     dirs,
-                    angles: dirs.map(dir => V2.right.angleTo(dir))
+                    angles: dirs.map(dir => V2.right.angleTo(dir)),
+                    moveShift: movementDots[movementIndexValues[f]]
                  };
             }
 
@@ -114,7 +122,7 @@ class Demo10DriveScene extends Scene {
         for(let f = 0; f < framesCount; f++){
             frames[f] = createCanvas(size, (ctx, size, hlp) => {
                 ctx.drawImage(mask, 0,0);
-
+                let pp = new PP({ctx});
                 if(f>= swipeStartFrameIndex && f <= swipeStartFrameIndex+swipeFramesLength){
                     swipers.forEach((s,i) => {
                         let angle = s.angleChangeValues[f-swipeStartFrameIndex];
@@ -126,9 +134,12 @@ class Demo10DriveScene extends Scene {
                         let d1 = V2.right.rotate(angle);
                         let p1 = s.center.add(d1.mul(s.r1)).toInt();
                         let p2 = s.center.add(d1.mul(s.r2)).toInt();
-                        let pp = new PP({ctx});
+                        let p3 = s.center.add(V2.right.rotate(angle-5).mul((s.r1+s.r2)/3)).toInt()
+                        
                         pp.setFillStyle('#0A0F15');
-                        pp.lineV2(p1, p2);
+                        pp.fillByCornerPoints([p1, p2, p3]);
+                        pp.setFillStyle('#111923');
+                        pp.lineV2(s.center, p3);
                         
                         if(prevAngles[i]){
                             itemsData.filter(itemData => itemData.frames[f] && isBetween(itemData.frames[f].rs[i],s.r1,s.r2) && isBetween(itemData.frames[f].angles[i], prevAngles[i], angle))
@@ -140,6 +151,17 @@ class Demo10DriveScene extends Scene {
                     
                 }
                 else {
+                    swipers.forEach((s,i) => {
+                    let d1 = V2.right.rotate(s.angleClamps[0]);
+                    let p1 = s.center.add(d1.mul(s.r1)).toInt();
+                    let p2 = s.center.add(d1.mul(s.r2)).toInt();
+                    let p3 = s.center.add(V2.right.rotate(s.angleClamps[0]-5).mul((s.r1+s.r2)/3)).toInt()
+                    pp.setFillStyle('#0A0F15');
+                    pp.fillByCornerPoints([p1, p2, p3]);
+                    pp.setFillStyle('#111923');
+                    pp.lineV2(s.center, p3);
+                    })
+
                     prevAngles = new Array(swipers.length).fill();
                 }
 
@@ -147,7 +169,8 @@ class Demo10DriveScene extends Scene {
                     let itemData = itemsData[p];
                     
                     if(itemData.alive && itemData.frames[f]){
-                        hlp.setFillColor(colors.rgbToString({value: [dropColor.red, dropColor.green, dropColor.blue, itemData.opacity]})).dot(itemData.frames[f].p.x, itemData.frames[f].p.y)
+                        hlp.setFillColor(colors.rgbToString({value: [dropColor.red, dropColor.green, dropColor.blue, itemData.opacity]}))
+                            .dot(itemData.frames[f].p.x + itemData.frames[f].moveShift.x, itemData.frames[f].p.y + itemData.frames[f].moveShift.y)
                     }
                 }
 
@@ -157,7 +180,7 @@ class Demo10DriveScene extends Scene {
         return frames;
     }
 
-    createBuildingsFrames({framesCount, framesPerModel, modelsData, model, size, targetPoint}) {
+    createBuildingsFrames({framesCount, framesPerModel, modelsData, model, size, targetPoint, makeDarkerBy}) {
         let eType = 'expo';
         let eMethod = 'in';
         let frames = new Array(framesCount);
@@ -219,7 +242,13 @@ class Demo10DriveScene extends Scene {
     
                     frameModel.main.layers[0].groups = model.main.layers[0].groups.map(originalGroup => {
                         let group = assignDeep({}, originalGroup, {points: [] } );
-        
+                        
+                        let hsv = colors.hexToHsv(group.strokeColor);
+                        hsv.v /= makeDarkerBy;
+
+                        group.strokeColor = hsvToHex({hsv, hsvAsObject: true, hsvAsInt: false});
+                        group.fillColor = group.strokeColor;
+
                         group.points = originalGroup.points.map(originalPoint => {
                             if(!originalPoint.lineDots){
                                 originalPoint.lineDots = sharedPP.lineV2(modelCenter, new V2(originalPoint.point));
@@ -278,6 +307,8 @@ class Demo10DriveScene extends Scene {
         ]
         */
 
+        let imagesOutside;
+
         for(let f = 0; f < framesCount; f++){
             let frameData = framesData[f];
             if(frameData && frameData.length){
@@ -303,35 +334,44 @@ class Demo10DriveScene extends Scene {
 
         var model = Demo10DriveScene.models.main;
 
+        let showWindshield = true;
+        let show1Layer = true;
+        let show2Layer = false;
+        let show3Layer = false;
+        let showRain = true;
+
         this.bg = this.addGo(new GO({
             position: this.sceneCenter,
             size: this.viewport,
             img: PP.createImage(Demo10DriveScene.models.bg)
         }), 0)
 
-        this.windshield = this.addGo(new GO({
-            position: this.sceneCenter.clone(),
-            size: this.viewport.clone(),
-            frames: this.createSwipeFrames({
-                framesCount: 400, swipeFramesLength: 70, 
-                swipers: [
-                    {center: new V2(45,90),r1: 15, r2: 70, angleClamps: [0, -115]},
-                    {center: new V2(100,91),r1: 15, r2: 70, angleClamps: [0, -115]}] //100, 91
-                , itemsCount: 2000, size: this.viewport}),
-            init() {
-                this.currentFrame = 0;
-                this.img = this.frames[this.currentFrame];
-                
-                this.timer = this.regTimerDefault(15, () => {
-                
+        if(showWindshield){
+            this.windshield = this.addGo(new GO({
+                position: this.sceneCenter.clone(),
+                size: this.viewport.clone(),
+                frames: this.createSwipeFrames({
+                    framesCount: 200, swipeFramesLength: 70, 
+                    swipers: [
+                        {center: new V2(45,90),r1: 15, r2: 70, angleClamps: [3, -115]},
+                        {center: new V2(100,91),r1: 15, r2: 70, angleClamps: [5, -115]}] //100, 91
+                    , itemsCount: 2000, size: this.viewport}),
+                init() {
+                    this.currentFrame = 0;
                     this.img = this.frames[this.currentFrame];
-                    this.currentFrame++;
-                    if(this.currentFrame == this.frames.length){
-                        this.currentFrame = 0;
-                    }
-                })
-            }
-        }), 9)
+                    
+                    this.timer = this.regTimerDefault(15, () => {
+                    
+                        this.img = this.frames[this.currentFrame];
+                        this.currentFrame++;
+                        if(this.currentFrame == this.frames.length){
+                            this.currentFrame = 0;
+                        }
+                    })
+                }
+            }), 9)
+        }
+        
 
 
         for(let l = 0; l < model.main.layers.length; l++){
@@ -344,171 +384,336 @@ class Demo10DriveScene extends Scene {
                 init() {
                 }
             }), (l+1)*10);
+            console.log(`layer №${l} - ${name} added`);
         }
+
+        this.eq = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            frames: PP.createImage(Demo10DriveScene.models.eqFrames),
+            init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                let delay = 10;
+                this.timer = this.regTimerDefault(15, () => {
+                    if(delay-- > 0)
+                        return;
+
+                    delay = 10;
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 100)
 
         this.road = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            img: PP.createImage(Demo10DriveScene.models.road)
+            img: PP.createImage(Demo10DriveScene.models.road),
+            createRoadFrames({framesCount, itemsCount, itemFrameslength, size, opacity}) {
+                let frames = [];
+                let angleClamps = [0, 82];
+                let pCenter = this.parentScene.pCenter.add(new V2(2,0));
+                let length = pCenter.distance(new V2(0,84))
+                let l1 = createLine(new V2(0,0), new V2(0, size.y));
+                let l2 = createLine(new V2(0, size.y), new V2(size.x, size.y))
+                let sharedPP = undefined;
+                let oValues = easing.fast({from: 0, to: opacity, steps: itemFrameslength, type: 'expo', method: 'in'}).map(v=> fast.r(v,2));
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    sharedPP = new PP({ctx});
+                })
+
+                let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                    let angle = getRandomInt(0, 82);
+                    let direction = V2.down.rotate(angle);
+                    let p2 = pCenter.add(direction.mul(length+getRandomInt(-20,0))).toInt();
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = itemFrameslength;
+                    let wValues = easing.fast({from: 1, to: getRandomInt(5,20), steps: itemFrameslength, type: 'expo', method: 'in'}).map(v=> fast.r(v));
+                    // let p2 = raySegmentIntersectionVector2(pCenter, direction, l1);
+                    // if(!p2)
+                    //     p2 = raySegmentIntersectionVector2(pCenter, direction, l2);
+
+                    // if(!p2)
+                    //     return;
+
+                    let linePoints = sharedPP.lineV2(pCenter, p2);
+                    let indexValues = easing.fast({from: 0, to: linePoints.length-1, steps: totalFrames, type: 'expo', method: 'in'}).map(v=> fast.r(v));
+
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                
+                        frames[frameIndex] = {
+                            index: f,   
+                            width: wValues[f], 
+                            point: linePoints[indexValues[f]]
+                        };
+                    }
+                
+                    return {
+                        
+                        frames,
+                        indexValues,
+                        linePoints
+                    }
+                }).filter(v => v != undefined);
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                hlp.setFillColor(`rgba(0,0,0,${oValues[itemData.frames[f].index]})`)
+                                    .rect(itemData.frames[f].point.x, itemData.frames[f].point.y, itemData.frames[f].width, 1);
+                            }
+                            
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                this.roadItems = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.createRoadFrames({ framesCount: 200, itemsCount: 1000, itemFrameslength: 200, size: this.size, opacity: 0.3 }),
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(15, () => {
+                        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
+            }
         }),5)
 
         //return;
 
-        this.addGo(new GO({ // 2-ой ряд
-            position: this.sceneCenter,
-            size: this.viewport,
-            init() {
-                this.frames = this.parentScene.createBuildingsFrames(
-                    {framesCount: 600, framesPerModel: 600, 
-                        modelsData: [
-                            {
-                                model: Demo10DriveScene.models.buildings.b9,
-                                initialFrame: 50,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b9,
-                                initialFrame: 150,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b9,
-                                initialFrame: 250,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b9,
-                                initialFrame: 350,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b9,
-                                initialFrame: 450,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b9,
-                                initialFrame: 550,
-                            },
-                            
-                        ], 
-                        size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-60) })
-
-                this.currentFrame = 0;
-                this.img = this.frames[this.currentFrame];
-                
-                this.timer = this.regTimerDefault(15, () => {
-                
-                    this.img = this.frames[this.currentFrame];
-                    this.currentFrame++;
-                    if(this.currentFrame == this.frames.length){
-                        this.currentFrame = 0;
-                    }
-                })
-            }
-        }), 2)
-
-        this.addGo(new GO({ // 2-ой ряд
-            position: this.sceneCenter,
-            size: this.viewport,
-            init() {
-                this.frames = this.parentScene.createBuildingsFrames(
-                    {framesCount: 400, framesPerModel: 400, 
-                        modelsData: [
-                            {
-                                model: Demo10DriveScene.models.buildings.b5,
-                                initialFrame: 50,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b4,
-                                initialFrame: 100,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b6,
-                                initialFrame: 175,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b5,
-                                initialFrame: 250,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b6,
-                                initialFrame: 275,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b4,
-                                initialFrame: 300,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b6,
-                                initialFrame: 350,
-                            },
-                        ], 
-                        size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-50) })
-
-                this.currentFrame = 0;
-                this.img = this.frames[this.currentFrame];
-                
-                this.timer = this.regTimerDefault(15, () => {
-                
-                    this.img = this.frames[this.currentFrame];
-                    this.currentFrame++;
-                    if(this.currentFrame == this.frames.length){
-                        this.currentFrame = 0;
-                    }
-                })
-            }
-        }), 3)
-
-        this.addGo(new GO({ // первый ряд
-            position: this.sceneCenter,
-            size: this.viewport,
-            init() {
-                this.frames = this.parentScene.createBuildingsFrames(
-                    {framesCount: 300, framesPerModel: 300, 
-                        modelsData: [
-                            {
-                                model: Demo10DriveScene.models.buildings.b7,
-                                initialFrame: 25,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b8,
-                                initialFrame: 50,
-                            },
-
-                            {
-                                model: Demo10DriveScene.models.buildings.b3,
-                                initialFrame: 100,
+        if(show3Layer) {
+            this.addGo(new GO({ // 3-ий ряд
+                position: this.sceneCenter,
+                size: this.viewport,
+                init() {
+                    this.frames = this.parentScene.createBuildingsFrames(
+                        {framesCount: 600, framesPerModel: 600, 
+                            modelsData: [
+                                {
+                                    model: Demo10DriveScene.models.buildings.b9,
+                                    initialFrame: 50,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b9,
+                                    initialFrame: 150,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b9,
+                                    initialFrame: 250,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b9,
+                                    initialFrame: 350,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b9,
+                                    initialFrame: 450,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b9,
+                                    initialFrame: 550,
+                                },
                                 
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b8,
-                                initialFrame: 120,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b7,
-                                initialFrame: 150,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b3,
-                                initialFrame: 200,
-                            },
-                            {
-                                model: Demo10DriveScene.models.buildings.b8,
-                                initialFrame: 275,
-                            }
-
-                        ], 
-                        size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-160) })
-
-                this.currentFrame = 0;
-                this.img = this.frames[this.currentFrame];
-                
-                this.timer = this.regTimerDefault(15, () => {
-                
+                            ], 
+                            size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-60), makeDarkerBy: 2 })
+    
+                    this.currentFrame = 0;
                     this.img = this.frames[this.currentFrame];
-                    this.currentFrame++;
-                    if(this.currentFrame == this.frames.length){
-                        this.currentFrame = 0;
-                    }
-                })
-            }
-        }), 4)
+                    
+                    this.timer = this.regTimerDefault(15, () => {
+                    
+                        this.img = this.frames[this.currentFrame];
+                        this.currentFrame++;
+                        if(this.currentFrame == this.frames.length){
+                            this.currentFrame = 0;
+                        }
+                    })
+                }
+            }), 2)
+        }
+        
+        if(show2Layer){
+            this.addGo(new GO({ // 2-ой ряд
+                position: this.sceneCenter,
+                size: this.viewport,
+                init() {
+                    this.frames = this.parentScene.createBuildingsFrames(
+                        {framesCount: 400, framesPerModel: 400, 
+                            modelsData: [
+                                {
+                                    model: Demo10DriveScene.models.buildings.b5,
+                                    initialFrame: 50,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b4,
+                                    initialFrame: 100,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b6,
+                                    initialFrame: 175,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b5,
+                                    initialFrame: 250,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b6,
+                                    initialFrame: 275,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b4,
+                                    initialFrame: 300,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b6,
+                                    initialFrame: 350,
+                                },
+                            ], 
+                            size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-50), makeDarkerBy: 2 })
+    
+                    this.currentFrame = 0;
+                    this.img = this.frames[this.currentFrame];
+                    
+                    this.timer = this.regTimerDefault(15, () => {
+                    
+                        this.img = this.frames[this.currentFrame];
+                        this.currentFrame++;
+                        if(this.currentFrame == this.frames.length){
+                            this.currentFrame = 0;
+                        }
+                    })
+                }
+            }), 3)
+        }
+        
+        if(show1Layer){
+            this.addGo(new GO({ // первый ряд
+                position: this.sceneCenter,
+                size: this.viewport,
+                init() {
+                    this.frames = this.parentScene.createBuildingsFrames(
+                        {framesCount: 300, framesPerModel: 300, 
+                            modelsData: [
+                                {
+                                    model: Demo10DriveScene.models.buildings.b13,
+                                    initialFrame: 5,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b7,
+                                    initialFrame: 15,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b3,
+                                    initialFrame: 30,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b8,
+                                    initialFrame: 45,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b12,
+                                    initialFrame: 55,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b10,
+                                    initialFrame: 70,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b13,
+                                    initialFrame: 85,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b3,
+                                    initialFrame: 100,
+                                    
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b8,
+                                    initialFrame: 120,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b11,
+                                    initialFrame: 135,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b7,
+                                    initialFrame: 150,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b10,
+                                    initialFrame: 170,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b8,
+                                    initialFrame: 185,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b3,
+                                    initialFrame: 200,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b12,
+                                    initialFrame: 220,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b7,
+                                    initialFrame: 240,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b13,
+                                    initialFrame: 260,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b8,
+                                    initialFrame: 275,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b11,
+                                    initialFrame: 290,
+                                }
+    
+                            ], 
+                            size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-160), makeDarkerBy: 2 })
+    
+                    this.currentFrame = 0;
+                    this.img = this.frames[this.currentFrame];
+                    
+                    this.timer = this.regTimerDefault(15, () => {
+                    
+                        this.img = this.frames[this.currentFrame];
+                        this.currentFrame++;
+                        if(this.currentFrame == this.frames.length){
+                            this.currentFrame = 0;
+                        }
+                    })
+                }
+            }), 4)
+        }
+        
 
         this.addGo(new GO({ // забор
             position: this.sceneCenter,
@@ -522,7 +727,7 @@ class Demo10DriveScene extends Scene {
                                 initialFrame: i*5,
                             }))
                         ], 
-                        size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-25) })
+                        size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-25), makeDarkerBy: 2 })
 
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
@@ -578,7 +783,7 @@ class Demo10DriveScene extends Scene {
                                 initialFrame: 175,
                             },
                         ], 
-                        size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-160) })
+                        size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-160), makeDarkerBy: 1 })
 
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
@@ -593,5 +798,132 @@ class Demo10DriveScene extends Scene {
                 })
             }
         }), 6)
+
+        if(showRain){
+            this.rain = this.addGo(new GO({
+                position: this.sceneCenter,
+                size: this.viewport,
+                init() {
+                    this.frames = [
+                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1600, xClamps: [100, 170], opacity: 0.05, lowerY: 70, 
+                            angle: 11, itemFrameslength: 40, size: this.size, length: 7, yDelta: 20, xShift: 2 }),
+                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1600, xClamps: [0, 90], opacity: 0.05, lowerY: 70, 
+                            angle: 11, itemFrameslength: 40, size: this.size, length: 7, yDelta: 20, xShift: 2 }),                    
+                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1200, xClamps: [80, 170], opacity: 0.1, lowerY: 80, 
+                            angle: 14, itemFrameslength: 35, size: this.size, length: 12, yDelta: 20, xShift: 4 }),
+                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 200, xClamps: [40, 170], opacity: 0.15, lowerY: 100, 
+                            angle: 17, itemFrameslength: 30, size: this.size, length: 18, yDelta: 6, xShift: 6 }),
+                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 100, xClamps: [0, 170], opacity: 0.2, lowerY: 100, 
+                            angle: 20, itemFrameslength: 25, size: this.size, length: 25, yDelta: 8, xShift: 18 }),
+                    ];
+    
+                    this.rainLayers = this.frames.map(frames => this.addChild(new GO({
+                        position: new V2(),
+                        size: this.size, 
+                        frames,
+                        init() {
+                            this.currentFrame = 0;
+                            this.img = this.frames[this.currentFrame];
+                            
+                            this.timer = this.regTimerDefault(15, () => {
+                            
+                                this.img = this.frames[this.currentFrame];
+                                this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                }
+                            })
+                        }
+                    })))
+                    
+                }
+            }), 7)
+        }
+        
+
+        this.createRainFrames = function({framesCount, itemsCount,xClamps, opacity, lowerY,angle, itemFrameslength, size, length, yDelta, xShift}) {
+            let frames = [];
+
+            let direction = V2.down.rotate(angle);
+            
+            let p2 = raySegmentIntersectionVector2(new V2(0,0), direction, createLine(new V2(-size.x, lowerY), new V2(0, lowerY)));
+            
+            let sharedPP = undefined;
+            createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                sharedPP = new PP({ctx})
+                //originalDots = new PP({ctx}).lineV2(p1, p2);
+            })
+
+            let xShiftValues = easing.fast({from: 0, to: xShift, steps: itemFrameslength, type: 'linear', method: 'base'}).map(v => fast.r(v));
+
+            let tailOpacityValues = easing.fast({from: opacity, to: 0, steps: length, type: 'quad', method: 'out'}).map(v => fast.r(v,2))
+
+            
+            
+            let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                let p1 = new V2(0,0).add(direction.mul(-length - getRandomInt(1,10)));
+                let originalDots = sharedPP.lineV2(p1, p2);
+                let indexValues = easing.fast({from: 0, to: originalDots.length-1 - getRandomInt(0, yDelta), steps: itemFrameslength, type: 'linear', method: 'base'}).map(v => fast.r(v));
+
+                let x = getRandomInt(xClamps[0], xClamps[1]);
+                //let indexValues = indexValuesVariants[getRandomInt(0, indexValuesVariants.length-1)];
+                let startFrameIndex = getRandomInt(0, framesCount-1);
+                let totalFrames = itemFrameslength;
+            
+                let frames = [];
+                for(let f = 0; f < totalFrames; f++){
+                    let frameIndex = f + startFrameIndex;
+                    if(frameIndex > (framesCount-1)){
+                        frameIndex-=framesCount;
+                    }
+            
+                    frames[frameIndex] = {
+                        index: f
+                    };
+                }
+            
+                return {
+                    x,
+                    frames,
+                    indexValues,
+                    originalDots
+                }
+            })
+            
+            for(let f = 0; f < framesCount; f++){
+                frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                    for(let p = 0; p < itemsData.length; p++){
+                        let itemData = itemsData[p];
+                        
+                        if(itemData.frames[f]){
+                            let indexOriginal = itemData.indexValues[itemData.frames[f].index];
+                            let xShiftValue = xShiftValues[itemData.frames[f].index]
+                            let prevX = undefined;
+                            for(let i = 0; i < length; i++){
+                                let opacity = tailOpacityValues[i];
+                                let index= indexOriginal - i;
+                                if(index < 0)
+                                    continue;
+
+                                let originalDot = itemData.originalDots[index];
+
+                                hlp.setFillColor(`rgba(255,255,255, ${opacity})`).dot(originalDot.x + itemData.x - xShiftValue, originalDot.y);
+
+                                if(prevX != undefined && originalDot.x != prevX){
+                                    hlp.setFillColor(`rgba(255,255,255, ${opacity/2})`)
+                                        //.dot(originalDot.x + itemData.x - xShiftValue - 1, originalDot.y)
+                                        .dot(originalDot.x + itemData.x - xShiftValue, originalDot.y+1);
+                                }
+
+                                prevX = originalDot.x;
+                            }
+                        }
+                        
+                    }
+                });
+            }
+            
+            return frames;
+        }
     }
 }
