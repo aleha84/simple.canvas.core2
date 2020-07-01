@@ -70,6 +70,7 @@ class Demo10DriveScene extends Scene {
         })
                                 
         let itemsData = new Array(itemsCount).fill().map((el, i) => {
+            let alive = true;
             let startFrameIndex = getRandomInt(0, framesCount-1);
             let totalFrames = fast.r(framesCount/4 + getRandomInt(-framesCount/20, framesCount/20)) //200;
             let opacity = fast.r(getRandom(0.1,0.25),2);
@@ -77,6 +78,29 @@ class Demo10DriveScene extends Scene {
             let y = initLinePoint.y;
             let x = getRandomInt(initLinePoint.x, size.x+20);
             let startP = new V2(x,y);
+
+            let d1 = swipers[0].center.distance(startP);
+            let d2 = swipers[1].center.distance(startP);
+            if((d1 < swipers[0].r2 && d1 > swipers[0].r1) || (d2 < swipers[1].r2 && d2 > swipers[1].r1)){
+                //startP = swipers[0].center.add(swipers[0].center.direction(startP).mul(swipers[0].r2 + getRandomInt(3,10))).toInt();
+                if(getRandomInt(0,2) > 1) {
+                    if(getRandomBool()) {
+                        startP = swipers[0].center.add(V2.right.rotate(getRandomInt(-60,-110)).mul(swipers[0].r2 + getRandomInt(3,15))).toInt();
+                    }
+                    else {
+                        startP = swipers[1].center.add(V2.right.rotate(getRandomInt(-50,-110)).mul(swipers[1].r2 + getRandomInt(3,20))).toInt();
+                    }
+                    
+                }
+                    //return undefined;
+            }
+
+            if(getRandomInt(0,10)  == 0){
+                let swiper = swipers[getRandomBool() ? 0 : 1];
+                startP = swiper.center.add(V2.right.rotate(swiper.angleClamps[1]-3).mul(getRandomInt(swiper.r1, swiper.r2))).toInt();
+                startFrameIndex = swipeStartFrameIndex + swipeOneDirectionFramesLength + 1;
+                //opacity = 1;
+            }
 
             let movementIndexValues = easing.fast({from: 0, to: movementDots.length-1, steps: totalFrames, type: 'linear', method: 'base'}).map(v => fast.r(v));
             //let dotsPositions = sharedPP.lineV2(startP, startP.add(dropsDirection.mul(90)));
@@ -101,11 +125,11 @@ class Demo10DriveScene extends Scene {
             }
 
             return {
-                alive: true,
+                alive,
                 opacity,
                 frames,
             }
-        })
+        }).filter(v => v != undefined);
         
         // let testDot = {p: new V2(67,50)};
         // testDot.r = center.distance(testDot.p);
@@ -335,16 +359,40 @@ class Demo10DriveScene extends Scene {
         var model = Demo10DriveScene.models.main;
 
         let showWindshield = true;
-        let show1Layer = true;
+        let show1Layer = false;
         let show2Layer = false;
         let show3Layer = false;
-        let showRain = true;
+        let showRain = false;
 
         this.bg = this.addGo(new GO({
-            position: this.sceneCenter,
+            position: this.sceneCenter.clone(),
             size: this.viewport,
             img: PP.createImage(Demo10DriveScene.models.bg)
         }), 0)
+
+        this.sceneManager = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: new V2(1,1),
+            init() {
+                let list = ['windshield', 'handWheel', 'eq', 'clockTick', 'bg', 'd1', 'mirrors', 'panel'];
+                let toggle = false;
+                let delay = 40;
+                this.timer = this.regTimerDefault(15, () => {
+                    if(delay-- > 0)
+                        return;
+
+                    delay = 40;
+
+                    list.forEach(name => {
+                        this.parentScene[name].position.y+= (toggle ? -1: 1);
+                        this.parentScene[name].needRecalcRenderProperties = true;
+                    })
+
+                    toggle = !toggle;
+                    
+                })
+            }
+        }));
 
         if(showWindshield){
             this.windshield = this.addGo(new GO({
@@ -373,24 +421,25 @@ class Demo10DriveScene extends Scene {
         }
         
 
-
+        let except = ['hand', 'wheel'];
         for(let l = 0; l < model.main.layers.length; l++){
             let name = model.main.layers[l].name;
-
-            this.addGo(new GO({
-                position: this.sceneCenter,
-                size: this.viewport,
-                img: PP.createImage(model, {renderOnly: [name]}),
-                init() {
-                }
-            }), (l+1)*10);
-            console.log(`layer №${l} - ${name} added`);
+            if(except.indexOf(name) == -1) {
+                this[name] = this.addGo(new GO({
+                    position: this.sceneCenter.clone(),
+                    size: this.viewport,
+                    img: PP.createImage(model, {renderOnly: [name]}),
+                    init() {
+                    }
+                }), (l+1)*10);
+                console.log(`layer №${l} - ${name} added`);
+            }
         }
 
-        this.eq = this.addGo(new GO({
-            position: this.sceneCenter,
+        this.handWheel = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
             size: this.viewport,
-            frames: PP.createImage(Demo10DriveScene.models.eqFrames),
+            frames: PP.createImage(Demo10DriveScene.models.handWheelFrames),
             init() {
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
@@ -399,12 +448,58 @@ class Demo10DriveScene extends Scene {
                     if(delay-- > 0)
                         return;
 
-                    delay = 10;
+                    delay = 40;
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
                     }
+                })
+            }
+        }), 60)
+
+        this.eq = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport,
+            frames: PP.createImage(Demo10DriveScene.models.eqFrames),
+            init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                let delay = 5;
+                this.timer = this.regTimerDefault(15, () => {
+                    if(delay-- > 0)
+                        return;
+
+                    delay = 5;
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 100)
+
+        this.clockTick = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport,
+            img: PP.createImage(Demo10DriveScene.models.clockTick),
+            init() {
+                this.currentFrame = 0;
+                //this.img = this.frames[this.currentFrame];
+                let delay = 40;
+                this.timer = this.regTimerDefault(15, () => {
+                    if(delay-- > 0)
+                        return;
+
+                    delay = 40;
+
+                    this.isVisible = !this.isVisible;
+                    //this.img = this.frames[this.currentFrame];
+                    // this.currentFrame++;
+                    // if(this.currentFrame == this.frames.length){
+                    //     this.currentFrame = 0;
+                    // }
                 })
             }
         }), 100)
@@ -507,7 +602,7 @@ class Demo10DriveScene extends Scene {
 
         if(show3Layer) {
             this.addGo(new GO({ // 3-ий ряд
-                position: this.sceneCenter,
+                position: this.sceneCenter.clone(),
                 size: this.viewport,
                 init() {
                     this.frames = this.parentScene.createBuildingsFrames(
@@ -558,7 +653,7 @@ class Demo10DriveScene extends Scene {
         
         if(show2Layer){
             this.addGo(new GO({ // 2-ой ряд
-                position: this.sceneCenter,
+                position: this.sceneCenter.clone(),
                 size: this.viewport,
                 init() {
                     this.frames = this.parentScene.createBuildingsFrames(
@@ -612,7 +707,7 @@ class Demo10DriveScene extends Scene {
         
         if(show1Layer){
             this.addGo(new GO({ // первый ряд
-                position: this.sceneCenter,
+                position: this.sceneCenter.clone(),
                 size: this.viewport,
                 init() {
                     this.frames = this.parentScene.createBuildingsFrames(
@@ -716,7 +811,7 @@ class Demo10DriveScene extends Scene {
         
 
         this.addGo(new GO({ // забор
-            position: this.sceneCenter,
+            position: this.sceneCenter.clone(),
             size: this.viewport,
             init() {
                 this.frames = this.parentScene.createBuildingsFrames(
@@ -744,7 +839,7 @@ class Demo10DriveScene extends Scene {
         }), 6)
 
         this.addGo(new GO({ //фонари
-            position: this.sceneCenter,
+            position: this.sceneCenter.clone(),
             size: this.viewport,
             init() {
                 this.frames = this.parentScene.createBuildingsFrames(
@@ -801,7 +896,7 @@ class Demo10DriveScene extends Scene {
 
         if(showRain){
             this.rain = this.addGo(new GO({
-                position: this.sceneCenter,
+                position: this.sceneCenter.clone(),
                 size: this.viewport,
                 init() {
                     this.frames = [
@@ -809,12 +904,12 @@ class Demo10DriveScene extends Scene {
                             angle: 11, itemFrameslength: 40, size: this.size, length: 7, yDelta: 20, xShift: 2 }),
                         this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1600, xClamps: [0, 90], opacity: 0.05, lowerY: 70, 
                             angle: 11, itemFrameslength: 40, size: this.size, length: 7, yDelta: 20, xShift: 2 }),                    
-                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1200, xClamps: [80, 170], opacity: 0.1, lowerY: 80, 
+                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1200, xClamps: [40, 170], opacity: 0.1, lowerY: 80, 
                             angle: 14, itemFrameslength: 35, size: this.size, length: 12, yDelta: 20, xShift: 4 }),
-                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 200, xClamps: [40, 170], opacity: 0.15, lowerY: 100, 
+                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 200, xClamps: [20, 170], opacity: 0.1, lowerY: 100, 
                             angle: 17, itemFrameslength: 30, size: this.size, length: 18, yDelta: 6, xShift: 6 }),
-                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 100, xClamps: [0, 170], opacity: 0.2, lowerY: 100, 
-                            angle: 20, itemFrameslength: 25, size: this.size, length: 25, yDelta: 8, xShift: 18 }),
+                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 100, xClamps: [0, 175], opacity: 0.1, lowerY: 100, 
+                            angle: 25, itemFrameslength: 25, size: this.size, length: 25, yDelta: 8, xShift: 18 }),
                     ];
     
                     this.rainLayers = this.frames.map(frames => this.addChild(new GO({
@@ -844,9 +939,8 @@ class Demo10DriveScene extends Scene {
         this.createRainFrames = function({framesCount, itemsCount,xClamps, opacity, lowerY,angle, itemFrameslength, size, length, yDelta, xShift}) {
             let frames = [];
 
-            let direction = V2.down.rotate(angle);
+            let angleToX = easing.fast({from: angle, to: 0, steps: xClamps[1]-xClamps[0], type: 'linear', method: 'base'}).map(v => fast.r(v));
             
-            let p2 = raySegmentIntersectionVector2(new V2(0,0), direction, createLine(new V2(-size.x, lowerY), new V2(0, lowerY)));
             
             let sharedPP = undefined;
             createCanvas(new V2(1,1), (ctx, size, hlp) => {
@@ -858,14 +952,22 @@ class Demo10DriveScene extends Scene {
 
             let tailOpacityValues = easing.fast({from: opacity, to: 0, steps: length, type: 'quad', method: 'out'}).map(v => fast.r(v,2))
 
-            
+            let lowerLine = createLine(new V2(-size.x*2, lowerY), new V2(0, lowerY));
+            let startP = new V2(0,0);
             
             let itemsData = new Array(itemsCount).fill().map((el, i) => {
-                let p1 = new V2(0,0).add(direction.mul(-length - getRandomInt(1,10)));
+                let x = getRandomInt(xClamps[0], xClamps[1]);
+
+                let angle = angleToX[x-xClamps[0]];
+
+                let direction = V2.down.rotate(angle);
+                let p2 = raySegmentIntersectionVector2(startP, direction, lowerLine);
+                
+                let p1 = startP.add(direction.mul(-length - getRandomInt(1,10)));
                 let originalDots = sharedPP.lineV2(p1, p2);
                 let indexValues = easing.fast({from: 0, to: originalDots.length-1 - getRandomInt(0, yDelta), steps: itemFrameslength, type: 'linear', method: 'base'}).map(v => fast.r(v));
 
-                let x = getRandomInt(xClamps[0], xClamps[1]);
+                
                 //let indexValues = indexValuesVariants[getRandomInt(0, indexValuesVariants.length-1)];
                 let startFrameIndex = getRandomInt(0, framesCount-1);
                 let totalFrames = itemFrameslength;
