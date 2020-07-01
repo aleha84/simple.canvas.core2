@@ -1,8 +1,17 @@
 class Demo10DriveScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
-            debug: {
+            capturing: {
                 enabled: true,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 10,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'drive'
+            },
+            debug: {
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -47,8 +56,14 @@ class Demo10DriveScene extends Scene {
                     })
                     
                     
-                    if(canSet)
-                        hlp.dot(x, pi.y);
+                    if(canSet){
+                        hlp.setFillColor('rgba(255,255,255,0.1)').dot(x, pi.y);
+
+                        if(getRandomInt(0,10) == 0){
+                            hlp.setFillColor('rgba(255,255,255,0.1)').dot(x, pi.y);
+                        }
+                    }
+                        
                 }
             })
 
@@ -97,9 +112,18 @@ class Demo10DriveScene extends Scene {
 
             if(getRandomInt(0,10)  == 0){
                 let swiper = swipers[getRandomBool() ? 0 : 1];
-                startP = swiper.center.add(V2.right.rotate(swiper.angleClamps[1]-3).mul(getRandomInt(swiper.r1, swiper.r2))).toInt();
-                startFrameIndex = swipeStartFrameIndex + swipeOneDirectionFramesLength + 1;
+                startP = swiper.center.add(V2.right.rotate(swiper.angleClamps[1]-2).mul(getRandomInt(swiper.r1, swiper.r2))).toInt();
+                startFrameIndex = swipeStartFrameIndex + swipeOneDirectionFramesLength ;
                 //opacity = 1;
+            }
+            else if(getRandomInt(0,7)  == 0) {
+                let swiper = swipers[getRandomBool() ? 0 : 1];
+                let step = getRandomInt(0, swiper.angleChangeValues.length/2);
+                let angle = swiper.angleChangeValues[step] + getRandom(-0.5, 0.5);
+                startFrameIndex = swipeStartFrameIndex + step;
+                let sign = step > swipeOneDirectionFramesLength ? -1 : 1;
+
+                startP = swiper.center.add(V2.right.rotate(angle + sign*5).mul(swiper.tailRange)).toInt();
             }
 
             let movementIndexValues = easing.fast({from: 0, to: movementDots.length-1, steps: totalFrames, type: 'linear', method: 'base'}).map(v => fast.r(v));
@@ -359,10 +383,10 @@ class Demo10DriveScene extends Scene {
         var model = Demo10DriveScene.models.main;
 
         let showWindshield = true;
-        let show1Layer = false;
-        let show2Layer = false;
+        let show1Layer = true;
+        let show2Layer = true;
         let show3Layer = false;
-        let showRain = false;
+        let showRain = true;
 
         this.bg = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -374,21 +398,22 @@ class Demo10DriveScene extends Scene {
             position: this.sceneCenter.clone(),
             size: new V2(1,1),
             init() {
-                let list = ['windshield', 'handWheel', 'eq', 'clockTick', 'bg', 'd1', 'mirrors', 'panel'];
+                let list = ['windshield', 'handWheel', 'eq', 'clockTick', 'bg', 'd1', 'mirrors', 'panel', 'mirrorAnimation', 'panelAnimation'];
                 let toggle = false;
                 let delay = 40;
                 this.timer = this.regTimerDefault(15, () => {
                     if(delay-- > 0)
                         return;
 
-                    delay = 40;
+                    
 
                     list.forEach(name => {
-                        this.parentScene[name].position.y+= (toggle ? -1: 1);
+                        this.parentScene[name].position.y+= (toggle ? -0.5: 0.5);
                         this.parentScene[name].needRecalcRenderProperties = true;
                     })
 
                     toggle = !toggle;
+                    delay = toggle ? 20 : 80;
                     
                 })
             }
@@ -401,8 +426,8 @@ class Demo10DriveScene extends Scene {
                 frames: this.createSwipeFrames({
                     framesCount: 200, swipeFramesLength: 70, 
                     swipers: [
-                        {center: new V2(45,90),r1: 15, r2: 70, angleClamps: [3, -115]},
-                        {center: new V2(100,91),r1: 15, r2: 70, angleClamps: [5, -115]}] //100, 91
+                        {center: new V2(45,90),r1: 15, r2: 70, angleClamps: [3, -115], tailRange: 50},
+                        {center: new V2(100,91),r1: 15, r2: 70, angleClamps: [5, -115], tailRange: 55}] //100, 91
                     , itemsCount: 2000, size: this.viewport}),
                 init() {
                     this.currentFrame = 0;
@@ -480,6 +505,50 @@ class Demo10DriveScene extends Scene {
             }
         }), 100)
 
+        this.mirrorAnimation = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport,
+            frames: PP.createImage(Demo10DriveScene.models.mirrorFrames),
+            init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                let delay = 5;
+                this.timer = this.regTimerDefault(15, () => {
+                    if(delay-- > 0)
+                        return;
+
+                    delay = 5;
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 100)
+
+        this.panelAnimation = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport,
+            frames: PP.createImage(Demo10DriveScene.models.panelFrames),
+            init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                let delay = 10;
+                this.timer = this.regTimerDefault(15, () => {
+                    if(delay-- > 0)
+                        return;
+
+                    delay = 10;
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 100)
+
         this.clockTick = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport,
@@ -487,12 +556,12 @@ class Demo10DriveScene extends Scene {
             init() {
                 this.currentFrame = 0;
                 //this.img = this.frames[this.currentFrame];
-                let delay = 40;
+                let delay = 20;
                 this.timer = this.regTimerDefault(15, () => {
                     if(delay-- > 0)
                         return;
 
-                    delay = 40;
+                    delay = 20;
 
                     this.isVisible = !this.isVisible;
                     //this.img = this.frames[this.currentFrame];
@@ -507,7 +576,12 @@ class Demo10DriveScene extends Scene {
         this.road = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            img: PP.createImage(Demo10DriveScene.models.road),
+            img:  createCanvas(this.viewport, (ctx, size, hlp) => {
+                ctx.drawImage(PP.createImage(Demo10DriveScene.models.road), 0, 0);
+                ctx.globalCompositeOperation = "source-atop";
+                hlp.setFillColor('rgba(0,0,0,0.5)').rect(0,0,size.x, size.y)
+                
+            }),
             createRoadFrames({framesCount, itemsCount, itemFrameslength, size, opacity}) {
                 let frames = [];
                 let angleClamps = [0, 82];
@@ -517,9 +591,47 @@ class Demo10DriveScene extends Scene {
                 let l2 = createLine(new V2(0, size.y), new V2(size.x, size.y))
                 let sharedPP = undefined;
                 let oValues = easing.fast({from: 0, to: opacity, steps: itemFrameslength, type: 'expo', method: 'in'}).map(v=> fast.r(v,2));
+                let divideOpacityValues = easing.fast({from: 0, to: 0.2, steps: itemFrameslength, type: 'expo', method: 'in'}).map(v=> fast.r(v,2));
                 createCanvas(new V2(1,1), (ctx, size, hlp) => {
                     sharedPP = new PP({ctx});
                 })
+
+                let divideLineDirection = V2.down.rotate(60);
+                let divideLineLength = 50;
+                let p2 = pCenter.add(divideLineDirection.mul(length)).toInt()//= new V2(0, 127);
+                let divideLinePoints = sharedPP.lineV2(pCenter, p2);
+                let divideLineIndexValues = easing.fast({from: 0, to: divideLinePoints.length-1, steps: itemFrameslength, type: 'expo', method: 'in'}).map(v=> fast.r(v));
+                let divideLineLengthValues = easing.fast({from: 0, to: divideLineLength, steps: itemFrameslength, type: 'expo', method: 'in'}).map(v=> fast.r(v));
+                let divideLineWidthValues = easing.fast({from: 1, to: 10, steps: itemFrameslength, type: 'expo', method: 'in'}).map(v=> fast.r(v));
+
+                let divideItemsCount = 12
+                let divideItemsData = new Array(divideItemsCount).fill().map((el, i) => {
+                    let startFrameIndex = fast.r(framesCount*i/divideItemsCount)//fast.r(framesCount/3)//getRandomInt(0, framesCount-1);
+                    // if(i > 0){
+                    //     startFrameIndex = fast.r(framesCount*i/4)
+                    // }
+
+                    let frames = [];
+                    for(let f = 0; f < itemFrameslength; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+
+                        frames[frameIndex] = {
+                            index: f,  
+                            point:  divideLinePoints[divideLineIndexValues[f]],
+                            length: divideLineLengthValues[f],
+                            width: divideLineWidthValues[f], 
+                            // point: linePoints[indexValues[f]]
+                        };
+                    }
+
+                    return {
+                        
+                        frames,
+                    }
+                });
 
                 let itemsData = new Array(itemsCount).fill().map((el, i) => {
                     let angle = getRandomInt(0, 82);
@@ -562,6 +674,21 @@ class Demo10DriveScene extends Scene {
                 
                 for(let f = 0; f < framesCount; f++){
                     frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        let pp = new PP({ctx});
+                        for(let i = 0; i < divideItemsData.length; i++){
+                            let itemData = divideItemsData[i];
+                            if(itemData.frames[f]){
+                                pp.setFillStyle(`rgba(175,175,175, ${divideOpacityValues[itemData.frames[f].index]})`)
+                                let p1 = new V2(itemData.frames[f].point);
+                                let p2 = p1.add(divideLineDirection.mul(itemData.frames[f].length)).toInt();
+                                let p3 = p2.add(new V2(itemData.frames[f].width, 0)).toInt()
+                                let p4 = p1.add(new V2(itemData.frames[f].width-1, 0)).toInt()
+                                //pp.lineV2(p1, p1.add(divideLineDirection.mul(itemData.frames[f].length)).toInt())
+
+                                pp.fillByCornerPoints([p1, p2, p3, p4]);
+                            }
+                        }
+
                         for(let p = 0; p < itemsData.length; p++){
                             let itemData = itemsData[p];
                             
@@ -688,17 +815,21 @@ class Demo10DriveScene extends Scene {
                                     initialFrame: 350,
                                 },
                             ], 
-                            size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-50), makeDarkerBy: 2 })
+                            size: this.size, targetPoint: new V2(-150, this.parentScene.pCenter.y-150), makeDarkerBy: 2 })
     
                     this.currentFrame = 0;
                     this.img = this.frames[this.currentFrame];
-                    
+                    let stopRecording = 3;
                     this.timer = this.regTimerDefault(15, () => {
                     
                         this.img = this.frames[this.currentFrame];
                         this.currentFrame++;
                         if(this.currentFrame == this.frames.length){
                             this.currentFrame = 0;
+                            stopRecording--;
+                            if(stopRecording == 0){
+                                this.parentScene.capturing.stop = true;
+                            }
                         }
                     })
                 }
@@ -714,69 +845,116 @@ class Demo10DriveScene extends Scene {
                         {framesCount: 300, framesPerModel: 300, 
                             modelsData: [
                                 {
-                                    model: Demo10DriveScene.models.buildings.b13,
-                                    initialFrame: 5,
-                                },
-                                {
-                                    model: Demo10DriveScene.models.buildings.b7,
-                                    initialFrame: 15,
-                                },
-                                {
                                     model: Demo10DriveScene.models.buildings.b3,
-                                    initialFrame: 30,
-                                },
-                                {
-                                    model: Demo10DriveScene.models.buildings.b8,
-                                    initialFrame: 45,
-                                },
-                                {
-                                    model: Demo10DriveScene.models.buildings.b12,
-                                    initialFrame: 55,
+                                    initialFrame: 0,  
                                 },
                                 {
                                     model: Demo10DriveScene.models.buildings.b10,
-                                    initialFrame: 70,
+                                    initialFrame: 10,
                                 },
                                 {
-                                    model: Demo10DriveScene.models.buildings.b13,
-                                    initialFrame: 85,
-                                },
-                                {
-                                    model: Demo10DriveScene.models.buildings.b3,
-                                    initialFrame: 100,
-                                    
+                                    model: Demo10DriveScene.models.buildings.b12,
+                                    initialFrame: 20,
                                 },
                                 {
                                     model: Demo10DriveScene.models.buildings.b8,
+                                    initialFrame: 30,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b13,
+                                    initialFrame: 40,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b7,
+                                    initialFrame: 50,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b14,
+                                    initialFrame: 60,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b3,
+                                    initialFrame: 65,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b8,
+                                    initialFrame: 75,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b12,
+                                    initialFrame: 85,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b10,
+                                    initialFrame: 95,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b13,
+                                    initialFrame: 105,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b3,
+                                    initialFrame: 110,  
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b14,
                                     initialFrame: 120,
                                 },
                                 {
+                                    model: Demo10DriveScene.models.buildings.b8,
+                                    initialFrame: 130,
+                                },
+                                {
                                     model: Demo10DriveScene.models.buildings.b11,
-                                    initialFrame: 135,
+                                    initialFrame: 140,
                                 },
                                 {
                                     model: Demo10DriveScene.models.buildings.b7,
                                     initialFrame: 150,
                                 },
                                 {
-                                    model: Demo10DriveScene.models.buildings.b10,
-                                    initialFrame: 170,
-                                },
-                                {
-                                    model: Demo10DriveScene.models.buildings.b8,
-                                    initialFrame: 185,
+                                    model: Demo10DriveScene.models.buildings.b14,
+                                    initialFrame: 160,
                                 },
                                 {
                                     model: Demo10DriveScene.models.buildings.b3,
-                                    initialFrame: 200,
+                                    initialFrame: 170,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b11,
+                                    initialFrame: 180,
                                 },
                                 {
                                     model: Demo10DriveScene.models.buildings.b12,
-                                    initialFrame: 220,
+                                    initialFrame: 190,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b10,
+                                    initialFrame: 200,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b8,
+                                    initialFrame: 210,
                                 },
                                 {
                                     model: Demo10DriveScene.models.buildings.b7,
-                                    initialFrame: 240,
+                                    initialFrame: 220,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b3,
+                                    initialFrame: 230,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b12,
+                                    initialFrame: 235,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b14,
+                                    initialFrame: 245,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b7,
+                                    initialFrame: 250,
                                 },
                                 {
                                     model: Demo10DriveScene.models.buildings.b13,
@@ -784,7 +962,11 @@ class Demo10DriveScene extends Scene {
                                 },
                                 {
                                     model: Demo10DriveScene.models.buildings.b8,
-                                    initialFrame: 275,
+                                    initialFrame: 270,
+                                },
+                                {
+                                    model: Demo10DriveScene.models.buildings.b14,
+                                    initialFrame: 280,
                                 },
                                 {
                                     model: Demo10DriveScene.models.buildings.b11,
@@ -901,15 +1083,15 @@ class Demo10DriveScene extends Scene {
                 init() {
                     this.frames = [
                         this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1600, xClamps: [100, 170], opacity: 0.05, lowerY: 70, 
-                            angle: 11, itemFrameslength: 40, size: this.size, length: 7, yDelta: 20, xShift: 2 }),
-                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1600, xClamps: [0, 90], opacity: 0.05, lowerY: 70, 
-                            angle: 11, itemFrameslength: 40, size: this.size, length: 7, yDelta: 20, xShift: 2 }),                    
-                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1200, xClamps: [40, 170], opacity: 0.1, lowerY: 80, 
-                            angle: 14, itemFrameslength: 35, size: this.size, length: 12, yDelta: 20, xShift: 4 }),
+                            angle: 20, itemFrameslength: 30, size: this.size, length: 7, yDelta: 20, xShift: 2 }),
+                        this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1600, xClamps: [0, 100], opacity: 0.05, lowerY: 70, 
+                            angle: 20, itemFrameslength: 30, size: this.size, length: 7, yDelta: 20, xShift: 2, noAngleChange: true }),                    
+                        // this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 1200, xClamps: [40, 170], opacity: 0.1, lowerY: 80, 
+                        //     angle: 14, itemFrameslength: 25, size: this.size, length: 12, yDelta: 20, xShift: 4 }),
                         this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 200, xClamps: [20, 170], opacity: 0.1, lowerY: 100, 
-                            angle: 17, itemFrameslength: 30, size: this.size, length: 18, yDelta: 6, xShift: 6 }),
+                            angle: 23, itemFrameslength: 20, size: this.size, length: 18, yDelta: 6, xShift: 6 }),
                         this.parentScene.createRainFrames({ framesCount: 100, itemsCount: 100, xClamps: [0, 175], opacity: 0.1, lowerY: 100, 
-                            angle: 25, itemFrameslength: 25, size: this.size, length: 25, yDelta: 8, xShift: 18 }),
+                            angle: 25, itemFrameslength: 15, size: this.size, length: 25, yDelta: 8, xShift: 18 }),
                     ];
     
                     this.rainLayers = this.frames.map(frames => this.addChild(new GO({
@@ -936,11 +1118,12 @@ class Demo10DriveScene extends Scene {
         }
         
 
-        this.createRainFrames = function({framesCount, itemsCount,xClamps, opacity, lowerY,angle, itemFrameslength, size, length, yDelta, xShift}) {
+        this.createRainFrames = function({framesCount, itemsCount,xClamps, opacity, lowerY,angle, itemFrameslength, size, length, yDelta, xShift, noAngleChange = false}) {
             let frames = [];
 
             let angleToX = easing.fast({from: angle, to: 0, steps: xClamps[1]-xClamps[0], type: 'linear', method: 'base'}).map(v => fast.r(v));
-            
+            if(noAngleChange)
+                angleToX = new Array(xClamps[1]-xClamps[0]).fill(angle);
             
             let sharedPP = undefined;
             createCanvas(new V2(1,1), (ctx, size, hlp) => {
@@ -1019,6 +1202,13 @@ class Demo10DriveScene extends Scene {
 
                                 prevX = originalDot.x;
                             }
+
+                            let index= indexOriginal + 1;
+                            if(index < itemData.originalDots.length){
+                                let originalDot = itemData.originalDots[index];
+                                hlp.setFillColor(`rgba(255,255,255, ${tailOpacityValues[0]/2})`).dot(originalDot.x + itemData.x - xShiftValue, originalDot.y);
+                            }
+                                    
                         }
                         
                     }
