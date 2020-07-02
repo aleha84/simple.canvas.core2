@@ -2,10 +2,10 @@ class Demo10DriveScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             capturing: {
-                enabled: true,
+                enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 10,
+                viewportSizeMultiplier: 7,
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'drive'
@@ -512,12 +512,12 @@ class Demo10DriveScene extends Scene {
             init() {
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
-                let delay = 5;
+                let delay = 8;
                 this.timer = this.regTimerDefault(15, () => {
                     if(delay-- > 0)
                         return;
 
-                    delay = 5;
+                    delay = 8;
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
@@ -572,6 +572,8 @@ class Demo10DriveScene extends Scene {
                 })
             }
         }), 100)
+
+        let animationDefaultDelay = 1;
 
         this.road = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -712,8 +714,12 @@ class Demo10DriveScene extends Scene {
                         this.currentFrame = 0;
                         this.img = this.frames[this.currentFrame];
                         
+                        let delay = animationDefaultDelay;
                         this.timer = this.regTimerDefault(15, () => {
-                        
+                            if(delay-- > 0)
+                                return;
+
+                            delay = animationDefaultDelay;
                             this.img = this.frames[this.currentFrame];
                             this.currentFrame++;
                             if(this.currentFrame == this.frames.length){
@@ -820,8 +826,12 @@ class Demo10DriveScene extends Scene {
                     this.currentFrame = 0;
                     this.img = this.frames[this.currentFrame];
                     let stopRecording = 3;
+                    let delay = animationDefaultDelay;
                     this.timer = this.regTimerDefault(15, () => {
-                    
+                        if(delay-- > 0)
+                            return;
+
+                        delay = animationDefaultDelay;
                         this.img = this.frames[this.currentFrame];
                         this.currentFrame++;
                         if(this.currentFrame == this.frames.length){
@@ -979,8 +989,12 @@ class Demo10DriveScene extends Scene {
                     this.currentFrame = 0;
                     this.img = this.frames[this.currentFrame];
                     
+                    let delay = animationDefaultDelay;
                     this.timer = this.regTimerDefault(15, () => {
-                    
+                        if(delay-- > 0)
+                            return;
+
+                        delay = animationDefaultDelay;
                         this.img = this.frames[this.currentFrame];
                         this.currentFrame++;
                         if(this.currentFrame == this.frames.length){
@@ -1009,8 +1023,12 @@ class Demo10DriveScene extends Scene {
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
                 
+                let delay = animationDefaultDelay;
                 this.timer = this.regTimerDefault(15, () => {
-                
+                    if(delay-- > 0)
+                        return;
+
+                    delay = animationDefaultDelay;
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
@@ -1065,8 +1083,12 @@ class Demo10DriveScene extends Scene {
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
                 
+                let delay = animationDefaultDelay;
                 this.timer = this.regTimerDefault(15, () => {
-                
+                    if(delay-- > 0)
+                        return;
+
+                    delay = animationDefaultDelay;
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
