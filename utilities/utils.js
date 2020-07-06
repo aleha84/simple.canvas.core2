@@ -621,19 +621,29 @@ function createCanvasHelper({ctx}){
 
       return this;
     },
-    strokeEllipsis(from = 0, to = 360, step = 0.1, origin, width, height, dots = undefined) {
+    strokeEllipsis(from = 0, to = 360, step = 0.1, origin, width, height, dots = undefined, distinct = false) {
       if(height == undefined)
         height = width/2;
 
+      let _dots = []
       for(let angle = from; angle < to; angle+=step){
           let r = degreeToRadians(angle);
           let x = fast.r(origin.x + width * Math.cos(r));
           let y = fast.r(origin.y + height * Math.sin(r));
 
+          if(distinct){
+            if(_dots.filter(d => d.x == x && d.y == y).length > 0)
+              continue;
+          }
+
           this.dot(x,y);
-          
-          if(dots)
-            dots.push({x,y})
+          _dots.push({x,y})
+          // if(dots)
+          //   dots.push({x,y})
+      }
+
+      if(dots){
+        _dots.forEach(d => dots.push(d));
       }
 
       return this;
