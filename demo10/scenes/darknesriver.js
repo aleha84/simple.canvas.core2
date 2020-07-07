@@ -45,8 +45,8 @@ class Demo10DarknessRiverScene extends Scene {
                 
 
                 let oValues = [
-                    ...easing.fast({from: 0, to: 0.2, steps: itemFrameslength/2, type: 'quad', method: 'inOut' }).map(v => fast.r(v,2)),
-                    ...easing.fast({from: 0.2, to: 0, steps: itemFrameslength/2, type: 'quad', method: 'inOut' }).map(v => fast.r(v,2))
+                    ...easing.fast({from: 0, to: 0.3, steps: itemFrameslength/2, type: 'quad', method: 'inOut' }).map(v => fast.r(v,2)),
+                    ...easing.fast({from: 0.3, to: 0, steps: itemFrameslength/2, type: 'quad', method: 'inOut' }).map(v => fast.r(v,2))
                 ]
 
                 let yShiftValues = easing.fast({from: 0, to: yShift, steps: itemFrameslength, type: 'linear', method: 'base' }).map(v => fast.r(v))
@@ -126,13 +126,13 @@ class Demo10DarknessRiverScene extends Scene {
                     sharedPP = new PP({ctx});
                 })
                 
-                let opacityValues = easing.fast({from: 1, to: 0.2, steps: itemFrameslength, type: 'quad', method: 'out'}).map(v => fast.r(v,2));
+                let opacityValues = easing.fast({from: 1, to: 0.3, steps: itemFrameslength, type: 'quad', method: 'out'}).map(v => fast.r(v,2));
                 let tailLengthValues = easing.fast({from: tailLength, to: 1, steps: itemFrameslength, type: 'quad', method: 'out'}).map(v => fast.r(v));
 
                 let circlesData = [];
                 let circlesMaxR = 8;
 
-                let circlesOpacityValues = easing.fast({from: 0.15, to: 0, steps: circleFramesCount, type: 'cubic', method: 'out'}).map(v => fast.r(v,2));
+                let circlesOpacityValues = easing.fast({from: 0.25, to: 0, steps: circleFramesCount, type: 'cubic', method: 'out'}).map(v => fast.r(v,2));
                 let circlesYShift = easing.fast({from: 0, to: -15, steps: circleFramesCount, type: 'linear', method: 'base'}).map(v => fast.r(v));
 
 
@@ -253,8 +253,8 @@ class Demo10DarknessRiverScene extends Scene {
                 return frames;
             },
             init() {
-                this.frames = this.createDropsFrames({framesCount: 200, itemsCount: 500, itemFrameslength: 100, circleFramesCount: 50, size: this.size, tailLength: 40})
-
+                this.frames = this.createDropsFrames({framesCount: 200, itemsCount: 600, itemFrameslength: 100, circleFramesCount: 50, size: this.size, tailLength: 40})
+                let count = 5;
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
                 
@@ -264,7 +264,8 @@ class Demo10DarknessRiverScene extends Scene {
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
-                        this.parentScene.capturing.stop = true;
+                        if(count-- == 0)
+                            this.parentScene.capturing.stop = true;
                     }
                 })
             }

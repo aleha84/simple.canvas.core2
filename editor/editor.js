@@ -1201,7 +1201,118 @@ class Editor {
 
         let mainEl = htmlUtils.createElement('div', { className: 'main' });
 
+
+        let buttons =  [
+            {
+                text: 'Clone',
+                click: (select) => {
+                    let { layerId } = components.editor.editor.selected;
+
+                    if(layerId == undefined){
+                        alert('No layers selected!')
+                        return;
+                    }
+
+                    let selectedLayer = main.layers.find(l => l.id == layerId);
+                    if(!selectedLayer){
+                        alert(`Layer ${layerId} not found!`)
+                        return;
+                    }
+
+                    let nextLayerId = `m_${main.currentLayerId++}`;
+                    while(main.layers.filter(g => g.id == nextLayerId).length > 0){
+                        nextLayerId = `m_${main.currentLayerId++}`;
+                    }
+
+                    main.layers.forEach(l => l.selected = false);
+                    
+                    let lCloned = assignDeep(
+                        {},
+                        modelUtils.createDefaultLayer(nextLayerId, main.layers.length),
+                        modelUtils.layerMapper(selectedLayer)
+                    )
+
+                    lCloned.id = nextLayerId;
+                    lCloned.visible = true;
+                    lCloned.order = main.layers.length;
+                    lCloned.name = (selectedLayer.name || selectedLayer.id) + '_cloned';
+                    lCloned.selected = true;
+                    lCloned.removeImage();
+
+                    lCloned.groups = selectedLayer.groups.map(g => assignDeep(
+                        {},
+                        modelUtils.createDefaultGroup(g.id, g.order), 
+                        modelUtils.groupMapper(g, true)));
+
+                    
+                    main.layers.push(lCloned);
+                    select.options[select.options.length] = new Option(lCloned.name, lCloned.id);
+                    select.value = lCloned.id;
+                    
+                    that.editor.selected.layerId = lCloned.id;
+                    that.editor.selected.groupId = undefined;
+                    that.editor.selected.pointId = undefined;
+
+                    select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+                }
+            }
+        ]
+
         if(general.animated){
+
+            buttons.push({
+                text: 'Clone to all frames',
+                click: (select) => {
+                    let frames = components.editor.image.main;
+                    let currentFrameIndex = general.currentFrameIndex;
+                    let { layerId } = components.editor.editor.selected;
+
+                    if(!layerId){
+                        notifications.error('No layer selected!', 2000);
+                        return;
+                    }
+
+                    if(!confirm('Clone (override) selected layer to other frames?'))
+                        return;
+
+                    let selectedLayer = main.layers.find(l => l.id == layerId);
+                    if(!selectedLayer){
+                        notifications.error(`Layer ${layerId} not found!`, 2000);
+                        return;
+                    }
+
+                    for(let f = 0; f < frames.length; f++){
+                        if(f == currentFrameIndex)
+                            continue;
+                        
+
+                        let lCloned = assignDeep(
+                            {},
+                            modelUtils.createDefaultLayer(selectedLayer.id, frames[f].layers.length),
+                            modelUtils.layerMapper(selectedLayer)
+                        )
+                        lCloned.groups = selectedLayer.groups.map(g => assignDeep(
+                            {},
+                            modelUtils.createDefaultGroup(g.id, g.order), 
+                            modelUtils.groupMapper(g, true)));
+
+
+                        //let layer = frames[f].layers.filter(l => l.id == layerId);
+                        let layerIndex = frames[f].layers.findIndex(l => l.id == layerId);
+                        if(layerIndex == -1){
+                            frames[f].layers.push(lCloned);
+                        }
+                        else {
+                            frames[f].layers[layerIndex] = {
+                                ...lCloned
+                            };
+                        }
+                    }
+
+                    notifications.done("Cloned", 2000);
+                }
+            })
+
             let commonCallback = () => {
                 that.editor.setModeState(false, 'edit');
                 that.createMain({setFocusToFrames:true});
@@ -1320,61 +1431,7 @@ class Editor {
             className: 'layers',
             items: main.layers.map(l => {return { title: l.name || l.id, value: l.id, selected: l.id == that.editor.selected.layerId }}),
             maxSize: 5,
-            buttons: [
-                {
-                    text: 'Clone',
-                    click: (select) => {
-                        let { layerId } = components.editor.editor.selected;
-
-                        if(layerId == undefined){
-                            alert('No layers selected!')
-                            return;
-                        }
-
-                        let selectedLayer = main.layers.find(l => l.id == layerId);
-                        if(!selectedLayer){
-                            alert(`Layer ${layerId} not found!`)
-                            return;
-                        }
-
-                        let nextLayerId = `m_${main.currentLayerId++}`;
-                        while(main.layers.filter(g => g.id == nextLayerId).length > 0){
-                            nextLayerId = `m_${main.currentLayerId++}`;
-                        }
-
-                        main.layers.forEach(l => l.selected = false);
-                        
-                        let lCloned = assignDeep(
-                            {},
-                            modelUtils.createDefaultLayer(nextLayerId, main.layers.length),
-                            modelUtils.layerMapper(selectedLayer)
-                        )
-
-                        lCloned.id = nextLayerId;
-                        lCloned.visible = true;
-                        lCloned.order = main.layers.length;
-                        lCloned.name = (selectedLayer.name || selectedLayer.id) + '_cloned';
-                        lCloned.selected = true;
-                        lCloned.removeImage();
-
-                        lCloned.groups = selectedLayer.groups.map(g => assignDeep(
-                            {},
-                            modelUtils.createDefaultGroup(g.id, g.order), 
-                            modelUtils.groupMapper(g, true)));
-
-                        
-                        main.layers.push(lCloned);
-                        select.options[select.options.length] = new Option(lCloned.name, lCloned.id);
-                        select.value = lCloned.id;
-                        
-                        that.editor.selected.layerId = lCloned.id;
-                        that.editor.selected.groupId = undefined;
-                        that.editor.selected.pointId = undefined;
-
-                        select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
-                    }
-                }
-            ],
+            buttons,
             callbacks: {
                 select: function(e){ 
                     main.layers.forEach(l => l.selected = false);
