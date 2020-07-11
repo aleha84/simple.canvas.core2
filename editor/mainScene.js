@@ -182,10 +182,12 @@ class EditorScene extends Scene {
                     if(image.general.animated){
                         if(event.code == 'KeyN'){
                             notifications.done('Show next frames', 1000)
+                            // todo action
                         }
 
                         if(event.code == 'KeyP'){
                             notifications.done('Show prev frames', 1000)
+                            // todo action
                         }
                     }
                     

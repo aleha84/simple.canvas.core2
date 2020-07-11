@@ -123,13 +123,111 @@ class Demo10TieScene extends Scene {
             }
         }), 1)
 
+        this.small = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                let small = PP.createImage(Demo10TieScene.models.small);
+                let smallSize = new V2(20,21);
+                let startFrame = 100;
+                let totalFramesCount = 200;
+                let framesCount = 50;
+                let start = new V2(100, -20)
+                let target = new V2(-50, 50);
+                let linePoints = []
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    linePoints = new PP({ctx}).lineV2(start, target);
+                });
+
+                let indexValues = easing.fast({from: 0, to: linePoints.length-1, steps: framesCount, type: 'linear', method: 'base'}).map(v => fast.r(v));
+
+                let frames = [];
+                for(let i = 0; i < totalFramesCount; i++){
+                    frames[i] = createCanvas(this.size, (ctx, size, hlp) => {
+                        if(i >= startFrame && i < startFrame + framesCount){
+                            let p = linePoints[indexValues[i-startFrame]];
+                            
+                            ctx.drawImage(small, p.x-25, p.y-15);
+                            ctx.drawImage(small, p.x, p.y);
+                        }
+                        
+                    })
+                }
+
+                this.frames = frames;
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 2)
+
+        this.tiny = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                let small = PP.createImage(Demo10TieScene.models.tiny);
+                let smallSize = new V2(20,21);
+                let startFrame = 50;
+                let totalFramesCount = 200;
+                let framesCount = 50;
+                let start = new V2(160, 90)
+                let target = new V2(10, 170);
+                let linePoints = []
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    linePoints = new PP({ctx}).lineV2(start, target);
+                });
+
+                let indexValues = easing.fast({from: 0, to: linePoints.length-1, steps: framesCount, type: 'linear', method: 'base'}).map(v => fast.r(v));
+
+                let frames = [];
+                for(let i = 0; i < totalFramesCount; i++){
+                    frames[i] = createCanvas(this.size, (ctx, size, hlp) => {
+                        if(i >= startFrame && i < startFrame + framesCount){
+                            let p = linePoints[indexValues[i-startFrame]];
+                            
+                             ctx.drawImage(small, p.x-5, p.y-15);
+                             ctx.drawImage(small, p.x-15, p.y-5);
+                            ctx.drawImage(small, p.x, p.y);
+                        }
+                        
+                    })
+                }
+
+                this.frames = frames;
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                })
+            }
+        }), 2)
+
         this.fighter = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             createTieFrames({size}) {
                 let frames = [];
-                let fighterImg = PP.createImage(Demo10TieScene.models.main, { exclude: ['green_shade'] });
+                let fighterImg = PP.createImage(Demo10TieScene.models.main, { exclude: ['green_shade', 'red_shade'] });
+                let fighterGoLeftImg = PP.createImage(Demo10TieScene.models.goLeft, { exclude: ['green_shade', 'red_shade'] });
+                let fighterGoRightImg = PP.createImage(Demo10TieScene.models.goRight, { exclude: ['green_shade', 'red_shade'] });
                 let greenShadeImg = PP.createImage(Demo10TieScene.models.main, { renderOnly: ['green_shade'] });
+                let redShadeImg = PP.createImage(Demo10TieScene.models.main, { renderOnly: ['red_shade'] });
                 let fighterSize = new V2(50,53);
                 let fighterSizeHalf = fighterSize.divide(2).toInt();
                 let center = size.divide(2).toInt();
@@ -315,7 +413,8 @@ class Demo10TieScene extends Scene {
                 for(let frameIndex = 0; frameIndex < framesPerMovement; frameIndex++){
                     framesData.push({
                         yShift: yChange[frameIndex%yShiftFramesCount],
-                        p: lineDots[goLeftIndexValues[frameIndex]].substract(fighterSizeHalf)
+                        p: lineDots[goLeftIndexValues[frameIndex]].substract(fighterSizeHalf),
+                        img: 'goLeft',
                     });
                 }
 
@@ -333,7 +432,8 @@ class Demo10TieScene extends Scene {
                 for(let frameIndex = 0; frameIndex < framesPerMovement; frameIndex++){
                     framesData.push({
                         yShift: yChange[frameIndex%yShiftFramesCount],
-                        p: lineDots[goRightIndexValues[frameIndex]].substract(fighterSizeHalf)
+                        p: lineDots[goRightIndexValues[frameIndex]].substract(fighterSizeHalf),
+                        img: 'goRight',
                     });
                 }
 
@@ -351,7 +451,8 @@ class Demo10TieScene extends Scene {
                 for(let frameIndex = 0; frameIndex < framesPerMovement; frameIndex++){
                     framesData.push({
                         yShift: yChange[frameIndex%yShiftFramesCount],
-                        p: lineDots[goCenterIndexValues[frameIndex]].substract(fighterSizeHalf)
+                        p: lineDots[goCenterIndexValues[frameIndex]].substract(fighterSizeHalf),
+                        img: 'goLeft',
                     });
                 }
 
@@ -394,9 +495,22 @@ class Demo10TieScene extends Scene {
 
                         let data = framesData[f];
 
-                        ctx.drawImage(fighterImg, data.p.x, data.p.y + data.yShift);
+                        if(data.img == 'goLeft'){
+                            ctx.drawImage(fighterGoLeftImg, data.p.x, data.p.y + data.yShift);
+                        }
+                        else if(data.img == 'goRight'){
+                            ctx.drawImage(fighterGoRightImg, data.p.x, data.p.y + data.yShift);
+                        }
+                        else {
+                            ctx.drawImage(fighterImg, data.p.x, data.p.y + data.yShift);
+                        }
+
                         if(f > 25 && f < 30 || f > 35 && f < 40) {
                             ctx.drawImage(greenShadeImg, data.p.x, data.p.y + data.yShift);
+                        }
+
+                        if( f > 56 && f < 61|| f > 156 && f < 161|| f > 166 && f < 171 || f > 176 && f < 181) {
+                            ctx.drawImage(redShadeImg, data.p.x, data.p.y + data.yShift);
                         }
 
                         for(let p = 0; p < shotsOverData.length; p++){
@@ -435,17 +549,28 @@ class Demo10TieScene extends Scene {
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
                 
+                let repeat = 5;
+
                 this.timer = this.regTimerDefault(10, () => {
                 
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
-                        this.parentScene.capturing.stop = true;
+                        if(--repeat == 0){
+                            this.parentScene.capturing.stop = true;
+                        }
+                        
                     }
                 })
             }
         }), 5)
+
+        this.addGo(new GO({
+            position: new V2(132,5),
+            size: new V2(30,10),
+            img: PP.createImage(Demo10TieScene.models.sign)
+        }), 10)
 
         // this.stars2 = this.addGo(new GO({
         //     position: this.sceneCenter.clone(),
