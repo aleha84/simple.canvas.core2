@@ -84,7 +84,7 @@ class EditorScene extends Scene {
                     }
                     
 
-                    if(event.keyCode == 86 && !event.ctrlKey){ // 'v' - toggle layer or group visibility
+                    if(event.keyCode == 86 ){ // 'v' - toggle layer or group visibility && !event.ctrlKey
                         if(event.shiftKey){
                             //layer
                             // if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
@@ -101,13 +101,16 @@ class EditorScene extends Scene {
 
                             this.editor.updateEditor();
                         }
+                        if(event.ctrlKey){
+                             //group
+                            if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
+                                edt.toggleGroupVisibility();
+                        }
                         else {
                             //layer
                             if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
                                 edt.toggleLayerVisibility();
-                            //group
-                            // if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
-                            //     edt.toggleGroupVisibility();
+                           
                         }
                     }
 

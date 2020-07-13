@@ -791,7 +791,8 @@ var components = {
                         point: {...p.point}
                     }));
 
-                    alert('Done');
+                    //alert('Done');
+                    notifications.done('Done', 2000);
                 }
             }
         ] : []
