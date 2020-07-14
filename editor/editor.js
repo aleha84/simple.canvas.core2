@@ -10,6 +10,7 @@
 // 16. Autosave model in localstorage
 // 17. Move\copy group to layer
 // 19. Remove all points from layer button
+// 20. Add custom name to frame. Edit box, and visible in the list
 
 
 
