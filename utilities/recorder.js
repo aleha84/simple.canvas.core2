@@ -1,4 +1,60 @@
 class Recorder {
+    static process() {
+        if(SCG.scenes.activeScene.capturing && SCG.scenes.activeScene.capturing.enabled){
+            let c = SCG.scenes.activeScene.capturing;
+            if(
+                (!c.stopByCode && c.currentFrame < c.totalFramesToRecord) ||
+                (c.stopByCode && !c.stop)
+                 ){
+                let frame = createCanvas(c.size, (ctx, size, hlp) => {
+                    ctx.drawImage(c.canvas, 0,0, size.x, size.y)
+                });
+
+                c.videoWriter.addFrame(frame);
+                if(!c.stopByCode)
+                    console.log(`${c.currentFrame} from ${c.totalFramesToRecord} added`);
+                else 
+                    console.log(`${c.currentFrame} frame added`);
+
+                c.currentFrame++;
+            }
+            else {
+                if(c.addRedFrame){
+                    let frame = createCanvas(c.size, (ctx, size, hlp) => {
+                        hlp.setFillColor('red').rect(0,0, size.x, size.y)
+                    });
+                    c.videoWriter.addFrame(frame);
+                }
+                
+                console.log('recording is completed');
+
+                c.videoWriter.complete().then(function(blob){
+                    let name = c.fileNamePrefix + '_' + new Date().getTime() + '.webm';
+                    // let blob = new Blob(this.recordedBlobs, { type: this.mimeType });
+                    let url = window.URL.createObjectURL(blob);
+                    let a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = name;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    }, 100)
+                });
+
+                c.enabled = false;
+
+                return {
+                    stopCycle: true
+                };
+            }
+        }
+    }
+}
+
+/*class Recorder {
     constructor(canvas, frameRate) {
         this.recordedBlobs = [];
         this.frameRate = frameRate;
@@ -76,4 +132,4 @@ class Recorder {
             window.URL.revokeObjectURL(url);
         }, 100)
     }
-}
+}*/
