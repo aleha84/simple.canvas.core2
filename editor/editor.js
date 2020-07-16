@@ -11,7 +11,8 @@
 // 17. Move\copy group to layer
 // 19. Remove all points from layer button
 // 20. Add custom name to frame. Edit box, and visible in the list
-
+// 21. ColorSelector create own component - RGB, HSV
+// 22. CShift - add HSV, RGB, Easings type and methods selection
 
 
 

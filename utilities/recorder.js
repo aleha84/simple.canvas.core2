@@ -19,6 +19,13 @@ class Recorder {
                 c.currentFrame++;
             }
             else {
+                if(c.addFrameBeforeStop){
+                    let frame = createCanvas(c.size, (ctx, size, hlp) => {
+                        ctx.drawImage(c.canvas, 0,0, size.x, size.y)
+                    });
+                    c.videoWriter.addFrame(frame);
+                }
+
                 if(c.addRedFrame){
                     let frame = createCanvas(c.size, (ctx, size, hlp) => {
                         hlp.setFillColor('red').rect(0,0, size.x, size.y)
