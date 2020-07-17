@@ -140,6 +140,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: _100x150_viewport
     }))
 
+    SCG.scenes.cacheScene(new Demo10IntouristScene({
+        name: 'int',
+        viewport: new V2(100,120)
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();
