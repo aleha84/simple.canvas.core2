@@ -1,10 +1,7 @@
 // TODO. Bugs:
 // 2. Current palettes list - stored in json
 // 4. gradient tool, update, add easings support
-// 5. Shift+v - hide just image not layers visibility ?
-// 7. Code refactoring. To different files and subfilders
-// 10. 'c' shortcut for scene color picker
-// 11. Move layer slow moving
+// 7. Code refactoring. Components - To different files
 // 13. Import model - dublicate palette if already exists
 // 14. imput - paddings/old value missing
 // 16. Autosave model in localstorage
@@ -13,7 +10,7 @@
 // 20. Add custom name to frame. Edit box, and visible in the list
 // 21. ColorSelector create own component - RGB, HSV
 // 22. CShift - add HSV, RGB, Easings type and methods selection
-
+// 23. Add progress recording - each minute add frame, pause, stop, start. Result in webm video
 
 
 class Editor {
@@ -35,7 +32,9 @@ class Editor {
                 removeSelectedPoint: undefined,
                 toggleLayerVisibility: undefined,
                 toggleGroupVisibility: undefined,
-                panels: {},
+                panels: {
+                    lastPositions: {}
+                },
                 highlight: {
                     el: undefined,
                     enabled: true,
@@ -192,7 +191,10 @@ class Editor {
         this.init();
 
         let that = this;
+
+        components.draggable.init(that);
         components.createUIControls(that);
+        
         components.createDraggablePanel({title: 'utilities', panelClassNames: [ 'utilities'], parent: document.body, position: new V2(20,20), contentItems: [
             htmlUtils.createElement('input', { value: 'Mid',  attributes: { type: 'button' }, events: {
                 click: function(){
@@ -204,11 +206,14 @@ class Editor {
                         that.editor.panels.midColor = components.createDraggablePanel({
                             title: 'Mid color', 
                             parent: document.body, 
-                            position: new V2(20,60), 
+                            position: that.editor.panels.lastPositions.midColor || new V2(20,60), 
                             closable: true,
                             expandable: false,
                             contentWidth: 150,
                             onClose: () => { that.editor.panels.midColor = undefined; },
+                            onMove: (nextPosition) => {
+                                that.editor.panels.lastPositions.midColor = nextPosition;
+                             },
                             contentItems: [
                                 components.createMidColor()
                             ]
@@ -218,39 +223,7 @@ class Editor {
                 }
             } }),
             htmlUtils.createElement('input', { value: 'CPick',  attributes: { type: 'button' }, events: {
-                click: function(){
-
-                    if(that.editor.panels.colorPicker){
-                        that.editor.panels.colorPicker.remove();
-                    }
-                    else {
-                        that.editor.mode.toggleColorPicker();
-                        that.updateEditor();
-    
-                        let cp = components.createDraggablePanel({
-                            title: 'C picker', 
-                            parent: document.body, 
-                            position: new V2(40,60), 
-                            closable: true,
-                            expandable: false,
-                            contentWidth: 150,
-                            onClose: () => { 
-                                that.editor.panels.colorPicker = undefined;
-                                that.editor.mode.toggleColorPicker();
-                                that.updateEditor();
-                             },
-                            contentItems: [
-                                components.createSceneColorPicker()
-                            ]
-                        });
-
-                        that.editor.panels.colorPicker = cp;
-
-                        cp.setValue = (value) => {
-                            cp.contentItems[0].setValue(value);
-                        }
-                    }
-                }
+                click: () => components.draggable.createColorPicker()
             } }),
             htmlUtils.createElement('input', { value: 'CShift',  attributes: { type: 'button' }, events: {
                 click: function(){
@@ -262,11 +235,14 @@ class Editor {
                     that.editor.panels.cShift = components.createDraggablePanel({
                         title: 'C shift', 
                         parent: document.body, 
-                        position: new V2(80,60), 
+                        position: that.editor.panels.lastPositions.cShift || new V2(80,60), 
                         closable: true,
                         expandable: false,
                         contentWidth: 150,
                         onClose: () => { that.editor.panels.cShift = undefined; },
+                        onMove: (nextPosition) => {
+                            that.editor.panels.lastPositions.cShift = nextPosition;
+                         },
                         contentItems: [
                             components.createCShift()
                         ]

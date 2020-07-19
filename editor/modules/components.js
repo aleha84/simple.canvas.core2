@@ -1127,7 +1127,7 @@ var components = {
         return arr; // for testing
     },
     createDraggablePanel({parent, title, position, closable = false, panelClassNames = [], expandable = true, contentWidth = undefined, contentItems = [],
-        onClose = () => {}, onCreate = () => {}
+        onClose = () => {}, onCreate = () => {}, onMove = () => {}
     }) {
         let editorBr = parent.querySelector('#editor').getBoundingClientRect();
         let panelBr = undefined;
@@ -1196,9 +1196,9 @@ var components = {
     
                 dragPanel.classList.add('active');
     
-                parent.addEventListener('mousemove', events.move);
-                parent.addEventListener('mouseup',events.mouseUp);
-                document.addEventListener('mouseout', events.out);
+                parent.addEventListener('pointermove', events.move);
+                parent.addEventListener('pointerup',events.mouseUp);
+                document.addEventListener('pointerout', events.out);
             },
             out(event){
                 var from = event.relatedTarget || event.toElement;  
@@ -1227,6 +1227,8 @@ var components = {
     
                 panel.style.left = nextX + 'px';
                 panel.style.top = nextY + 'px';
+
+                onMove(new V2(nextX, nextY))
             },
             mouseUp() {
                 dragStartRelative = undefined;
@@ -1235,9 +1237,9 @@ var components = {
                     dragPanel.classList.remove("active");
                 }
     
-                parent.removeEventListener('mousemove', events.move);
-                parent.removeEventListener('mouseup', events.mouseUp);
-                document.removeEventListener('mouseout', events.out);
+                parent.removeEventListener('pointermove', events.move);
+                parent.removeEventListener('pointerup', events.mouseUp);
+                document.removeEventListener('pointerout', events.out);
             }
         }
 

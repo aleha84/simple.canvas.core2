@@ -37,6 +37,10 @@ class EditorScene extends Scene {
                         this.editor.toggleHighlight(!this.mainGo.showDots, true);
                     }
 
+                    if(event.code == 'KeyC' && !event.ctrlKey && !event.shiftKey) {
+                        components.draggable.createColorPicker()
+                    }
+
                     if(event.keyCode == 82) { // 'r'
                         if(event.shiftKey){
                             edt.mode.toggleRemovement();
@@ -90,18 +94,20 @@ class EditorScene extends Scene {
                             // if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
                             //     edt.toggleLayerVisibility();
 
-                            let main = this.editor.image.main;
-                            if(isArray(main)){
-                                main = main[this.editor.image.general.currentFrameIndex];
-                            }
-                            main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
+                            // let main = this.editor.image.main;
+                            // if(isArray(main)){
+                            //     main = main[this.editor.image.general.currentFrameIndex];
+                            // }
+                            
+                            //main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
+                            this.mainGo.hideImage = !this.mainGo.hideImage;
 
                             event.preventDefault();
                             event.stopPropagation();
 
                             this.editor.updateEditor();
                         }
-                        if(event.ctrlKey){
+                        else if(event.ctrlKey){
                              //group
                             if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
                                 edt.toggleGroupVisibility();
@@ -236,7 +242,8 @@ class EditorScene extends Scene {
         }));
 
         this.mainGo = this.addGo(new EditorGO({
-            position: this.sceneCenter
+            position: this.sceneCenter,
+            hideImage: false, // flag triggered by shift+v to hide img without removeing layers
         }),1, true);
 
         this.underlyingImg = this.addGo(new GO({
@@ -302,17 +309,23 @@ class EditorScene extends Scene {
             mg.model = model;
     
             let imagesCreated = 0;
-            mg.img = createCanvas(general.size, (ctx, size, hlp) => {
-                model.main.layers.forEach(l => {
-                    if(!l.layerImage){
-                        l.layerImage = PP.createImage(model, {renderOnly: [l.name || l.id]});
-                        l.layerImageCreatedCallback(l.layerImage)
-                        imagesCreated++;
-                    }
-
-                    ctx.drawImage(l.layerImage, 0,0);
+            if(!mg.hideImage){
+                mg.img = createCanvas(general.size, (ctx, size, hlp) => {
+                    model.main.layers.forEach(l => {
+                        if(!l.layerImage){
+                            l.layerImage = PP.createImage(model, {renderOnly: [l.name || l.id]});
+                            l.layerImageCreatedCallback(l.layerImage)
+                            imagesCreated++;
+                        }
+    
+                        ctx.drawImage(l.layerImage, 0,0);
+                    })
                 })
-            })
+            }
+            else {
+                mg.img = undefined;
+            }
+            
 
             console.log('renderModel: imagesCreated: ' + imagesCreated);
             

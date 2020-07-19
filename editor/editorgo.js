@@ -147,8 +147,10 @@ class EditorGO extends GO {
                         if(d.downOn){
                             SCG.viewport.scrollOptions.enabled = false;
                             if(!d.downOn.index.equal(index)){
-                                let direction = d.downOn.index.direction(index).toInt();
-                                this.model.editor.selectedLayer.move(direction);
+                                let direction = d.downOn.index.direction(index)//.toInt();
+                                let distance = d.downOn.index.distance(index);
+
+                                this.model.editor.selectedLayer.move(direction.mul(distance).toInt());
                                 d.downOn.index = index;
                                 d.downOn.indexChanged = true;
                             }
@@ -160,9 +162,12 @@ class EditorGO extends GO {
                             if(!d.downOn.index.equal(index)){
                                 d.started = true;
                                 //console.log('need update points', )
-                                let direction = d.downOn.index.direction(index).toInt();
+                                let direction = d.downOn.index.direction(index)//.toInt();
+                                let distance = d.downOn.index.distance(index);
+
+                                let delta = direction.mul(distance).toInt();
                                 this.dots.forEach(p => {
-                                    p.index.add(direction, true);
+                                    p.index.add(delta, true);
                                     p.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.index.y)
                                     p.needRecalcRenderProperties = true;
                                 })
