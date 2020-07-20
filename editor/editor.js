@@ -654,7 +654,8 @@ class Editor {
             }
             else {
                 main = i.main.map(frame => ({
-                    layers: frame.layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper)
+                    layers: frame.layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper),
+                    frameName: frame.frameName
                 }))
             } 
         }
@@ -690,7 +691,7 @@ class Editor {
 
     importModel(model) {
         let that = this;
-        let importMain = (main) => 
+        let importMainLayers = (main) => 
             (main.layers.map(
                 (l,i) => assignDeep(
                     {}, 
@@ -752,8 +753,9 @@ class Editor {
         if(image.general.animated){
             image.main = image.main.map(f => {
                 let frame = { 
-                    layers: importMain(f) 
+                    layers: importMainLayers(f) 
                 };
+                frame.frameName = f.frameName;
                 frame.currentLayerId = frame.layers.length;
                 frame.element = that.image.main.element;
 
@@ -764,7 +766,7 @@ class Editor {
         }
         else {
             image.main.currentLayerId = image.main.layers.length;
-            image.main.layers = importMain(image.main);
+            image.main.layers = importMainLayers(image.main);
             if(that.image.general.animated){
                 image.main.element = that.image.main[0].element;
             }
@@ -1300,7 +1302,7 @@ class Editor {
             mainEl.appendChild(components.createList({
                 title: 'Frames',
                 className: 'frames',
-                items: this.image.main.map((f, i) => ({ title: 'Frame_' + i, value: i, selected: i == general.currentFrameIndex })),
+                items: this.image.main.map((f, i) => ({ title: 'Frm ' + i + (f.frameName ? ' - ' + f.frameName : ''), value: i, selected: i == general.currentFrameIndex })),
                 noReset: true,
                 buttons: [
                     {
@@ -1396,6 +1398,14 @@ class Editor {
                     changeCallback: that.updateEditor.bind(that)
                 },
 
+            }))
+
+            mainEl.appendChild(components.createInput(main.frameName, 'Frame name: ', function(value) {
+                if(value){
+                    main.frameName = value
+        
+                    commonCallback();
+                }
             }))
 
             mainEl.appendChild(components.framesPreview.create(that));

@@ -22,6 +22,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(100,100)
     }));
 
+    SCG.scenes.cacheScene(new SlimeCinemaLevarBurtonScene({
+        name:'levar',
+        viewport: new V2(100,100)
+    }));
+
     sceneSelectByHashValue();
     
     SCG.main.start();
