@@ -19,6 +19,12 @@ class Editor {
             controls: {
                 savedAs: undefined,
                 overlayEl: undefined,
+                removeOverlay: function() {
+                    if(this.overlayEl)
+                        this.overlayEl.remove();
+
+                    this.overlayEl = undefined;
+                }
             },
             editor: {
                 element: undefined,
@@ -783,13 +789,13 @@ class Editor {
         let that = this;
         let controlsEl = htmlUtils.createElement('div', { className: 'mainControlsBlock' });
         let createCloseButtonAndAddOverlay = function(containerEl){
-            that.controls.overlayEl.appendChild(containerEl);
-            that.controls.overlayEl.appendChild(htmlUtils.createElement('input',{
+            
+            containerEl.appendChild(htmlUtils.createElement('input',{
                 value: 'Close', className:'close', attributes: { type: 'button' }, events: {click: function() {
-                    that.controls.overlayEl.remove();
-                    that.controls.overlayEl = undefined;
+                    that.controls.removeOverlay();
                 }}
             }))
+            that.controls.overlayEl.appendChild(containerEl);
             that.parentElement.appendChild(that.controls.overlayEl);
         }
 
@@ -886,7 +892,7 @@ class Editor {
                 createCloseButtonAndAddOverlay(containerEl);
             }
         } }));
-
+/*
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Load', attributes: { type: 'button' }, events: {
             click: function(){
                 that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
@@ -951,60 +957,48 @@ class Editor {
                 createCloseButtonAndAddOverlay(containerEl);
             }
         }}));
+        */
 
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Save', attributes: { type: 'button' }, events: {
             click: function(){
+                that.controls.removeOverlay();
+
                 that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
                 let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'save'] });
 
-                let saveNameInput = htmlUtils.createElement('input', { value: that.controls.savedAs || '', attributes: { type: 'text' } });
+                let saveNameInput = htmlUtils.createElement('input', { value: 'image_000', attributes: { type: 'text' } });
+                let saveSizeInput = htmlUtils.createElement('input', { value: 1, attributes: { type: 'number' } });
 
                 containerEl.appendChild(saveNameInput);
+                containerEl.appendChild(saveSizeInput);
 
                 containerEl.appendChild(htmlUtils.createElement('input', { value: 'Ok', attributes: { type: 'button' }, events: {
                     click: function(){
                         let saveName = saveNameInput.value;
+                        let saveSize = parseInt(saveSizeInput.value);
                         if(!saveName)
                             return;
 
-                        let lsItem = localStorage.getItem('editorSaves');
-                        if(!lsItem){
-                            lsItem = [];
-                        }
-                        else {
-                            lsItem = JSON.parse(lsItem);
-                        }
+                        if(saveSize < 1)
+                            saveSize = 1
 
-                        that.controls.savedAs = saveNameInput.value;
+                        colors.saveImage(SCG.scenes.activeScene.mainGo.img, 
+                            { 
+                                size: SCG.scenes.activeScene.mainGo.originalSize.mul(saveSize), 
+                                name: saveName + ( saveSize > 1 ? '_scale_' + saveSize : '' ) + '.png' 
+                            }
+                        )
 
-                        let saved = lsItem.filter(l => l.name == that.controls.savedAs);
-
-                        let now = new Date();
-                        if(saved.length){
-                            saved[0].datetime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString();
-                            saved[0].content = that;
-                        }
-                        else {
-                            lsItem.push({
-                                name: saveNameInput.value,
-                                datetime: new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString(), //new Date().toISOString(),
-                                content: that
-                            });    
-                        }
-                        
-                        localStorage.setItem('editorSaves', JSON.stringify(lsItem));
-
-                        that.controls.overlayEl.remove();
-                        that.controls.overlayEl = undefined;
+                        that.controls.removeOverlay();
                     }
                 } }));
 
-                containerEl.appendChild(htmlUtils.createElement('input', { value: 'Cancel', attributes: { type: 'button' }, events: {
-                    click: function(){
-                        that.controls.overlayEl.remove();
-                        that.controls.overlayEl = undefined;
-                    }
-                } }))
+                // containerEl.appendChild(htmlUtils.createElement('input', { value: 'Cancel', attributes: { type: 'button' }, events: {
+                //     click: function(){
+                //         that.controls.overlayEl.remove();
+                //         that.controls.overlayEl = undefined;
+                //     }
+                // } }))
 
                 createCloseButtonAndAddOverlay(containerEl);
             }

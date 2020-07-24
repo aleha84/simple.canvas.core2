@@ -745,12 +745,13 @@ var components = {
                     let frames = components.editor.image.main;
                     let currentFrameIndex = components.editor.image.general.currentFrameIndex;
 
+                    let f = currentFrameIndex+1;
                     if(currentFrameIndex == frames.length-1)
-                        return;
+                        f = 0;
 
                     let selectedGroup = groups.filter(g => g.selected)[0];
                     let sameIdGroup = undefined;
-                    let f = currentFrameIndex+1;
+                    
                     for(let l = 0; l < frames[f].layers.length;l++){
                         for(let g = 0; g < frames[f].layers[l].groups.length; g++){
                             if(selectedGroup.id == frames[f].layers[l].groups[g].id){
