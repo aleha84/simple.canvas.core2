@@ -2,7 +2,7 @@ class OLOAsteroidsScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             capturing: {
-                enabled: true,
+                enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
                 viewportSizeMultiplier: 2,
