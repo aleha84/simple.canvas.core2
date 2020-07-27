@@ -1403,7 +1403,8 @@ class Editor {
                 }
             }))
 
-            mainEl.appendChild(components.framesPreview.create(that));
+            // fix bug 25
+            //mainEl.appendChild(components.framesPreview.create(that));
         }
 
         let layersWrapperEl = htmlUtils.createElement('div', { className: 'layersWrapper' });
