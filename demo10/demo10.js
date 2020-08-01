@@ -145,6 +145,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(100,120)
     }))
 
+    SCG.scenes.cacheScene(new Demo10VaultScene({
+        name: 'vault',
+        viewport: square150_viewport
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();

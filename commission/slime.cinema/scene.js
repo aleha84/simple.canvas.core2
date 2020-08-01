@@ -5,7 +5,7 @@ class SlimeCinemaBobRossScene extends Scene {
                 enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 20,
+                viewportSizeMultiplier: 10,
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'bob_ross'
@@ -36,7 +36,7 @@ class SlimeCinemaBobRossScene extends Scene {
                 })
                 
                 let delay = 8;
-
+                let repeats = 5
                 this.timer = this.regTimerDefault(10, () => {
                     if(delay-- > 0)
                         return;
@@ -46,7 +46,9 @@ class SlimeCinemaBobRossScene extends Scene {
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
-                        this.parentScene.capturing.stop = true;
+                        repeats--;
+                        if(repeats == 0)
+                            this.parentScene.capturing.stop = true;
                     }
                     this.img = this.img = createCanvas(this.size, (ctx, size, hlp) => {
                         ctx.filter = "brightness(150%)";

@@ -176,7 +176,7 @@ SCG.controls = {
             
 
             if(SCG.scenes.activeScene.events.up)
-                SCG.scenes.activeScene.events.up();
+                SCG.scenes.activeScene.events.up({state: this.state});
 
             event.preventDefault();
         },

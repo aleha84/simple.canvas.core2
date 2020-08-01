@@ -12,7 +12,9 @@
 // 22. CShift - add HSV, RGB, Easings type and methods selection
 // 23. Add progress recording - each minute add frame, pause, stop, start. Result in webm video
 // 24. framesPreview - overheat! render all frames each frame change!!!
-
+// 25. change selected pixel color frame. Globally, per group. Depends on color? 
+// 26. block ctrl+r !!!!!!!!!!!!!!!!!!!
+// 27. auto save in localstorage !!!!!!!
 
 class Editor {
     constructor(options = {}){
