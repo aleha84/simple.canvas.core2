@@ -561,6 +561,15 @@ var components = {
             changeCallback();
         }));
 
+        groupEl.appendChild(components.createSelect(groupProps.patternType, ['type1','type2', 'type3'],'Pattern Type', function(value){
+            groupProps.patternType = value;
+            //groupProps.showPoints = value == 'lines';
+            //console.log(groupProps.showPoints);
+            //components.fillPoints(groupProps, changeCallback) 
+
+            changeCallback();
+        } ))
+
         groupEl.appendChild(htmlUtils.createElement('button', { text: 'To points', attributes: {}, events: { 
             click: function() { 
                 if(groupProps.points.length < 3){

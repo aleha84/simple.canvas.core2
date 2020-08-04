@@ -380,7 +380,7 @@ class Scene {
             }
 
             if(c.viewportSizeMultiplier){
-                c.size = this.viewport.mul(c.viewportSizeMultiplier);
+                c.size = this.viewport.mul(c.viewportSizeMultiplier).toInt();
                 console.log('recording size: ' + c.size.toString());
             }
 

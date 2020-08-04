@@ -341,6 +341,12 @@ class EditorGO extends GO {
                         d.disable();
                     }
                     else if(this.model.editor.mode == 'colorpick'){
+                        if(!this.img){
+                            d.disable();
+                            console.log('image isnt visible');
+                            return;
+                        }
+
                         let colorData = this.img.getContext('2d').getImageData(this.model.editor.index.x, this.model.editor.index.y,1,1);
                         this.parentScene.editor.editor.panels.colorPicker.setValue('#' + rgbToHex(Array.from(colorData.data)))
                         //console.log(colorData);

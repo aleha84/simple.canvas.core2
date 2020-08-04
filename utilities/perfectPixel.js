@@ -304,13 +304,31 @@ PP.createImage = function(model, params = {}) {
                             let filledPoints = pp.fill(uniquePoints, p.map(p => p.point));
                             
                             pp.setFillStyle(fillColor);
+                            let patternType = group.patternType;
+                            if(!patternType){
+                                patternType = 'type1';
+                            }
 
                             for(let i = 0; i < filledPoints.length; i++){
                                 let up = filledPoints[i];
-                                let shift = up.y %2 == 0;
-                                if((shift && up.x % 2 != 0) || (!shift && up.x%2 == 0)){
-                                    pp.setPixel(up.x, up.y);
+
+                                if(patternType == 'type1'){
+                                    let shift = up.y %2 == 0;
+                                    if((shift && up.x % 2 != 0) || (!shift && up.x%2 == 0)){
+                                        pp.setPixel(up.x, up.y);
+                                    }
                                 }
+                                else if(patternType == 'type2'){
+                                    if((up.y+1) % 2 == 0 && up.x % 2 == 0) {
+                                        pp.setPixel(up.x, up.y);
+                                    }
+                                }
+                                else if(patternType == 'type3'){
+                                    if(up.y % 4 == 0 && up.x % 4 == 0) {
+                                        pp.setPixel(up.x, up.y);
+                                    }
+                                }
+                                
                             }
                         }
                         else {
