@@ -2,7 +2,7 @@ class Tu2Scene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             capturing: {
-                enabled: true,
+                enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
                 viewportSizeMultiplier: 5,
@@ -78,7 +78,119 @@ class Tu2Scene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
-                this.img = PP.createImage(model, { renderOnly: ['main_plane'] });
+                this.createSmokeFrames = function({framesCount, itemsCount, itemFrameslength, size, from, colors}) {
+                    let frames = [];
+                    //let from = new V2(100, 83);
+                    let toYClamp = [77, 88];
+                    let sharedPP = undefined;
+                    //let colors = ['#425D8E', '#5B729D', '#546B98']
+                    createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                        sharedPP = new PP({ctx});
+                    })
+
+                    let linesPoits = new Array(toYClamp[1]-toYClamp[0]).fill().map((el, i) => {
+                        let points = sharedPP.lineV2(from, new V2(size.x, toYClamp[0] + i));
+                        let indexValues = easing.fast({from: 0, to: points.length-1, steps: itemFrameslength, type: 'linear', method: 'base'}).map(v => fast.r(v));
+
+                        return {
+                            points,
+                            indexValues
+                        };
+                    })
+    
+                    let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                        let startFrameIndex = getRandomInt(0, framesCount-1);
+                        let totalFrames = itemFrameslength;
+                        let xShift = getRandomInt(0,4);
+                        let color = colors[getRandomInt(0, colors.length-1)];
+
+                        let linePoints = linesPoits[fast.r(getRandomGaussian(0, (toYClamp[1]-toYClamp[0])-1))];//linesPoits[getRandomInt(0, (toYClamp[1]-toYClamp[0])-1)];
+                        if(!linePoints)
+                            debugger;
+
+                        let frames = [];
+                        for(let f = 0; f < totalFrames; f++){
+                            let frameIndex = f + startFrameIndex;
+                            if(frameIndex > (framesCount-1)){
+                                frameIndex-=framesCount;
+                            }
+                    
+                            frames[frameIndex] = {
+                                index: f
+                            };
+                        }
+                    
+                        return {
+                            linePoints,
+                            xShift,
+                            color,
+                            frames
+                        }
+                    })
+                    
+                    for(let f = 0; f < framesCount; f++){
+                        frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                            for(let p = 0; p < itemsData.length; p++){
+                                let itemData = itemsData[p];
+                                
+                                if(itemData.frames[f]){
+                                    let p = itemData.linePoints.points[itemData.linePoints.indexValues[itemData.frames[f].index]];
+                                    hlp.setFillColor(itemData.color).dot(p.x + itemData.xShift, p.y)
+                                }
+                                
+                            }
+                        });
+                    }
+                    
+                    return frames;
+                }
+
+                this.smokeBack = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    frames: this.createSmokeFrames({ colors: ['#425D8E', '#5B729D', '#546B98'], from: new V2(100, 83), framesCount: 200, itemsCount: 600, itemFrameslength: 50, size: this.size }),
+                    init() {
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                        
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                            this.img = this.frames[this.currentFrame];
+                        })
+                    }
+                })) 
+
+                this.main = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(model, { renderOnly: ['main_plane'] })
+                }));
+
+                this.smokeFrontal = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    frames: this.createSmokeFrames({ colors: ['rgba(99,121,162,0.25)', 'rgba(99,121,162,0.5)'],
+                        from: new V2(40, 82), framesCount: 200, itemsCount: 1000, itemFrameslength: 100, size: this.size }),
+                    init() {
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                        
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                            this.img = this.frames[this.currentFrame];
+                        })
+                    }
+                })) 
 
                 let totalFrames = 300;
                 let origignalY = this.position.y;
@@ -282,5 +394,8 @@ class Tu2Scene extends Scene {
                 
             }
         }), 30)
+
+         
+        //5D769F
     }
 }
