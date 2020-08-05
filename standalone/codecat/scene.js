@@ -8,7 +8,7 @@ class CodeCatScene extends Scene {
                 viewportSizeMultiplier: 3,
                 totalFramesToRecord: 601,
                 frameRate: 60,
-                fileNamePrefix: 'cpde_cat'
+                fileNamePrefix: 'code_cat'
             },
             debug: {
                 enabled: false,
