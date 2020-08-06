@@ -5,13 +5,13 @@ class Tu2Scene extends Scene {
                 enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 5,
+                viewportSizeMultiplier: 6,
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'tu2'
             },
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -148,7 +148,7 @@ class Tu2Scene extends Scene {
                 this.smokeBack = this.addChild(new GO({
                     position: new V2(),
                     size: this.size.clone(),
-                    frames: this.createSmokeFrames({ colors: ['#425D8E', '#5B729D', '#546B98'], from: new V2(100, 83), framesCount: 200, itemsCount: 600, itemFrameslength: 50, size: this.size }),
+                    frames: this.createSmokeFrames({ colors: ['#425D8E', '#5B729D', '#546B98'], from: new V2(100, 83), framesCount: 200, itemsCount: 600, itemFrameslength: 37, size: this.size }),
                     init() {
 
                         this.currentFrame = 0;
@@ -171,11 +171,44 @@ class Tu2Scene extends Scene {
                     img: PP.createImage(model, { renderOnly: ['main_plane'] })
                 }));
 
+                this.main_tilt = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(model, { renderOnly: ['main_plane_tilt1'] }),
+                    isVisible: false,
+                }));
+
+                this.propeller = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Tu2Scene.models.propellerFrames),
+                    init() {
+                        let delay = 3;
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            delay--;
+                            if(delay> 0)
+                                return;
+                            
+                            delay = 3;
+
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+
+                            this.img = this.frames[this.currentFrame];
+                        })
+                    }
+                }));
+
                 this.smokeFrontal = this.addChild(new GO({
                     position: new V2(),
                     size: this.size.clone(),
                     frames: this.createSmokeFrames({ colors: ['rgba(99,121,162,0.25)', 'rgba(99,121,162,0.5)'],
-                        from: new V2(40, 82), framesCount: 200, itemsCount: 1000, itemFrameslength: 100, size: this.size }),
+                        from: new V2(40, 82), framesCount: 200, itemsCount: 1000, itemFrameslength: 75, size: this.size }),
                     init() {
 
                         this.currentFrame = 0;
@@ -199,18 +232,33 @@ class Tu2Scene extends Scene {
                 let yValues = [..._yValues, ..._yValues.reverse()];
                 //let delay = 0;
                 this.currentFrame = 0;
+                let propellerYOriginal = this.propeller.position.y;
+                    let propellerYAlter = this.propeller.position.y+1;
                 this.timer = this.regTimerDefault(10, () => {
                     // delay--;
                     // if(delay > 0)
                     //     return;
 
                     //delay = 10;
+                    
+
                     this.currentFrame++;
                     if(this.currentFrame == totalFrames){
                         this.currentFrame = 0;
                     }
                     this.position.y = origignalY+yValues[this.currentFrame];
                     this.needRecalcRenderProperties = true;
+
+                    if(this.currentFrame < totalFrames/4 || this.currentFrame > totalFrames*3/4){
+                        this.main.isVisible = true;
+                        this.main_tilt.isVisible = false
+                        this.propeller.position.y = propellerYOriginal;
+                    }
+                    else {
+                        this.main.isVisible = false;
+                        this.main_tilt.isVisible = true;
+                        this.propeller.position.y = propellerYAlter;
+                    }
                 })
             }
         }), 20)
@@ -267,7 +315,7 @@ class Tu2Scene extends Scene {
             position: this.sceneCenter,
             size: this.viewport,
             init() {
-                this.frames = this.parentScene.createParticlesFrames({ framesCount: 300, itemsCount: 25, itemFrameslength: 18, size: this.size, 
+                this.frames = this.parentScene.createParticlesFrames({ framesCount: 300, itemsCount: 25, itemFrameslength: 13, size: this.size, 
                     tailLength: 30, color: undefined, opacity: 0.5, yClamps: [0, this.size.y-25] });
 
                 this.currentFrame = 0;
@@ -288,7 +336,7 @@ class Tu2Scene extends Scene {
             position: this.sceneCenter,
             size: this.viewport,
             init() {
-                this.frames = this.parentScene.createParticlesFrames({ framesCount: 300, itemsCount: 50, itemFrameslength: 50, size: this.size, 
+                this.frames = this.parentScene.createParticlesFrames({ framesCount: 300, itemsCount: 50, itemFrameslength: 37, size: this.size, 
                     tailLength: 10, color: undefined, opacity: 0.1, yClamps: [0, this.size.y-25] });
 
                 this.currentFrame = 0;
@@ -309,7 +357,7 @@ class Tu2Scene extends Scene {
             position: this.sceneCenter,
             size: this.viewport,
             init() {
-                this.frames = this.parentScene.createParticlesFrames({ framesCount: 300, itemsCount: 40, itemFrameslength: 35, size: this.size, 
+                this.frames = this.parentScene.createParticlesFrames({ framesCount: 300, itemsCount: 40, itemFrameslength: 26, size: this.size, 
                     tailLength: 20, color: undefined, opacity: 0.25, yClamps: [0, this.size.y-50] });
 
                 this.currentFrame = 0;
@@ -366,14 +414,16 @@ class Tu2Scene extends Scene {
                         init() {
                             this.currentFrame = 0;
                             this.img = this.frames[this.currentFrame];
-                            
+                            let repeat = 3;
                             this.timer = this.regTimerDefault(10, () => {
                             
                                 this.currentFrame++;
                                 if(this.currentFrame == this.frames.length){
                                     this.currentFrame = 0;
                                     if(this.frames.length == 600 ){
-                                        this.parent.parentScene.capturing.stop = true;
+                                        repeat--;
+                                        if(repeat == 0)
+                                            this.parent.parentScene.capturing.stop = true;
                                     }
                                 }
             
@@ -394,6 +444,14 @@ class Tu2Scene extends Scene {
                 
             }
         }), 30)
+
+        this.second_plane = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            img: PP.createImage(model, { renderOnly: ['sign'] }),
+            init() {
+            }
+        }), 50)
 
          
         //5D769F
