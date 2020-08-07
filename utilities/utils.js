@@ -779,6 +779,7 @@ function hsvToRgb(h, s, v, asArray = false, hsvAsInt = false) {
       case 4: r = t, g = p, b = v; break;
       case 5: r = v, g = p, b = q; break;
   }
+  //paint.NET has FLOOR here
   let result = {
       r: fastRoundWithPrecision(r * 255),
       g: fastRoundWithPrecision(g * 255),

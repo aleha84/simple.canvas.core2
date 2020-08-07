@@ -638,6 +638,25 @@ var colors = {
         white: 'rgba(255,255,255, 1)',
         black: 'rgba(0,0,0,1)',
     },
+    createColorChange(value1, value2, colorType, steps, type, method) {
+        if(steps < 2)
+            throw "Steps should be more than 1";
+
+        let rgb1 = colors.colorTypeConverter({ value: value1, toType: 'rgb' });
+        let rgb2 = colors.colorTypeConverter({ value: value2, toType: 'rgb' });
+
+        let rValues = easing.fast({ from: rgb1.r, to: rgb2.r, steps, type, method }).map(v => fast.r(v));
+        let gValues = easing.fast({ from: rgb1.g, to: rgb2.g, steps, type, method }).map(v => fast.r(v));
+        let bValues = easing.fast({ from: rgb1.b, to: rgb2.b, steps, type, method }).map(v => fast.r(v));
+
+        let result = [];
+        for(let i = 0; i<steps;i++){
+            result.push(colors.colorTypeConverter({ value: { r: rValues[i],g: gValues[i],b: bValues[i] }, toType: colorType }));
+        }
+
+        return result;
+        
+    },
     createEasingChange({hsv = {from:{h:0,s:0,v:0}, to:{h:0,s:0,v:0}}, rgb = {from:{r:0,g:0,b:0}, to:{r:0,g:0,b:0}}, type = 'quad', method = 'in', time = 100}) {
         let change = {
             current: {},
@@ -707,7 +726,89 @@ var colors = {
         var rgb = hexToRgb(hex, false, true);
         return rgbToHsv(rgb.r, rgb.g, rgb.b);
     },
-    rgbStringToObject({value, asObject = true}){
+    colorTypeConverter({value, toType, fromType = undefined}){
+        if(!fromType){
+            if(typeof(value) == 'string'){
+                if(value[0] == '#'){
+                    fromType = 'hex';
+                }
+                else if(value.toLowerCase().startsWith('rgb')){
+                    fromType = 'rgbStr';
+                }
+                else {
+                    throw 'Unknown color string representation: ' + value;
+                }
+            }
+            else {
+                if(isArray(value)) {
+                    throw 'Unknown color type. Array: ' + value.join(',');
+                }
+                else {
+                    if(value.r != undefined && value.g != undefined && value.b != undefined){
+                        fromType = 'rgb'
+                    }
+                    else if(value.h != undefined && value.s != undefined && value.v != undefined){
+                        fromType = 'hsv'
+                    }
+                    else {
+                        throw 'Unknown color type. Object: ' + JSON.stringify(value) 
+                    }
+                }
+            }
+        }
+
+        fromType = fromType.toLowerCase();
+        toType = toType.toLowerCase();
+
+        if(toType == fromType){
+            return value;
+        }
+
+        let colorData = undefined;
+        switch(fromType){
+            case "hex":
+                colorData = hexToRgb(value, false, true);
+                break;
+            case "hsv": 
+                colorData = hsvToRgb(value.h, value.s, value.v, false, (Number.isInteger(value.h) && Number.isInteger(value.s) && Number.isInteger(value.v)));
+                break;
+            case "rgb": 
+                colorData = value;
+                break;
+            case "rgbstr": 
+                colorData = colors.rgbStringToObject({ value, asObject: true, shortNames: true });
+                break;
+            default:
+                throw "Unknow from type: " + fromType;
+        }
+
+        let result = undefined;
+
+        switch(toType) {
+            case "hex": 
+                result = rgbToHex(colorData.r, colorData.g, colorData.b);
+                if(result[0] != "#")
+                result = "#" + result;
+                break;
+            case "hsv":
+                result = rgbToHsv(colorData.r, colorData.g, colorData.b, false);
+                result.h = fast.r(result.h*360);
+                result.s = fast.r(result.s*100);
+                result.v = fast.r(result.v*100);
+                break;
+            case "rgb": 
+                result = colorData;
+                break;
+            case "rgbstr": 
+                result = colors.rgbToString({ value: colorData, isObject: true })
+                break;
+            default:
+                throw "Unknow to type: " + toType;
+        }
+        
+        return result;
+    },
+    rgbStringToObject({value, asObject = true, shortNames = false}){
         let match = value.match(/rgba?\((\d{1,3}), ?(\d{1,3}), ?(\d{1,3})\)?(?:, ?(\d(?:\.\d*)?)\))?/);
         let result = undefined; 
         if(match){
@@ -722,11 +823,20 @@ var colors = {
             return [result.red,result.green,result.blue,result.opacity]
         }
 
+        if(shortNames) {
+            return {
+                r: result.red,
+                g: result.green,
+                b: result.blue,
+                o: result.opacity
+            };
+        }
+
         return result;
     },
     rgbToString({value, isObject = false, opacity = 1}) {
         if(isObject)
-            return `rgba(${value.r || value.red}, ${value.g || value.green}, ${value.b || value.blue}, ${(value.opacity != undefined ? value.opacity : opacity)})`;
+            return `rgba(${value.r || value.red || 0}, ${value.g || value.green || 0}, ${value.b || value.blue || 0}, ${(value.opacity != undefined ? value.opacity : opacity)})`;
 
         return `rgba(${value[0]}, ${value[1]}, ${value[2]}, ${(value[3]!= undefined ? value[3] : opacity)})`;
     },
