@@ -1,8 +1,17 @@
 class StarsSkyScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 5,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'stars_sky'
+            },
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -20,12 +29,12 @@ class StarsSkyScene extends Scene {
             size: this.viewport.clone(),
             img: createCanvas(this.viewport, (ctx, size, hlp) => {
                 hlp.setFillColor('black').rect(0,0,size.x, size.y);
-                let cValue = colors.createColorChange('#000000', '#0D1024', 'hex', size.y/2, 'quad', 'in');//'#383A4C'
-                for(let y = size.y/2; y < size.y; y++){
-                    let index = y-(size.y/2);
-                    index = fast.r(index/4)*4;
-                    hlp.setFillColor(cValue[index]).rect(0, y, size.x, 1)
-                }
+                // let cValue = colors.createColorChange('#000000', '#0D1024', 'hex', size.y/2, 'quad', 'in');//'#383A4C'
+                // for(let y = size.y/2; y < size.y; y++){
+                //     let index = y-(size.y/2);
+                //     index = fast.r(index/4)*4;
+                //     hlp.setFillColor(cValue[index]).rect(0, y, size.x, 1)
+                // }
 
                 //hlp.setFillColor('red').rect(0,10, size.x, 10)
             })
@@ -202,6 +211,7 @@ class StarsSkyScene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport,
             init() {
+                let shineItems = [];
                 this.img = createCanvas(this.size, (ctx, size, hlp) => {
                     let pp = new PP({ctx});
                     pp.setFillStyle('rgba(0,0,0,0)')
@@ -217,6 +227,11 @@ class StarsSkyScene extends Scene {
                             count: 250,
                             opacity: 0.1,
                             xClamps: [-size.x, size.x]
+                        },
+                        {
+                            count: 50,
+                            opacity: 0.15,
+                            xClamps: [-size.x, size.x*2]
                         },
                         {
                             count: 100,
@@ -242,6 +257,17 @@ class StarsSkyScene extends Scene {
     
                             let _p = new V2(x,y).substract(center).rotate(-20).add(center).toInt();
     
+                            if(getRandomInt(0,3) == 0){
+                                let hasLeafs = 0;
+                                if(getRandomInt(0,2) == 0){
+                                    hasLeafs = getRandomInt(1,3);
+                                }
+                                shineItems.push({
+                                    p: _p,
+                                    o,
+                                    hasLeafs
+                                });
+                            }
     
                             hlp.setFillColor(`rgba(255,255,255, ${o})`)//.dot(getRandomInt(0, size.x), getRandomInt(0, size.y));
                             .dot(_p.x, _p.y)
@@ -253,7 +279,252 @@ class StarsSkyScene extends Scene {
 
                     
                 })
+
+                this.shine = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    createShineFrames({framesCount, shineItems, itemFrameslength, size}) {
+                        let frames = [];
+                        
+                        let itemsData = shineItems.map((shineData, i) => {
+                            let startFrameIndex = getRandomInt(0, framesCount-1);
+                            let totalFrames = itemFrameslength + getRandomInt(0, itemFrameslength/2);
+                            if(totalFrames%2!=0)
+                                totalFrames++;
+                        
+                            let maxo = shineData.o*3;
+                            if(maxo > 1)
+                                maxo = 1;
+                            let oValues = [
+                                ...easing.fast({ from: 0, to: maxo, steps: fast.r(totalFrames/2), type: 'quad', method: 'out' }).map(v => fast.r(v,2)),
+                                ...easing.fast({ from: maxo, to: 0, steps: fast.r(totalFrames/2), type: 'quad', method: 'in' }).map(v => fast.r(v,2))
+                            ]
+                            let frames = [];
+                            for(let f = 0; f < totalFrames; f++){
+                                let frameIndex = f + startFrameIndex;
+                                if(frameIndex > (framesCount-1)){
+                                    frameIndex-=framesCount;
+                                }
+                        
+                                frames[frameIndex] = {
+                                    o: oValues[f]
+                                };
+                            }
+                        
+                            return {
+                                p:shineData.p,
+                                hasLeafs: shineData.hasLeafs,
+                                frames
+                            }
+                        })
+                        
+                        for(let f = 0; f < framesCount; f++){
+                            frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                                for(let p = 0; p < itemsData.length; p++){
+                                    let itemData = itemsData[p];
+                                    
+                                    if(itemData.frames[f]){
+                                        hlp.setFillColor(`rgba(255,255,255, ${itemData.frames[f].o})`).dot(itemData.p.x, itemData.p.y)
+
+                                        if(itemData.hasLeafs){
+                                            hlp.setFillColor(`rgba(255,255,255, ${itemData.frames[f].o/4})`)
+                                                .dot(itemData.p.x-1, itemData.p.y)
+                                                .dot(itemData.p.x+1, itemData.p.y)
+                                                .dot(itemData.p.x, itemData.p.y-1)
+                                                .dot(itemData.p.x, itemData.p.y+1)
+                                            
+                                            if(itemData.hasLeafs > 1){
+                                                hlp.setFillColor(`rgba(255,255,255, ${itemData.frames[f].o/12})`)
+                                                    .dot(itemData.p.x-1, itemData.p.y-1)
+                                                    .dot(itemData.p.x+1, itemData.p.y+1)
+                                                    .dot(itemData.p.x+1, itemData.p.y-1)
+                                                    .dot(itemData.p.x-1, itemData.p.y+1)
+
+
+                                                hlp.setFillColor(`rgba(255,255,255, ${itemData.frames[f].o/8})`)
+                                                .dot(itemData.p.x-2, itemData.p.y)
+                                                .dot(itemData.p.x+2, itemData.p.y)
+                                                .dot(itemData.p.x, itemData.p.y-2)
+                                                .dot(itemData.p.x, itemData.p.y+2)
+                                            }
+
+                                            if(itemData.hasLeafs > 2){
+                                                hlp.setFillColor(`rgba(255,255,255, ${itemData.frames[f].o/12})`)
+                                                    .dot(itemData.p.x-3, itemData.p.y)
+                                                    .dot(itemData.p.x+3, itemData.p.y)
+                                                    .dot(itemData.p.x, itemData.p.y-3)
+                                                    .dot(itemData.p.x, itemData.p.y+3)
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        
+                        return frames;
+                    },
+                    init() {
+                        this.frames = this.createShineFrames({framesCount: 200, shineItems, itemFrameslength: 50, size: this.size  })
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                        
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+
+                            this.img = this.frames[this.currentFrame];
+                        })
+                    }
+                }))
             }
         }), 6)
+
+        this.shootingStars = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            createShootingStarsFrames({framesCount, itemsCount, itemFrameslength, size, tailLength}) {
+                let frames = [];
+                
+                let sharedPP;
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    sharedPP = new PP({ctx});
+                })
+
+                let yoValuesCount = fast.r(tailLength/4)
+                let oValues = easing.fast({from: 0.75, to: 0, steps: tailLength, type: 'quad', method: 'out'}).map(v => fast.r(v,2));
+                let yOValues = easing.fast({from: 0.5, to: 0, steps: yoValuesCount, type: 'quad', method: 'out'}).map(v => fast.r(v,2));
+
+                let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = itemFrameslength;
+                
+                    let points = sharedPP.lineV2(new V2(size.x, getRandomInt(0,10)), new V2(-tailLength, size.y/2 + getRandomInt(0, 20)));
+                    let indexValues = easing.fast({from: 0, to: points.length-1, steps: totalFrames, type: 'linear', method: 'base'}).map(v => fast.r(v));
+
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                
+                        frames[frameIndex] = {
+                            index: f
+                        };
+                    }
+                
+                    return {
+                        points,
+                        indexValues,
+                        frames
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                let index = itemData.indexValues[itemData.frames[f].index];
+                                //let point = itemData.points[index];
+
+                                for(let i = 0; i < tailLength; i++){
+                                    let _index = index-i;
+                                    if(_index < 0)
+                                        break;
+
+                                    let point = itemData.points[_index];
+
+                                    hlp.setFillColor(`rgba(255,255,255, ${oValues[i]})`).dot(point.x, point.y);
+                                    if(i < 15){
+                                        hlp.setFillColor(`rgba(255,255,255, ${oValues[i]/5})`).dot(point.x, point.y+1).dot(point.x, point.y-1);
+                                    }
+
+                                    if(i < yoValuesCount){
+                                        hlp.setFillColor(`rgba(255,239,164, ${yOValues[i]})`).dot(point.x, point.y);
+                                    }
+                                }
+
+                                for(let i = 0; i < 4; i++){
+                                    let _index = index+i;
+                                    if(_index >= itemData.points.length)
+                                        break;
+                                    
+                                    let point = itemData.points[_index];
+
+                                    hlp.setFillColor(`rgba(255,255,255, ${1/(i+2)})`).dot(point.x, point.y);
+                                }
+                            }
+                            
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                this.frames = this.createShootingStarsFrames({framesCount: 200, itemsCount: 2, itemFrameslength: 15, size: this.size, tailLength: 70});
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let repeat = 5;
+
+
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        repeat--;
+                        if(repeat == 0){
+                            this.parentScene.capturing.stop = true;
+                        }
+                    }
+                    this.img = this.frames[this.currentFrame];
+                })
+            }
+        }), 8)
+
+        this.hLight = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            img: createCanvas(this.viewport, (ctx, size, hlp) => {
+                let oValues = easing.fast({ from: 0, to: 1, steps: size.y/2, type: 'quad', method: 'in' }).map(v => fast.r(v,2));
+                hlp.setFillColor('#0D1024');
+
+                for(let y = size.y/2; y < size.y; y++){
+                    let index = y-(size.y/2);
+                    index = fast.r(index/4)*4;
+                    ctx.globalAlpha = oValues[index];
+                    hlp.rect(0, y, size.x, 1)
+                }
+                // let cValue = colors.createColorChange('#000000', '#0D1024', 'hex', size.y/2, 'quad', 'in');//'#383A4C'
+                // for(let y = size.y/2; y < size.y; y++){
+                //     let index = y-(size.y/2);
+                //     index = fast.r(index/4)*4;
+                //     hlp.setFillColor(cValue[index]).rect(0, y, size.x, 1)
+                // }
+
+                //hlp.setFillColor('red').rect(0,10, size.x, 10)
+            })
+        }), 7)
+
+
+        this.guy = this.addGo(new GO({
+            position: this.sceneCenter.add(new V2(0, 45)),
+            size: new V2(100,100),
+            init() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    let img = PP.createImage(StarsSkyScene.models.guy);
+                    ctx.filter = `brightness(50%)`;
+                    ctx.drawImage(img, 0,0);
+                })
+            }
+        }), 15)
     }
 }
