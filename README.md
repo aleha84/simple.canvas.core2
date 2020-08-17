@@ -111,6 +111,7 @@ DEMO10
 
 Lonely man in the rain: https://aleha84.github.io/simple.canvas.core2/demo10/#rain1
 
+Need to add more links to other scenes
 
 
 TODO: 
@@ -118,14 +119,6 @@ TODO:
 - Add used colors panel
 
 - Shortcuts for adding new group (points/lines mode)
-
-- Select multiple points (select tool), move or remove selection
-
-- Remove point on selection if R pressed
-
-- Clone group
-
-- Optimization - render each layer as img, and update it if any group has changed
 
 
 
