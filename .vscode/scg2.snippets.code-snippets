@@ -56,6 +56,41 @@
 		]
 	},
 
+	"useFrames2": {
+		"scope": "javascript",
+		"prefix": "useFrames2",
+		"description": "Create common frames iteration usage with delays",
+		"body": [
+			"this.currentFrame = 0;",
+			"this.img = this.frames[this.currentFrame];",
+			"",
+			"let originFrameChangeDelay = 10;",
+			"let frameChangeDelay = originFrameChangeDelay;",
+			"",
+			"let animationRepeatDelayOrigin = 20;",
+			"let animationRepeatDelay = animationRepeatDelayOrigin;",
+			"",
+			"this.timer = this.regTimerDefault(10, () => {",
+			"\tanimationRepeatDelay--;",
+			"\tif(animationRepeatDelay > 0)",
+			"\t\treturn;",
+			"",
+			"\tframeChangeDelay--;",
+			"\tif(frameChangeDelay > 0)",
+			"\t\treturn;",
+			"",
+			"\tframeChangeDelay = originFrameChangeDelay;",
+			"",
+			"\tthis.img = this.frames[this.currentFrame];",
+			"\tthis.currentFrame++;",
+			"\tif(this.currentFrame == this.frames.length){",
+			"\t\tthis.currentFrame = 0;",
+			"\t\tanimationRepeatDelay = animationRepeatDelayOrigin;",
+			"\t}",
+			"})"
+		]
+	},
+
 	"createFrames": {
 		"scope": "javascript",
 		"prefix": "createFrames",

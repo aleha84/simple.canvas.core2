@@ -519,10 +519,49 @@ class StarsSkyScene extends Scene {
             position: this.sceneCenter.add(new V2(0, 45)),
             size: new V2(100,100),
             init() {
-                this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    let img = PP.createImage(StarsSkyScene.models.guy);
-                    ctx.filter = `brightness(50%)`;
-                    ctx.drawImage(img, 0,0);
+                this.frames = PP.createImage(StarsSkyScene.models.guy).map(frames => {
+                    return createCanvas(this.size, (ctx, size, hlp) => {
+                        ctx.filter = `brightness(50%)`;
+                        ctx.drawImage(frames, 0,0);
+                    })
+                })
+
+                this.frames = [...this.frames, ...this.frames.reverse()];
+
+                // this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                //     let img = PP.createImage(StarsSkyScene.models.guy);
+                //     ctx.filter = `brightness(50%)`;
+                //     ctx.drawImage(img, 0,0);
+                // })
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let originFrameChangeDelay = 10;
+                let frameChangeDelay = originFrameChangeDelay; 
+
+                let animationRepeatDelayOrigin = 20;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+
+                this.timer = this.regTimerDefault(10, () => {
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+
+                    frameChangeDelay = originFrameChangeDelay;
+                    if(this.currentFrame < this.frames.length/2)
+                    frameChangeDelay = fast.r(originFrameChangeDelay/2);
+
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+                    }
+                    this.img = this.frames[this.currentFrame];
                 })
             }
         }), 15)
