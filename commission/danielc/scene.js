@@ -526,7 +526,10 @@ class StarsSkyScene extends Scene {
                     })
                 })
 
-                this.frames = [...this.frames, ...this.frames.reverse()];
+                this.frames = [
+                    // this.frames[0], this.frames[1], this.frames[0],
+                    // this.frames[0], this.frames[1], this.frames[0],
+                ...this.frames, ...this.frames.reverse()];
 
                 // this.img = createCanvas(this.size, (ctx, size, hlp) => {
                 //     let img = PP.createImage(StarsSkyScene.models.guy);
@@ -553,8 +556,15 @@ class StarsSkyScene extends Scene {
                         return;
 
                     frameChangeDelay = originFrameChangeDelay;
+                    // if(this.currentFrame < 3+3)
+                    //     frameChangeDelay = originFrameChangeDelay*2;
+                    // else if(this.currentFrame >= 3+3 && this.currentFrame < 7+3)
+                    //     frameChangeDelay = fast.r(originFrameChangeDelay/2);
+                    // else 
+                    //     frameChangeDelay = originFrameChangeDelay;
+
                     if(this.currentFrame < this.frames.length/2)
-                    frameChangeDelay = fast.r(originFrameChangeDelay/2);
+                        frameChangeDelay = fast.r(originFrameChangeDelay/2);
 
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
