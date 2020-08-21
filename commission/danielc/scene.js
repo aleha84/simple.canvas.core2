@@ -383,6 +383,141 @@ class StarsSkyScene extends Scene {
             }
         }), 6)
 
+
+        this.comet = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            createCometFrames({framesCount,additionalFramesCount, size}) {
+                let frames = [];
+                let cometImg = PP.createImage(StarsSkyScene.models.comet2);
+                let cometSize = new V2(50,50);
+                let linePoints = [];
+                let p1 = new V2(size.x, -cometSize.y);
+                let p2 = new V2(-cometSize.x, size.x-cometSize.y + 52);
+                let sharedPP;
+                createCanvas(new V2(1,1), (ctx, _size, hlp) => {
+                    sharedPP = new PP({ctx});
+                    linePoints = sharedPP.lineV2(p1, p2);
+                })
+
+                let dir = p2.direction(p1);
+                let particles = [];
+                
+                let linePointIndexValues = easing.fast({from: 0, to: linePoints.length-1,steps: framesCount, type: 'linear', round: 0});
+                let particlesColorRgb = colors.colorTypeConverter({ value: '#FFC1E5', toType: 'rgb' });
+
+                for(let f = 0; f < framesCount+additionalFramesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        let p;
+                        if(f < framesCount){
+                            p = linePoints[linePointIndexValues[f]];
+                            //ctx.drawImage(cometImg, p.x, p.y);
+                        }
+                        
+                        // let pp = new PP({ctx});
+                        // pp.setFillStyle('red');
+                        // pp.lineV2(p1.add(new V2(0, cometSize.y-3)), p2.add(new V2(0, cometSize.y-3)));
+
+                        particles = particles.filter(p => p.alive);
+
+                        //process
+                        for(let i = 0; i < particles.length; i++){
+                            let particle = particles[i];
+                            if(particle.currentTtlIndex >= particle.ttl){
+                                particle.alive =false;
+                                continue;
+                            }
+
+                            let oValue = particle.oValues[particle.currentTtlIndex];
+                            let point = new V2(particle.linePoints[particle.linePointsIndexValues[particle.currentTtlIndex]])//.add(dir.mul(particle.currentTtlIndex)).toInt();
+                            if(particle.special){
+                                point = point.add(dir.mul(particle.currentTtlIndex)).toInt();
+                            }
+
+                            hlp.setFillColor(`rgba(${particlesColorRgb.r}, ${particlesColorRgb.g}, ${particlesColorRgb.b}, ${oValue})`).dot(point.x, point.y);
+
+                            particle.currentTtlIndex++;
+                        }
+
+                        //add new 
+                        if(p){
+                            let count = getRandomInt(2,5);
+                            for(let i = 0; i < count; i++){
+                                let ttl = getRandomInt(additionalFramesCount/2,additionalFramesCount);
+                                let angle = getRandomInt(-65,65);
+                                let distance = getRandomInt(5,15);
+                                let special = false;
+                                if(getRandomInt(0,10) == 0){
+                                    angle = getRandomInt(90, 90)*(getRandomBool() ? 1 : -1);
+                                    distance = getRandomInt(30,60);
+                                    special = true;
+                                }
+
+                                let direction = dir.rotate(angle);
+                                let from = new V2(p).add(new V2(2, cometSize.y-5)).add(direction.mul(getRandomInt(1,2)));
+                                let target = from.add(direction.mul(distance));
+                                let linePoints = sharedPP.lineV2(from, target);
+                                let linePointsIndexValues = easing.fast({from: 0, to: linePoints.length-1,steps: ttl, type: 'linear', method: 'base', round: 0});
+                                //let linePointsIndexValues = easing.fast({from: 0, to: linePoints.length-1,steps: ttl, type: 'quad', method: 'out', round: 0});
+                                particles[particles.length] = {
+                                    alive: true,
+                                    ttl,
+                                    currentTtlIndex: 0,
+                                    oValues: easing.fast({from: 0.5, to: 0, steps: ttl, type: 'quad', method: 'out', round: 2}),
+                                    linePoints,
+                                    linePointsIndexValues,
+                                    special
+                                }
+                            }
+
+                            ctx.drawImage(cometImg, p.x, p.y);
+                        }
+                        
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                // this.img = PP.createImage(StarsSkyScene.models.comet);
+
+                this.frames = this.createCometFrames({framesCount: 50,additionalFramesCount:50, size: this.size});
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let originFrameChangeDelay = 0;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 400;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+
+                let repeat = 2;
+                
+                this.timer = this.regTimerDefault(10, () => {
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+                        repeat--;
+                        if(repeat == 0)
+                            this.parentScene.capturing.stop = true;
+                    }
+                })
+            }
+        }), 7)
+
         this.shootingStars = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
@@ -482,7 +617,7 @@ class StarsSkyScene extends Scene {
                         this.currentFrame = 0;
                         repeat--;
                         if(repeat == 0){
-                            this.parentScene.capturing.stop = true;
+                            //this.parentScene.capturing.stop = true;
                         }
                     }
                     this.img = this.frames[this.currentFrame];
@@ -545,6 +680,7 @@ class StarsSkyScene extends Scene {
 
                 let animationRepeatDelayOrigin = 20;
                 let animationRepeatDelay = animationRepeatDelayOrigin;
+                let iteration = 0;
 
                 this.timer = this.regTimerDefault(10, () => {
                     animationRepeatDelay--;
@@ -565,9 +701,11 @@ class StarsSkyScene extends Scene {
 
                     if(this.currentFrame < this.frames.length/2)
                         frameChangeDelay = fast.r(originFrameChangeDelay/2);
+                    
 
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
+                        iteration++;
                         this.currentFrame = 0;
                         animationRepeatDelay = animationRepeatDelayOrigin;
                     }

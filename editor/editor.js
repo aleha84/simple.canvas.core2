@@ -15,6 +15,7 @@
 // 25. change selected pixel color frame. Globally, per group. Depends on color? 
 // 26. block ctrl+r !!!!!!!!!!!!!!!!!!!
 // 27. auto save in localstorage !!!!!!!
+// 28. conditinally show\hide pattern type
 
 class Editor {
     constructor(options = {}){

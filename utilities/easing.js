@@ -20,6 +20,10 @@ var easing = {
         return m[key];
     },
     createProps(duration, start, end, type, method, onComplete = undefined, onChange = undefined) {
+        if(!method && type == 'linear'){
+            method = 'base';
+        }
+
         return { time: 0, duration, change: end - start , type, method, startValue: start, useCache: false,  onComplete, onChange }
     },
     commonProcess({context, targetpropertyName, propsName, round = false, setter, removePropsOnComplete = true, setterUseContext = false, callbacksUseContext = false}) {
@@ -74,11 +78,16 @@ var easing = {
             }
         }
     },
-    fast({from, to, steps,type, method}){
+    fast({from, to, steps,type, method, round = undefined}){
         var prop = this.createProps(steps-1, from, to, type, method);
         return new Array(steps).fill().map((el, i) => {
             prop.time = i;
-            return this.process(prop);
+            let result = this.process(prop);
+            if(Number.isInteger(round)){
+                result = fast.r(result, round);
+            }
+
+            return result;
         })
     },
     process(props){
