@@ -260,7 +260,11 @@ PP.createImage = function(model, params = {}) {
         if(!isEmpty(params.colorsSubstitutions)){
             let cSubst = params.colorsSubstitutions[Object.keys(params.colorsSubstitutions).find(key => key.toLowerCase() === strokeColor.toLowerCase())]
             if(cSubst){
-                strokeColor = `rgba(${hexToRgb(cSubst.color)},${cSubst.opacity})`;
+                let substOpacity = cSubst.opacity;
+                if(substOpacity == undefined){
+                    substOpacity = group.strokeColorOpacity;
+                }
+                strokeColor = `rgba(${hexToRgb(cSubst.color)},${substOpacity})`;
             }
         }
 

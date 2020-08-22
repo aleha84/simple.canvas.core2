@@ -2,10 +2,10 @@ class StarsSkyScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             capturing: {
-                enabled: false,
+                enabled: true,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 5,
+                viewportSizeMultiplier: 10,
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'stars_sky'
@@ -483,6 +483,7 @@ class StarsSkyScene extends Scene {
 
                 this.frames = this.createCometFrames({framesCount: 50,additionalFramesCount:50, size: this.size});
 
+                let counter = 0;
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
                 
@@ -495,8 +496,9 @@ class StarsSkyScene extends Scene {
                 let repeat = 2;
                 
                 this.timer = this.regTimerDefault(10, () => {
+                    counter++;
                     animationRepeatDelay--;
-                    if(animationRepeatDelay > 0)
+                    if(animationRepeatDelay >= 0)
                         return;
                 
                     frameChangeDelay--;
@@ -508,6 +510,8 @@ class StarsSkyScene extends Scene {
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
+                        console.log('Comet frames:' + counter);
+                        counter = 0;
                         this.currentFrame = 0;
                         animationRepeatDelay = animationRepeatDelayOrigin;
                         repeat--;
@@ -656,7 +660,7 @@ class StarsSkyScene extends Scene {
             init() {
                 this.frames = PP.createImage(StarsSkyScene.models.guy).map(frames => {
                     return createCanvas(this.size, (ctx, size, hlp) => {
-                        ctx.filter = `brightness(50%)`;
+                        ctx.filter = `brightness(75%)`;
                         ctx.drawImage(frames, 0,0);
                     })
                 })
@@ -671,6 +675,7 @@ class StarsSkyScene extends Scene {
                 //     ctx.filter = `brightness(50%)`;
                 //     ctx.drawImage(img, 0,0);
                 // })
+                let totalFrames = 0;
 
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
@@ -678,11 +683,12 @@ class StarsSkyScene extends Scene {
                 let originFrameChangeDelay = 10;
                 let frameChangeDelay = originFrameChangeDelay; 
 
-                let animationRepeatDelayOrigin = 20;
+                let animationRepeatDelayOrigin = 26;
                 let animationRepeatDelay = animationRepeatDelayOrigin;
                 let iteration = 0;
 
                 this.timer = this.regTimerDefault(10, () => {
+                    totalFrames++;
                     animationRepeatDelay--;
                     if(animationRepeatDelay > 0)
                         return;
@@ -705,6 +711,8 @@ class StarsSkyScene extends Scene {
 
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
+                        console.log('guy frames:' + totalFrames);
+                        totalFrames = 0;
                         iteration++;
                         this.currentFrame = 0;
                         animationRepeatDelay = animationRepeatDelayOrigin;
@@ -713,5 +721,12 @@ class StarsSkyScene extends Scene {
                 })
             }
         }), 15)
+
+        this.addGo(new GO({
+            position: new V2(22,5),
+            size: new V2(33,5),
+            img: PP.createImage(StarsSkyScene.models.sign, { colorsSubstitutions: { '#FF0000': 
+                {color: colors.colorTypeConverter({ value: {h:230,s:58,v:45}, toType: 'hex' })} } })
+        }), 20)
     }
 }

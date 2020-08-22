@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo10PDailyScene({
         name:'pdaily',
-        viewport: new V2(200,200)
+        viewport: new V2(100,150)
     }));
 
     SCG.scenes.cacheScene(new Demo10GodScene({

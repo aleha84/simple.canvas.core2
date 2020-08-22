@@ -1,6 +1,15 @@
 class Demo10PDailyScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 7,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'pigeon'
+            },
             debug: {
                 enabled: false,
                 showFrameTimeLeft: true,
@@ -15,147 +24,90 @@ class Demo10PDailyScene extends Scene {
     }
 
     start(){
-        let model = pDailyModels.tree;
-
-        let originSize = new V2(60,65)
-
-        //#7996b4
-        //#6b88af
-
-        let targetColor = '#7996b4'.toLowerCase();
-        let hideColor = '#7da3df';
-        let targetPoints = [];
-        model.main.layers.forEach(layer => {
-            layer.groups.forEach(group => {
-                if(group.strokeColor.toLowerCase() == targetColor){
-                    targetPoints.push(...group.points.map(p => new V2(p.point)))
-                }
-            });
-        });
-
-        targetColor = '#6b88af'.toLowerCase();
-        model.main.layers.forEach(layer => {
-            layer.groups.forEach(group => {
-                if(group.strokeColor.toLowerCase() == targetColor){
-                    targetPoints.push(...group.points.map(p => new V2(p.point)))
-                }
-            });
-        });
-
-        let frames = [];
-        let framesCount = 100;
-        let itemsCount = targetPoints.length;
-        
-        let itemsData = targetPoints.map((el, i) => {
-            let hideLength = getRandomInt(30,40);
-            let hideFrom = getRandomInt(0, framesCount-1);
-            let hideTo = hideFrom + hideLength;
-            let hideFrames = [];
-            if(hideTo > (framesCount-1)){
-                hideTo-=framesCount;
-                for(let i = hideFrom; i < framesCount; i++)
-                    hideFrames.push(i);
-                for(let i = 0; i <= hideTo; i++)
-                    hideFrames.push(i);
-            }
-            else {
-                for(let i = hideFrom; i <= hideTo; i++)
-                    hideFrames.push(i);
-            }
-
-            return {
-                p: el,
-                hideFrames,
-                initialIndex: getRandomInt(0, framesCount-1)
-            }
-        })
-        
-        for(let f = 0; f < framesCount; f++){
-            frames[f] = createCanvas(originSize, (ctx, size, hlp) => {
-                for(let p = 0; p < itemsCount; p++){
-                        let pointData = itemsData[p];
-                    
-                    // let currentIndex = pointData.initialIndex + f;
-                    // if(currentIndex > (framesCount-1)){
-                    //     currentIndex-=framesCount;
-                    // }
-                    
-                    hlp.setFillColor(hideColor);
-
-                    if(pointData.hideFrames.indexOf(f) != -1){
-                        hlp.dot(pointData.p.x, pointData.p.y);
-                    }
-                }
-            });
-        }
+        let model = pDailyModels.pigeon;
+        let originSize = new V2(50, 67)
+        this.bg = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            img: createCanvas(this.viewport, (ctx, size, hlp) => {
+                hlp.setFillColor('black').rect(0,0,size.x, size.y);
+            })
+        }), 0)
         
         this.small = this.addGo(new GO({
-            position: this.sceneCenter.add(new V2(-65, 0)),
+            position: this.sceneCenter.add(new V2(0, -40)),
             size: originSize,
             init() {
-                this.img = PP.createImage(model);
+                this.frames = PP.createImage(model);
 
-                this.addChild(new GO({
-                    position: new V2(),
-                    size: this.size,
-                    frames,
-                    init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let originFrameChangeDelay = 5;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 0;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+                let repeats = 10;
+
+                this.timer = this.regTimerDefault(10, () => {
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
-                        this.img = this.frames[this.currentFrame];
-                        
-                        this.timer = this.regTimerDefault(15, () => {
-                        
-                            this.img = this.frames[this.currentFrame];
-                            this.currentFrame++;
-                            if(this.currentFrame == this.frames.length){
-                                this.currentFrame = 0;
-                            }
-                        })
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+
+                        repeats--;
+                        if(repeats == 0)
+                            this.parentScene.capturing.stop = true;
                     }
-                }))
+                })
             }
         }), 1)
 
         this.big = this.addGo(new GO({
-            position: this.sceneCenter.add(new V2(35, 0)),
+            position: this.sceneCenter.add(new V2(0, 30)),
             size: originSize.mul(2),
             init() {
-                this.img = PP.createImage(model);
+                this.frames = PP.createImage(model);
 
-                this.addChild(new GO({
-                    position: new V2(),
-                    size: this.size,
-                    frames,
-                    init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let originFrameChangeDelay = 5;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 0;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+                
+                this.timer = this.regTimerDefault(10, () => {
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
-                        this.img = this.frames[this.currentFrame];
-                        
-                        this.timer = this.regTimerDefault(15, () => {
-                        
-                            this.img = this.frames[this.currentFrame];
-                            this.currentFrame++;
-                            if(this.currentFrame == this.frames.length){
-                                this.currentFrame = 0;
-
-                                if(!this.redFrame){
-                            this.redFrame = this.addChild(new GO({
-                                position: new V2(),
-                                size: this.size,
-                                img: createCanvas(this.size, (ctx, size, hlp) => {
-                                    hlp.setFillColor('red').rect(0,0, 50, 50)
-                                })
-                            }));
-                        }
-                        else {
-                            this.removeChild(this.redFrame);
-                            this.redFrame = undefined;
-                        }
-                            }
-                        })
-
-                        
+                        animationRepeatDelay = animationRepeatDelayOrigin;
                     }
-                }))
+                })
             }
         }), 1)
     }
