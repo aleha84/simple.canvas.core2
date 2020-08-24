@@ -1,21 +1,16 @@
 // TODO. Bugs:
 // 2. Current palettes list - stored in json
 // 4. gradient tool, update, add easings support
-// 7. Code refactoring. Components - To different files
 // 13. Import model - dublicate palette if already exists
 // 14. imput - paddings/old value missing
 // 16. Autosave model in localstorage
 // 17. Move\copy group to layer
 // 19. Remove all points from layer button
-// 20. Add custom name to frame. Edit box, and visible in the list
 // 21. ColorSelector create own component - RGB, HSV
 // 22. CShift - add HSV, RGB, Easings type and methods selection
 // 23. Add progress recording - each minute add frame, pause, stop, start. Result in webm video
-// 24. framesPreview - overheat! render all frames each frame change!!!
 // 25. change selected pixel color frame. Globally, per group. Depends on color? 
-// 26. block ctrl+r !!!!!!!!!!!!!!!!!!!
 // 27. auto save in localstorage !!!!!!!
-// 28. conditinally show\hide pattern type
 
 class Editor {
     constructor(options = {}){
@@ -1407,7 +1402,7 @@ class Editor {
             }))
 
             // fix bug 25
-            //mainEl.appendChild(components.framesPreview.create(that));
+            mainEl.appendChild(components.framesPreview.create(that));
         }
 
         let layersWrapperEl = htmlUtils.createElement('div', { className: 'layersWrapper' });

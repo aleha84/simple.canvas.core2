@@ -1,20 +1,20 @@
 components.framesPreview = {
+    framesImagesCache: [],
+    setCurrentFrameImage(img) {
+        this.framesImagesCache[this.currentFrameIndex] = img;
+    },
     create(context) {
 
         let { mainGo, image: { main, general: { size, originalSize, currentFrameIndex, animatedProps: { framesPreview } } }} = context;
         
+        this.originalSize = originalSize;
         this.framesPreview = mainGo.parentScene.framesPreview;
-        //nextFramesPreview
+
         this.currentFrameIndex = currentFrameIndex;
 
         let container = htmlUtils.createElement('div', {
             classNames: [ 'framesPreview' ]
         });
-
-        this.frames = PP.createImage(context.prepareModel(context)).map(frame => createCanvas(originalSize, (ctx, size, hlp) => {
-            ctx.globalAlpha = 0.25;
-            ctx.drawImage(frame,0,0);
-        }));
 
         let showNext = components.createCheckBox(framesPreview.showNext, 'Show next', (value) => {
             framesPreview.showNext = value;
@@ -38,7 +38,7 @@ components.framesPreview = {
             }
         })
 
-        showNext.chk.disabled = currentFrameIndex == (this.frames.length-1);
+        showNext.chk.disabled = currentFrameIndex == (main.length-1);
         showPrev.chk.disabled = (currentFrameIndex == 0);
 
         if(!showNext.disabled && framesPreview.showNext){
@@ -64,14 +64,35 @@ components.framesPreview = {
         return container;
     },
     showNextFrame() { 
-        this.framesPreview.next.img = this.frames[this.currentFrameIndex+1]
+        let nextFrame = this.framesImagesCache[this.currentFrameIndex+1];
+        if(nextFrame){
+            this.framesPreview.next.img = createCanvas(this.originalSize, (ctx, size, hlp) => {
+                ctx.globalAlpha = 0.25;
+                ctx.drawImage(nextFrame, 0,0);
+            })
+        }
+        else {
+            this.framesPreview.next.img = undefined;
+        }
+        
+         //this.frames[this.currentFrameIndex+1]
     },
     hideNextFrames() {
         this.framesPreview.next.img = undefined;
     },
 
     showPrevFrame() { 
-        this.framesPreview.prev.img = this.frames[this.currentFrameIndex-1]
+        let prevFrame = this.framesImagesCache[this.currentFrameIndex-1];
+        if(prevFrame){
+            this.framesPreview.prev.img = createCanvas(this.originalSize, (ctx, size, hlp) => {
+                ctx.globalAlpha = 0.25;
+                ctx.drawImage(prevFrame,0,0);
+            })
+        }
+        else {
+            this.framesPreview.prev.img = undefined;
+        }
+        //this.frames[this.currentFrameIndex-1]
     },
     hidePrevFrames() {
         this.framesPreview.prev.img = undefined;

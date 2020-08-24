@@ -37,6 +37,11 @@ class EditorScene extends Scene {
                         this.editor.toggleHighlight(!this.mainGo.showDots, true);
                     }
 
+                    if(event.code == 'KeyR' && event.ctrlKey){
+                        event.preventDefault();
+                        return;
+                    }
+
                     if(event.code == 'KeyC' && !event.ctrlKey && !event.shiftKey) {
                         components.draggable.createColorPicker()
                     }
@@ -326,6 +331,7 @@ class EditorScene extends Scene {
                 mg.img = undefined;
             }
             
+            components.framesPreview.setCurrentFrameImage(mg.img);
 
             console.log('renderModel: imagesCreated: ' + imagesCreated);
             
@@ -448,6 +454,16 @@ addListenerMulti(document, "keydown keypress", function(e){
     if( e.which == 8 ){ // 8 == backspace
         if(!rx.test(e.target.tagName) || e.target.disabled || e.target.readOnly ){
             e.preventDefault();
+        }
+    }
+
+    if ((e.which || e.keyCode) == 116) e.preventDefault();
+
+    if (e.ctrlKey) {
+        var c = e.which || e.keyCode;
+        if (c == 82) {
+            e.preventDefault();
+            e.stopPropagation();
         }
     }
 })
