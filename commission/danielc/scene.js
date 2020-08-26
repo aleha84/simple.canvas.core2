@@ -2,7 +2,7 @@ class StarsSkyScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             capturing: {
-                enabled: true,
+                enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
                 viewportSizeMultiplier: 10,
