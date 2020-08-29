@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let small300_200_Viewport = new V2(300, 200);
     let square150_viewport = new V2(150,150);
     let _100x150_viewport = new V2(100,150);
+    let _150x100_viewport = new V2(150,100);
     
     
 
@@ -148,6 +149,11 @@ document.addEventListener("DOMContentLoaded", function() {
     SCG.scenes.cacheScene(new Demo10VaultScene({
         name: 'vault',
         viewport: square150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10WinterNightScene({
+        name: 'winternight',
+        viewport: _150x100_viewport
     }))
 
     sceneSelectByHashValue();

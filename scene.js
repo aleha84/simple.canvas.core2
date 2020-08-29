@@ -590,6 +590,10 @@ SCG.scenes = {
         if(scene.name === undefined)
             throw "Can't register scene without name";
 
+        if(this.cachedScenes[scene.name]){
+            throw scene.name + ' exists. Overriden';
+        }
+
         this.cachedScenes[scene.name] = scene;
     },
     setNeedRecalcRenderProperties(){
