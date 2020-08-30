@@ -311,6 +311,43 @@ class Demo10WinterNightScene extends Scene {
             }
         }), 73)
 
+        this.man = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            frames: PP.createImage(Demo10WinterNightScene.models.manFrames),
+            init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                let counter = 0;
+                let originFrameChangeDelay = 9;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 100-12;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+                
+                this.timer = this.regTimerDefault(10, () => {
+                    counter++;
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        console.log('total man frames: ' + counter);
+                        counter = 0;
+                        this.currentFrame = 0;
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+                    }
+                })
+            }
+        }), 71)
 
         this.lightenSF = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -348,7 +385,7 @@ class Demo10WinterNightScene extends Scene {
                     }
                 })
             }
-        }), 71)
+        }), 72)
 
         this.lightenSF = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -386,6 +423,6 @@ class Demo10WinterNightScene extends Scene {
                     }
                 })
             }
-        }), 71)
+        }), 72)
     }
 }
