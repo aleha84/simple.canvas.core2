@@ -6,6 +6,15 @@ class Demo10WinterNightScene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 4,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'winter_night'
+            },
         }, options)
         super(options);
     }
@@ -219,6 +228,7 @@ class Demo10WinterNightScene extends Scene {
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
+                        this.parentScene.capturing.stop = true;
                         this.currentFrame = 0;
                         animationRepeatDelay = animationRepeatDelayOrigin;
                     }
