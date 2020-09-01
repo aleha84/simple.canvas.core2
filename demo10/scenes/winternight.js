@@ -2,7 +2,7 @@ class Demo10WinterNightScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
@@ -10,7 +10,7 @@ class Demo10WinterNightScene extends Scene {
                 enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 4,
+                viewportSizeMultiplier: 10,
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'winter_night'
@@ -74,6 +74,60 @@ class Demo10WinterNightScene extends Scene {
                     
                     if(itemData.frames[f]){
                         hlp.setFillColor(`rgba(255,255,255,${itemData.frames[f].oValue})`).dot(itemData.frames[f].point.x, itemData.frames[f].point.y)
+                    }
+                    
+                }
+            });
+        }
+        
+        return frames;
+    }
+
+    extractPointData(layer) {
+        let data = [];
+        layer.groups.forEach(group => {
+            let color = group.strokeColor;
+            group.points.forEach(point => {
+                data.push({
+                    color, 
+                    point: point.point
+                });
+            })
+        })
+
+        return data;
+    }
+
+    createPointVisibilityFrames({framesCount, itemFrameslength, pointsData, size}) {
+        let frames = [];
+        
+        let itemsData = pointsData.map((pd, i) => {
+            let startFrameIndex = getRandomInt(0, framesCount-1);
+            let totalFrames = itemFrameslength;
+        
+            let frames = [];
+            for(let f = 0; f < totalFrames; f++){
+                let frameIndex = f + startFrameIndex;
+                if(frameIndex > (framesCount-1)){
+                    frameIndex-=framesCount;
+                }
+        
+                frames[frameIndex] = true;
+            }
+        
+            return {
+                frames,
+                pd
+            }
+        })
+        
+        for(let f = 0; f < framesCount; f++){
+            frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                for(let p = 0; p < itemsData.length; p++){
+                    let itemData = itemsData[p];
+                    
+                    if(itemData.frames[f]){
+                        hlp.setFillColor(itemData.pd.color).dot(itemData.pd.point.x, itemData.pd.point.y)
                     }
                     
                 }
@@ -213,7 +267,7 @@ class Demo10WinterNightScene extends Scene {
                 
                 let animationRepeatDelayOrigin = 0;
                 let animationRepeatDelay = animationRepeatDelayOrigin;
-                
+                let repeat = 3;
                 this.timer = this.regTimerDefault(10, () => {
                     animationRepeatDelay--;
                     if(animationRepeatDelay > 0)
@@ -228,13 +282,36 @@ class Demo10WinterNightScene extends Scene {
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
-                        this.parentScene.capturing.stop = true;
+                        repeat--;
+                        if(repeat == 0)
+                            this.parentScene.capturing.stop = true;
+
                         this.currentFrame = 0;
                         animationRepeatDelay = animationRepeatDelayOrigin;
                     }
                 })
             }
         }), 21)
+
+        this.farSnow = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            img: PP.createImage(Demo10WinterNightScene.models.window),
+            init() {
+                let originFrameChangeDelay = 300;
+                let frameChangeDelay = originFrameChangeDelay;
+
+                this.timer = this.regTimerDefault(10, () => {
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+
+                    frameChangeDelay = originFrameChangeDelay;
+
+                    this.isVisible = !this.isVisible;
+                })
+            }
+        }), 31)
 
 
         this.midSnow = this.addGo(new GO({
@@ -309,7 +386,7 @@ class Demo10WinterNightScene extends Scene {
                     }
                 })
             }
-        }), 73)
+        }), 78)
 
         this.man = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -349,6 +426,80 @@ class Demo10WinterNightScene extends Scene {
             }
         }), 71)
 
+        this.fallSnow = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            frames: PP.createImage(Demo10WinterNightScene.models.fallSnowFrames),
+            init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                let counter = 0;
+                let originFrameChangeDelay = 3;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 556;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+                
+                this.timer = this.regTimerDefault(10, () => {
+                    counter++;
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        console.log('total fallSnow frames: ' + counter);
+                        counter = 0;
+                        this.currentFrame = 0;
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+                    }
+                })
+            }
+        }), 71)
+
+        this.pointsVisibility = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            frames: this.createPointVisibilityFrames({ framesCount: 100, itemFrameslength: 20, size: this.viewport, 
+                pointsData: this.extractPointData(Demo10WinterNightScene.models.pointsVisibility.main.layers[0]) }),
+            init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let originFrameChangeDelay = 0;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 0;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+                
+                this.timer = this.regTimerDefault(10, () => {
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+                    }
+                })
+            }
+        }), 72)
+
         this.lightenSF = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
@@ -385,7 +536,7 @@ class Demo10WinterNightScene extends Scene {
                     }
                 })
             }
-        }), 72)
+        }), 73)
 
         this.lightenSF = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -423,6 +574,6 @@ class Demo10WinterNightScene extends Scene {
                     }
                 })
             }
-        }), 72)
+        }), 73)
     }
 }
