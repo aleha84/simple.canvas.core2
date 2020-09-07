@@ -6,6 +6,19 @@ class ZacnewsomeNeonScene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 13,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'neon_street',
+                cut: {
+                    size: new V2(1920, 1080),
+                    shift: new V2(15, 280)
+                }
+            },
         }, options)
         super(options);
     }
@@ -404,6 +417,7 @@ class ZacnewsomeNeonScene extends Scene {
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
                         this.currentFrame = 0;
+                        this.parentScene.capturing.stop = true;
 // if(this.createRedFrame){
 //     if(!this.redFrame){
 //         this.redFrame = this.addChild(new GO({

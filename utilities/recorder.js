@@ -10,6 +10,12 @@ class Recorder {
                     ctx.drawImage(c.canvas, 0,0, size.x, size.y)
                 });
 
+                if(c.cut) {
+                    frame = createCanvas(c.cut.size, (ctx, size, hlp) => {
+                        ctx.drawImage(frame, -c.cut.shift.x,-c.cut.shift.y)
+                    })
+                }
+
                 c.videoWriter.addFrame(frame);
                 if(!c.stopByCode)
                     console.log(`${c.currentFrame} from ${c.totalFramesToRecord} added`);
@@ -23,6 +29,13 @@ class Recorder {
                     let frame = createCanvas(c.size, (ctx, size, hlp) => {
                         ctx.drawImage(c.canvas, 0,0, size.x, size.y)
                     });
+
+                    if(c.cut) {
+                        frame = createCanvas(c.cut.size, (ctx, size, hlp) => {
+                            ctx.drawImage(frame, -c.cut.shift.x,-c.cut.shift.y)
+                        })
+                    }
+
                     c.videoWriter.addFrame(frame);
                 }
 

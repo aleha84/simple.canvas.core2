@@ -6,6 +6,19 @@ class Demo10TrainScene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 9.6,
+                totalFramesToRecord: 601,
+                frameRate: 30,
+                fileNamePrefix: 'waiting_for_departure_2',
+                cut: {
+                    size: new V2(1920, 1080),
+                    shift: new V2(0, 360)
+                }
+            },
         }, options)
         super(options);
     }
@@ -192,6 +205,7 @@ class Demo10TrainScene extends Scene {
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
+                        this.parentScene.capturing.stop = true;
                         // if(!this.redFrame){
                         //     this.redFrame = this.addChild(new GO({
                         //         position: new V2(),

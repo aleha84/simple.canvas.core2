@@ -4,7 +4,7 @@ class StarsSkyScene extends Scene {
             capturing: {
                 enabled: false,
                 addRedFrame: false,
-                stopByCode: true,
+            stopByCode: true,   
                 viewportSizeMultiplier: 10,
                 totalFramesToRecord: 601,
                 frameRate: 60,
