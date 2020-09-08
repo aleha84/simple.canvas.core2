@@ -91,5 +91,17 @@ class JustreeScreamScene extends Scene {
                 })
             }
         }), 20)
+
+        this.bricks = this.addGo(new GO({
+            position: new V2(62.5, 95),
+            size: new V2(125,70),
+            img: PP.createImage(JustreeScreamScene.model.bricks),
+            init() {
+                this.img = createCanvas(this.size, (ctx, size, hlp) => {
+                    ctx.filter = `brightness(30%)`;
+                    ctx.drawImage(this.img, 0,0);
+                })   
+            }
+        }), 21)
     }
 }
