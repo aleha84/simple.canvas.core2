@@ -5,10 +5,14 @@ class Tu2Scene extends Scene {
                 enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 6,
+                viewportSizeMultiplier: 8,
                 totalFramesToRecord: 601,
                 frameRate: 60,
-                fileNamePrefix: 'tu2'
+                fileNamePrefix: 'tu2',
+                cut: {
+                    size: new V2(1200, 400),
+                    shift: new V2(0, 800)
+                }
             },
             debug: {
                 enabled: false,
@@ -414,7 +418,7 @@ class Tu2Scene extends Scene {
                         init() {
                             this.currentFrame = 0;
                             this.img = this.frames[this.currentFrame];
-                            let repeat = 3;
+                            let repeat = 1;
                             this.timer = this.regTimerDefault(10, () => {
                             
                                 this.currentFrame++;
