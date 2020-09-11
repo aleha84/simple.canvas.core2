@@ -5,7 +5,7 @@ class JustreeScreamScene extends Scene {
                 enabled: false,
                 addRedFrame: false,
                 stopByCode: true,   
-                viewportSizeMultiplier: 5,
+                viewportSizeMultiplier: 10,
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'scream'
@@ -21,6 +21,56 @@ class JustreeScreamScene extends Scene {
 
     backgroundRender() {
         this.backgroundRenderDefault();
+    }
+
+    createFlowFrames({framesCount, itemsCount, itemFrameslength, startPoints, height, size}) {
+        let frames = [];
+
+        let yChange = easing.fast({ from : 0, to: height, steps: itemFrameslength, type: 'cubic', method: 'in', round: 0 });
+
+        let itemsData = new Array(itemsCount).fill().map((el, i) => {
+            
+            let startFrameIndex = getRandomInt(0, framesCount-1);
+            let totalFrames = itemFrameslength;
+            let start = startPoints[getRandomInt(0, startPoints.length-1)];
+            let isBlack = true//getRandomBool();
+            let isClean = false//getRandomInt(0,5) == 0;
+            let color = colors.colorTypeConverter({value: {h:0,s:96,v: 30}, toType: 'hex', fromType: 'hsv'})
+
+            let frames = [];
+            for(let f = 0; f < totalFrames; f++){
+                let frameIndex = f + startFrameIndex;
+                if(frameIndex > (framesCount-1)){
+                    frameIndex-=framesCount;
+                }
+        
+                frames[frameIndex] = {
+                    y:  yChange[f]
+                };
+            }
+        
+            return {
+                start,
+                color,
+                frames
+            }
+        })
+        
+        for(let f = 0; f < framesCount; f++){
+            frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                //hlp.setFillColor(color).rect(0,0,size.x, size.y)
+                for(let p = 0; p < itemsData.length; p++){
+                    let itemData = itemsData[p];
+                    
+                    if(itemData.frames[f]){
+                        hlp.setFillColor(itemData.color).dot(itemData.start.x,itemData.start.y+itemData.frames[f].y)
+                    }
+                    
+                }
+            });
+        }
+        
+        return frames;
     }
 
     createRain3Frames({framesCount, itemsCount, itemFrameslength, dropLength, xShift, size, color}) {
@@ -223,7 +273,89 @@ class JustreeScreamScene extends Scene {
                 let originFrameChangeDelay = 2;
                 let frameChangeDelay = originFrameChangeDelay;
                 
-                let animationRepeatDelayOrigin = 100;
+                let animationRepeatDelayOrigin = 98;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+                let counter = 0;
+                this.timer = this.regTimerDefault(10, () => {
+                    counter++;
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        console.log('lighting frames counter: ' + counter)
+                        counter = 0;
+                        this.currentFrame = 0;
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+                    }
+                    this.img = this.frames[this.currentFrame];
+                })
+            }
+        }), 1)
+
+        this.title = this.addGo(new GO({
+            position: new V2(63, 21),
+            size: new V2(125,30),
+            createFadeOutFrames({framesCount, fromFrame, itemFrameslength, size}) {
+                let frames = [];
+                let titleTextImg =  PP.createImage(JustreeScreamScene.model.title);
+                let oValues = easing.fast({from: 1, to: 0, steps: itemFrameslength, type: 'linear', method: 'base', round: 2 });
+
+                let itemsData = new Array(1).fill().map((el, i) => {
+                    let startFrameIndex = fromFrame;
+                    let totalFrames = itemFrameslength;
+                
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                
+                        frames[frameIndex] = {
+                            opacity: oValues[f]
+                        };
+                    }
+                
+                    return {
+                        frames
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                ctx.globalAlpha = itemData.frames[f].opacity;
+                                ctx.drawImage(titleTextImg, 0,0);
+                            }
+                            
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                //this.img = PP.createImage(JustreeScreamScene.model.title);
+                this.frames = this.createFadeOutFrames({ framesCount: 135, fromFrame: 112, itemFrameslength: 30, size: this.size })
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let originFrameChangeDelay = 0;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 0;
                 let animationRepeatDelay = animationRepeatDelayOrigin;
                 
                 this.timer = this.regTimerDefault(10, () => {
@@ -245,10 +377,10 @@ class JustreeScreamScene extends Scene {
                     }
                 })
             }
-        }), 1)
+        }), 2)
 
         this.scream = this.addGo(new GO({
-            position: this.sceneCenter.clone().add(new V2(0, 12)),
+            position: this.sceneCenter.clone().add(new V2(0, 12.5)),
             size: new V2(100,100),
             frames: PP.createImage(JustreeScreamScene.model.mainFrames),
             init() {
@@ -262,9 +394,10 @@ class JustreeScreamScene extends Scene {
                 
                 let animationRepeatDelayOrigin = 0;
                 let animationRepeatDelay = animationRepeatDelayOrigin;
-                let repeats = 5;
-
+                let repeats = 2;
+                let counter = 0;
                 this.timer = this.regTimerDefault(10, () => {
+                    counter++;
                     animationRepeatDelay--;
                     if(animationRepeatDelay > 0)
                         return;
@@ -275,16 +408,19 @@ class JustreeScreamScene extends Scene {
                 
                     frameChangeDelay = originFrameChangeDelay;
                 
-                    this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
+                        console.log('scream frames counter: ' + counter)
+                        counter = 0;
                         this.currentFrame = 0;
                         animationRepeatDelay = animationRepeatDelayOrigin;
-
+                        
                         repeats--;
                         if(repeats == 0)
-                            this.parentScene.capturing.stop = true;
+                        this.parentScene.capturing.stop = true;
                     }
+
+                    this.img = this.frames[this.currentFrame];
                 })
             }
         }), 30)
@@ -301,15 +437,63 @@ class JustreeScreamScene extends Scene {
             }
         }), 25)
 
+        let dropsStartPoints = []
+        createCanvas(new V2(1,1), (ctx, size, hlp) => {
+            let pp = new PP({ctx})
+            dropsStartPoints = [
+                ...pp.lineV2(new V2(3, 79), new V2(11,80)),
+                ...pp.lineV2(new V2(12,88), new V2(22,91)),
+                ...pp.lineV2(new V2(108,103), new V2(114,99)),
+                ...pp.lineV2(new V2(113,89), new V2(120,85)),
+                ...pp.lineV2(new V2(121,85), new V2(124,84)),
+                new V2(0, 67),
+                new V2(1,68)
+            ]
+        })
+        this.flow = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            frames: this.createFlowFrames({framesCount: 135, itemsCount: 10, itemFrameslength: 50, startPoints: dropsStartPoints, height: 50, size: this.viewport}),
+            init() {
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let originFrameChangeDelay = 0;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 0;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+                
+                this.timer = this.regTimerDefault(10, () => {
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+                    }
+                })
+            }
+        }), 26)
+
         let backLayersCount = 6;
-        let itemsCounts = easing.fast({ from: 300, to: 50, steps: backLayersCount, type: 'quad', method: 'in', round: 0});
+        let itemsCounts = easing.fast({ from: 400, to: 60, steps: backLayersCount, type: 'quad', method: 'in', round: 0});
         let itemFrameslengths = easing.fast({ from: 50, to: 25, steps: backLayersCount, type: 'quad', method: 'in', round: 0});
         let dropLengths = easing.fast({ from: 10, to: 40, steps: backLayersCount, type: 'quad', method: 'in', round: 0});
         let vValues = easing.fast({ from: 10, to: 50, steps: backLayersCount, type: 'quad', method: 'in', round: 0});
         //let deltaDividers = easing.fast({ from: 2, to: 1, steps: backLayersCount, type: 'quad', method: 'in', round: 0});
         let xShifts = easing.fast({ from: -5, to: -20, steps: backLayersCount, type: 'linear', method: 'base', round: 0});
         let layers = new Array(backLayersCount).fill().map((el,i) => ({
-            framesCount: 100, 
+            framesCount: 135, 
             itemsCount: itemsCounts[i], 
             itemFrameslength: itemFrameslengths[i], 
             dropLength: dropLengths[i], 
@@ -322,17 +506,11 @@ class JustreeScreamScene extends Scene {
 
         // layers.push({ framesCount: 100, itemsCount: 30, itemFrameslength: 20, size: this.viewport, dropLength: 50, 
         //     color: colors.colorTypeConverter({value: {h:0,s:96,v: 55}, toType: 'hex', fromType: 'hsv'}), xShift: -22, layer: 29  })
-        layers.push({ framesCount: 100, itemsCount: 50, itemFrameslength: 15, size: this.viewport, dropLength: 60, 
+        layers.push({ framesCount: 135, itemsCount: 60, itemFrameslength: 15, size: this.viewport, dropLength: 60, 
             color: colors.colorTypeConverter({value: {h:0,s:96,v: 60}, toType: 'hex', fromType: 'hsv'}), xShift: -25, layer: 31  })
 
         this.rain = layers
-            // [{ framesCount: 100, itemsCount: 50, itemFrameslength: 12, size: this.viewport, color: '#110003', layer: 2  },
-            // { framesCount: 100, itemsCount: 30, itemFrameslength: 10, size: this.viewport, color: '#3a0002', layer: 3  },
-            // { framesCount: 100, itemsCount: 20, itemFrameslength: 8, size: this.viewport, color: '#630001', layer: 5  },
             
-            // { framesCount: 100, itemsCount: 15, itemFrameslength: 6, size: this.viewport, color: '#8A0505', layer: 10  },
-            // { framesCount: 100, itemsCount: 10, itemFrameslength: 4, size: this.viewport, color: '#BF0202', layer: 21  },
-            // { framesCount: 100, itemsCount: 10, itemFrameslength: 3, size: this.viewport, color: '#BF0202', layer: 31  }]
             .map(layer => this.addGo(new GO({
                 position: this.sceneCenter.clone(),
                 size: this.viewport.clone(),
@@ -358,15 +536,23 @@ class JustreeScreamScene extends Scene {
                     
                         frameChangeDelay = originFrameChangeDelay;
                     
-                        this.img = this.frames[this.currentFrame];
                         this.currentFrame++;
                         if(this.currentFrame == this.frames.length){
                             this.currentFrame = 0;
                             animationRepeatDelay = animationRepeatDelayOrigin;
                         }
+                        this.img = this.frames[this.currentFrame];
                     })
                 }
             }), layer.layer))
 
+            this.signature = this.addGo(new GO({
+                position: new V2(105, 6),
+                size: new V2(34,7),
+                img: PP.createImage(JustreeScreamScene.model.signature),
+                init() {
+                
+                }
+            }), 40)
     }
 }
