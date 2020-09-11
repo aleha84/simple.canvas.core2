@@ -301,11 +301,12 @@ class JustreeScreamScene extends Scene {
         }), 1)
 
         this.title = this.addGo(new GO({
-            position: new V2(63, 21),
-            size: new V2(125,30),
+            position: new V2(58, 31),
+            size: new V2(125,50),
             createFadeOutFrames({framesCount, fromFrame, itemFrameslength, size}) {
                 let frames = [];
-                let titleTextImg =  PP.createImage(JustreeScreamScene.model.title);
+                let titleTextImg =  PP.createImage(JustreeScreamScene.model.title, { colorsSubstitutions: { '#878787': 
+                {color: '#FFFFFF' } }});
                 let oValues = easing.fast({from: 1, to: 0, steps: itemFrameslength, type: 'linear', method: 'base', round: 2 });
 
                 let itemsData = new Array(1).fill().map((el, i) => {
