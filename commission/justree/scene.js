@@ -5,7 +5,7 @@ class JustreeScreamScene extends Scene {
                 enabled: false,
                 addRedFrame: false,
                 stopByCode: true,   
-                viewportSizeMultiplier: 10,
+                viewportSizeMultiplier: 16,
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'scream'
@@ -395,7 +395,7 @@ class JustreeScreamScene extends Scene {
                 
                 let animationRepeatDelayOrigin = 0;
                 let animationRepeatDelay = animationRepeatDelayOrigin;
-                let repeats = 10;
+                let repeats = 2;
                 let counter = 0;
                 this.timer = this.regTimerDefault(10, () => {
                     counter++;
