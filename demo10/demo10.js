@@ -156,6 +156,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: _150x100_viewport
     }))
 
+    SCG.scenes.cacheScene(new Demo10FriendScene({
+        name: 'friend',
+        viewport: _100x150_viewport
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();
