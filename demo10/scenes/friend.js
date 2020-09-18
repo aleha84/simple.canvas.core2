@@ -2,9 +2,18 @@ class Demo10FriendScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
+            },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 10,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'friend'
             },
         }, options)
         super(options);
@@ -206,7 +215,7 @@ class Demo10FriendScene extends Scene {
                 
                 let animationRepeatDelayOrigin = 0;
                 let animationRepeatDelay = animationRepeatDelayOrigin;
-                
+                let repeat = 3;
                 this.timer = this.regTimerDefault(10, () => {
                     animationRepeatDelay--;
                     if(animationRepeatDelay > 0)
@@ -221,6 +230,10 @@ class Demo10FriendScene extends Scene {
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
+                        repeat--;
+                        if(repeat == 0)
+                            this.parentScene.capturing.stop = true;
+
                         this.currentFrame = 0;
                         animationRepeatDelay = animationRepeatDelayOrigin;
                     }
@@ -250,7 +263,100 @@ class Demo10FriendScene extends Scene {
                 let originFrameChangeDelay = 5;
                 let frameChangeDelay = originFrameChangeDelay;
                 
-                let animationRepeatDelayOrigin = 100;
+                let animationRepeatDelayOrigin = 131;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+                
+                let counter = 0;
+                this.timer = this.regTimerDefault(10, () => {
+                    counter++;
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        console.log('grass counter: ' + counter);
+                        counter = 0;
+                        this.currentFrame = 0;
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+                    }
+                })
+            }
+        }), 40)
+
+        this.treesMovement = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            extractPointData(layer) {
+                let data = [];
+                layer.groups.forEach(group => {
+                    let color = group.strokeColor;
+                    group.points.forEach(point => {
+                        data.push({
+                            color, 
+                            point: point.point
+                        });
+                    })
+                })
+
+                return data;
+            },
+            createMovementFrames({framesCount, itemFrameslength, pointsData, size}) {
+                let frames = [];
+                
+                let itemsData = pointsData.map((pd, i) => {
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = itemFrameslength;
+                
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                
+                        frames[frameIndex] = true;
+                    }
+                
+                    return {
+                        frames,
+                        pd
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                hlp.setFillColor(itemData.pd.color).dot(itemData.pd.point.x, itemData.pd.point.y)
+                            }
+                            
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                this.frames = this.createMovementFrames({framesCount: 200, itemFrameslength: 30, size: this.size, 
+                    pointsData: this.extractPointData(Demo10FriendScene.models.main.main.layers.find(layer => layer.name == 'paricles'))});
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let originFrameChangeDelay = 0;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 0;
                 let animationRepeatDelay = animationRepeatDelayOrigin;
                 
                 this.timer = this.regTimerDefault(10, () => {
@@ -272,6 +378,6 @@ class Demo10FriendScene extends Scene {
                     }
                 })
             }
-        }), 40)
+        }), 35)
     }
 }
