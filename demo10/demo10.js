@@ -161,6 +161,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: _100x150_viewport
     }))
 
+    SCG.scenes.cacheScene(new Demo10AngelScene({
+        name: 'angel', 
+        viewport: smallSquareDefaultViewport
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();
