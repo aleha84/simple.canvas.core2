@@ -33,7 +33,7 @@ class Demo10AngelScene extends Scene {
         this.streams = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            createStreamFrames({framesCount, dotsData, size, xClamps, addX = 0, addY = 0, particleReverse= false}) {
+            createStreamFrames({framesCount, dotsData, size, xClamps, addX = 0, addY = 0, particleReverse= false, particles = {}}) {
                 let frames = [];
                 let _sharedPP;
                 let halfFramesCount = fast.r(framesCount/2);
@@ -70,11 +70,14 @@ class Demo10AngelScene extends Scene {
                     }
 
                     let particlesCount = getRandomInt(0,2);
+                    if(particles.countFun){
+                        particlesCount = particles.countFun();
+                    }
                     let startFrameIndex = f;
                     let totalFrames = particlesTotalFrames;
                     for(let i = 0; i < particlesCount; i++){
                         let yShiftChange = new Array(particlesTotalFrames).fill(getRandomInt(0,2));
-                        if(getRandomInt(0,3) == 0)
+                        if(getRandomInt(0,3) == 0 || particles.allUp)
                             yShiftChange = easing.fast({ from: 0, to: -getRandomInt(5,15), steps: particlesTotalFrames, type: 'quad', method: 'in', round: 0});
                         let data = { frames: []};
                         let startDotIndex = getRandomInt(0, framesData[f].dots.length-1);
@@ -120,6 +123,47 @@ class Demo10AngelScene extends Scene {
                 return frames;
             },
             init() {
+                this.wings = this.addChild(new GO({
+                    position: new V2(),
+                    size: new V2(150,150),
+                    frames: PP.createImage(Demo10AngelScene.models.wings),
+                    init() {
+                        let framesCount = 200;
+                        let framesChange = [
+                            ...easing.fast({from: 0, to: this.frames.length-1, steps: framesCount/2, type: 'quad', method: 'inOut', round: 0}),
+                            ...easing.fast({from: this.frames.length-1, to: 0, steps: framesCount/2, type: 'quad', method: 'inOut', round: 0})
+                        ]
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[framesChange[this.currentFrame]];
+                        
+                        let originFrameChangeDelay = 0;
+                        let frameChangeDelay = originFrameChangeDelay;
+                        
+                        let animationRepeatDelayOrigin = 0;
+                        let animationRepeatDelay = animationRepeatDelayOrigin;
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            animationRepeatDelay--;
+                            if(animationRepeatDelay > 0)
+                                return;
+                        
+                            frameChangeDelay--;
+                            if(frameChangeDelay > 0)
+                                return;
+                        
+                            frameChangeDelay = originFrameChangeDelay;
+                        
+                            this.img = this.frames[framesChange[this.currentFrame]];
+                            this.currentFrame++;
+                            if(this.currentFrame == framesCount){
+                                this.currentFrame = 0;
+                                animationRepeatDelay = animationRepeatDelayOrigin;
+                            }
+                        })
+                    }
+                }))
+
 
                 let framesData = [
                     // this.createStreamFrames({ framesCount: 200, 
@@ -176,6 +220,16 @@ class Demo10AngelScene extends Scene {
                             { dots: [new V2(42, 81), new V2(42, 84)] }, 
                             { dots: [new V2(57, 67)] }
                      ], size: this.size, xClamps: [-20, 67], addY: 2 }),
+                     this.createStreamFrames({ framesCount: 200, 
+                        dotsData: [ 
+                            { dots: [new V2(143,21), new V2(146,24)] }, 
+                            { dots: [new V2(150, 7), new V2(152, 10)] }, 
+                            { dots: [new V2(172, -20), new V2(174,-25)] }
+                     ], size: this.size, xClamps: [143, 174], addY: 2, particles: { allUp: true, countFun: () => { 
+                         if(getRandomInt(0,4) == 0)
+                            return 1;
+                        return 0;
+                       } } }),
                      ////////////////////////////
                      this.createStreamFrames({ framesCount: 200, 
                         dotsData: [ 
@@ -265,7 +319,7 @@ class Demo10AngelScene extends Scene {
             position: this.sceneCenter.clone(),
             size: new V2(150,150),
             init() {
-                this.img = PP.createImage(Demo10AngelScene.models.main, { exclude: ['bg'] })
+                this.img = PP.createImage(Demo10AngelScene.models.main, { exclude: ['bg', 'wings'] })
 
                 if(levitationEnabled){
                     let frameIndex = 0;
