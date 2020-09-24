@@ -2,9 +2,18 @@ class Demo10AngelScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
+            },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 5,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'angel'
             },
         }, options)
         super(options);
@@ -20,20 +29,119 @@ class Demo10AngelScene extends Scene {
             size: this.viewport.clone(),
             img: createCanvas(this.viewport, (ctx, size, hlp) => {
                 hlp.setFillColor('black').rect(0,0,size.x, size.y);
-            })
+            }),
+            init() {
+                
+
+                this.fallingStars = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    createFallingFrames({framesCount, itemsCount, itemFrameslength, size}) {
+                        let frames = [];
+                        let pp;
+                        let tailLength = 60;
+                        createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                            pp = new PP({ctx});
+                        })
+                        let oValues = easing.fast({from: 1, to: 0, steps: tailLength, type: 'quad', method: 'out', round: 1});
+                        let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                            let from = new V2(getRandomInt(-size.x, size.x), 0);
+                            let to = new V2(from.x + getRandomInt(50, 100), size.y + 50);
+                            let points = pp.lineV2(from, to);
+                            let indexValues = easing.fast({from: 0, to: points.length-1, steps: itemFrameslength, type: 'linear', round: 0});
+                            let startFrameIndex = getRandomInt(0, framesCount-1);
+                            let totalFrames = itemFrameslength;
+                        
+                            let frames = [];
+                            for(let f = 0; f < totalFrames; f++){
+                                let frameIndex = f + startFrameIndex;
+                                if(frameIndex > (framesCount-1)){
+                                    frameIndex-=framesCount;
+                                }
+                        
+                                frames[frameIndex] = {
+                                    index: indexValues[f]
+                                };
+                            }
+                        
+                            return {
+                                points, 
+                                indexValues,
+                                frames
+                            }
+                        })
+                        
+                        for(let f = 0; f < framesCount; f++){
+                            frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                                for(let p = 0; p < itemsData.length; p++){
+                                    let itemData = itemsData[p];
+                                    
+                                    if(itemData.frames[f]){
+                                        let startIndex = itemData.frames[f].index;
+                                        for(let i = 0; i < tailLength; i++){
+                                            let index = startIndex-i;
+                                            if(index < 0)
+                                                continue;
+
+                                            let p = itemData.points[index];
+                                            hlp.setFillColor(`rgba(255,255,255,${oValues[i]})`).dot(p.x, p.y);
+                                        }
+                                    }
+                                    
+                                }
+                            });
+                        }
+                        
+                        return frames;
+                    },
+                    init() {
+                        this.frames = this.createFallingFrames({ framesCount: 200, itemsCount: 10, itemFrameslength: 30, size: this.size });
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        let originFrameChangeDelay = 0;
+                        let frameChangeDelay = originFrameChangeDelay;
+                        
+                        let animationRepeatDelayOrigin = 0;
+                        let animationRepeatDelay = animationRepeatDelayOrigin;
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            animationRepeatDelay--;
+                            if(animationRepeatDelay > 0)
+                                return;
+                        
+                            frameChangeDelay--;
+                            if(frameChangeDelay > 0)
+                                return;
+                        
+                            frameChangeDelay = originFrameChangeDelay;
+                        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                                animationRepeatDelay = animationRepeatDelayOrigin;
+                            }
+                        })
+                    }
+                }))
+            }
         }), 0)
+
+
 
         let levitationFramesCount = 200;
         let yChangeValues = [
             ...easing.fast({from: this.sceneCenter.y, to: this.sceneCenter.y-2, steps: levitationFramesCount/2, type: 'quad', method: 'inOut', round: 0}),
             ...easing.fast({from: this.sceneCenter.y-2, to: this.sceneCenter.y, steps: levitationFramesCount/2, type: 'quad', method: 'inOut', round: 0})
         ]
-        let levitationEnabled = false;
+        let levitationEnabled = true;
 
         this.streams = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            createStreamFrames({framesCount, dotsData, size, xClamps, addX = 0, addY = 0, particleReverse= false, particles = {}}) {
+            createStreamFrames({framesCount, dotsData, size, xClamps, addX = 0, addY = 0, particleReverse= false, particles = {}, color = '#cfccce'}) {
                 let frames = [];
                 let _sharedPP;
                 let halfFramesCount = fast.r(framesCount/2);
@@ -105,7 +213,7 @@ class Demo10AngelScene extends Scene {
                 for(let f = 0; f < framesCount; f++){
                     frames[f] = createCanvas(size, (ctx, size, hlp) => {
                         for(let i = 0; i < framesData[f].dots.length; i++){
-                            hlp.setFillColor('#cfccce').rect(framesData[f].dots[i].x, framesData[f].dots[i].y, 1 + addX, 1 + addY);
+                            hlp.setFillColor(color).rect(framesData[f].dots[i].x, framesData[f].dots[i].y, 1 + addX, 1 + addY);
                         }
 
                         for(let p = 0; p < particleData.length; p++){
@@ -163,7 +271,11 @@ class Demo10AngelScene extends Scene {
                         })
                     }
                 }))
-
+                let countFun = () => { 
+                    if(getRandomInt(0,4) == 0)
+                       return 1;
+                   return 0;
+                  }
 
                 let framesData = [
                     // this.createStreamFrames({ framesCount: 200, 
@@ -225,11 +337,13 @@ class Demo10AngelScene extends Scene {
                             { dots: [new V2(143,21), new V2(146,24)] }, 
                             { dots: [new V2(150, 7), new V2(152, 10)] }, 
                             { dots: [new V2(172, -20), new V2(174,-25)] }
-                     ], size: this.size, xClamps: [143, 174], addY: 2, particles: { allUp: true, countFun: () => { 
-                         if(getRandomInt(0,4) == 0)
-                            return 1;
-                        return 0;
-                       } } }),
+                     ], size: this.size, xClamps: [143, 174], addY: 2, particles: { allUp: true, countFun } }),
+                       this.createStreamFrames({ framesCount: 200, 
+                        dotsData: [ 
+                            { dots: [new V2(59, -20), new V2(59,-25)] },
+                            { dots: [new V2(82,4), new V2(83,6)] }, 
+                            { dots: [new V2(90, 16), new V2(92, 21)] }, 
+                     ], size: this.size, xClamps: [59, 92], addY: 1, particleReverse: true, particles: { allUp: true, countFun } }),
                      ////////////////////////////
                      this.createStreamFrames({ framesCount: 200, 
                         dotsData: [ 
@@ -260,7 +374,24 @@ class Demo10AngelScene extends Scene {
                             { dots: [new V2(142, 76)] },
                             { dots: [new V2(172, 102), new V2(172,105)] }, 
                             { dots: [new V2(220, 156), new V2(220, 163)] }
-                     ], size: this.size, xClamps: [142, 220], addY: 1, particleReverse: true })
+                     ], size: this.size, xClamps: [142, 220], addY: 1, particleReverse: true }),
+                     this.createStreamFrames({ framesCount: 200, 
+                        dotsData: [ 
+                            { dots: [new V2(20, 220), new V2(26, 220)] },
+                            { dots: [new V2(50, 180), new V2(55,182)] }, 
+                            { dots: [new V2(60, 160), new V2(64, 163)] },
+                     ], size: this.size, xClamps: [20, 60], addY: 1, particleReverse: true, particles: { allUp: true, countFun } }),
+                     this.createStreamFrames({ framesCount: 200, 
+                        dotsData: [ 
+                            { dots: [new V2(135, 170), new V2(137, 174)] },
+                            { dots: [new V2(165, 190), new V2(168,193)] }, 
+                            { dots: [new V2(220, 210), new V2(225, 215)] },
+                     ], size: this.size, xClamps: [135, 225], addY: 1, particleReverse: false, particles: { allUp: true, countFun } }),
+
+                     ///
+
+                     
+
                 ]
 
                 this.streamItems = framesData.map(frames => this.addChild(new GO({
@@ -319,7 +450,190 @@ class Demo10AngelScene extends Scene {
             position: this.sceneCenter.clone(),
             size: new V2(150,150),
             init() {
-                this.img = PP.createImage(Demo10AngelScene.models.main, { exclude: ['bg', 'wings'] })
+                //this.img = 
+
+                this.legs = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Demo10AngelScene.models.legs),
+                    init() {
+                        let framesCount = 200;
+                        let framesChange = [
+                            ...easing.fast({from: 0, to: this.frames.length-1, steps: framesCount/2, type: 'quad', method: 'inOut', round: 0}),
+                            ...easing.fast({from: this.frames.length-1, to: 0, steps: framesCount/2, type: 'quad', method: 'inOut', round: 0})
+                        ]
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[framesChange[this.currentFrame]];
+                        
+                        let originFrameChangeDelay = 0;
+                        let frameChangeDelay = originFrameChangeDelay;
+                        
+                        let animationRepeatDelayOrigin = 0;
+                        let animationRepeatDelay = animationRepeatDelayOrigin;
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            animationRepeatDelay--;
+                            if(animationRepeatDelay > 0)
+                                return;
+                        
+                            frameChangeDelay--;
+                            if(frameChangeDelay > 0)
+                                return;
+                        
+                            frameChangeDelay = originFrameChangeDelay;
+                        
+                            this.img = this.frames[framesChange[this.currentFrame]];
+                            this.currentFrame++;
+                            if(this.currentFrame == framesCount){
+                                this.currentFrame = 0;
+                                animationRepeatDelay = animationRepeatDelayOrigin;
+                            }
+                        })
+                    }
+                }))
+
+                this.main = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(Demo10AngelScene.models.main, { exclude: ['bg', 'wings'] })
+                }))
+
+                this.bodyFrames = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Demo10AngelScene.models.mainFrames, { exclude: ['bg', 'body', 'hands', 'head','p1','wings'] }),
+                    init() {
+                        let framesCount = 200;
+                        let framesChange = [
+                            ...easing.fast({from: 0, to: this.frames.length-1, steps: framesCount/2, type: 'quad', method: 'inOut', round: 0}),
+                            ...easing.fast({from: this.frames.length-1, to: 0, steps: framesCount/2, type: 'quad', method: 'inOut', round: 0})
+                        ]
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[framesChange[this.currentFrame]];
+                        
+                        let originFrameChangeDelay = 0;
+                        let frameChangeDelay = originFrameChangeDelay;
+                        
+                        let animationRepeatDelayOrigin = 0;
+                        let animationRepeatDelay = animationRepeatDelayOrigin;
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            animationRepeatDelay--;
+                            if(animationRepeatDelay > 0)
+                                return;
+                        
+                            frameChangeDelay--;
+                            if(frameChangeDelay > 0)
+                                return;
+                        
+                            frameChangeDelay = originFrameChangeDelay;
+                        
+                            this.img = this.frames[framesChange[this.currentFrame]];
+                            this.currentFrame++;
+                            if(this.currentFrame == framesCount){
+                                this.currentFrame = 0;
+                                animationRepeatDelay = animationRepeatDelayOrigin;
+                            }
+                        })
+                    }
+                }))
+
+                this.spear = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(Demo10AngelScene.models.spear)
+                }))
+
+                this.p1 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    extractPointData(layer) {
+                        let data = [];
+                        layer.groups.forEach(group => {
+                            let color = group.strokeColor;
+                            group.points.forEach(point => {
+                                data.push({
+                                    color, 
+                                    point: point.point
+                                });
+                            })
+                        })
+        
+                        return data;
+                    },
+                    createMovementFrames({framesCount, itemFrameslength, pointsData, size}) {
+                        let frames = [];
+                        
+                        let itemsData = pointsData.map((pd, i) => {
+                            let startFrameIndex = getRandomInt(0, framesCount-1);
+                            let totalFrames = itemFrameslength;
+                        
+                            let frames = [];
+                            for(let f = 0; f < totalFrames; f++){
+                                let frameIndex = f + startFrameIndex;
+                                if(frameIndex > (framesCount-1)){
+                                    frameIndex-=framesCount;
+                                }
+                        
+                                frames[frameIndex] = true;
+                            }
+                        
+                            return {
+                                frames,
+                                pd
+                            }
+                        })
+                        
+                        for(let f = 0; f < framesCount; f++){
+                            frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                                for(let p = 0; p < itemsData.length; p++){
+                                    let itemData = itemsData[p];
+                                    
+                                    if(itemData.frames[f]){
+                                        hlp.setFillColor(itemData.pd.color).dot(itemData.pd.point.x, itemData.pd.point.y)
+                                    }
+                                    
+                                }
+                            });
+                        }
+                        
+                        return frames;
+                    },
+                    init() {
+                        this.frames = this.createMovementFrames({framesCount: 200, itemFrameslength: 100, size: this.size, 
+                            pointsData: this.extractPointData(Demo10AngelScene.models.main.main.layers.find(layer => layer.name == 'p1'))});
+        
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        let originFrameChangeDelay = 0;
+                        let frameChangeDelay = originFrameChangeDelay;
+                        
+                        let animationRepeatDelayOrigin = 0;
+                        let animationRepeatDelay = animationRepeatDelayOrigin;
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            animationRepeatDelay--;
+                            if(animationRepeatDelay > 0)
+                                return;
+                        
+                            frameChangeDelay--;
+                            if(frameChangeDelay > 0)
+                                return;
+                        
+                            frameChangeDelay = originFrameChangeDelay;
+                        
+                            this.img = this.frames[this.currentFrame];
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                                animationRepeatDelay = animationRepeatDelayOrigin;
+                            }
+                        })
+                    }
+                }))
 
                 if(levitationEnabled){
                     let frameIndex = 0;
@@ -337,5 +651,165 @@ class Demo10AngelScene extends Scene {
                 
             }
         }), 10)
+
+        this.fire = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            createExplFrames({framesCount, itemsCount, itemFrameslengthClamps, size}) {
+                let radius = fast.r(size.x/2);
+                let img = createCanvas(this.size, (ctx, size, hlp) => {
+                    let center = size.divide(2).toInt();
+                    
+                    let oValues = easing.fast({from: 1, to: 0, steps: radius-1, type: 'quad', method: 'out', round: 2 }) ;
+                    for(let y = center.y-radius-1;y < center.y+radius+1;y++){
+                        for(let x = center.x-radius-1;x < center.x+radius+1;x++){
+              
+                            let _p = new V2(x,y);
+                            let distance = fast.r(center.distance(_p));
+              
+                            if(distance < radius){
+                                let o = oValues[distance];
+                                if(o == undefined || o > 1)
+                                    o = 0;
+
+                                hlp.setFillColor(`rgba(128,17,0,${o})`).dot(x,y)
+                            }
+                        }
+                    }
+                })
+
+                let frames = [];
+    
+                let particles = new Array(itemsCount).fill().map((el, i) => {
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = getRandomInt(40, 80);
+                    let oValues = [
+                        ...easing.fast({from: 0, to: 1, steps: fast.r(totalFrames/2), type: 'quad', method: 'inOut', round: 1 }),
+                        ...easing.fast({from: 1, to: 0, steps: fast.r(totalFrames/2), type: 'quad', method: 'inOut', round: 1 })
+                    ];
+
+                    let originalX = getRandomInt(0, size.x);
+                    let originalY =  size.y + getRandomInt(0, 20);
+
+                    let frames = [];
+                    let a = getRandomInt(8, 12);
+                    let b = getRandomInt(4,7);
+                    
+                    let formula = (x) => Math.sin(x/a)*b;
+
+                    let yChange = easing.fast({from: originalY, to: originalY - getRandomInt(20, 40), steps: totalFrames, type: 'linear', method: 'base', round: 0 })
+
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                
+                        let y = yChange[f];
+                        let x = fast.r(formula(y)) + originalX;
+
+                        frames[frameIndex] = {
+                          o: oValues[f] != undefined ? oValues[f] : 0,
+                            y, x
+                        };
+                    }
+                
+                    return {
+                        frames
+                    }
+                })
+
+                let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = getRandomInt(itemFrameslengthClamps[0], itemFrameslengthClamps[1]);
+                
+                    let oValues = [
+                        ...easing.fast({from: 0, to: 1, steps: fast.r(totalFrames/2), type: 'expo', method: 'out', round: 1 }),
+                        ...easing.fast({from: 1, to: 0, steps: fast.r(totalFrames/2), type: 'expo', method: 'in', round: 1 })
+                    ];
+
+                    let x = getRandomInt(0, size.x);
+                    let y =  getRandomInt(size.y*1.2, size.y*1.5);
+                    
+
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                
+                        frames[frameIndex] = {
+                          o: oValues[f] != undefined ? oValues[f] : 0  
+                        };
+                    }
+                
+                    return {
+                        x, y,
+                        frames
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                ctx.globalAlpha = itemData.frames[f].o;
+                                ctx.drawImage(img, itemData.x-radius, itemData.y-radius);
+                            }
+                            
+                        }
+
+                        for(let p = 0; p < particles.length; p++){
+                            let itemData = particles[p];
+                            
+                            if(itemData.frames[f]){
+                                hlp.setFillColor(`rgba(255,117,0,${itemData.frames[f].o})`).dot(itemData.frames[f].x, itemData.frames[f].y)
+                            }
+                            
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                this.frames = this.createExplFrames({ framesCount: 200, itemsCount: 100, itemFrameslengthClamps: [30, 60], size: this.size });
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                let originFrameChangeDelay = 0;
+                let frameChangeDelay = originFrameChangeDelay;
+                
+                let animationRepeatDelayOrigin = 0;
+                let animationRepeatDelay = animationRepeatDelayOrigin;
+                let repeat = 5;
+                this.timer = this.regTimerDefault(10, () => {
+                    animationRepeatDelay--;
+                    if(animationRepeatDelay > 0)
+                        return;
+                
+                    frameChangeDelay--;
+                    if(frameChangeDelay > 0)
+                        return;
+                
+                    frameChangeDelay = originFrameChangeDelay;
+                
+                    this.img = this.frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        repeat--;
+                        if(repeat == 0)
+                            this.parentScene.capturing.stop = true;
+                        this.currentFrame = 0;
+                        animationRepeatDelay = animationRepeatDelayOrigin;
+                    }
+                })
+            }
+        }), 20)
+
     }
 }
