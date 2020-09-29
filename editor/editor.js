@@ -1,5 +1,5 @@
 // TODO. Bugs:
-// 2. Current palettes list - stored in json
+// 2. Current palettes list - stored in json; stopped working, not showing color
 // 4. gradient tool, update, add easings support
 // 13. Import model - dublicate palette if already exists
 // 14. imput - paddings/old value missing
@@ -11,6 +11,7 @@
 // 23. Add progress recording - each minute add frame, pause, stop, start. Result in webm video
 // 25. change selected pixel color frame. Globally, per group. Depends on color? 
 // 27. auto save in localstorage !!!!!!!
+// 28. Letter 't' isnt work in editor inputs. Weird
 
 class Editor {
     constructor(options = {}){

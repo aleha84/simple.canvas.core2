@@ -1,6 +1,15 @@
 class Demo10PortalScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 5,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'portal'
+            },
             debug: {
                 enabled: false,
                 showFrameTimeLeft: true,
@@ -167,8 +176,14 @@ class Demo10PortalScene extends Scene {
         }
 
         let parsIndex = undefined;
+        let poralIndex = undefined;
         for(let i = 0; i < model.main.layers.length; i++){
             let layerIndex = (i+1)*10;
+
+            if(model.main.layers[i].name == 'poral'){
+                poralIndex = layerIndex;
+            }
+
             if(model.main.layers[i].name == 'pars'){
                 parsIndex = layerIndex;
             }
@@ -184,7 +199,9 @@ class Demo10PortalScene extends Scene {
                         let time = 0;
                         let noiseMultiplier = undefined;
                         let hsv = [182,10,50];
-                        var pn = new mathUtils.Perlin('random seed ' + getRandom(0,1000));
+                        let seed = getRandom(0,1000); //651.9748729038326
+                        console.log('seed:' + seed )
+                        var pn = new mathUtils.Perlin('random seed ' + seed);
                         let offset = 10;
 
                         let vIndex = [70, 80, 90, 100];
@@ -241,8 +258,14 @@ class Demo10PortalScene extends Scene {
                     }
 
                     if(model.main.layers[i].name == 'back_fog'){
+                        let repeat = 2;
                         this.frames = this.parentScene.createFogMovementFrames({framesCount: 600, size: this.size, direction: 1, img: this.img});
-                        this.registerFramesDefaultTimer({ });
+                        this.registerFramesDefaultTimer({ framesEndCallback: () => { 
+                            repeat--;
+                            if(repeat == 0)
+                                this.parentScene.capturing.stop = true; 
+                            } 
+                        });
                     }
 
                     if(model.main.layers[i].name == 'back_fog2'){
@@ -395,6 +418,52 @@ class Demo10PortalScene extends Scene {
                 this.registerFramesDefaultTimer({ });
             }
         }), parsIndex+5)
+
+        this.lightning = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.l1 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Demo10PortalScene.models.lightning1),
+                    init() {
+                        //this.frames = this.frames = [...this.frames, new Array()]
+                        console.log('l1.frames: ' + this.frames.length);
+                        this.registerFramesDefaultTimer({ initialAnimationDelay: 20, animationRepeatDelayOrigin: 158, originFrameChangeDelay: 3, debug: false });
+                    }
+                }))
+
+                this.l2 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Demo10PortalScene.models.lightning2),
+                    init() {
+                        console.log('l2.frames: ' + this.frames.length)
+                        this.registerFramesDefaultTimer({ initialAnimationDelay: 50, animationRepeatDelayOrigin: 158, originFrameChangeDelay: 3, debug: false });
+                    }
+                }))
+
+                this.l3 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Demo10PortalScene.models.lightning3),
+                    init() {
+                        console.log('l3.frames: ' + this.frames.length)
+                        this.registerFramesDefaultTimer({ initialAnimationDelay: 80, animationRepeatDelayOrigin: 155, originFrameChangeDelay: 3, debug: false });
+                    }
+                }))
+
+                // this.l4 = this.addChild(new GO({
+                //     position: new V2(),
+                //     size: this.size,
+                //     frames: PP.createImage(Demo10PortalScene.models.lightning4),
+                //     init() {
+                //         this.registerFramesDefaultTimer({ initialAnimationDelay: 100, animationRepeatDelayOrigin: 50, originFrameChangeDelay: 2 });
+                //     }
+                // }))
+            }
+        }), poralIndex+5)
 
         // this.po = this.addGo(new GO({
         //     position: this.sceneCenter.clone(),
