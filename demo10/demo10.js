@@ -170,6 +170,11 @@ document.addEventListener("DOMContentLoaded", function() {
         name: 'portal', 
         viewport: square150_viewport
     }))
+
+    SCG.scenes.cacheScene(new Demo10GhostTrain({
+        name: 'ghost', 
+        viewport: new V2(200,150)
+    }))
     sceneSelectByHashValue();
     
     SCG.main.start();
