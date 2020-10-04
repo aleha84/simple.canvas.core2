@@ -2,9 +2,18 @@ class Demo10GhostTrain extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
+            },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 5,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'ghost'
             },
         }, options)
         super(options);
@@ -233,5 +242,18 @@ class Demo10GhostTrain extends Scene {
                 })))
             }
         }), 65)
+
+        this.shadow = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            frames: PP.createImage(Demo10GhostTrain.models.shadowFrames),
+            init() {
+                this.registerFramesDefaultTimer({ originFrameChangeDelay: 7, initialAnimationDelay: 140, animationRepeatDelayOrigin: 140, debug: true,
+                    framesEndCallback: () => {
+                        this.parentScene.capturing.stop = true;
+                    } 
+                });
+            }
+        }), 69)
     }
 }
