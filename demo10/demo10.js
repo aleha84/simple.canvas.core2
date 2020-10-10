@@ -175,6 +175,12 @@ document.addEventListener("DOMContentLoaded", function() {
         name: 'ghost', 
         viewport: new V2(200,150)
     }))
+
+    SCG.scenes.cacheScene(new Demo10AnfisaScene({
+        name: 'anfisa', 
+        viewport: _100x150_viewport
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();
