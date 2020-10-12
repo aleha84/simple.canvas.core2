@@ -236,6 +236,9 @@ class PerfectPixel {
 var PP = PerfectPixel;
 
 PP.createImage = function(model, params = {}) {
+    if(model == undefined)
+        throw 'PP.createImage model is undefined!';
+        
     let {general, main} = model;
 
     params = assignDeep({}, {

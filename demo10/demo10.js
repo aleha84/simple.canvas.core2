@@ -181,6 +181,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: _100x150_viewport
     }))
 
+    SCG.scenes.cacheScene(new Demo10DarkMood({
+        name: 'dark', 
+        viewport: _100x150_viewport
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();
