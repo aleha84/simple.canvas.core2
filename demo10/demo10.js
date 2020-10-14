@@ -186,6 +186,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: _100x150_viewport
     }))
 
+    SCG.scenes.cacheScene(new Demo10Portal2Scene({
+        name: 'portal2', 
+        viewport: square150_viewport
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();
