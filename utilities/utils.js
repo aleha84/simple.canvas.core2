@@ -563,7 +563,11 @@ function createCanvasHelper({ctx}){
       return ctx.fillStyle;
     },
     setFillColor(color){
-      ctx.fillStyle = color;return this;
+      if(!color.startsWith('#')){
+        color = "#" + color
+      }
+
+      ctx.fillStyle = color; return this;
     },
     setFillStyle(color) {
       return this.setFillColor(color);

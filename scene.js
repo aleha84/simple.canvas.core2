@@ -231,7 +231,11 @@ class Scene {
                 type: SCG.viewport.scrollTypes.drag,
                 restrictBySpace: true
             }
-        }, props);   
+        }, props); 
+        
+        if(this.fitToScreen && this.viewport.x != this.viewport.y){
+            throw 'fitToScreen set to true => viewport property should be square!';
+        }
         
         if(!props.space)
             this.space = this.viewport;
@@ -576,6 +580,7 @@ SCG.scenes = {
             throw 'No scene selected';      
 
         SCG.viewport.logical = new Box(new V2, this.activeScene.viewport);
+        SCG.viewport.fitToScreen = this.activeScene.fitToScreen;
         SCG.viewport.originalLogical = new Box(new V2, this.activeScene.viewport);
         SCG.viewport.scrollOptions = this.activeScene.scrollOptions;
 

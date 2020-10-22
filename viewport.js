@@ -105,7 +105,23 @@ SCG.viewport = {
             return;
 
         let _width = SCG.globals.parentElement.clientWidth;
-		let _height = SCG.globals.parentElement.clientHeight; 
+        let _height = SCG.globals.parentElement.clientHeight; 
+        
+        if(this.fitToScreen){
+            let size = this.originalLogical.size.clone();
+            //this.logical = this.originalLogical.clone();
+            if(_width > _height){
+                let ratio = _width/_height;
+                size.x = fast.r(size.x*ratio);
+            }
+            else {
+                let ratio = _height/_width;
+                size.y = fast.r(size.y*ratio);
+            }
+
+            this.logical = new Box(this.originalLogical.topLeft, size);
+        }
+
 		let ratioX = _width /this.logical.width;
         let ratioY = _height / this.logical.height; 
         

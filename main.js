@@ -20,54 +20,6 @@ SCG.main = {
 					}
 				}
 			}
-			
-			// if(SCG.scenes.activeScene.capturing && SCG.scenes.activeScene.capturing.enabled){
-			// 	let c = SCG.scenes.activeScene.capturing;
-			// 	if(
-			// 		(!c.stopByCode && c.currentFrame < c.totalFramesToRecord) ||
-			// 		(c.stopByCode && !c.stop)
-			// 		 ){
-			// 		let frame = createCanvas(c.size, (ctx, size, hlp) => {
-			// 			ctx.drawImage(c.canvas, 0,0, size.x, size.y)
-			// 		});
-
-			// 		c.videoWriter.addFrame(frame);
-			// 		if(!c.stopByCode)
-			// 			console.log(`${c.currentFrame} from ${c.totalFramesToRecord} added`);
-			// 		else 
-			// 			console.log(`${c.currentFrame} frame added`);
-
-			// 		c.currentFrame++;
-			// 	}
-			// 	else {
-			// 		if(c.addRedFrame){
-			// 			let frame = createCanvas(c.size, (ctx, size, hlp) => {
-			// 				hlp.setFillColor('red').rect(0,0, size.x, size.y)
-			// 			});
-			// 			c.videoWriter.addFrame(frame);
-			// 		}
-					
-			// 		console.log('recording is completed');
-
-			// 		c.videoWriter.complete().then(function(blob){
-			// 			let name = c.fileNamePrefix + '_' + new Date().getTime() + '.webm';
-			// 			// let blob = new Blob(this.recordedBlobs, { type: this.mimeType });
-			// 			let url = window.URL.createObjectURL(blob);
-			// 			let a = document.createElement('a');
-			// 			a.style.display = 'none';
-			// 			a.href = url;
-			// 			a.download = name;
-			// 			document.body.appendChild(a);
-			// 			a.click();
-			// 			setTimeout(() => {
-			// 				document.body.removeChild(a);
-			// 				window.URL.revokeObjectURL(url);
-			// 			}, 100)
-			// 		})
-
-			// 		return;
-			// 	}
-			// }
 
 			requestAnimationFrame(SCG.main.cycle.process);
 		},
@@ -181,6 +133,7 @@ SCG.main = {
 			throw 'Active scene corrupted!';
 	
 		SCG.globals.parentElement = SCG.globals.parentId ? document.getElementById(SCG.globals.parentId) : document.body;
+		setAttributes(SCG.globals.parentElement, { css: { 'overflow': 'hidden' } })
 		
 		let canvases = [{name:'background', z:0}, {name:'main', z: 100}, {name:'ui', z:1000}];
 	
@@ -205,6 +158,52 @@ SCG.main = {
 	
 		this.loader.loadImages(this.loader.loaderProgress).then(
 			this.loader.loadImagesSuccess,
+			function(err){
+				throw err;
+			}
+		);
+	},
+
+	startV2(sceneName) {
+		if(!sceneName)
+			throw 'No scene name provided';
+
+		SCG.globals.parentElement = SCG.globals.parentId ? document.getElementById(SCG.globals.parentId) : document.body;
+		setAttributes(SCG.globals.parentElement, { css: { 'overflow': 'hidden' } })
+		
+		let canvases = [{name:'background', z:0}, {name:'main', z: 100}, {name:'ui', z:1000}];
+	
+		for(let canvas of canvases){ //creating canvas and contexts
+			SCG.canvases[canvas.name] = appendDomElement(
+				SCG.globals.parentElement, 
+				'canvas',
+				{ 
+					width : SCG.globals.parentElement.clientWidth,
+					height: SCG.globals.parentElement.clientHeight,
+					id: canvas.name + 'Canvas',
+					css: {
+						'z-index': canvas.z,
+						'position': 'absolute'
+					}
+				}
+			);
+	
+			SCG.contexts[canvas.name] = SCG.canvases[canvas.name].getContext('2d');
+			SCG.contexts[canvas.name].imageSmoothingEnabled = false;
+		}
+
+		this.loader.loadImages(this.loader.loaderProgress).then(
+			function() {
+				SCG.scenes.selectScene(sceneName);
+				SCG.events.register();
+				SCG.controls.initialize();
+
+				if(SCG.audio)
+					SCG.audio.init();	
+		
+				SCG.scenes.activeScene.beforeProcessInner();
+				SCG.main.cycle.process();
+			},
 			function(err){
 				throw err;
 			}
