@@ -7,7 +7,7 @@ class SpaceshipScene extends Scene {
                 additional: [],
             },
             capturing: {
-                enabled: false.,
+                enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
                 viewportSizeMultiplier: 5,
