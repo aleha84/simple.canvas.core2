@@ -198,8 +198,11 @@ class Editor {
 
         let that = this;
 
+        components.editorContext = that;
+
         components.draggable.init(that);
         components.createUIControls(that);
+        components.layersHelpers.createLayerHelpersPanel();
         
         components.createDraggablePanel({title: 'utilities', panelClassNames: [ 'utilities'], parent: document.body, position: new V2(20,20), contentItems: [
             htmlUtils.createElement('input', { value: 'Mid',  attributes: { type: 'button' }, events: {

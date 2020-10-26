@@ -196,6 +196,27 @@ html,
       font-size: 28px;
     }
 
+    .overlay>.content.moveToLayer {
+      padding: 10px;
+      background-color: white;
+    }
+
+    /* moveToLayer */
+    .moveToLayer .availableLayers>.layer {
+      padding: 3px;
+      margin: 0;
+    }
+
+    .moveToLayer .availableLayers>.layer.disabled {
+      background-color: lightgray;
+    }
+
+    .moveToLayer .availableLayers>.layer.selected {
+      background-color: cornflowerblue;
+    }
+
+    /* end moveToLayer */
+
     .editorBlock>.modeSwitch>.stateName {
         font-size: 20px;
         font-weight: bold;

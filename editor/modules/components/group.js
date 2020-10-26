@@ -194,6 +194,20 @@ components.createGroup = function(groupEl, groupProps, changeCallback){
 components.fillGroups = function(layerProps, changeCallback) {
     let {groupsEl, groupEl, groups} = layerProps;
 
+    components.resetGroups = () => {
+        groups.forEach(g => g.selected = false);
+        //components.createGroup(undefined, undefined, changeCallback) 
+        
+        components.editor.editor.selected.groupId = undefined;
+        components.editor.editor.selected.pointId = undefined;
+
+        components.fillGroups(layerProps, changeCallback);
+        components.editor.editor.setModeState(false, 'edit');
+        components.editor.editor.setMoveGroupModeState(false);
+
+        changeCallback();
+    }
+
     components.editor.editor.toggleGroupVisibility = undefined;
     if(groupEl)
         htmlUtils.removeChilds(groupEl);
@@ -268,21 +282,21 @@ components.fillGroups = function(layerProps, changeCallback) {
                 if(currentFrameIndex == frames.length-1)
                     f = 0;
 
-                let selectedGroup = groups.filter(g => g.selected)[0];
-                let sameIdGroup = undefined;
-                
-                for(let l = 0; l < frames[f].layers.length;l++){
-                    for(let g = 0; g < frames[f].layers[l].groups.length; g++){
-                        if(selectedGroup.id == frames[f].layers[l].groups[g].id){
-                            sameIdGroup = frames[f].layers[l].groups[g];
-                            break;
-                        }
-                    }
-                    if(sameIdGroup){
-                        break;
-                    }
+                let { groupId, layerId } = components.editor.editor.selected;
+                if(groupId == undefined) {
+                    notifications.error('No group selected', 2000);
+                    return;
                 }
-                
+
+                let nextFrameLayer = frames[f].layers.find(l => l.id == layerId);
+                if(!nextFrameLayer){
+                    notifications.error('No layer with id: ' + layerId + ' found in frame index: ' + f , 2000);
+                    return;
+                }
+
+                let sameIdGroup = nextFrameLayer.groups.find(g => g.id == groupId);
+                let selectedGroup = groups.filter(g => g.selected)[0];
+                // let sameIdGroup = undefined;
                 
                 if(!sameIdGroup){
                     //alert('Not found same Id group');
@@ -396,17 +410,18 @@ components.fillGroups = function(layerProps, changeCallback) {
                 components.editor.editor.setModeState(true, 'edit');
             },
             reset: function(e) { 
-                groups.forEach(g => g.selected = false);
-                //components.createGroup(undefined, undefined, changeCallback) 
+                components.resetGroups();
+                // groups.forEach(g => g.selected = false);
+                // //components.createGroup(undefined, undefined, changeCallback) 
                 
-                components.editor.editor.selected.groupId = undefined;
-                components.editor.editor.selected.pointId = undefined;
+                // components.editor.editor.selected.groupId = undefined;
+                // components.editor.editor.selected.pointId = undefined;
 
-                components.fillGroups(layerProps, changeCallback);
-                components.editor.editor.setModeState(false, 'edit');
-                components.editor.editor.setMoveGroupModeState(false);
+                // components.fillGroups(layerProps, changeCallback);
+                // components.editor.editor.setModeState(false, 'edit');
+                // components.editor.editor.setMoveGroupModeState(false);
 
-                changeCallback();
+                // changeCallback();
             },
             remove(e, select) {
                 if(!confirm('Remove group?'))

@@ -91,6 +91,15 @@
 		]
 	},
 
+	"useFramesReg": {
+		"scope": "javascript",
+		"prefix": "useFramesReg",
+		"description": "Create registerFramesDefaultTimer",
+		"body": [
+			"this.registerFramesDefaultTimer({});"
+		]
+	},
+
 	"createFrames": {
 		"scope": "javascript",
 		"prefix": "createFrames",
@@ -177,8 +186,8 @@
 		"prefix": "addgo",
 		"body": [
 			"this.addGo(new GO({",
-			"\tposition: ${1:new V2(0,0)},",
-			"\tsize: ${2:new V2(1,1)},",
+			"\tposition: ${1:this.sceneCenter.clone()},",
+			"\tsize: ${2:this.viewport.clone()},",
 			"\tinit() {",
 			"\t\t$4//",
 			"\t}",
@@ -243,6 +252,16 @@
 			"\t\t//$2",
 			"\t}",
 			"}"
+		]
+	},
+
+	"effectParticles": {
+		"scope": "javascript",
+		"prefix": "effectParticles",
+		"description": "Create show|hide particles effect based on data layer",
+		"body": [
+			"this.frames = animationHelpers.createMovementFrames({ framesCount: ${1:200}, itemFrameslength: ${2:20}, size: ${3:this.size}, ",
+			"\tpointsData: animationHelpers.extractPointData(${4:Scene.main.layers.find(l => l.name == 'p1'))} });"
 		]
 	}
 }

@@ -1,4 +1,5 @@
 var components = {
+    editorContext: undefined,
     array_move(arr, old_index, new_index) {
         if (new_index >= arr.length) {
             var k = new_index - arr.length + 1;
