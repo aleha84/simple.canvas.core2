@@ -563,9 +563,9 @@ function createCanvasHelper({ctx}){
       return ctx.fillStyle;
     },
     setFillColor(color){
-      if(!color.startsWith('#')){
-        color = "#" + color
-      }
+      // if(!color.startsWith('rgba') && !color.startsWith('#')){
+      //   color = "#" + color
+      // }
 
       ctx.fillStyle = color; return this;
     },
