@@ -116,15 +116,15 @@ class Demo10Exp2Scene extends Scene {
                 
                 for(let f = 0; f < totalFrames; f++){
                     frames[f] = createCanvas(size, (ctx, size, hlp) => {
-                        if(f < framesCountAppearance) {
-                            let x = xChange[f];
-                            x+=5;
-                            hlp.setFillColor('rgba(255,255,255,0.5)').rect(x, 0, 1, size.y);
-                            hlp.setFillColor('rgba(255,255,255,0.25)').rect(x-1, 0, 1, size.y);
-                            hlp.setFillColor('rgba(255,255,255,0.05)')
-                                .rect(x-4, 0, 3, size.y)
-                                .rect(x+1, 0, 1, size.y);
-                        }
+                        // if(f < framesCountAppearance) {
+                        //     let x = xChange[f];
+                        //     x+=5;
+                        //     hlp.setFillColor('rgba(255,255,255,0.5)').rect(x, 0, 1, size.y);
+                        //     hlp.setFillColor('rgba(255,255,255,0.25)').rect(x-1, 0, 1, size.y);
+                        //     hlp.setFillColor('rgba(255,255,255,0.05)')
+                        //         .rect(x-4, 0, 3, size.y)
+                        //         .rect(x+1, 0, 1, size.y);
+                        // }
 
                         for(let p = 0; p < itemsData.length; p++){
                             let itemData = itemsData[p];
