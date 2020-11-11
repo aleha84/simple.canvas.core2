@@ -25,7 +25,7 @@ class DrunkDetectiveScene extends Scene {
 
     start(){
         this.bg = this.addGo(new GO({
-            position: this.sceneCenter.clone(),
+            position: this.sceneCenter.add(new V2(0, -0.5)),
             size: this.viewport.clone(),
             init() {
                 this.img = PP.createImage(DrunkDetectiveScene.models.bg)
@@ -37,8 +37,18 @@ class DrunkDetectiveScene extends Scene {
             size: new V2(200, 113),
             frames: PP.createImage(DrunkDetectiveScene.models.guy), 
             init() {
+                let loopFramesIndex = 41
+                this.frames = [
+                    //...new Array(5).fill(this.frames[1]),
+                    ...this.frames.filter((_, i) => i <= loopFramesIndex),
+                    ...this.frames,
+                ]
+
                 let repeat = 2;
-                this.registerFramesDefaultTimer({originFrameChangeDelay: 10, 
+                this.registerFramesDefaultTimer({originFrameChangeDelay: 8, 
+                    framesChangeCallback: () => {
+                        let a = 10;
+                    },
                     framesEndCallback: () => { 
                         repeat--;
                         if(repeat == 0)
