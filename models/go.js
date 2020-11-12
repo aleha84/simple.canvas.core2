@@ -854,7 +854,7 @@ class GO {
         
             frameChangeDelay = originFrameChangeDelay;
         
-            this.img = this.frames[this.currentFrame];
+            //this.img = this.frames[this.currentFrame];
             this.currentFrame++;
             framesChangeCallback();
             if(this.currentFrame == this.frames.length){
@@ -867,6 +867,8 @@ class GO {
 
                 framesEndCallback();
             }
+
+            this.img = this.frames[this.currentFrame];
         })
     }
 
