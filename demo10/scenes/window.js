@@ -6,6 +6,15 @@ class Demo10WindowScene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 5,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'window'
+            },
         }, options)
         super(options);
     }
@@ -22,7 +31,7 @@ class Demo10WindowScene extends Scene {
                 let frames = [];
                 
                 let portalSize = new V2(30,85);
-                let origin = new V2(30, 55);
+                let origin = new V2(20, 55);
 
                 let tl = origin.substract(portalSize);
 
@@ -38,9 +47,9 @@ class Demo10WindowScene extends Scene {
                     let startFrameIndex = getRandomInt(0, framesCount-1);
                     let totalFrames = getRandomInt(100, 150);
                     let initPoint = initInnerPoints[getRandomInt(0, initInnerPoints.length-1)];
-                    let xChange = easing.fast({ from: initPoint.x, to: getRandomInt(-2,0), steps: totalFrames, type: 'quad', method: 'in', round: 0 })
-                    let yChange = easing.fast({ from: initPoint.y, to: origin.y + getRandomInt(-3,3), steps: totalFrames, type: 'quad', method: 'in', round: 0 })
-                    let oValues = easing.fast({ from: 0, to: 0.25, steps: totalFrames, type: 'quad', method: 'in', round: 1 })
+                    let xChange = easing.fast({ from: initPoint.x, to: getRandomInt(-2,0), steps: totalFrames, type: 'quad', method: 'in', round: 0 }).reverse()
+                    let yChange = easing.fast({ from: initPoint.y, to: origin.y + getRandomInt(-3,3), steps: totalFrames, type: 'quad', method: 'in', round: 0 }).reverse()
+                    let oValues = easing.fast({ from: 0, to: 0.25, steps: totalFrames, type: 'quad', method: 'in', round: 1 }).reverse()
                     let frames = [];
                     for(let f = 0; f < totalFrames; f++){
                         let frameIndex = f + startFrameIndex;
@@ -214,9 +223,11 @@ class Demo10WindowScene extends Scene {
                 ]
                 let paramsDivider = 30;
                 let paramsMultiplier = 2;
-                let seed = getRandom(0,1000); 
+                let seed = 102.49392170660276;
+                //getRandom(0,1000); 
                 console.log('seed:' + seed )
                 //102.49392170660276
+                //105.38646576821242
                 var pn = new mathUtils.Perlin('random seed ' + seed);
                 for(let f = 0; f < framesCount;f++){
                     time = timeValues[f];
@@ -230,7 +241,7 @@ class Demo10WindowScene extends Scene {
                                 let noise = pn.noise(noiseX*paramsMultiplier, noiseY*paramsMultiplier, time/10);
 
                                 //noise = noise*100;
-                                let v =hsv.v + fast.r(-10 + noise*40)
+                                let v =hsv.v + fast.r(-20 + noise*40)
                                 
     
                                 hlp.setFillColor(colors.colorTypeConverter({ value: { h: hsv.h, s: hsv.s, v: v }, fromType: 'hsv', toType: 'hex'}))
@@ -311,8 +322,9 @@ class Demo10WindowScene extends Scene {
                 this.whirl = this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
-                    frames: this.createPortalFrames({ framesCount: 200, itemsCount: 800, itemFrameslengthClamp: [50, 100], size: this.size }),
+                    frames: this.createPortalFrames({ framesCount: 200, itemsCount: 1000, itemFrameslengthClamp: [50, 100], size: this.size }),
                     init() {
+                        
                         this.registerFramesDefaultTimer({});
                     }
                 }));
@@ -339,7 +351,14 @@ class Demo10WindowScene extends Scene {
                         this.frames = animationHelpers.createMovementFrames({ framesCount: 200, itemFrameslength: 50, size: this.size, 
                             pointsData: animationHelpers.extractPointData(Demo10WindowScene.models.main.main.layers.find(l => l.name == 'p')) });
             
-                        this.registerFramesDefaultTimer({});
+                        let repeat = 5;
+                        this.registerFramesDefaultTimer({
+                            framesEndCallback: () => { 
+                                repeat--;
+                                if(repeat == 0)
+                                    this.parent.parentScene.capturing.stop = true; 
+                                }
+                        });
                     }
                 }))
 
@@ -453,6 +472,139 @@ class Demo10WindowScene extends Scene {
 
                 this.registerFramesDefaultTimer({});
 
+                this.p = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.frames = animationHelpers.createMovementFrames({ framesCount: 200, itemFrameslength: 50, size: this.size, 
+                            pointsData: animationHelpers.extractPointData(Demo10WindowScene.models.handStatic.main.layers.find(l => l.name == 'p')) });
+            
+                        this.registerFramesDefaultTimer({});
+                    }
+                }))
+
+                this.animation5 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Demo10WindowScene.models.handFrames, {renderOnly: ['ani1']}),
+                    init() {
+                        let totalFrames = 50;
+                        let delay = 20;
+                        let frameIndexChange = [
+                            ...easing.fast({ from: 0, to: this.frames.length-1, steps: 20, type: 'quad', method: 'out', round: 0 }),
+                            ...easing.fast({ from: this.frames.length-1, to: 0, steps: totalFrames-20, type: 'linear', method: 'base', round: 0 })
+                        ];
+
+                        this.frames = [
+                            ...new Array(delay).fill(undefined),
+                            ...new Array(totalFrames).fill().map((el,i) => this.frames[frameIndexChange[i]]),
+                            ...new Array(100-totalFrames-delay).fill(undefined)
+                        ]
+                        
+                        this.registerFramesDefaultTimer({});
+                    }
+                }))
+
+                this.particles = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    createParticlesFrames({framesCount, itemsCount, itemFrameslength, size}) {
+                        let frames = [];
+                        let startPoints = [];
+                        createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                            startPoints = new PP({ctx}).lineV2(new V2(75,90), new V2(104,100))
+                        })
+
+                        let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                            let startFrameIndex = getRandomInt(0, framesCount-1);
+                            let totalFrames = getRandomInt(itemFrameslength/2, itemFrameslength)//itemFrameslength + getRandomInt(-20,10);
+                        
+                            let startP = startPoints[getRandomInt(0, startPoints.length-1)];
+                            let yValues = easing.fast({ from: startP.y, to: startP.y-getRandomInt(10,25), steps: totalFrames, type: 'linear', method: 'base', round: 0  });
+                            let oValues = easing.fast({ from: 1, to: 0, steps: totalFrames, type: 'quad', method: 'out', round: 1  });
+
+                            let frames = [];
+                            let size = 1;
+                            let sizeValues = new Array(totalFrames).fill(size);
+                            if(getRandomInt(0,3) > 0){//getRandomBool()){
+                                let s = getRandomInt(2,3);
+                                sizeValues = [
+                                    ...easing.fast({ from: 1, to: s, steps: fast.r(totalFrames/2), type: 'quad', method: 'inOut', round: 0  }),
+                                    ...easing.fast({ from: s, to: 1, steps: fast.r(totalFrames/2), type: 'quad', method: 'inOut', round: 0  }),
+                                ]
+                                //sizeValues = easing.fast({ from: 3, to: 1, steps: fast.r(totalFrames/2), type: 'quad', method: 'inOut', round: 0  })
+                            }
+                            for(let f = 0; f < totalFrames; f++){
+                                let frameIndex = f + startFrameIndex;
+                                if(frameIndex > (framesCount-1)){
+                                    frameIndex-=framesCount;
+                                }
+                        
+                                frames[frameIndex] = {
+                                    size: sizeValues[f],
+                                    y: yValues[f],
+                                    o: 1//oValues[f]
+                                };
+                            }
+
+                            let c = '#a66730';
+                            // let c = '#9d8779';
+                            // if(getRandomInt(0,2) == 0){
+                            //     c = '#a66730';
+                            // }
+
+                            
+                        
+                            return {
+                                c,
+                                x: startP.x,
+                                frames
+                            }
+                        })
+                        
+                        for(let f = 0; f < framesCount; f++){
+                            frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                                for(let p = 0; p < itemsData.length; p++){
+                                    let itemData = itemsData[p];
+                                    ctx.globalAlpha = 1;
+                                    if(itemData.frames[f]){
+                                        ctx.globalAlpha = itemData.frames[f].o;
+                                        hlp.setFillColor(itemData.c)
+                                        //
+                                        if(itemData.frames[f].size > 1){
+                                            hlp.setFillColor('#CCA486')
+                                        }
+                                        hlp.dot(itemData.x, itemData.frames[f].y)
+                                        hlp.setFillColor(itemData.c)
+                                        if(itemData.frames[f].size > 1){
+                                            ctx.globalAlpha = itemData.frames[f].o*2/3
+                                            hlp.dot(itemData.x-1, itemData.frames[f].y).dot(itemData.x+1, itemData.frames[f].y)
+                                            .dot(itemData.x, itemData.frames[f].y-1).dot(itemData.x, itemData.frames[f].y+1)
+                                        }
+                                        if(itemData.frames[f].size > 2){
+                                            ctx.globalAlpha = itemData.frames[f].o/3
+                                            hlp.dot(itemData.x-2, itemData.frames[f].y).dot(itemData.x+2, itemData.frames[f].y)
+                                            .dot(itemData.x, itemData.frames[f].y-2).dot(itemData.x, itemData.frames[f].y+2)
+                                            .dot(itemData.x-1, itemData.frames[f].y-1).dot(itemData.x-1, itemData.frames[f].y+1)
+                                            .dot(itemData.x+1, itemData.frames[f].y-1).dot(itemData.x+1, itemData.frames[f].y+1)
+                                        }
+                                        else {
+                                            
+                                        }
+                                    }
+                                    
+                                }
+                            });
+                        }
+                        
+                        return frames;
+                    },
+                    init() {
+                        this.frames = this.createParticlesFrames({ framesCount: 100, itemsCount: 15, itemFrameslength: 100, size: this.size });
+                        this.registerFramesDefaultTimer({});
+                    }
+                }))
+
                 let currentYShiftFrame = 0;
                 this.regDefaultTimer(10, () => {
                     let yShift = yValues[currentYShiftFrame];
@@ -466,5 +618,21 @@ class Demo10WindowScene extends Scene {
                 })
             }
         }), 15)
+
+        this.fabric = this.addGo(new GO({
+            position: new V2(68,22),
+            size: new V2(60,34),
+            init() {
+                this.frames = PP.createImage(Demo10WindowScene.models.fabric);
+                let totalFrames = 100;
+                let frameIndexChange = easing.fast({ from: 0, to: this.frames.length-1, steps: totalFrames, type: 'linear', method: 'base', round: 0 })
+
+                this.frames = [
+                    ...new Array(totalFrames).fill().map((el,i) => this.frames[frameIndexChange[i]])
+                ]
+                
+                this.registerFramesDefaultTimer({});
+            }
+        }), 20)
     }
 }
