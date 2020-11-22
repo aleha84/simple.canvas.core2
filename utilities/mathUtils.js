@@ -250,6 +250,7 @@ var mathUtils = {
     },
     Perlin: function(seed) {
     
+        console.log('perlin seed: ' + seed);
         // Alea random number generator.
         //----------------------------------------------------------------------------//
         

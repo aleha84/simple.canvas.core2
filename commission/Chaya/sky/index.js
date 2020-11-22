@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(100,150)
     }));
 
-    SCG.scenes.selectScene('stars');
+    // SCG.scenes.selectScene('stars');
     
-    SCG.main.start();
+    SCG.main.startV2('stars');
 });

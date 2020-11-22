@@ -2,13 +2,13 @@ class StarsSkyScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             capturing: {
-                enabled: false,
+                enabled: true,
                 addRedFrame: false,
-            stopByCode: true,   
+                stopByCode: true,   
                 viewportSizeMultiplier: 10,
                 totalFramesToRecord: 601,
                 frameRate: 60,
-                fileNamePrefix: 'stars_sky'
+                fileNamePrefix: 'chaya_stars_sky'
             },
             debug: {
                 enabled: false,
@@ -40,173 +40,121 @@ class StarsSkyScene extends Scene {
             })
         }), 1)
 
-        this.nebullas = this.addGo(new GO({
+
+        this.nebullas2 = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            isVisible: false,
             init() {
-                this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                    let nParams = [
-                        {
-                            hsv: [230,58,45],
-                            sizeClamps: [30,60],
-                            maskCirclesCount: 5,
-                            maskPositions: [new V2(77,12),new V2(32,35),new V2(12,75),new V2(4,100),new V2(86,51)],
-                            time: 0,
-                            paramsDivider: 20,
-                            noiseMultiplier: 0.7
-                        },
-                        {
-                            hsv: [210,73,32],
-                            sizeClamps: [30,60],
-                            maskCirclesCount: 5,
-                            maskPositions: [new V2(0, 7),new V2(54, 20),new V2(88, 52),new V2(97, 89)
-                            ],
-                            time: 0,
-                            paramsDivider: 20,
-                            noiseMultiplier: 0.75
-                        },
-                        {
-                            hsv: [230,58,45],
-                            sizeClamps: [20,40],
-                            maskCirclesCount: 2,
-                            maskPositions: [new V2(70,30),new V2(84,76),
-                            ],
-                            time: 0,
-                            paramsDivider: 12,
-                            //positionOnlyInside: true
-                        },
-                        {
-                            hsv: [210,73,32],
-                            sizeClamps: [20,40],
-                            maskCirclesCount: 2,
-                            maskPositions: [new V2(10,100),new V2(25,18),
-                            ],
-                            time: 0,
-                            paramsDivider: 12,
-                            //positionOnlyInside: true
-                        },
-                        {
-                            hsv: [280,52,35],
-                            sizeClamps: [20,40],
-                            maskCirclesCount: 2,
-                            maskPositions: [new V2(80,55),new V2(12,76),
-                            ],
-                            time: 0,
-                            paramsDivider: 12,
-                            //positionOnlyInside: true
-                        },
-                        {
-                            hsv: [210,73,32],
-                            sizeClamps: [10,15],
-                            maskCirclesCount: 2,
-                            maskPositions: [new V2(23, 18),new V2(68, 33),new V2(83, 83),
-                            ],
-                            time: 0,
-                            paramsDivider: 8,
-                            positionOnlyInside: true,
-                            maskMaxOpacity: 0.2
-                        },
-                        {
-                            hsv: [280,52,35],
-                            sizeClamps: [5,10],
-                            //maskCirclesCount: 1,
-                            maskPositions: [
-                                new V2(15,80), new V2(60,27)
-                            ],
-                            time: 0,
-                            paramsDivider: 10,
-                            positionOnlyInside: true,
-                            maskMaxOpacity: 0.2
+                let size = this.size;
+                let visibilityEllipsis = [
+                    {position: new V2(5, 0), size: new V2(60,120)},
+                    {position: new V2(size.x, 80), size: new V2(40,100)}
+                ]
+
+                let mask = createCanvas(size, (ctx, size, hlp) => {
+                    // hlp.setFillColor('white').rect(0,0,size.x, size.y);
+                    // return;
+
+                    let pp = new PerfectPixel({ctx});
+                    let maskMaxOpacity = 0.2;
+                    let aChange = easing.createProps(100, maskMaxOpacity, 0, 'quad', 'out');
+
+                    visibilityEllipsis.forEach(lightEllipsis => {
+                        lightEllipsis.rxSq = lightEllipsis.size.x*lightEllipsis.size.x;
+                        lightEllipsis.rySq = lightEllipsis.size.y*lightEllipsis.size.y;
+
+                        pp.fillStyleProvider = (x,y) => {
+    
+                            let dx = fast.r(
+                                (((x-lightEllipsis.position.x)*(x-lightEllipsis.position.x)/lightEllipsis.rxSq) 
+                                + ((y-lightEllipsis.position.y)*(y-lightEllipsis.position.y)/lightEllipsis.rySq))*100);
+        
+                            if(dx > 100){
+                                dx = 100;
+                            }
+        
+                            aChange.time = dx;
+        
+                            return `rgba(255,255,255,${fast.r(easing.process(aChange),2)})`;
                         }
-                    ]
 
-                    nParams.forEach(params => {
-                        let {hsv, sizeClamps, maskCirclesCount, maskPositions, time, paramsDivider, positionOnlyInside, maskMaxOpacity, noiseMultiplier} = params;
-
-                        if(maskMaxOpacity == undefined)
-                            maskMaxOpacity = 0.15
-
-                        var pn = new mathUtils.Perlin('random seed ' + getRandom(0,1000));
-                        // let paramsDivider = 10;
-                        // let time = 0
-                        // let sizeClamps = [20,40];
-                        // let maskCirclesCount = 5;
-
-                        let mask = createCanvas(size, (ctx, size, hlp) => {
-                            //let sizeClamps = [size.x/10,size.x/4];
-                            let count = maskPositions.length;
-                            // if(maskCirclesCount != undefined)
-                            //     count = maskCirclesCount;
-
-                            for(let i =0; i <  count; i++){
-                                let position = maskPositions[i];
-                                // let position = new V2(getRandomInt(-sizeClamps[1]/2,size.x), getRandomInt(-sizeClamps[1]/2, size.y*2/3));
-                                // if(positionOnlyInside){
-                                //     position = new V2(getRandomInt(sizeClamps[1], size.x-sizeClamps[1]), getRandomInt(sizeClamps[1], size.y-sizeClamps[1]));
-                                // }
-
-                                let lightEllipsis = {
-                                    position,
-                                    size: new V2(getRandomInt(sizeClamps[0], sizeClamps[1]), getRandomInt(sizeClamps[0], sizeClamps[1]))
-                                }
-                    
-                                lightEllipsis.rxSq = lightEllipsis.size.x*lightEllipsis.size.x;
-                                lightEllipsis.rySq = lightEllipsis.size.y*lightEllipsis.size.y;
-                                let pp = new PerfectPixel({ctx});
-                                let aChange = easing.createProps(100, maskMaxOpacity, 0, 'quad', 'out');
-                                pp.fillStyleProvider = (x,y) => {
-                
-                                    let dx = fast.r(
-                                        (((x-lightEllipsis.position.x)*(x-lightEllipsis.position.x)/lightEllipsis.rxSq) 
-                                        + ((y-lightEllipsis.position.y)*(y-lightEllipsis.position.y)/lightEllipsis.rySq))*100);
-                
-                                    if(dx > 100){
-                                        dx = 100;
-                                    }
-                
-                                    aChange.time = dx;
-                
-                                    return `rgba(255,255,255,${fast.r(easing.process(aChange),2)})`;
-                                }
-                                pp.fillByCornerPoints([new V2(0,0), new V2(size.x, 0), new V2(size.x, size.y), new V2(0, size.y)]);
-                            }
-                        })
-
-                        //let matrix = [];
-                        let noiseImg = createCanvas(size, (ctx, size, hlp) => {
-                            for(let y = 0; y < size.y; y++){
-                                //matrix[y] = [];
-                                for(let x = 0; x < size.x; x++){
-                                    //matrix[y][x] = pn.noise(x/paramsDivider, y/paramsDivider, time/10);
-                                    let noise = pn.noise(x/paramsDivider, y/paramsDivider, time/10);
-                                    noise = noise*100;
-                                    noise = fast.r(noise/5)*5;
-                                    //noise/=2;
-                                    if(noiseMultiplier != undefined){
-                                        noise*=noiseMultiplier;
-                                    }
-                                    hlp.setFillColor(colors.hsvToHex([hsv[0],hsv[1],fast.r(noise)])).dot(x,y)
-                                }
-                            }
-                        })
-
-
-                        params.img = createCanvas(size, (ctx, size, hlp) => {
-                            ctx.drawImage(mask, 0,0);
-
-                            ctx.globalCompositeOperation = 'source-in';
-
-                            ctx.drawImage(noiseImg, 0,0);
-                        })
+                        pp.fillByCornerPoints([new V2(0,0), new V2(size.x, 0), new V2(size.x, size.y), new V2(0, size.y)]);
                     })
 
-                    nParams.forEach(params => {
-                        ctx.drawImage(params.img, 0,0);
-                    });
                 })
+
+                let hsv = [230, 67, 61];
+                let targetH = 310;
+                let hDelta = targetH - hsv[0];
+
+                this.frames = [];
+                let maxT = 4;
+
+                let totalFrames = 400;
+
+                let timeValues = [
+                    ...easing.fast({ from: 0, to: maxT, steps: fast.r(totalFrames/2), type: 'quad', method: 'inOut' }),
+                    ...easing.fast({ from: maxT, to: 0, steps: fast.r(totalFrames/2), type: 'quad', method: 'inOut' })
+                ]
+
+                //let p_seed = getRandom(0,1000);
+                let p_seed = 301.30004624501237
+                //let v_p_seed = getRandom(0,1000);
+                let v_p_seed = 663.4611093428615
+                var pn = new mathUtils.Perlin('random seed ' + p_seed);
+                var v_pn = new mathUtils.Perlin('random seed ' + v_p_seed);
+
+                for(let f = 0; f < totalFrames; f++){
+                    let noiseImg = createCanvas(size, (ctx, size, hlp) => {
+                        let paramsDivider = 20;
+                        let paramsMultiplier = 2;
+                        let time = timeValues[f];
+
+                        let v_paramsDivider = 50;
+                        let v_paramsMultiplier = 5;
+                        let v_time = 0;
+
+
+                        for(let y = 0; y < size.y; y++){
+                            //matrix[y] = [];
+                            for(let x = 0; x < size.x; x++){
+                                //matrix[y][x] = pn.noise(x/paramsDivider, y/paramsDivider, time/10);
+                                //let noise = pn.noise(x/paramsDivider, y/paramsDivider, time/10);
+
+                                let noiseX = pn.noise(x/paramsDivider, y/paramsDivider, time/10);
+                                let noiseY = pn.noise((x-100)/paramsDivider, (y+200)/paramsDivider, time/10);
+                                let noise = pn.noise(noiseX*paramsMultiplier, noiseY*paramsMultiplier, time/10);
+
+                                noise = noise*hDelta;
+                                noise = fast.r(noise/5)*5;
+
+                                let v_noiseX = v_pn.noise(x/v_paramsDivider, y/v_paramsDivider, time/10);
+                                let v_noiseY = v_pn.noise((x-100)/v_paramsDivider, (y+200)/v_paramsDivider, time/10);
+                                let v_noise = v_pn.noise(v_noiseX*v_paramsMultiplier, v_noiseY*v_paramsMultiplier, time/10);
+
+                                v_noise = fast.r(v_noise*100);
+                                let s = 100-v_noise;
+
+
+                                hlp.setFillColor(colors.hsvToHex([hsv[0] + fast.r(noise),s,v_noise])).dot(x,y)
+                            }
+                        }
+                    })
+
+                    this.frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        ctx.drawImage(mask, 0,0);
+
+                        ctx.globalCompositeOperation = 'source-in';
+
+                        ctx.drawImage(noiseImg, 0,0);
+                    })   
+                }
+
+                this.registerFramesDefaultTimer({});
+
             }
         }), 5)
+
 
         this.stars = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -368,7 +316,7 @@ class StarsSkyScene extends Scene {
                         return frames;
                     },
                     init() {
-                        this.frames = this.createShineFrames({framesCount: 200, shineItems, itemFrameslength: 50, size: this.size  })
+                        this.frames = this.createShineFrames({framesCount: 400, shineItems, itemFrameslength: 50, size: this.size  })
 
                         this.currentFrame = 0;
                         this.img = this.frames[this.currentFrame];
@@ -476,7 +424,7 @@ class StarsSkyScene extends Scene {
                 return frames;
             },
             init() {
-                this.frames = this.createShootingStarsFrames({framesCount: 200, itemsCount: 5, itemFrameslength: 15, size: this.size, tailLength: 70});
+                this.frames = this.createShootingStarsFrames({framesCount: 400, itemsCount: 6, itemFrameslength: 15, size: this.size, tailLength: 70});
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
                 
@@ -526,7 +474,43 @@ class StarsSkyScene extends Scene {
             position: this.sceneCenter.add(new V2(0, 29.5)),
             size: new V2(100,109),
             init() {
-                this.img = PP.createImage(StarsSkyScene.models.guy)
+
+                this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.frames = animationHelpers.createMovementFrames({ framesCount: 200, itemFrameslength: 25, size: this.size, 
+                            pointsData: animationHelpers.extractPointData(StarsSkyScene.models.guyStatic.main.layers.find(l => l.name == 'p')) })
+                        .map(frames => {
+                            return createCanvas(this.size, (ctx, size, hlp) => {
+                                ctx.filter = `brightness(75%)`;
+                                ctx.drawImage(frames, 0,0);
+                            })
+                        });
+            
+                        this.registerFramesDefaultTimer({});
+                    }
+                }))
+
+
+                this.frames = PP.createImage(StarsSkyScene.models.guy).map(frames => {
+                    return createCanvas(this.size, (ctx, size, hlp) => {
+                        ctx.filter = `brightness(75%)`;
+                        ctx.drawImage(frames, 0,0);
+                    })
+                });
+
+                let totalFrames = 100;
+                let delay = 30;
+                let frameIndexValues = [
+                    ...easing.fast({ from: 0, to: this.frames.length-1, steps: fast.r((totalFrames-delay)/2), type: 'quad', method: 'out', round: 0 }),
+                    ...easing.fast({ from: this.frames.length-1, to: 0, steps: fast.r((totalFrames-delay)/2), type: 'quad', method: 'in', round: 0 }),
+                    ...new Array(delay).fill(0)
+                ]
+
+                this.frames = frameIndexValues.map(fi => this.frames[fi]);
+
+                this.registerFramesDefaultTimer({});
             }
         }), 15)
 

@@ -206,6 +206,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(200,150)
     }))
 
+    SCG.scenes.cacheScene(new Demo10PerlinScene({
+        name: 'perlin', 
+        viewport: new V2(200,200)
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();
