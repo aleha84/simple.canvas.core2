@@ -216,6 +216,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(200,200)
     }))
 
+    SCG.scenes.cacheScene(new Demo10FaceScene({
+        name: 'face', 
+        viewport: new V2(200,145)
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();

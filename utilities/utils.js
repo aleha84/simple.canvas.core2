@@ -589,6 +589,10 @@ function createCanvasHelper({ctx}){
         _x = x.x;
         _y = x.y;
       }
+      else if(typeof(x) == 'object' && x.x != undefined && x.y != undefined){
+        _x = x.x;
+        _y = x.y;
+      }
 
       this.rect(_x,_y,1,1);return this;
     },
