@@ -6,6 +6,19 @@ class Demo10TrainScene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 9.6,
+                totalFramesToRecord: 601,
+                frameRate: 30,
+                fileNamePrefix: 'waiting_for_departure_2',
+                cut: {
+                    size: new V2(1920, 1080),
+                    shift: new V2(0, 360)
+                }
+            },
         }, options)
         super(options);
     }
@@ -192,19 +205,20 @@ class Demo10TrainScene extends Scene {
                     this.img = this.frames[this.currentFrame];
                     this.currentFrame++;
                     if(this.currentFrame == this.frames.length){
-                        if(!this.redFrame){
-                            this.redFrame = this.addChild(new GO({
-                                position: new V2(),
-                                size: this.size,
-                                img: createCanvas(this.size, (ctx, size, hlp) => {
-                                    hlp.setFillColor('red').rect(0,0, 50,50)
-                                })
-                            }));
-                        }
-                        else {
-                            this.removeChild(this.redFrame);
-                            this.redFrame = undefined;
-                        }
+                        this.parentScene.capturing.stop = true;
+                        // if(!this.redFrame){
+                        //     this.redFrame = this.addChild(new GO({
+                        //         position: new V2(),
+                        //         size: this.size,
+                        //         img: createCanvas(this.size, (ctx, size, hlp) => {
+                        //             hlp.setFillColor('red').rect(0,0, 50,50)
+                        //         })
+                        //     }));
+                        // }
+                        // else {
+                        //     this.removeChild(this.redFrame);
+                        //     this.redFrame = undefined;
+                        // }
 
                         this.currentFrame = 0;
                     }

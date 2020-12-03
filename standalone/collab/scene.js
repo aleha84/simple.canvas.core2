@@ -1,0 +1,463 @@
+class Tu2Scene extends Scene {
+    constructor(options = {}) {
+        options = assignDeep({}, {
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 8,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'tu2',
+                cut: {
+                    size: new V2(1200, 400),
+                    shift: new V2(0, 800)
+                }
+            },
+            debug: {
+                enabled: false,
+                showFrameTimeLeft: true,
+                additional: [],
+            },
+        }, options)
+        super(options);
+    }
+
+    backgroundRender() {
+        this.backgroundRenderDefault();
+    }
+
+    start(){
+        let model = Tu2Scene.models.main;
+        // for(let i = 0; i < model.main.layers.length; i++){
+        //     let layerName = model.main.layers[i].name;
+
+        //     this.addGo(new GO({
+        //         position: this.sceneCenter,
+        //         size: this.viewport,
+        //         init() {
+        //             this.img = PP.createImage(model, { renderOnly: [layerName] })
+        //         }
+        //     }), i*10)
+        // }
+
+        this.bg = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                this.img = PP.createImage(model, { renderOnly: ['bg'] })
+            }
+        }), 0)
+
+        this.second_plane = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.img = PP.createImage(model, { renderOnly: ['second_plane'] })
+
+                let totalFrames = 300;
+                let origignalX = this.position.x;
+
+                let _xValues = easing.fast({ from: 0, to: 4, steps: totalFrames/2, type: 'quad', method: 'inOut'}).map(v => fast.r(v));
+                let xValues = [..._xValues, ..._xValues.reverse()];
+                //let delay = 0;
+                this.currentFrame = 0;
+                this.timer = this.regTimerDefault(10, () => {
+                    // delay--;
+                    // if(delay > 0)
+                    //     return;
+
+                    //delay = 10;
+                    this.currentFrame++;
+                    if(this.currentFrame == totalFrames){
+                        this.currentFrame = 0;
+                    }
+                    this.position.x = origignalX+xValues[this.currentFrame];
+                    this.needRecalcRenderProperties = true;
+                })
+            }
+        }), 10)
+
+        this.main_plane = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.createSmokeFrames = function({framesCount, itemsCount, itemFrameslength, size, from, colors}) {
+                    let frames = [];
+                    //let from = new V2(100, 83);
+                    let toYClamp = [77, 88];
+                    let sharedPP = undefined;
+                    //let colors = ['#425D8E', '#5B729D', '#546B98']
+                    createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                        sharedPP = new PP({ctx});
+                    })
+
+                    let linesPoits = new Array(toYClamp[1]-toYClamp[0]).fill().map((el, i) => {
+                        let points = sharedPP.lineV2(from, new V2(size.x, toYClamp[0] + i));
+                        let indexValues = easing.fast({from: 0, to: points.length-1, steps: itemFrameslength, type: 'linear', method: 'base'}).map(v => fast.r(v));
+
+                        return {
+                            points,
+                            indexValues
+                        };
+                    })
+    
+                    let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                        let startFrameIndex = getRandomInt(0, framesCount-1);
+                        let totalFrames = itemFrameslength;
+                        let xShift = getRandomInt(0,4);
+                        let color = colors[getRandomInt(0, colors.length-1)];
+
+                        let linePoints = linesPoits[fast.r(getRandomGaussian(0, (toYClamp[1]-toYClamp[0])-1))];//linesPoits[getRandomInt(0, (toYClamp[1]-toYClamp[0])-1)];
+                        if(!linePoints)
+                            debugger;
+
+                        let frames = [];
+                        for(let f = 0; f < totalFrames; f++){
+                            let frameIndex = f + startFrameIndex;
+                            if(frameIndex > (framesCount-1)){
+                                frameIndex-=framesCount;
+                            }
+                    
+                            frames[frameIndex] = {
+                                index: f
+                            };
+                        }
+                    
+                        return {
+                            linePoints,
+                            xShift,
+                            color,
+                            frames
+                        }
+                    })
+                    
+                    for(let f = 0; f < framesCount; f++){
+                        frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                            for(let p = 0; p < itemsData.length; p++){
+                                let itemData = itemsData[p];
+                                
+                                if(itemData.frames[f]){
+                                    let p = itemData.linePoints.points[itemData.linePoints.indexValues[itemData.frames[f].index]];
+                                    hlp.setFillColor(itemData.color).dot(p.x + itemData.xShift, p.y)
+                                }
+                                
+                            }
+                        });
+                    }
+                    
+                    return frames;
+                }
+
+                this.smokeBack = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    frames: this.createSmokeFrames({ colors: ['#425D8E', '#5B729D', '#546B98'], from: new V2(100, 83), framesCount: 200, itemsCount: 600, itemFrameslength: 37, size: this.size }),
+                    init() {
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                        
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                            this.img = this.frames[this.currentFrame];
+                        })
+                    }
+                })) 
+
+                this.main = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(model, { renderOnly: ['main_plane'] })
+                }));
+
+                this.main_tilt = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    img: PP.createImage(model, { renderOnly: ['main_plane_tilt1'] }),
+                    isVisible: false,
+                }));
+
+                this.propeller = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Tu2Scene.models.propellerFrames),
+                    init() {
+                        let delay = 3;
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            delay--;
+                            if(delay> 0)
+                                return;
+                            
+                            delay = 3;
+
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+
+                            this.img = this.frames[this.currentFrame];
+                        })
+                    }
+                }));
+
+                this.smokeFrontal = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size.clone(),
+                    frames: this.createSmokeFrames({ colors: ['rgba(99,121,162,0.25)', 'rgba(99,121,162,0.5)'],
+                        from: new V2(40, 82), framesCount: 200, itemsCount: 1000, itemFrameslength: 75, size: this.size }),
+                    init() {
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[this.currentFrame];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                        
+                            this.currentFrame++;
+                            if(this.currentFrame == this.frames.length){
+                                this.currentFrame = 0;
+                            }
+                            this.img = this.frames[this.currentFrame];
+                        })
+                    }
+                })) 
+
+                let totalFrames = 300;
+                let origignalY = this.position.y;
+
+                let _yValues = easing.fast({ from: 0, to: 5, steps: totalFrames/2, type: 'quad', method: 'inOut'}).map(v => fast.r(v));
+                let yValues = [..._yValues, ..._yValues.reverse()];
+                //let delay = 0;
+                this.currentFrame = 0;
+                let propellerYOriginal = this.propeller.position.y;
+                    let propellerYAlter = this.propeller.position.y+1;
+                this.timer = this.regTimerDefault(10, () => {
+                    // delay--;
+                    // if(delay > 0)
+                    //     return;
+
+                    //delay = 10;
+                    
+
+                    this.currentFrame++;
+                    if(this.currentFrame == totalFrames){
+                        this.currentFrame = 0;
+                    }
+                    this.position.y = origignalY+yValues[this.currentFrame];
+                    this.needRecalcRenderProperties = true;
+
+                    if(this.currentFrame < totalFrames/4 || this.currentFrame > totalFrames*3/4){
+                        this.main.isVisible = true;
+                        this.main_tilt.isVisible = false
+                        this.propeller.position.y = propellerYOriginal;
+                    }
+                    else {
+                        this.main.isVisible = false;
+                        this.main_tilt.isVisible = true;
+                        this.propeller.position.y = propellerYAlter;
+                    }
+                })
+            }
+        }), 20)
+
+        this.createParticlesFrames = function({framesCount, itemsCount, itemFrameslength, size, tailLength, color, opacity, yClamps}) {
+            let frames = [];
+            let oValues = easing.fast({from: 0, to: opacity, steps: tailLength, type: 'quad', method: 'out'} ).map(v => fast.r(v,2));
+            let xValues = easing.fast({from: -tailLength, to: size.x, steps: itemFrameslength, type: 'linear', method: 'base'} ).map(v => fast.r(v));
+
+            let particleImage = createCanvas(new V2(tailLength,1), (ctx, size, hlp) => {
+                for(let x = 0; x < size.x; x++){
+                    hlp.setFillColor(`rgba(255,255,255, ${oValues[x]})`).dot(x, 0);
+                }
+            })
+
+            let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                let startFrameIndex = getRandomInt(0, framesCount-1);
+                let totalFrames = itemFrameslength;
+            
+                let frames = [];
+                for(let f = 0; f < totalFrames; f++){
+                    let frameIndex = f + startFrameIndex;
+                    if(frameIndex > (framesCount-1)){
+                        frameIndex-=framesCount;
+                    }
+            
+                    frames[frameIndex] = {
+                        x: xValues[f],
+                    };
+                }
+            
+                return {
+                    y: getRandomInt(yClamps[0], yClamps[1]),
+                    frames
+                }
+            })
+            
+            for(let f = 0; f < framesCount; f++){
+                frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                    for(let p = 0; p < itemsData.length; p++){
+                        let itemData = itemsData[p];
+                        
+                        if(itemData.frames[f]){
+                            ctx.drawImage(particleImage, itemData.frames[f].x, itemData.y);
+                        }
+                    }
+                });
+            }
+            
+            return frames;
+        }
+
+        this.frontalParticles = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                this.frames = this.parentScene.createParticlesFrames({ framesCount: 300, itemsCount: 25, itemFrameslength: 13, size: this.size, 
+                    tailLength: 30, color: undefined, opacity: 0.5, yClamps: [0, this.size.y-25] });
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                    this.img = this.frames[this.currentFrame];
+                })
+            }
+        }), 25)
+
+        this.farParticles = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                this.frames = this.parentScene.createParticlesFrames({ framesCount: 300, itemsCount: 50, itemFrameslength: 37, size: this.size, 
+                    tailLength: 10, color: undefined, opacity: 0.1, yClamps: [0, this.size.y-25] });
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                    this.img = this.frames[this.currentFrame];
+                })
+            }
+        }), 5)
+
+        this.midParticles = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            init() {
+                this.frames = this.parentScene.createParticlesFrames({ framesCount: 300, itemsCount: 40, itemFrameslength: 26, size: this.size, 
+                    tailLength: 20, color: undefined, opacity: 0.25, yClamps: [0, this.size.y-50] });
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                    }
+                    this.img = this.frames[this.currentFrame];
+                })
+            }
+        }), 15)
+
+        this.clouds = this.addGo(new GO({
+            position: this.sceneCenter,
+            size: this.viewport,
+            createCloudFrames({framesCount, layersData, cloudImage, size, br}) {
+                let frames = [];
+                 
+                let doubleImage = createCanvas(new V2(size.x*2, size.y), (ctx, size, hlp) => {
+                    ctx.filter = `brightness(${br || 100}%)`;
+                    ctx.drawImage(cloudImage, 0, 0);
+                    ctx.drawImage(cloudImage, size.x/2, 0);
+                })
+
+                let xValues = easing.fast({ from: -size.x, to: 0, steps: framesCount, type: 'linear', method: 'base'}).map(v => fast.r(v));
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        ctx.drawImage(doubleImage, xValues[f], 0)
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                let cloudImage = PP.createImage(model, { renderOnly: ['clouds'] })
+
+                let size = this.size;
+
+                let layersData = [
+                    { framesCount: 600, size, cloudImage, yShift: -5, br: 70,},
+                    { framesCount: 300, size, cloudImage, yShift: 0, br: 85,},
+                    { framesCount: 150, size, cloudImage, yShift: 10}
+                ];
+                this.layers = layersData.map(layer => {
+                    this.addChild(new GO({
+                        position: new V2(0, layer.yShift),
+                        size,
+                        frames: this.createCloudFrames(layer),
+                        init() {
+                            this.currentFrame = 0;
+                            this.img = this.frames[this.currentFrame];
+                            let repeat = 1;
+                            this.timer = this.regTimerDefault(10, () => {
+                            
+                                this.currentFrame++;
+                                if(this.currentFrame == this.frames.length){
+                                    this.currentFrame = 0;
+                                    if(this.frames.length == 600 ){
+                                        repeat--;
+                                        if(repeat == 0)
+                                            this.parent.parentScene.capturing.stop = true;
+                                    }
+                                }
+            
+                                this.img = this.frames[this.currentFrame];
+                            })
+                        }
+                    }))
+                })
+
+
+                // this.frames = this.createCloudFrames({ framesCount: 600, 
+                //     // layersData: [
+                //     // { framesCount: 600, }
+                //     // { framesCount: 300, }
+                //     // { framesCount: 150, }
+                // ], cloudImage, size: this.size });
+
+                
+            }
+        }), 30)
+
+        this.second_plane = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            img: PP.createImage(model, { renderOnly: ['sign'] }),
+            init() {
+            }
+        }), 50)
+
+         
+        //5D769F
+    }
+}

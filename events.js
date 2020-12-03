@@ -4,22 +4,21 @@ SCG.events = {
 			SCG.viewport.graphInit();
         });
         
-        addListenerMulti(SCG.canvases.ui, 'mouseup touchend', function(e){
+        addListenerMulti(SCG.canvases.ui, 'pointerup', function(e){
 			absorbTouchEvent(e);
 			SCG.controls.mouse.up(e);
         });
-        
-        addListenerMulti(SCG.canvases.ui, 'mousedown touchstart', function(e){
+        addListenerMulti(SCG.canvases.ui, 'pointerdown', function(e){
 			absorbTouchEvent(e);
 			SCG.controls.mouse.down(e);
         });
         
-        addListenerMulti(SCG.canvases.ui, 'mousemove touchmove', function(e){
+        addListenerMulti(SCG.canvases.ui, 'pointermove', function(e){
 			absorbTouchEvent(e);
 			SCG.controls.mouse.move(e);
         });
         
-        addListenerMulti(SCG.canvases.ui, 'mouseout touchend touchcancel', function(e){
+        addListenerMulti(SCG.canvases.ui, 'pointerout pointercancel', function(e){
 			absorbTouchEvent(e);
 			SCG.controls.mouse.out(e);
         });

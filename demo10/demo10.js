@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", function() {
     let _200_250_viewport = new V2(200,250);
     let small200_300_Viewport = new V2(200, 300);
     let small300_200_Viewport = new V2(300, 200);
+    let square150_viewport = new V2(150,150);
+    let _100x150_viewport = new V2(100,150);
+    let _150x100_viewport = new V2(150,100);
     
     
 
@@ -80,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo10PDailyScene({
         name:'pdaily',
-        viewport: new V2(200,200)
+        viewport: new V2(100,150)
     }));
 
     SCG.scenes.cacheScene(new Demo10GodScene({
@@ -107,6 +110,116 @@ document.addEventListener("DOMContentLoaded", function() {
         name:'train',
         viewport: new V2(200,150)
     }));
+
+    SCG.scenes.cacheScene(new Demo10Loading2Scene({
+        name:'loading2',
+        viewport: new V2(100,40)
+    }));
+
+    SCG.scenes.cacheScene(new Demo10SailorsScene({
+        name:'sailors',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.scenes.cacheScene(new Demo10DriveScene({
+        name: 'drive',
+        viewport: square150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10RecordingScene({
+        name: 'rec',
+        viewport: square150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10TieScene({
+        name: 'tie',
+        viewport: square150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10DarknessRiverScene({
+        name: 'darkness',
+        viewport: _100x150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10IntouristScene({
+        name: 'int',
+        viewport: new V2(100,120)
+    }))
+
+    SCG.scenes.cacheScene(new Demo10VaultScene({
+        name: 'vault',
+        viewport: square150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10WinterNightScene({
+        name: 'winternight',
+        viewport: _150x100_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10FriendScene({
+        name: 'friend',
+        viewport: _100x150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10AngelScene({
+        name: 'angel', 
+        viewport: smallSquareDefaultViewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10PortalScene({
+        name: 'portal', 
+        viewport: square150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10GhostTrain({
+        name: 'ghost', 
+        viewport: new V2(200,150)
+    }))
+
+    SCG.scenes.cacheScene(new Demo10AnfisaScene({
+        name: 'anfisa', 
+        viewport: _100x150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10DarkMood({
+        name: 'dark', 
+        viewport: _100x150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10Portal2Scene({
+        name: 'portal2', 
+        viewport: square150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10Exp2Scene({
+        name: 'exp2', 
+        viewport: square150_viewport
+    }))
+
+    SCG.scenes.cacheScene(new Demo10GoodScene({
+        name: 'good', 
+        viewport: new V2(200,150)
+    }))
+
+    SCG.scenes.cacheScene(new Demo10WindowScene({
+        name: 'window', 
+        viewport: new V2(200,150)
+    }))
+
+    SCG.scenes.cacheScene(new Demo10PerlinScene({
+        name: 'perlin', 
+        viewport: new V2(200,200)
+    }))
+
+    SCG.scenes.cacheScene(new Demo10Loading3Scene({
+        name: 'loading3', 
+        viewport: new V2(200,200)
+    }))
+
+    SCG.scenes.cacheScene(new Demo10FaceScene({
+        name: 'face', 
+        viewport: new V2(200,145)
+    }))
 
     sceneSelectByHashValue();
     

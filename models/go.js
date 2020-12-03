@@ -832,6 +832,46 @@ class GO {
         return this.regTimerDefault(delay, callback);
     }
 
+    registerFramesDefaultTimer({ startFrameIndex = 0, originFrameChangeDelay = 0, initialAnimationDelay = 0, animationRepeatDelayOrigin = 0, 
+        timerDelay = 10, debug = false, framesEndCallback = () => {}, framesChangeCallback = () => {} 
+   
+    }) {
+        this.currentFrame = startFrameIndex;
+        this.img = this.frames[this.currentFrame];
+        
+        let frameChangeDelay = originFrameChangeDelay;
+        let animationRepeatDelay = initialAnimationDelay;
+        let fCounter = 0;
+        this.timer = this.regTimerDefault(timerDelay, () => {
+            fCounter++;
+            animationRepeatDelay--;
+            if(animationRepeatDelay > 0)
+                return;
+        
+            frameChangeDelay--;
+            if(frameChangeDelay > 0)
+                return;
+        
+            frameChangeDelay = originFrameChangeDelay;
+        
+            //this.img = this.frames[this.currentFrame];
+            this.currentFrame++;
+            framesChangeCallback();
+            if(this.currentFrame == this.frames.length){
+                if(debug){
+                    console.log(fCounter)
+                }
+                fCounter = 0;
+                this.currentFrame = 0;
+                animationRepeatDelay = animationRepeatDelayOrigin;
+
+                framesEndCallback();
+            }
+
+            this.img = this.frames[this.currentFrame];
+        })
+    }
+
     unregTimer(timer) {
         let p = this.timers.indexOf(timer);
         if(p != -1)

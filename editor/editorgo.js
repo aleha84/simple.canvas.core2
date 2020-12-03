@@ -7,6 +7,24 @@ class EditorGO extends GO {
             preventDiving: true,
             showDots: true,
             dots: [],
+            longPress: {
+                delay: 1500,
+                timer: undefined,
+                infoTimer: undefined,
+                index: undefined,
+                clear() {
+                    if(this.timer != undefined){
+                        clearTimeout(this.timer);
+                        this.timer = undefined;
+                        clearTimeout(this.infoTimer);
+                        this.infoTimer = undefined;
+                        this.index = undefined;
+
+                        document.body.classList.remove("longPressInfo");
+                    }
+                    
+                }
+            },
             drag: {
                 disable() {
                     this.started = false;
@@ -34,6 +52,12 @@ class EditorGO extends GO {
             },
             handlers: {
                 move:function (relativePosition) {
+                    // if(this.model.editor.mode == 'removement'){
+                    //     console.log('return from move')
+                    //     return;
+                    // }
+                        
+
                     relativePosition = relativePosition.add(SCG.viewport.shift);
                     this.moveEventTriggered = true;
                     this.model.editor.index = new V2(
@@ -42,6 +66,10 @@ class EditorGO extends GO {
 
                     let d = this.drag;
                     let index = this.model.editor.index;
+
+                    if(this.longPress.timer && this.longPress.index && !this.longPress.index.equal(index)){
+                        this.longPress.clear();
+                    }
 
                     if(this.model.editor.mode == 'edit'){  
                         if(d.downOn){
@@ -55,15 +83,21 @@ class EditorGO extends GO {
                             }
                         }
                     }
+                    else if(this.model.editor.mode == 'removement'){
+                        if(d.downOn){
+                            SCG.viewport.scrollOptions.enabled = false;
+                        }
+                    }
                     else if(this.model.editor.mode == 'moveselection'){
                         if(d.downOn){
                             d.started = true;
                             SCG.viewport.scrollOptions.enabled = false;
                             if(!d.downOn.index.equal(index)){
 
-                                let direction = d.downOn.index.direction(index).toInt();
+                                let direction = d.downOn.index.direction(index)//.toInt();
+                                let distance = d.downOn.index.distance(index);
                                 this.dots.filter(d => d.selected).forEach(p => {
-                                    p.index.add(direction, true);
+                                    p.index.add(direction.mul(distance).toInt(), true);
                                     p.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.index.y)
                                     p.needRecalcRenderProperties = true;
                                 })
@@ -113,8 +147,10 @@ class EditorGO extends GO {
                         if(d.downOn){
                             SCG.viewport.scrollOptions.enabled = false;
                             if(!d.downOn.index.equal(index)){
-                                let direction = d.downOn.index.direction(index).toInt();
-                                this.model.editor.selectedLayer.move(direction);
+                                let direction = d.downOn.index.direction(index)//.toInt();
+                                let distance = d.downOn.index.distance(index);
+
+                                this.model.editor.selectedLayer.move(direction.mul(distance).toInt());
                                 d.downOn.index = index;
                                 d.downOn.indexChanged = true;
                             }
@@ -126,9 +162,12 @@ class EditorGO extends GO {
                             if(!d.downOn.index.equal(index)){
                                 d.started = true;
                                 //console.log('need update points', )
-                                let direction = d.downOn.index.direction(index).toInt();
+                                let direction = d.downOn.index.direction(index)//.toInt();
+                                let distance = d.downOn.index.distance(index);
+
+                                let delta = direction.mul(distance).toInt();
                                 this.dots.forEach(p => {
-                                    p.index.add(direction, true);
+                                    p.index.add(delta, true);
                                     p.position = new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.index.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.index.y)
                                     p.needRecalcRenderProperties = true;
                                 })
@@ -184,6 +223,26 @@ class EditorGO extends GO {
                 },
                 down: function(relativePosition) {
                     relativePosition = relativePosition.add(SCG.viewport.shift);
+
+                    this.longPress.infoTimer = setTimeout(() => {
+                        document.body.classList.add("longPressInfo");
+                    }, fast.r(this.longPress.delay/2))
+
+                    this.longPress.timer = setTimeout(() => {
+                        
+                        let position = pointerEventToXY(SCG.controls.mouse.state.lastTriggeredOriginalEvent);
+                        let size = this.parentScene.editor.editor.panels.uiControls.methods.getSize();
+
+                        this.parentScene.editor.editor.panels.uiControls.methods.setPosition(new V2(position).substract(size.add(new V2(2,2))))
+                        this.longPress.clear();
+                    }, this.longPress.delay)
+
+                    this.longPress.index = this.getIndexByRelativePosition(relativePosition).index;
+
+                    if(this.model.editor.mode == 'removement'){
+                        SCG.viewport.scrollOptions.enabled = false;
+                        this.drag.started = true;
+                    }
                     if(this.model.editor.mode == 'add'){
                         if(!this.model.editor.selectedLayer || !this.model.editor.selectedLayer.selectedGroup){
                             alert('No selected group in layer');
@@ -222,6 +281,12 @@ class EditorGO extends GO {
                 },
                 up: function(){
                     let d = this.drag;
+
+                    this.longPress.clear();
+
+                    if(this.model.editor.mode == 'removement'){
+                        d.disable();
+                    }
                     if(this.model.editor.mode == 'edit'){
                         if(d.started && d.downOn.indexChanged){
                             d.downOn.pointModel.changeCallback(d.downOn.index);
@@ -276,6 +341,12 @@ class EditorGO extends GO {
                         d.disable();
                     }
                     else if(this.model.editor.mode == 'colorpick'){
+                        if(!this.img){
+                            d.disable();
+                            console.log('image isnt visible');
+                            return;
+                        }
+
                         let colorData = this.img.getContext('2d').getImageData(this.model.editor.index.x, this.model.editor.index.y,1,1);
                         this.parentScene.editor.editor.panels.colorPicker.setValue('#' + rgbToHex(Array.from(colorData.data)))
                         //console.log(colorData);
@@ -300,6 +371,8 @@ class EditorGO extends GO {
                     this.moveEventTriggered = false; 
                     this.highlightChild();
                     let d = this.drag;
+
+                    this.longPress.clear();
 
                     if(this.model.editor.mode == 'edit'){
                         
@@ -511,7 +584,11 @@ class Dot extends GO {
         options = assignDeep({}, {
             handlers: {
                 down: function(){
-                    if(this.parent.model.editor.mode == 'edit'){
+                    if(this.parent.model.editor.mode == 'removement'){
+                        this.parent.drag.downOn = this;
+                        return true;
+                    }
+                    else if(this.parent.model.editor.mode == 'edit'){
                         this.parent.drag.downOn = this;
                         this.parent.drag.downOn.pointModel.selectCallback();
                         this.setSelected(true);
@@ -519,6 +596,23 @@ class Dot extends GO {
                     else if(this.parent.model.editor.mode == 'moveselection'){
                         this.parent.drag.downOn = this;
                     }
+                },
+                move: function() {
+                    if(this.parent.model.editor.mode == 'removement' && this.parent.drag.started){
+                        this.parent.drag.downOn = this;
+                        this.parent.drag.downOn.pointModel.selectCallback();
+                        this.parent.parentScene.editor.editor.removeSelectedPoint();
+                    }
+                    return true;
+                },
+                up: function() {
+                    if(this.parent.model.editor.mode == 'removement'){
+                        this.parent.drag.downOn = this;
+                        this.parent.drag.downOn.pointModel.selectCallback();
+                        this.parent.parentScene.editor.editor.removeSelectedPoint();
+                    }
+
+                    return true;
                 }
             }
         }, options);

@@ -5,6 +5,7 @@ class Scene {
         
         this.viewport = undefined;
         this.showLoadingOverlay = false;
+        this.capturing = undefined;
 
         assignDeep(this,{
             viewport: new V2(500, 300),
@@ -14,6 +15,10 @@ class Scene {
             ui: [],
             clearGOOnDispose: true,
             timers: [],
+            // capturing: {
+            //     enabled: false,
+            //     renderCallback: undefined
+            // },
             debug: {
                 enabled: false,
                 font: (25*SCG.viewport.scale) + 'px Arial',
@@ -226,7 +231,11 @@ class Scene {
                 type: SCG.viewport.scrollTypes.drag,
                 restrictBySpace: true
             }
-        }, props);   
+        }, props); 
+        
+        if(this.fitToScreen && this.viewport.x != this.viewport.y){
+            throw 'fitToScreen set to true => viewport property should be square!';
+        }
         
         if(!props.space)
             this.space = this.viewport;
@@ -322,6 +331,21 @@ class Scene {
         return go;
     }
 
+    beforeProcess() {}
+
+    beforeProcessInner() {
+
+        if(this.capturing){
+            let c = this.capturing;
+            if(!c.canvas){
+                c.canvas = SCG.canvases.main;
+                // c.enabled = true;
+            }
+        }
+
+        this.beforeProcess();
+    }
+
     innerStart(sceneProperties) {
         SCG.viewport.graphInit();
         SCG.UI.invalidate();
@@ -340,6 +364,50 @@ class Scene {
         // init collision detection matrix
         if(this.collisionDetection && this.collisionDetection.enabled){
             this.collisionDetection.init(this.space);
+        }
+
+        if(this.capturing && this.capturing.enabled){
+            let c = this.capturing;
+
+            //c.enabled = false;
+
+            if(c.videoWriter){
+                throw 'No scene switch is allowed while recording! Yet.'
+            }
+
+            if(!c.canvas){
+                c.canvas = SCG.canvases.main;
+            }
+
+            if(!c.size){
+                c.size = this.viewport.clone();
+            }
+
+            if(c.viewportSizeMultiplier){
+                c.size = this.viewport.mul(c.viewportSizeMultiplier).toInt();
+                console.log('recording size: ' + c.size.toString());
+            }
+
+            if(!c.stopByCode && !c.totalFramesToRecord){
+                throw 'No totalFramesToRecord provided for recording!'
+            }
+
+            if(c.stopByCode){
+                console.log('Capturing will be stopped by code')
+                c.stop = false;
+            }
+
+            if(!c.fileNamePrefix) {
+                c.fileNamePrefix = 'recording';
+            }
+
+
+            c.currentFrame = 0;
+
+            c.videoWriter = new WebMWriter({
+                quality: c.quadlity || 0.99999,
+                frameRate: c.frameRate || 60,
+            });
         }
 
         if(this.showLoadingOverlay){
@@ -512,6 +580,7 @@ SCG.scenes = {
             throw 'No scene selected';      
 
         SCG.viewport.logical = new Box(new V2, this.activeScene.viewport);
+        SCG.viewport.fitToScreen = this.activeScene.fitToScreen;
         SCG.viewport.originalLogical = new Box(new V2, this.activeScene.viewport);
         SCG.viewport.scrollOptions = this.activeScene.scrollOptions;
 
@@ -525,6 +594,10 @@ SCG.scenes = {
             throw "Can't register undefined scene";
         if(scene.name === undefined)
             throw "Can't register scene without name";
+
+        if(this.cachedScenes[scene.name]){
+            throw scene.name + ' exists. Overriden';
+        }
 
         this.cachedScenes[scene.name] = scene;
     },

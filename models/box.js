@@ -11,6 +11,10 @@ class Box {
         this.update(topleft, size);
     }
 
+    clone() {
+        return new Box(this.topLeft.clone(), this.size.clone(), this.renderProps);
+    }
+
     update(topLeft = new V2, size = new V2){
         if(!(topLeft instanceof V2) || !(size instanceof V2) || size.equal(new V2))
             throw 'wrong params for Box update';

@@ -10,6 +10,17 @@ SCG.main = {
 	cycle: {
 		process(){ //main work cycle, never stops
 			SCG.main.cycle.draw();
+
+			if(SCG.scenes.activeScene.capturing && SCG.scenes.activeScene.capturing.enabled){
+				let processResult = Recorder.process();
+
+				if(processResult){
+					if(processResult.stopCycle){
+						return;
+					}
+				}
+			}
+
 			requestAnimationFrame(SCG.main.cycle.process);
 		},
 		draw(){ // drawing on canvas based on current selected scene
@@ -90,6 +101,7 @@ SCG.main = {
 								resolve();
 							}
 						}
+						
 						SCG.images[src].src = SCG.src[src];
 					}
 				
@@ -112,6 +124,7 @@ SCG.main = {
 			if(SCG.audio)
 				SCG.audio.init();	
 	
+			SCG.scenes.activeScene.beforeProcessInner();
 			SCG.main.cycle.process();
 		}
 	},
@@ -120,6 +133,7 @@ SCG.main = {
 			throw 'Active scene corrupted!';
 	
 		SCG.globals.parentElement = SCG.globals.parentId ? document.getElementById(SCG.globals.parentId) : document.body;
+		setAttributes(SCG.globals.parentElement, { css: { 'overflow': 'hidden' } })
 		
 		let canvases = [{name:'background', z:0}, {name:'main', z: 100}, {name:'ui', z:1000}];
 	
@@ -144,6 +158,52 @@ SCG.main = {
 	
 		this.loader.loadImages(this.loader.loaderProgress).then(
 			this.loader.loadImagesSuccess,
+			function(err){
+				throw err;
+			}
+		);
+	},
+
+	startV2(sceneName) {
+		if(!sceneName)
+			throw 'No scene name provided';
+
+		SCG.globals.parentElement = SCG.globals.parentId ? document.getElementById(SCG.globals.parentId) : document.body;
+		setAttributes(SCG.globals.parentElement, { css: { 'overflow': 'hidden' } })
+		
+		let canvases = [{name:'background', z:0}, {name:'main', z: 100}, {name:'ui', z:1000}];
+	
+		for(let canvas of canvases){ //creating canvas and contexts
+			SCG.canvases[canvas.name] = appendDomElement(
+				SCG.globals.parentElement, 
+				'canvas',
+				{ 
+					width : SCG.globals.parentElement.clientWidth,
+					height: SCG.globals.parentElement.clientHeight,
+					id: canvas.name + 'Canvas',
+					css: {
+						'z-index': canvas.z,
+						'position': 'absolute'
+					}
+				}
+			);
+	
+			SCG.contexts[canvas.name] = SCG.canvases[canvas.name].getContext('2d');
+			SCG.contexts[canvas.name].imageSmoothingEnabled = false;
+		}
+
+		this.loader.loadImages(this.loader.loaderProgress).then(
+			function() {
+				SCG.scenes.selectScene(sceneName);
+				SCG.events.register();
+				SCG.controls.initialize();
+
+				if(SCG.audio)
+					SCG.audio.init();	
+		
+				SCG.scenes.activeScene.beforeProcessInner();
+				SCG.main.cycle.process();
+			},
 			function(err){
 				throw err;
 			}

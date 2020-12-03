@@ -6,6 +6,20 @@ class Demo9Exp3Scene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                //stopByCode: true,
+                viewportSizeMultiplier: 8.12,
+                totalFramesToRecord: 1000,
+                frameRate: 30,
+                // addFrameBeforeStop: true,
+                fileNamePrefix: 'flying_in_the_void',
+                cut: {
+                    size: new V2(1125,2436),
+                    shift: new V2(250, 0)
+                }
+            },
             showLoadingOverlay: true,
         }, options)
         super(options);
@@ -231,6 +245,14 @@ class Demo9Exp3Scene extends Scene {
     }
 
     start(){
+        this.bg0 = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            img: createCanvas(this.viewport, (ctx, size, hlp) => {
+                hlp.setFillColor('black').rect(0,0,size.x, size.y);
+            })
+        }), 0)
+
         this.loadingManager = this.addGo(new GO({
             position: new V2(0,0),
             size: new V2(1,1),
@@ -380,8 +402,12 @@ class Demo9Exp3Scene extends Scene {
                                 
                                 this.points = [];
                                 this.pgCount = 1;
-                
+                                let counter = 0;
                                 this.timer = this.regTimerDefault(30, () => {
+                                    counter++;
+                                    if(counter == 50){
+                                        scene.capturing.stop = true;
+                                    }
                                     //this.points.push(...this.pointGenerator());
                                     this.pointGenerator(this.bgParticles);
                                     this.updatePoints();

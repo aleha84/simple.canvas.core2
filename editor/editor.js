@@ -1,17 +1,17 @@
 // TODO. Bugs:
-// 2. Current palettes list - stored in json
+// 2. Current palettes list - stored in json; stopped working, not showing color
 // 4. gradient tool, update, add easings support
-// 5. Shift+v - hide just image not layers visibility ?
-// 7. Code refactoring. To different files and subfilders
-// 10. 'c' shortcut for scene color picker
-// 11. Move layer slow moving
 // 13. Import model - dublicate palette if already exists
 // 14. imput - paddings/old value missing
 // 16. Autosave model in localstorage
 // 17. Move\copy group to layer
-
-
-
+// 19. Remove all points from layer button
+// 21. ColorSelector create own component - RGB, HSV
+// 22. CShift - add HSV, RGB, Easings type and methods selection
+// 23. Add progress recording - each minute add frame, pause, stop, start. Result in webm video
+// 25. change selected pixel color frame. Globally, per group. Depends on color? 
+// 27. auto save in localstorage !!!!!!!
+// 28. Letter 't' isnt work in editor inputs. Weird
 
 class Editor {
     constructor(options = {}){
@@ -19,6 +19,12 @@ class Editor {
             controls: {
                 savedAs: undefined,
                 overlayEl: undefined,
+                removeOverlay: function() {
+                    if(this.overlayEl)
+                        this.overlayEl.remove();
+
+                    this.overlayEl = undefined;
+                }
             },
             editor: {
                 element: undefined,
@@ -32,7 +38,13 @@ class Editor {
                 removeSelectedPoint: undefined,
                 toggleLayerVisibility: undefined,
                 toggleGroupVisibility: undefined,
-                panels: {},
+                panels: {
+                    lastPositions: {}
+                },
+                highlight: {
+                    el: undefined,
+                    enabled: true,
+                },
                 mode: {
                     value: 'edit',
                     element: undefined,
@@ -68,6 +80,8 @@ class Editor {
                                 text = '"Selection" mode'; break;
                             case 'moveselection':
                                 text = '"Move selection" mode'; break;
+                            case 'removement':
+                                text = '"Removement" mode'; break;
                         }
                         
                         this.stateElement.innerText = text;
@@ -92,6 +106,9 @@ class Editor {
                     },
                     toggleSelection() {
                         this.setValue(this.value == 'selection' ? 'edit' : 'selection');
+                    },
+                    toggleRemovement() {
+                        this.setValue(this.value == 'removement' ? 'edit' : 'removement');
                     }
                 },
                 getModeState() {
@@ -180,6 +197,13 @@ class Editor {
         this.init();
 
         let that = this;
+
+        components.editorContext = that;
+
+        components.draggable.init(that);
+        components.createUIControls(that);
+        components.layersHelpers.createLayerHelpersPanel();
+        
         components.createDraggablePanel({title: 'utilities', panelClassNames: [ 'utilities'], parent: document.body, position: new V2(20,20), contentItems: [
             htmlUtils.createElement('input', { value: 'Mid',  attributes: { type: 'button' }, events: {
                 click: function(){
@@ -191,11 +215,14 @@ class Editor {
                         that.editor.panels.midColor = components.createDraggablePanel({
                             title: 'Mid color', 
                             parent: document.body, 
-                            position: new V2(20,60), 
+                            position: that.editor.panels.lastPositions.midColor || new V2(20,60), 
                             closable: true,
                             expandable: false,
                             contentWidth: 150,
                             onClose: () => { that.editor.panels.midColor = undefined; },
+                            onMove: (nextPosition) => {
+                                that.editor.panels.lastPositions.midColor = nextPosition;
+                             },
                             contentItems: [
                                 components.createMidColor()
                             ]
@@ -205,39 +232,7 @@ class Editor {
                 }
             } }),
             htmlUtils.createElement('input', { value: 'CPick',  attributes: { type: 'button' }, events: {
-                click: function(){
-
-                    if(that.editor.panels.colorPicker){
-                        that.editor.panels.colorPicker.remove();
-                    }
-                    else {
-                        that.editor.mode.toggleColorPicker();
-                        that.updateEditor();
-    
-                        let cp = components.createDraggablePanel({
-                            title: 'C picker', 
-                            parent: document.body, 
-                            position: new V2(40,60), 
-                            closable: true,
-                            expandable: false,
-                            contentWidth: 150,
-                            onClose: () => { 
-                                that.editor.panels.colorPicker = undefined;
-                                that.editor.mode.toggleColorPicker();
-                                that.updateEditor();
-                             },
-                            contentItems: [
-                                components.createSceneColorPicker()
-                            ]
-                        });
-
-                        that.editor.panels.colorPicker = cp;
-
-                        cp.setValue = (value) => {
-                            cp.contentItems[0].setValue(value);
-                        }
-                    }
-                }
+                click: () => components.draggable.createColorPicker()
             } }),
             htmlUtils.createElement('input', { value: 'CShift',  attributes: { type: 'button' }, events: {
                 click: function(){
@@ -249,11 +244,14 @@ class Editor {
                     that.editor.panels.cShift = components.createDraggablePanel({
                         title: 'C shift', 
                         parent: document.body, 
-                        position: new V2(80,60), 
+                        position: that.editor.panels.lastPositions.cShift || new V2(80,60), 
                         closable: true,
                         expandable: false,
                         contentWidth: 150,
                         onClose: () => { that.editor.panels.cShift = undefined; },
+                        onMove: (nextPosition) => {
+                            that.editor.panels.lastPositions.cShift = nextPosition;
+                         },
                         contentItems: [
                             components.createCShift()
                         ]
@@ -418,9 +416,27 @@ class Editor {
 
                     that.editor.panels.rotate = rotate;
                 }
-            }})
+            }}),
+            // htmlUtils.createElement('input', { value: 'ui Controls',  attributes: { type: 'button' }, events: {
+            //     click: function(){
+            //         if(that.editor.panels.uiControls){
+            //             that.editor.panels.uiControls.remove();
+            //             return;
+            //         }
+
+                    
+            //     }
+            // } })
         ]});
         //createDraggablePanel({title: 'closable', parent: document.body, position: new V2(20,60), closable: true});
+    }
+
+    toggleHighlight(value, setUICheckbox) {
+        this.mainGo.showDots = value;
+
+        if(setUICheckbox){
+            this.editor.highlight.el.chk.checked = value;
+        }
     }
 
     init() {
@@ -647,7 +663,8 @@ class Editor {
             }
             else {
                 main = i.main.map(frame => ({
-                    layers: frame.layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper)
+                    layers: frame.layers.filter(l => (ignoreVisibility ? true : l.visible)).map(layerMapper),
+                    frameName: frame.frameName
                 }))
             } 
         }
@@ -683,7 +700,7 @@ class Editor {
 
     importModel(model) {
         let that = this;
-        let importMain = (main) => 
+        let importMainLayers = (main) => 
             (main.layers.map(
                 (l,i) => assignDeep(
                     {}, 
@@ -745,8 +762,9 @@ class Editor {
         if(image.general.animated){
             image.main = image.main.map(f => {
                 let frame = { 
-                    layers: importMain(f) 
+                    layers: importMainLayers(f) 
                 };
+                frame.frameName = f.frameName;
                 frame.currentLayerId = frame.layers.length;
                 frame.element = that.image.main.element;
 
@@ -757,7 +775,7 @@ class Editor {
         }
         else {
             image.main.currentLayerId = image.main.layers.length;
-            image.main.layers = importMain(image.main);
+            image.main.layers = importMainLayers(image.main);
             if(that.image.general.animated){
                 image.main.element = that.image.main[0].element;
             }
@@ -774,13 +792,13 @@ class Editor {
         let that = this;
         let controlsEl = htmlUtils.createElement('div', { className: 'mainControlsBlock' });
         let createCloseButtonAndAddOverlay = function(containerEl){
-            that.controls.overlayEl.appendChild(containerEl);
-            that.controls.overlayEl.appendChild(htmlUtils.createElement('input',{
+            
+            containerEl.appendChild(htmlUtils.createElement('input',{
                 value: 'Close', className:'close', attributes: { type: 'button' }, events: {click: function() {
-                    that.controls.overlayEl.remove();
-                    that.controls.overlayEl = undefined;
+                    that.controls.removeOverlay();
                 }}
             }))
+            that.controls.overlayEl.appendChild(containerEl);
             that.parentElement.appendChild(that.controls.overlayEl);
         }
 
@@ -877,7 +895,7 @@ class Editor {
                 createCloseButtonAndAddOverlay(containerEl);
             }
         } }));
-
+/*
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Load', attributes: { type: 'button' }, events: {
             click: function(){
                 that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
@@ -942,60 +960,48 @@ class Editor {
                 createCloseButtonAndAddOverlay(containerEl);
             }
         }}));
+        */
 
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Save', attributes: { type: 'button' }, events: {
             click: function(){
+                that.controls.removeOverlay();
+
                 that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
                 let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'save'] });
 
-                let saveNameInput = htmlUtils.createElement('input', { value: that.controls.savedAs || '', attributes: { type: 'text' } });
+                let saveNameInput = htmlUtils.createElement('input', { value: 'image_000', attributes: { type: 'text' } });
+                let saveSizeInput = htmlUtils.createElement('input', { value: 1, attributes: { type: 'number' } });
 
                 containerEl.appendChild(saveNameInput);
+                containerEl.appendChild(saveSizeInput);
 
                 containerEl.appendChild(htmlUtils.createElement('input', { value: 'Ok', attributes: { type: 'button' }, events: {
                     click: function(){
                         let saveName = saveNameInput.value;
+                        let saveSize = parseInt(saveSizeInput.value);
                         if(!saveName)
                             return;
 
-                        let lsItem = localStorage.getItem('editorSaves');
-                        if(!lsItem){
-                            lsItem = [];
-                        }
-                        else {
-                            lsItem = JSON.parse(lsItem);
-                        }
+                        if(saveSize < 1)
+                            saveSize = 1
 
-                        that.controls.savedAs = saveNameInput.value;
+                        colors.saveImage(SCG.scenes.activeScene.mainGo.img, 
+                            { 
+                                size: SCG.scenes.activeScene.mainGo.originalSize.mul(saveSize), 
+                                name: saveName + ( saveSize > 1 ? '_scale_' + saveSize : '' ) + '.png' 
+                            }
+                        )
 
-                        let saved = lsItem.filter(l => l.name == that.controls.savedAs);
-
-                        let now = new Date();
-                        if(saved.length){
-                            saved[0].datetime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString();
-                            saved[0].content = that;
-                        }
-                        else {
-                            lsItem.push({
-                                name: saveNameInput.value,
-                                datetime: new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString(), //new Date().toISOString(),
-                                content: that
-                            });    
-                        }
-                        
-                        localStorage.setItem('editorSaves', JSON.stringify(lsItem));
-
-                        that.controls.overlayEl.remove();
-                        that.controls.overlayEl = undefined;
+                        that.controls.removeOverlay();
                     }
                 } }));
 
-                containerEl.appendChild(htmlUtils.createElement('input', { value: 'Cancel', attributes: { type: 'button' }, events: {
-                    click: function(){
-                        that.controls.overlayEl.remove();
-                        that.controls.overlayEl = undefined;
-                    }
-                } }))
+                // containerEl.appendChild(htmlUtils.createElement('input', { value: 'Cancel', attributes: { type: 'button' }, events: {
+                //     click: function(){
+                //         that.controls.overlayEl.remove();
+                //         that.controls.overlayEl = undefined;
+                //     }
+                // } }))
 
                 createCloseButtonAndAddOverlay(containerEl);
             }
@@ -1084,6 +1090,13 @@ class Editor {
         editorlEl.appendChild(modeSwitch);
         editorlEl.appendChild(moveGroup)
         
+        that.editor.highlight.el = components.createCheckBox(that.editor.highlight.enabled, 'highlight', (value) => {
+            that.editor.highlight.enabled = value;
+            that.toggleHighlight(value);
+        })
+
+        editorlEl.appendChild(that.editor.highlight.el)
+
         editor.element = editorlEl;
         
         editor.mode.element = modeSwitchButton;
@@ -1165,7 +1178,118 @@ class Editor {
 
         let mainEl = htmlUtils.createElement('div', { className: 'main' });
 
+
+        let buttons =  [
+            {
+                text: 'Clone',
+                click: (select) => {
+                    let { layerId } = components.editor.editor.selected;
+
+                    if(layerId == undefined){
+                        alert('No layers selected!')
+                        return;
+                    }
+
+                    let selectedLayer = main.layers.find(l => l.id == layerId);
+                    if(!selectedLayer){
+                        alert(`Layer ${layerId} not found!`)
+                        return;
+                    }
+
+                    let nextLayerId = `m_${main.currentLayerId++}`;
+                    while(main.layers.filter(g => g.id == nextLayerId).length > 0){
+                        nextLayerId = `m_${main.currentLayerId++}`;
+                    }
+
+                    main.layers.forEach(l => l.selected = false);
+                    
+                    let lCloned = assignDeep(
+                        {},
+                        modelUtils.createDefaultLayer(nextLayerId, main.layers.length),
+                        modelUtils.layerMapper(selectedLayer)
+                    )
+
+                    lCloned.id = nextLayerId;
+                    lCloned.visible = true;
+                    lCloned.order = main.layers.length;
+                    lCloned.name = (selectedLayer.name || selectedLayer.id) + '_cloned';
+                    lCloned.selected = true;
+                    lCloned.removeImage();
+
+                    lCloned.groups = selectedLayer.groups.map(g => assignDeep(
+                        {},
+                        modelUtils.createDefaultGroup(g.id, g.order), 
+                        modelUtils.groupMapper(g, true)));
+
+                    
+                    main.layers.push(lCloned);
+                    select.options[select.options.length] = new Option(lCloned.name, lCloned.id);
+                    select.value = lCloned.id;
+                    
+                    that.editor.selected.layerId = lCloned.id;
+                    that.editor.selected.groupId = undefined;
+                    that.editor.selected.pointId = undefined;
+
+                    select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+                }
+            }
+        ]
+
         if(general.animated){
+
+            buttons.push({
+                text: 'Clone to all frames',
+                click: (select) => {
+                    let frames = components.editor.image.main;
+                    let currentFrameIndex = general.currentFrameIndex;
+                    let { layerId } = components.editor.editor.selected;
+
+                    if(!layerId){
+                        notifications.error('No layer selected!', 2000);
+                        return;
+                    }
+
+                    if(!confirm('Clone (override) selected layer to other frames?'))
+                        return;
+
+                    let selectedLayer = main.layers.find(l => l.id == layerId);
+                    if(!selectedLayer){
+                        notifications.error(`Layer ${layerId} not found!`, 2000);
+                        return;
+                    }
+
+                    for(let f = 0; f < frames.length; f++){
+                        if(f == currentFrameIndex)
+                            continue;
+                        
+
+                        let lCloned = assignDeep(
+                            {},
+                            modelUtils.createDefaultLayer(selectedLayer.id, frames[f].layers.length),
+                            modelUtils.layerMapper(selectedLayer)
+                        )
+                        lCloned.groups = selectedLayer.groups.map(g => assignDeep(
+                            {},
+                            modelUtils.createDefaultGroup(g.id, g.order), 
+                            modelUtils.groupMapper(g, true)));
+
+
+                        //let layer = frames[f].layers.filter(l => l.id == layerId);
+                        let layerIndex = frames[f].layers.findIndex(l => l.id == layerId);
+                        if(layerIndex == -1){
+                            frames[f].layers.push(lCloned);
+                        }
+                        else {
+                            frames[f].layers[layerIndex] = {
+                                ...lCloned
+                            };
+                        }
+                    }
+
+                    notifications.done("Cloned", 2000);
+                }
+            })
+
             let commonCallback = () => {
                 that.editor.setModeState(false, 'edit');
                 that.createMain({setFocusToFrames:true});
@@ -1175,7 +1299,7 @@ class Editor {
             mainEl.appendChild(components.createList({
                 title: 'Frames',
                 className: 'frames',
-                items: this.image.main.map((f, i) => ({ title: 'Frame_' + i, value: i, selected: i == general.currentFrameIndex })),
+                items: this.image.main.map((f, i) => ({ title: 'Frm ' + i + (f.frameName ? ' - ' + f.frameName : ''), value: i, selected: i == general.currentFrameIndex })),
                 noReset: true,
                 buttons: [
                     {
@@ -1273,6 +1397,15 @@ class Editor {
 
             }))
 
+            mainEl.appendChild(components.createInput(main.frameName, 'Frame name: ', function(value) {
+                if(value){
+                    main.frameName = value
+        
+                    commonCallback();
+                }
+            }))
+
+            // fix bug 25
             mainEl.appendChild(components.framesPreview.create(that));
         }
 
@@ -1284,61 +1417,7 @@ class Editor {
             className: 'layers',
             items: main.layers.map(l => {return { title: l.name || l.id, value: l.id, selected: l.id == that.editor.selected.layerId }}),
             maxSize: 5,
-            buttons: [
-                {
-                    text: 'Clone',
-                    click: (select) => {
-                        let { layerId } = components.editor.editor.selected;
-
-                        if(layerId == undefined){
-                            alert('No layers selected!')
-                            return;
-                        }
-
-                        let selectedLayer = main.layers.find(l => l.id == layerId);
-                        if(!selectedLayer){
-                            alert(`Layer ${layerId} not found!`)
-                            return;
-                        }
-
-                        let nextLayerId = `m_${main.currentLayerId++}`;
-                        while(main.layers.filter(g => g.id == nextLayerId).length > 0){
-                            nextLayerId = `m_${main.currentLayerId++}`;
-                        }
-
-                        main.layers.forEach(l => l.selected = false);
-                        
-                        let lCloned = assignDeep(
-                            {},
-                            modelUtils.createDefaultLayer(nextLayerId, main.layers.length),
-                            modelUtils.layerMapper(selectedLayer)
-                        )
-
-                        lCloned.id = nextLayerId;
-                        lCloned.visible = true;
-                        lCloned.order = main.layers.length;
-                        lCloned.name = (selectedLayer.name || selectedLayer.id) + '_cloned';
-                        lCloned.selected = true;
-                        lCloned.removeImage();
-
-                        lCloned.groups = selectedLayer.groups.map(g => assignDeep(
-                            {},
-                            modelUtils.createDefaultGroup(g.id, g.order), 
-                            modelUtils.groupMapper(g, true)));
-
-                        
-                        main.layers.push(lCloned);
-                        select.options[select.options.length] = new Option(lCloned.name, lCloned.id);
-                        select.value = lCloned.id;
-                        
-                        that.editor.selected.layerId = lCloned.id;
-                        that.editor.selected.groupId = undefined;
-                        that.editor.selected.pointId = undefined;
-
-                        select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
-                    }
-                }
-            ],
+            buttons,
             callbacks: {
                 select: function(e){ 
                     main.layers.forEach(l => l.selected = false);
@@ -1366,7 +1445,10 @@ class Editor {
                     }
 
                     layer.groups.forEach(g => g.selected = false);
-                    components.createLayer(layerEl, layer, that.updateEditor.bind(that), { selectedOption });  
+                    components.createLayer(layerEl, layer, that.updateEditor.bind(that), { 
+                        selectedOption, 
+                        nameChangeValidation: (newName) => { return main.layers.filter(l => l.name == newName).length == 0 } 
+                    });  
 
                     that.editor.setMoveLayerModeState(true);
                 },

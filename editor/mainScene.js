@@ -33,10 +33,25 @@ class EditorScene extends Scene {
                     let image = this.editor.image;
 
                     if(event.keyCode == 72){ // 'h'
-                        this.mainGo.showDots = !this.mainGo.showDots;
+                        //this.mainGo.showDots = !this.mainGo.showDots;
+                        this.editor.toggleHighlight(!this.mainGo.showDots, true);
+                    }
+
+                    if(event.code == 'KeyR' && event.ctrlKey){
+                        event.preventDefault();
+                        return;
+                    }
+
+                    if(event.code == 'KeyC' && !event.ctrlKey && !event.shiftKey) {
+                        components.draggable.createColorPicker()
                     }
 
                     if(event.keyCode == 82) { // 'r'
+                        if(event.shiftKey){
+                            edt.mode.toggleRemovement();
+                            this.editor.updateEditor();
+                            return;
+                        }
                         if(edt.getModeState().mode == 'selection'){
                             let pointsIds = this.mainGo.childrenGO.filter(c => c.type == 'Dot' && c.selected).map(p => p.pointModel.id);
                             
@@ -78,30 +93,35 @@ class EditorScene extends Scene {
                     }
                     
 
-                    if(event.keyCode == 86 && !event.ctrlKey){ // 'v' - toggle layer or group visibility
+                    if(event.keyCode == 86 ){ // 'v' - toggle layer or group visibility && !event.ctrlKey
                         if(event.shiftKey){
                             //layer
                             // if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
                             //     edt.toggleLayerVisibility();
 
-                            let main = this.editor.image.main;
-                            if(isArray(main)){
-                                main = main[this.editor.image.general.currentFrameIndex];
-                            }
-                            main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
+                            // let main = this.editor.image.main;
+                            // if(isArray(main)){
+                            //     main = main[this.editor.image.general.currentFrameIndex];
+                            // }
+                            
+                            //main.layers.forEach(l => {l.visible = !l.visible; l.removeImage(); });
+                            this.mainGo.hideImage = !this.mainGo.hideImage;
 
                             event.preventDefault();
                             event.stopPropagation();
 
                             this.editor.updateEditor();
                         }
+                        else if(event.ctrlKey){
+                             //group
+                            if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
+                                edt.toggleGroupVisibility();
+                        }
                         else {
-                            layer
+                            //layer
                             if(edt.selected.layerId && isFunction(edt.toggleLayerVisibility))
                                 edt.toggleLayerVisibility();
-                            //group
-                            // if(edt.selected.groupId && isFunction(edt.toggleGroupVisibility))
-                            //     edt.toggleGroupVisibility();
+                           
                         }
                     }
 
@@ -176,10 +196,12 @@ class EditorScene extends Scene {
                     if(image.general.animated){
                         if(event.code == 'KeyN'){
                             notifications.done('Show next frames', 1000)
+                            // todo action
                         }
 
                         if(event.code == 'KeyP'){
                             notifications.done('Show prev frames', 1000)
+                            // todo action
                         }
                     }
                     
@@ -225,7 +247,8 @@ class EditorScene extends Scene {
         }));
 
         this.mainGo = this.addGo(new EditorGO({
-            position: this.sceneCenter
+            position: this.sceneCenter,
+            hideImage: false, // flag triggered by shift+v to hide img without removeing layers
         }),1, true);
 
         this.underlyingImg = this.addGo(new GO({
@@ -291,17 +314,24 @@ class EditorScene extends Scene {
             mg.model = model;
     
             let imagesCreated = 0;
-            mg.img = createCanvas(general.size, (ctx, size, hlp) => {
-                model.main.layers.forEach(l => {
-                    if(!l.layerImage){
-                        l.layerImage = PP.createImage(model, {renderOnly: [l.name || l.id]});
-                        l.layerImageCreatedCallback(l.layerImage)
-                        imagesCreated++;
-                    }
-
-                    ctx.drawImage(l.layerImage, 0,0);
+            if(!mg.hideImage){
+                mg.img = createCanvas(general.size, (ctx, size, hlp) => {
+                    model.main.layers.forEach(l => {
+                        if(!l.layerImage){
+                            l.layerImage = PP.createImage(model, {renderOnly: [l.name || l.id]});
+                            l.layerImageCreatedCallback(l.layerImage)
+                            imagesCreated++;
+                        }
+    
+                        ctx.drawImage(l.layerImage, 0,0);
+                    })
                 })
-            })
+            }
+            else {
+                mg.img = undefined;
+            }
+            
+            components.framesPreview.setCurrentFrameImage(mg.img);
 
             console.log('renderModel: imagesCreated: ' + imagesCreated);
             
@@ -424,6 +454,16 @@ addListenerMulti(document, "keydown keypress", function(e){
     if( e.which == 8 ){ // 8 == backspace
         if(!rx.test(e.target.tagName) || e.target.disabled || e.target.readOnly ){
             e.preventDefault();
+        }
+    }
+
+    if ((e.which || e.keyCode) == 116) e.preventDefault();
+
+    if (e.ctrlKey) {
+        var c = e.which || e.keyCode;
+        if (c == 82) {
+            e.preventDefault();
+            e.stopPropagation();
         }
     }
 })
