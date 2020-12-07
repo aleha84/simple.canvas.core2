@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo10Loading4Scene({
         name: 'loading4', 
-        viewport: new V2(200,200)
+        viewport: new V2(200,100)
     }))
 
     sceneSelectByHashValue();
