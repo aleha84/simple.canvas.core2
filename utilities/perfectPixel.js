@@ -73,6 +73,24 @@ class PerfectPixel {
     }
 
     line(x0, y0, x1, y1){
+
+        let errors = [];
+        if(x0 == undefined || x0 == null || Number.isNaN(x0))
+            errors.push('x0 has no value')
+
+        if(y0 == undefined || y0 == null || Number.isNaN(y0))
+            errors.push('y0 has no value')
+
+        if(x1 == undefined || x1 == null || Number.isNaN(x1))
+            errors.push('x1 has no value')
+
+        if(y1 == undefined || y1 == null || Number.isNaN(y1))
+            errors.push('y1 has no value')  
+
+        if(errors.length > 0){
+            throw errors.join('; ')
+        }
+
         x0 = fastRoundWithPrecision(x0, 0);
         y0 = fastRoundWithPrecision(y0, 0);
         x1 = fastRoundWithPrecision(x1, 0);

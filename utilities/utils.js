@@ -807,6 +807,13 @@ function flipX(p, xOrigin) {
   return new V2(reverted+xOrigin, p.y)
 }
 
+function flipY(p, yOrigin) {
+  let relativeOrigin = p.y - yOrigin;
+  let reverted = -relativeOrigin;
+
+  return new V2(p.x, reverted+yOrigin)
+}
+
 function distinct(array, keyCreator){
   var keys = new Set()
   return array.filter(p => {
