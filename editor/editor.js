@@ -962,7 +962,7 @@ class Editor {
         }}));
         */
 
-        controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Save', attributes: { type: 'button' }, events: {
+        controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Save img', attributes: { type: 'button' }, events: {
             click: function(){
                 that.controls.removeOverlay();
 

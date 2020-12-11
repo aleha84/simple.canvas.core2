@@ -1,5 +1,6 @@
 <img src="https://i.redd.it/e4xqcux8sde51.png" height="500" title="Arctic code vault">
 
+<b>Demo10 scenes isnt provided here at all.</b> i'm a little bit lazy
 # simple.canvas.core2
 SCG v2
 
