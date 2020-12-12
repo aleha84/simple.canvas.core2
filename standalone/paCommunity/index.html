@@ -1,68 +1,63 @@
 <html>
+  <head>
+    <style>
+      body {
+        font-family:Arial, Helvetica, sans-serif;
+      }
+
+      #parent {
+        margin-left: 45%;
+      }
+
+      .userDataHolder {
+        display: flex;
+        align-items: center;
+        padding-bottom: 5px;
+      }
+      .userImage {
+        border-radius: 50%;
+        width: 25px;
+      }
+
+      .userHref {
+        text-decoration: none;
+        padding: 0 5px;
+      }
+    </style>
+  </head>
     <body>
         <div id='parent'>
 
         </div>
     </body>
     <script>
-function getTwitterData(token, ids) {
-  
+        (async function(){
 
-  Promise.all(ids.map(id => fetch(`https://twitter.com/i/api/graphql/ZRnOhhXPwue_JGILb9TNug/UserByScreenName?variables=%7B%22screen_name%22%3A%22${id}%22%2C%22withHighlightedLabel%22%3Atrue%7D`, {
-    "headers": {
-      "accept": "*/*",
-      "accept-language": "ru-RU,ru;q=0.9",
-      "authorization": "Bearer " + token,
-      "content-type": "application/json",
-      "sec-fetch-dest": "empty",
-      "sec-fetch-mode": "cors",
-      "sec-fetch-site": "same-origin",
-      "x-csrf-token": "aa81883de7ea3e3376a6858b936f6859",
-      "x-guest-token": "1337519634967371780",
-      "x-twitter-active-user": "no",
-      "x-twitter-client-language": "ru"
-    },
-    "referrer": "https://twitter.com/sixveeceear",
-    "referrerPolicy": "strict-origin-when-cross-origin",
-    "body": null,
-    "method": "GET",
-    "mode": "cors",
-    "credentials": "include"
-  }))).then(responses => Promise.all(responses.map(r => r.json())))
-  .then(usersRespJson => console.log(usersRespJson.map(userResp => userResp.data.user.legacy)))
-
-}
-
-    var token = 'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA';
-    let ids = [
-    'klkka22',
-    'ElMetallico1',
-    'AURU_tt',
-    'Vertibird',
-    'Pixelredcat1',
-    'ElenaNazaire',
-    'AnnaWintery',
-    'sixveeceear',
-    'outofluck_1',
-    'curlymario',
-    'todo_asano',
-    'sirdonutcat',
-    'HornedScarecrow',
-    'forheksed'
-  ];
-
-
-        (function(){
+          let dataResponse = await fetch("data.json?q="+new Date().getTime());
+          let usersData = await dataResponse.json();
             let parentNode = document.getElementById('parent');
-            
-            let usersData = getTwitterData(token, ids);
+          
 
-            usersData.sort((a,b) => a.followers_count - b.followers_count).forEach(ud => {
+            Object.values(usersData.Users).sort((a,b) => b.CurrentFollowersCount - a.CurrentFollowersCount).forEach(ud => {
                 let el = document.createElement('div');
-                let img = document.createElement('img');
-                img.setAttribute('src', ud.profile_image_url_https);
+                el.classList.add('userDataHolder');
 
+                let img = document.createElement('img');
+                img.setAttribute('src', ud.AvatarImage);
+                img.classList.add('userImage')
                 el.appendChild(img);
+
+                let a = document.createElement('a');
+                a.setAttribute('href', 'https://twitter.com/' + ud.Login);
+                a.setAttribute('target', '_blank' + ud.Login);
+                a.classList.add('userHref')
+                a.innerText = ud.PublicName;
+                el.appendChild(a);
+
+                let fc = document.createElement('span');
+                fc.innerText = ud.CurrentFollowersCount;
+
+                el.appendChild(fc);
 
                 parentNode.appendChild(el)
             });
