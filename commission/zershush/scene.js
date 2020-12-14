@@ -127,7 +127,7 @@ class ZershushCabinScene extends Scene {
                     ctx.drawImage(frame, 0 ,0)
                 }))
 
-                this.registerFramesDefaultTimer({originFrameChangeDelay:8});
+                this.registerFramesDefaultTimer({originFrameChangeDelay:6});
             }
         }), layersData.ceiling_d.renderIndex + 1)
     }
