@@ -2,10 +2,19 @@ class ZershushCabinScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                viewportSizeMultiplier: 5,
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'cozy'
+            }
         }, options)
         super(options);
     }
@@ -17,12 +26,16 @@ class ZershushCabinScene extends Scene {
     start(){
         let model = ZershushCabinScene.models.main;
         let layersData = {};
-        let exclude = ['fireplace_light'];
+        let exclude = ['fireplace_light', 'bush', 'p1', 'forest_p'];
 
         for(let i = 0; i < model.main.layers.length; i++) {
             let layer = model.main.layers[i];
             let layerName = layer.name || layer.id;
             let renderIndex = i*10;
+
+            layersData[layerName] = {
+                renderIndex
+            }
 
             if(exclude.indexOf(layerName) != -1){
                 console.log(`${layerName} - skipped`)
@@ -37,10 +50,6 @@ class ZershushCabinScene extends Scene {
                     //
                 }
             }), renderIndex)
-
-            layersData[layerName] = {
-                renderIndex
-            }
 
             console.log(`${layerName} - ${renderIndex}`)
         }
@@ -102,9 +111,15 @@ class ZershushCabinScene extends Scene {
                 return frames;
             },
             init() {
-
-                this.frames = this.createLightFrames({ framesCount: 200, itemsCount: 10, itemFrameslengthClamps: [7, 10], size: this.size });
-                this.registerFramesDefaultTimer({});
+                let repeat = 3;
+                this.frames = this.createLightFrames({ framesCount: 200, itemsCount: 10, itemFrameslengthClamps: [10, 15], size: this.size });
+                this.registerFramesDefaultTimer({
+                    framesEndCallback: () => { 
+                        repeat--;
+                        if(repeat == 0)
+                            this.parentScene.capturing.stop = true; 
+                        }
+                });
             }
         }), layersData.fireplace.renderIndex+1)
 
@@ -114,21 +129,209 @@ class ZershushCabinScene extends Scene {
             init() {
                 this.frames = PP.createImage(ZershushCabinScene.models.fire)
 
-                this.registerFramesDefaultTimer({originFrameChangeDelay:4});
+                this.registerFramesDefaultTimer({originFrameChangeDelay:6});
             }
         }), layersData.fireplace.renderIndex+2)
 
-        this.curtains = this.addGo(new GO({
-            position: new V2(58.5,72),
-            size: new V2(145,70),
-            init() {
-                this.frames = PP.createImage(ZershushCabinScene.models.curtains).map(frame => createCanvas(this.size, (ctx, size, hlp) => {
-                    ctx.globalAlpha = 0.5
-                    ctx.drawImage(frame, 0 ,0)
-                }))
+        let curtainsSize = new V2(145,60);
+        let curtainsFrames = PP.createImage(ZershushCabinScene.models.curtains).map(frame => createCanvas(curtainsSize, (ctx, size, hlp) => {
+            ctx.globalAlpha = 0.5
+            ctx.drawImage(frame, 0 ,0)
+        }))
 
-                this.registerFramesDefaultTimer({originFrameChangeDelay:6});
+        let curtainsFrameChangeDelay  = 10
+
+        this.curtainsRight = this.addGo(new GO({
+            position: new V2(58.5 + 2,67),
+            size: new V2(curtainsSize.x-24, curtainsSize.y),
+            init() {
+                this.frames = curtainsFrames
+
+                this.registerFramesDefaultTimer({originFrameChangeDelay:curtainsFrameChangeDelay});
             }
         }), layersData.ceiling_d.renderIndex + 1)
+
+        this.curtainsLeft = this.addGo(new GO({
+            position: new V2(0.5,67),
+            size: curtainsSize,
+            init() {
+                this.frames = curtainsFrames
+                this.registerFramesDefaultTimer({originFrameChangeDelay:curtainsFrameChangeDelay, startFrameIndex: 15});
+            }
+        }), layersData.ceiling_d.renderIndex + 1)
+
+        this.rain = this.addGo(new GO({
+            position: new V2(33,62),
+            size: new V2(70,40),
+            createRainFrames({framesCount, size, itemsCount, itemFrameslength, dropLengthOrigignal, xShift, maxA, lowerY}) {
+                let frames = [];
+                let sharedPP;
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    sharedPP = new PP({ctx});
+                })
+
+                // let dropLengthClamps = [12,14];
+                // let xShiftClamp = [-10, -8];
+                // let maxA = 0.5
+
+                if(!lowerY) {
+                    lowerY = size.y
+                }
+
+                let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                    let startFrameIndex = getRandomInt(0, framesCount-1);
+                    let totalFrames = itemFrameslength//getRandomInt(itemFrameslengthClamps[0], itemFrameslengthClamps[1]);
+
+                    let x = getRandomInt(0, size.x + 20);
+                    let dropLength = dropLengthOrigignal + getRandomInt(-1,1);
+
+                    let oFirstPart = fast.r(dropLength/4);
+                    let oValues = [
+                        ...easing.fast({from: 0, to: maxA, steps: oFirstPart, type: 'quad', method: 'out', round: 2}),
+                        ...easing.fast({from: maxA, to: 0, steps: dropLength-oFirstPart, type: 'quad', method: 'out', round: 2})
+                    ]
+
+                    //let xShift = getRandomInt(xShiftClamp[0], xShiftClamp[1])
+                    let startY = getRandomInt(-2*dropLength, -dropLength);
+                    let target = new V2(x+xShift, lowerY + getRandomInt(-2, 2) );
+                    let points = sharedPP.lineV2(new V2(x, startY), target);
+                    let pointIndexes = easing.fast({from: 0, to: points.length-1, steps: totalFrames, type: 'linear', method: 'base', round: 0});
+
+                    let frames = [];
+                    for(let f = 0; f < totalFrames; f++){
+                        let frameIndex = f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+                
+                        frames[frameIndex] = {
+                            pointIndex: pointIndexes[f]
+                        };
+                    }
+                
+                    return {
+                        oValues,
+                        dropLength,
+                        points, 
+                        pointIndexes,
+                        frames
+                    }
+                })
+                
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                let {points, 
+                                    pointIndexes,
+                                    frames,
+                                    dropLength,
+                                    oValues} = itemData;
+
+                                let prevPoint = undefined;
+                                for(let i =0; i < dropLength; i++){
+                                    let index = frames[f].pointIndex - i;
+                                    if(index < 0)
+                                        break;
+
+                                    let point = points[index];
+                                    let oValue = oValues[i];
+                                    if(oValue < 0 || Number.isNaN(oValue))
+                                        oValue = 0;
+
+                                    //console.log(oValue)
+                                    hlp.setFillColor(`rgba(185,185,185, ${oValue})`).dot(point.x, point.y);
+
+                                    if(prevPoint && prevPoint.x != point.x){
+                                        hlp.setFillColor(`rgba(185,185,185, ${oValue/2})`)
+                                            .dot(point.x-1, point.y).dot(point.x, point.y+1);
+                                    }
+
+                                    prevPoint = point;
+                                }
+                            }
+                            
+                        }
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                let rainLayersCount = 4;
+                let itemsCounts = easing.fast({ from: 400, to: 40, steps: rainLayersCount, type: 'quad', method: 'in', round: 0});
+                let itemFrameslengths = easing.fast({ from: 40, to: 16, steps: rainLayersCount, type: 'quad', method: 'in', round: 0});
+                let dropLengths = easing.fast({ from: 8, to: 20, steps: rainLayersCount, type: 'quad', method: 'in', round: 0});
+                let xShifts = easing.fast({ from: -10, to: -12, steps: rainLayersCount, type: 'linear', method: 'base', round: 0});
+                let maxAs = easing.fast({ from: 0.2, to: 0.7, steps: rainLayersCount, type: 'linear', method: 'base', round: 1});
+
+                let layers = new Array(rainLayersCount).fill().map((el,i) => ({
+                    itemsCount: itemsCounts[i], 
+                    itemFrameslength: itemFrameslengths[i], 
+                    dropLength: dropLengths[i], 
+                    xShift: xShifts[i],
+                    maxA: maxAs[i]
+                }))
+
+                // layers[0].lowerY = 20;
+
+                // layers[1].lowerY = 30;
+//.filter((el, i) => i == 2)
+                this.rainLayers = layers.map(layer => this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: this.createRainFrames({ 
+                        size: this.size, 
+                        framesCount: 100, 
+                        itemsCount: layer.itemsCount,
+                        itemFrameslength: layer.itemFrameslength,
+                        dropLengthOrigignal: layer.dropLength, 
+                        xShift: layer.xShift, 
+                        maxA: layer.maxA,
+                        lowerY: layer.lowerY }),
+                    init() {
+                        this.registerFramesDefaultTimer({});
+                    }
+                })))
+
+                //this.frames = this.createRainFrames({ framesCount: 200, itemsCount: 200, itemFrameslengthClamps: [5, 10], size: this.size })
+                //this.registerFramesDefaultTimer({});
+            }
+        }), layersData.window_view.renderIndex+1)
+
+
+        this.bush = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            frames: PP.createImage(ZershushCabinScene.models.bushFrames2),
+            init() {
+
+                this.registerFramesDefaultTimer({originFrameChangeDelay:20});
+            }
+        }), layersData.bush.renderIndex)
+
+        this.p1 = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 200, itemFrameslength: 25, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(ZershushCabinScene.models.main.main.layers.find(l => l.name == 'p1')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.p1.renderIndex)
+
+        this.forest_p1 = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 200, itemFrameslength: 50, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(ZershushCabinScene.models.main.main.layers.find(l => l.name == 'forest_p')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.window_view.renderIndex+1)
     }
 }
