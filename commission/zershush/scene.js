@@ -7,7 +7,7 @@ class ZershushCabinScene extends Scene {
                 additional: [],
             },
             capturing: {
-                enabled: false,
+                enabled: true,
                 addRedFrame: false,
                 stopByCode: true,
                 viewportSizeMultiplier: 5,
@@ -26,7 +26,7 @@ class ZershushCabinScene extends Scene {
     start(){
         let model = ZershushCabinScene.models.main;
         let layersData = {};
-        let exclude = ['fireplace_light', 'bush', 'p1', 'forest_p'];
+        let exclude = ['fireplace_light', 'bush', 'p1', 'p2', 'forest_p'];
 
         for(let i = 0; i < model.main.layers.length; i++) {
             let layer = model.main.layers[i];
@@ -47,9 +47,96 @@ class ZershushCabinScene extends Scene {
                 size: this.viewport.clone(),
                 img: PP.createImage(model, { renderOnly: [layerName] }),
                 init() {
-                    //
+                    
                 }
             }), renderIndex)
+
+            if(layerName == 'upper_lamp') {
+                this[layerName].init = function() {
+                    // let currentXShift = 0;
+                    let originalX = this.position.x;
+                    let total = 400;
+                    let xValues = [
+                        ...easing.fast({ from: -1, to: 1, steps: total/2, type: 'quad', method: 'inOut', round: 0 }),
+                        ...easing.fast({ from: 1, to: -1, steps: total/2, type: 'quad', method: 'inOut', round: 0 })
+                    ];
+                    let current = 0;
+                    this.regDefaultTimer(10, () => {
+                        // if(currentXShift == 0) {
+                        //     currentXShift = -1;
+                        // }
+                        // else {
+                        //     currentXShift = 0;
+                        // }
+
+                        let xShift = xValues[current];
+
+                        current++;
+                        if(current>= total){
+                            current = 0
+                        }
+
+                        this.position.x = originalX + xShift;
+                        this.needRecalcRenderProperties = true
+                    })
+                }
+            }
+
+            if(layerName == 'cup') {
+                    this[layerName].init = function() {
+                        this.smoke = this.addChild(new GO({
+                            position: new V2(38, 36.5),
+                            size: new V2(4, 20),
+                            createSmokeFrames({framesCount, itemsCount, size, color}) {
+                                let frames = [];
+                                if(typeof(color) == 'string')
+                                    color = colors.rgbStringToObject({value: color, asObject: true});
+
+                                //let height = size.y;
+
+                                
+                                let angleValues = easing.fast({from: 0, to: 359, steps: framesCount, type: 'linear', method: 'base'});
+
+                                let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                                    let height = getRandomInt(size.y/3, size.y);
+                                    let aValues = easing.fast({from: color.opacity, to: 0, steps: height, type: 'quad', method: 'in'}).map(v => fast.r(v, 1))
+                                    return {
+                                        height,
+                                        aValues,
+                                        xShift: getRandomInt(-2,2),
+                                        initialAngle: getRandomInt(0,359)//getRandomInt(0, framesCount-1)
+                                    }
+                                })
+                                
+                                for(let f = 0; f < framesCount; f++){
+                                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                                        for(let p = 0; p < itemsCount; p++){
+                                            let itemData = itemsData[p];
+                                            let initialAngle = itemData.initialAngle + angleValues[f];
+                                            if(initialAngle > 360)
+                                                initialAngle-=360;
+                                            
+                                            for(let y = 0; y < itemData.height; y++){
+                                                let opacity = itemData.aValues[y];
+                                                hlp.setFillColor(colors.rgbToString({value: [color.red, color.green, color.blue, opacity], isObject: false}));
+                                                let x = Math.cos(degreeToRadians(  (initialAngle + y*10)*3  )  );
+                                                x= fast.r( x + size.x/2) + itemData.xShift;
+
+                                                hlp.dot(x, size.y-y)
+                                            }
+                                        }
+                                    });
+                                }
+
+                                return frames.reverse();
+                            },
+                            init() {
+                                this.frames = this.createSmokeFrames({ framesCount: 200, itemsCount: 3, size: this.size, color: 'rgba(151,164,173,0.1)' }) //'rgba(151,164,173,0.5)'
+                                this.registerFramesDefaultTimer({});
+                            }
+                        }))
+                    }
+                }
 
             console.log(`${layerName} - ${renderIndex}`)
         }
@@ -323,6 +410,17 @@ class ZershushCabinScene extends Scene {
             }
         }), layersData.p1.renderIndex)
 
+        this.p2 = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 200, itemFrameslength: 25, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(ZershushCabinScene.models.main.main.layers.find(l => l.name == 'p2')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.p2.renderIndex)
+
         this.forest_p1 = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
@@ -333,5 +431,13 @@ class ZershushCabinScene extends Scene {
                 this.registerFramesDefaultTimer({});
             }
         }), layersData.window_view.renderIndex+1)
+
+        // this.lustra = this.addGo(new GO({
+        //     position: new V2(0, 20),
+        //     size: new V2(85,48),
+        //     init() {
+        //         this.img = PP.createImage(ZershushCabinScene.models.lustra)
+        //     }
+        // }), layersData.p1.renderIndex-1)
     }
 }
