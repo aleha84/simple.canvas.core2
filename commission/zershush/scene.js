@@ -10,7 +10,7 @@ class ZershushCabinScene extends Scene {
                 enabled: true,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 5,
+                viewportSizeMultiplier: 9.6,
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'cozy'
@@ -51,36 +51,36 @@ class ZershushCabinScene extends Scene {
                 }
             }), renderIndex)
 
-            if(layerName == 'upper_lamp') {
-                this[layerName].init = function() {
-                    // let currentXShift = 0;
-                    let originalX = this.position.x;
-                    let total = 400;
-                    let xValues = [
-                        ...easing.fast({ from: -1, to: 1, steps: total/2, type: 'quad', method: 'inOut', round: 0 }),
-                        ...easing.fast({ from: 1, to: -1, steps: total/2, type: 'quad', method: 'inOut', round: 0 })
-                    ];
-                    let current = 0;
-                    this.regDefaultTimer(10, () => {
-                        // if(currentXShift == 0) {
-                        //     currentXShift = -1;
-                        // }
-                        // else {
-                        //     currentXShift = 0;
-                        // }
+            // if(layerName == 'upper_lamp') {
+            //     this[layerName].init = function() {
+            //         // let currentXShift = 0;
+            //         let originalX = this.position.x;
+            //         let total = 400;
+            //         let xValues = [
+            //             ...easing.fast({ from: -1, to: 1, steps: total/2, type: 'quad', method: 'inOut', round: 0 }),
+            //             ...easing.fast({ from: 1, to: -1, steps: total/2, type: 'quad', method: 'inOut', round: 0 })
+            //         ];
+            //         let current = 0;
+            //         this.regDefaultTimer(10, () => {
+            //             // if(currentXShift == 0) {
+            //             //     currentXShift = -1;
+            //             // }
+            //             // else {
+            //             //     currentXShift = 0;
+            //             // }
 
-                        let xShift = xValues[current];
+            //             let xShift = xValues[current];
 
-                        current++;
-                        if(current>= total){
-                            current = 0
-                        }
+            //             current++;
+            //             if(current>= total){
+            //                 current = 0
+            //             }
 
-                        this.position.x = originalX + xShift;
-                        this.needRecalcRenderProperties = true
-                    })
-                }
-            }
+            //             this.position.x = originalX + xShift;
+            //             this.needRecalcRenderProperties = true
+            //         })
+            //     }
+            // }
 
             if(layerName == 'cup') {
                     this[layerName].init = function() {
@@ -131,7 +131,7 @@ class ZershushCabinScene extends Scene {
                                 return frames.reverse();
                             },
                             init() {
-                                this.frames = this.createSmokeFrames({ framesCount: 200, itemsCount: 3, size: this.size, color: 'rgba(151,164,173,0.1)' }) //'rgba(151,164,173,0.5)'
+                                this.frames = this.createSmokeFrames({ framesCount: 300, itemsCount: 3, size: this.size, color: 'rgba(151,164,173,0.1)' }) //'rgba(151,164,173,0.5)'
                                 this.registerFramesDefaultTimer({});
                             }
                         }))
@@ -199,13 +199,13 @@ class ZershushCabinScene extends Scene {
             },
             init() {
                 let repeat = 3;
-                this.frames = this.createLightFrames({ framesCount: 200, itemsCount: 10, itemFrameslengthClamps: [10, 15], size: this.size });
+                this.frames = this.createLightFrames({ framesCount: 300, itemsCount: 10, itemFrameslengthClamps: [10, 15], size: this.size });
                 this.registerFramesDefaultTimer({
-                    framesEndCallback: () => { 
-                        repeat--;
-                        if(repeat == 0)
-                            this.parentScene.capturing.stop = true; 
-                        }
+                    // framesEndCallback: () => { 
+                        // repeat--;
+                        // if(repeat == 0)
+                        //     this.parentScene.capturing.stop = true; 
+                        // }
                 });
             }
         }), layersData.fireplace.renderIndex+1)
@@ -225,6 +225,8 @@ class ZershushCabinScene extends Scene {
             ctx.globalAlpha = 0.5
             ctx.drawImage(frame, 0 ,0)
         }))
+
+        console.log(`curtainsFrames count: ${curtainsFrames.length}`)
 
         let curtainsFrameChangeDelay  = 10
 
@@ -251,7 +253,7 @@ class ZershushCabinScene extends Scene {
             position: new V2(33,62),
             size: new V2(70,40),
             createRainFrames({framesCount, size, itemsCount, itemFrameslength, dropLengthOrigignal, xShift, maxA, lowerY}) {
-                let frames = [];
+                let frames = {};
                 let sharedPP;
                 createCanvas(new V2(1,1), (ctx, size, hlp) => {
                     sharedPP = new PP({ctx});
@@ -304,9 +306,45 @@ class ZershushCabinScene extends Scene {
                         frames
                     }
                 })
+
+                let deleteCount = fast.r(itemsData.length*3/4);
+                let itemsDataRef = [...itemsData];
+                let hidingTimeLine = easing.fast({ from: 0 , to: framesCount-1, steps: deleteCount, type: 'linear', round: 0 })
+                for(let i = 0; i < deleteCount; i++){
+                    let toDeleteIndex = getRandomInt(0, itemsDataRef.length-1);
+                    let hideFrom = hidingTimeLine[i];
+
+                    itemsDataRef[toDeleteIndex].hideFrom = hideFrom;
+                    itemsDataRef.splice(toDeleteIndex, 1);
+                }
                 
+                let renderer = (f, hlp, points, pointIndexes, frames, dropLength, oValues) => {
+                    let prevPoint = undefined;
+                    for(let i =0; i < dropLength; i++){
+                        let index = frames[f].pointIndex - i;
+                        if(index < 0)
+                            break;
+
+                        let point = points[index];
+                        let oValue = oValues[i];
+                        if(oValue < 0 || Number.isNaN(oValue))
+                            oValue = 0;
+
+                        //console.log(oValue)
+                        hlp.setFillColor(`rgba(185,185,185, ${oValue})`).dot(point.x, point.y);
+
+                        if(prevPoint && prevPoint.x != point.x){
+                            hlp.setFillColor(`rgba(185,185,185, ${oValue/2})`)
+                                .dot(point.x-1, point.y).dot(point.x, point.y+1);
+                        }
+
+                        prevPoint = point;
+                    }
+                }
+
+                frames.fullFrames = []
                 for(let f = 0; f < framesCount; f++){
-                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                    frames.fullFrames[f] = createCanvas(size, (ctx, size, hlp) => {
                         for(let p = 0; p < itemsData.length; p++){
                             let itemData = itemsData[p];
                             
@@ -317,38 +355,96 @@ class ZershushCabinScene extends Scene {
                                     dropLength,
                                     oValues} = itemData;
 
-                                let prevPoint = undefined;
-                                for(let i =0; i < dropLength; i++){
-                                    let index = frames[f].pointIndex - i;
-                                    if(index < 0)
-                                        break;
-
-                                    let point = points[index];
-                                    let oValue = oValues[i];
-                                    if(oValue < 0 || Number.isNaN(oValue))
-                                        oValue = 0;
-
-                                    //console.log(oValue)
-                                    hlp.setFillColor(`rgba(185,185,185, ${oValue})`).dot(point.x, point.y);
-
-                                    if(prevPoint && prevPoint.x != point.x){
-                                        hlp.setFillColor(`rgba(185,185,185, ${oValue/2})`)
-                                            .dot(point.x-1, point.y).dot(point.x, point.y+1);
-                                    }
-
-                                    prevPoint = point;
-                                }
+                                renderer(f, hlp, points, pointIndexes, frames, dropLength, oValues);
                             }
                             
                         }
                     });
                 }
+
+                console.log('rain fullFrames created itemsCount ' + itemsCount)
+
+                frames.reducingFrames = []
+                for(let f = 0; f < framesCount; f++){
+                    frames.reducingFrames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                let {points, 
+                                    pointIndexes,
+                                    frames,
+                                    dropLength,
+                                    oValues,
+                                    hideFrom} = itemData;
+
+                                if(f >= hideFrom){
+                                    continue;
+                                }
+
+                                renderer(f, hlp, points, pointIndexes, frames, dropLength, oValues);
+                            } 
+                        }
+                    });
+                }
+                console.log('rain reducingFrames created itemsCount ' + itemsCount)
+
+                frames.increasedFrames = []
+                for(let f = 0; f < framesCount; f++){
+                    frames.increasedFrames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                let {points, 
+                                    pointIndexes,
+                                    frames,
+                                    dropLength,
+                                    oValues,
+                                    hideFrom} = itemData;
+
+                                if(f <= hideFrom){
+                                    continue;
+                                }
+
+                                renderer(f, hlp, points, pointIndexes, frames, dropLength, oValues);
+                            } 
+                        }
+                    });
+                }
+                console.log('rain increasedFrames created itemsCount ' + itemsCount)
+
+                frames.reducedFrames = []
+                for(let f = 0; f < framesCount; f++){
+                    frames.reducedFrames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        for(let p = 0; p < itemsData.length; p++){
+                            let itemData = itemsData[p];
+                            
+                            if(itemData.frames[f]){
+                                let {points, 
+                                    pointIndexes,
+                                    frames,
+                                    dropLength,
+                                    oValues,
+                                    hideFrom} = itemData;
+
+                                if(hideFrom){
+                                    continue;
+                                }
+
+                                renderer(f, hlp, points, pointIndexes, frames, dropLength, oValues);
+                            } 
+                        }
+                    });
+                }
+                console.log('rain reducedFrames created itemsCount ' + itemsCount)
                 
                 return frames;
             },
             init() {
+                let multiplier = 3; // original multiplier==1 is for 100 frames
                 let rainLayersCount = 4;
-                let itemsCounts = easing.fast({ from: 400, to: 40, steps: rainLayersCount, type: 'quad', method: 'in', round: 0});
+                let itemsCounts = easing.fast({ from: 400*multiplier, to: 40*multiplier, steps: rainLayersCount, type: 'quad', method: 'in', round: 0});
                 let itemFrameslengths = easing.fast({ from: 40, to: 16, steps: rainLayersCount, type: 'quad', method: 'in', round: 0});
                 let dropLengths = easing.fast({ from: 8, to: 20, steps: rainLayersCount, type: 'quad', method: 'in', round: 0});
                 let xShifts = easing.fast({ from: -10, to: -12, steps: rainLayersCount, type: 'linear', method: 'base', round: 0});
@@ -369,9 +465,9 @@ class ZershushCabinScene extends Scene {
                 this.rainLayers = layers.map(layer => this.addChild(new GO({
                     position: new V2(),
                     size: this.size,
-                    frames: this.createRainFrames({ 
+                    framesStages: this.createRainFrames({ 
                         size: this.size, 
-                        framesCount: 100, 
+                        framesCount: 100*multiplier, 
                         itemsCount: layer.itemsCount,
                         itemFrameslength: layer.itemFrameslength,
                         dropLengthOrigignal: layer.dropLength, 
@@ -379,7 +475,73 @@ class ZershushCabinScene extends Scene {
                         maxA: layer.maxA,
                         lowerY: layer.lowerY }),
                     init() {
-                        this.registerFramesDefaultTimer({});
+
+                        
+                        let stages = {
+                            fullFrames: {
+                                repeats: -1,
+                            }
+                            /*
+                            fullFrames: {
+                                repeats: 1,
+                                defaulRepeatsCount: 1,
+                                next: 'reducingFrames'
+                            },
+                            reducingFrames: {
+                                repeats: 1,
+                                defaulRepeatsCount: 1,
+                                next: 'reducedFrames'
+                            },
+                            // reducedFrames: {
+                            //     repeats: -1
+                            // }
+                            reducedFrames: {
+                                repeats: 1,
+                                defaulRepeatsCount: 1,
+                                next: 'increasedFrames'
+                            },
+                            increasedFrames: {
+                                repeats: 1,
+                                defaulRepeatsCount: 1,
+                                next: 'fullFrames'
+                            }
+*/
+                        }
+                        let stage = stages.fullFrames;
+                        this.frames = this.framesStages.fullFrames;
+
+                        this.registerFramesDefaultTimer({
+                            framesEndCallback: () => {
+                                if(stage.repeats != -1){
+                                    stage.repeats--;
+                                    if(stage.repeats == 0){
+
+                                        stage.repeats = stage.defaulRepeatsCount;
+
+                                        if(stage.next == 'reducingFrames'){
+                                            this.parent.parentScene.brightLayer.startBrightness();
+                                        }
+
+                                        if(stage.next == 'increasedFrames'){
+                                            this.parent.parentScene.brightLayer.startDarkness();
+                                        }
+
+                                        if(stage.next == 'fullFrames'){
+                                            this.parent.parentScene.capturing.stop = true; 
+                                        }
+
+                                        this.parent.parentScene.redDot.show();
+                                        console.log('current rain stage completed. Next: ' + stage.next);
+                                        this.frames = this.framesStages[stage.next];
+                                        stage = stages[stage.next];
+                                    }
+                                }
+                                else {
+                                    this.parent.parentScene.capturing.stop = true; 
+                                }
+                                
+                            }
+                        });
                     }
                 })))
 
@@ -388,6 +550,101 @@ class ZershushCabinScene extends Scene {
             }
         }), layersData.window_view.renderIndex+1)
 
+        this.redDot = this.addGo(new GO({
+            position: new V2(0,0),
+            size: new V2(1,1),
+            init() {
+                this.squareImg = createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    hlp.setFillColor('red').rect(0,0,size.x, size.y);
+                })
+            },
+            show() {
+                this.img = this.squareImg;
+            },
+            internalRender() {
+                if(this.img){
+                    this.img = undefined
+                }
+            }
+        }), 300)
+
+        this.brightLayer = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            createBrightFrames({framesCount, size}) {
+                let frames = [];
+                
+                let aValues = easing.fast({ from: 0.3, to: 0, steps: framesCount, type: 'linear', round: 0.2})
+                
+                let overlay = createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    hlp.setFillColor('black').rect(0,0,size.x, size.x);
+                })
+
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        ctx.globalAlpha = aValues[f];
+                        ctx.drawImage(overlay, 0,0, size.x, size.y);
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                this.originalFrames = this.createBrightFrames({framesCount: 300, size: this.size});  
+                this.brightnessFrames = [...this.originalFrames];
+                this.darknessFrames = [...this.originalFrames].reverse();
+
+                this.started = false;  
+
+                this.img = this.originalFrames[0];
+            },
+            startBrightness() {
+                if(this.started)
+                    return;
+
+                let frames = this.brightnessFrames;
+                console.log('brightness started')
+                this.started = true;
+
+                this.currentFrame = 0;
+                this.img = frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.img = frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == frames.length){
+                        this.unregTimer(this.timer)
+                        this.timer = undefined;
+                        console.log('brightness done')
+                        this.started = false;
+                    }
+                })
+            },
+            startDarkness() {
+                if(this.started)
+                    return;
+
+                let frames = this.darknessFrames;
+                console.log('darkness started')
+                this.started = true;
+
+                this.currentFrame = 0;
+                this.img = frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.img = frames[this.currentFrame];
+                    this.currentFrame++;
+                    if(this.currentFrame == frames.length){
+                        this.unregTimer(this.timer)
+                        this.timer = undefined;
+                        console.log('darkness done')
+                        this.started = false;
+                    }
+                })
+            }
+        }), layersData.forest_p.renderIndex+1)
 
         this.bush = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -403,7 +660,7 @@ class ZershushCabinScene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
-                this.frames = animationHelpers.createMovementFrames({ framesCount: 200, itemFrameslength: 25, size: this.size, 
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 25, size: this.size, 
                     pointsData: animationHelpers.extractPointData(ZershushCabinScene.models.main.main.layers.find(l => l.name == 'p1')) });
     
                 this.registerFramesDefaultTimer({});
@@ -414,7 +671,7 @@ class ZershushCabinScene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
-                this.frames = animationHelpers.createMovementFrames({ framesCount: 200, itemFrameslength: 25, size: this.size, 
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 25, size: this.size, 
                     pointsData: animationHelpers.extractPointData(ZershushCabinScene.models.main.main.layers.find(l => l.name == 'p2')) });
     
                 this.registerFramesDefaultTimer({});
@@ -425,7 +682,7 @@ class ZershushCabinScene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
-                this.frames = animationHelpers.createMovementFrames({ framesCount: 200, itemFrameslength: 50, size: this.size, 
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 50, size: this.size, 
                     pointsData: animationHelpers.extractPointData(ZershushCabinScene.models.main.main.layers.find(l => l.name == 'forest_p')) });
     
                 this.registerFramesDefaultTimer({});
