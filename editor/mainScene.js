@@ -450,7 +450,8 @@ document.addEventListener("paste", function(event) {
 })
 
 const rx = /INPUT|SELECT|TEXTAREA/i;
-addListenerMulti(document, "keydown keypress", function(e){
+
+let preventReloadHandler = function(e) {
     if( e.which == 8 ){ // 8 == backspace
         if(!rx.test(e.target.tagName) || e.target.disabled || e.target.readOnly ){
             e.preventDefault();
@@ -466,6 +467,8 @@ addListenerMulti(document, "keydown keypress", function(e){
             e.stopPropagation();
         }
     }
-})
+}
+
+document.addEventListener('keydown', preventReloadHandler, false)
 
 

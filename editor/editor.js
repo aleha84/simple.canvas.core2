@@ -11,7 +11,6 @@
 // 23. Add progress recording - each minute add frame, pause, stop, start. Result in webm video
 // 25. change selected pixel color frame. Globally, per group. Depends on color? 
 // 27. auto save in localstorage !!!!!!!
-// 28. Letter 't' isnt work in editor inputs. Weird
 
 class Editor {
     constructor(options = {}){
