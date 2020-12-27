@@ -12,13 +12,31 @@ var components = {
     },
 
     createMidColor() {
+        let type = 'rgb'
         let midColorFoo = (c1, c2) => {
-            let c1rgb = hexToRgb(c1, true);
-            let c2rgb = hexToRgb(c2, true);
-            return '#' + rgbToHex( c1rgb.map((el, i) => fast.r((c1rgb[i] + c2rgb[i])/2)) )
+            if(type == 'rgb') {
+                let c1rgb = hexToRgb(c1, true);
+                let c2rgb = hexToRgb(c2, true);
+                return '#' + rgbToHex( c1rgb.map((el, i) => fast.r((c1rgb[i] + c2rgb[i])/2)) )
+            }
+            else if(type == 'hsv') {
+                let c1hsv = colors.hexToHsv(c1);
+                let c2hsv = colors.hexToHsv(c2);
+
+                return hsvToHex({hsv: { h: (c1hsv.h+c2hsv.h)/2, s: (c1hsv.s+c2hsv.s)/2, v: (c1hsv.v+c2hsv.v)/2 },hsvAsObject: true, hsvAsInt: false})
+            }
+
+            notifications.error('Unknown color type: ' + type, 5000);
+            
         }
 
         let container = htmlUtils.createElement('div');
+
+        let typeEl = components.createSelect(type, ['rgb', 'hsv'], 'Type', (value) => {
+            type = value;
+            result.setValue(midColorFoo(color1.getValue(), color2.getValue()))
+        });
+
         let color1 = this.createColorPicker('#FFFFFF', 'C1', () => {
             result.setValue(midColorFoo(color1.getValue(), color2.getValue()))
         })
@@ -27,6 +45,7 @@ var components = {
         })
         let result = this.createColorPicker('#FFFFFF', 'R', () => {})
 
+        container.appendChild(typeEl);
         container.appendChild(color1);
         container.appendChild(color2);
         container.appendChild(result);
@@ -66,29 +85,56 @@ var components = {
     },
 
     createCShift() {
-
+        let type = 'rgb'
         let midColorFoo = (c1, c2, count) => {
             count = parseInt(count);
             if(isNaN(count))
                 count = 3;
 
-            let c1rgb = hexToRgb(c1, true);
-            let c2rgb = hexToRgb(c2, true);
-
             htmlUtils.removeChilds(result);
             let steps = count+2;
-            let rValues = easing.fast({from: c1rgb[0], to: c2rgb[0], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
-            let gValues = easing.fast({from: c1rgb[1], to: c2rgb[1], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
-            let bValues = easing.fast({from: c1rgb[2], to: c2rgb[2], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
-            for(let i = 0; i < steps; i++){
-                result.appendChild(this.createColorPicker('#' + rgbToHex([rValues[i], gValues[i], bValues[i]]), 'C'+i, () => {}, { readOnly: true }))
+            if(type == 'rgb') {
+                let c1rgb = hexToRgb(c1, true);
+                let c2rgb = hexToRgb(c2, true);
+    
+                let rValues = easing.fast({from: c1rgb[0], to: c2rgb[0], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
+                let gValues = easing.fast({from: c1rgb[1], to: c2rgb[1], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
+                let bValues = easing.fast({from: c1rgb[2], to: c2rgb[2], steps, type: 'linear', method:'base'}).map(value => fast.r(value));
+                for(let i = 0; i < steps; i++){
+                    result.appendChild(this.createColorPicker('#' + rgbToHex([rValues[i], gValues[i], bValues[i]]), 'C'+i, () => {}, { readOnly: true }))
+                }
             }
+            else if(type == 'hsv') {
+                let c1hsv = colors.hexToHsv(c1);
+                let c2hsv = colors.hexToHsv(c2);
+
+                let hValues = easing.fast({from: c1hsv.h, to: c2hsv.h, steps, type: 'linear'});
+                let sValues = easing.fast({from: c1hsv.s, to: c2hsv.s, steps, type: 'linear'});
+                let vValues = easing.fast({from: c1hsv.v, to: c2hsv.v, steps, type: 'linear'});
+
+                for(let i = 0; i < steps; i++){
+                    result.appendChild(this.createColorPicker(
+                        hsvToHex({hsv: { h: hValues[i], s: sValues[i], v: vValues[i] },hsvAsObject: true, hsvAsInt: false}), 
+                        'C'+i, () => {}, { readOnly: true }))
+                }
+                //return hsvToHex({hsv: { h: (c1hsv.h+c2hsv.h)/2, s: (c1hsv.s+c2hsv.s)/2, v: (c1hsv.v+c2hsv.v)/2 },hsvAsObject: true, hsvAsInt: false})
+            }
+            else {
+                notifications.error('Unknown color type: ' + type, 5000);
+            }
+            
+            
             //return '#' + rgbToHex( c1rgb.map((el, i) => fast.r((c1rgb[i] + c2rgb[i])/2)) )
         }
 
         let container = htmlUtils.createElement('div');
 
         let result = htmlUtils.createElement('div');
+
+        let typeEl = components.createSelect(type, ['rgb', 'hsv'], 'Type', (value) => {
+            type = value;
+            midColorFoo(color1.getValue(), color2.getValue(), count.value);
+        });
 
         let color1 = this.createColorPicker('#FFFFFF', 'C1', () => {
             midColorFoo(color1.getValue(), color2.getValue(), count.value);
@@ -104,6 +150,7 @@ var components = {
             }
         } });
 
+        container.appendChild(typeEl);
         container.appendChild(color1);
         container.appendChild(color2);
         container.appendChild(count);
