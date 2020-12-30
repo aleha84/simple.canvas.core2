@@ -7,7 +7,7 @@ class PixelRedCatTree extends Scene {
                 additional: [],
             },
             capturing: {
-                enabled: true,
+                enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
                 viewportSizeMultiplier: 5,

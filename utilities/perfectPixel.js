@@ -263,6 +263,7 @@ PP.createImage = function(model, params = {}) {
         renderOnly: [], 
         exclude: [],
         colorsSubstitutions: {},
+        forceVisivility: {}
     }, params);
 
     let renderGroup = (pp, group) => {
@@ -379,8 +380,13 @@ PP.createImage = function(model, params = {}) {
         return createCanvas(general.size, (ctx, size) => {
             let pp = new PerfectPixel({context: ctx});
             for(let layer of main.layers.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
-                if(layer.visible != undefined && layer.visible == false)
-                    continue;
+                if(params.forceVisivility[layer.name]) {
+                    if(!params.forceVisivility[layer.name].visible)
+                        continue;
+                }
+                else 
+                    if(layer.visible != undefined && layer.visible == false)
+                        continue;
     
                 if(params.renderOnly.length > 0){
                     if(params.renderOnly.indexOf(layer.name || layer.id) == -1)
