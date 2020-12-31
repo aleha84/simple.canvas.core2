@@ -353,39 +353,47 @@ class StreetScene extends Scene {
                 return frames;
             },
             init() {
-                //#241f15
+                this.wire1 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        let xClamps = [0, 175] //35
 
-                // let frames = [];
-                let xClamps = [0, 175] //35
-                // // let f = (x) => fast.r(-0.0028*Math.pow(x-15,2) + 106)
-                //  let points = []
+                        this.frames = this.parent.createWiresFrames({ framesCount:300, 
+                            dotsData: [
+                                { dots: [new V2(0, 91), new V2(0, 88)] }, 
+                                { dots: [new V2(50, 86), new V2(50, 84)] }, 
+                                { dots: [new V2(129, 60), new V2(129, 59)] }, 
+                                { dots: [new V2(175,34)] }
+                            ],
+                            xClamps, size: this.size })
 
+                        this.registerFramesDefaultTimer({});
+                    }
+                }))
 
-                // let dots = [new V2(0, 91), new V2(50, 86), new V2(129, 60), new V2(175,34)]
+                this.wire2 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        let xClamps = [0, 186] //35
 
-                // let formula = mathUtils.getCubicSplineFormula(dots);
-                // for(let x = xClamp[0]; x < xClamp[1]; x++){
-                //     let y=  fast.r(formula(x));
-                //     points.push(new V2(x,y).toInt());
-                // }
+                        this.frames = this.parent.createWiresFrames({ framesCount:300, 
+                            dotsData: [
+                                { dots: [new V2(0, 91+11), new V2(0, 88+11)] }, 
+                                { dots: [new V2(50+5, 86+11), new V2(50+5, 84+11)] }, 
+                                { dots: [new V2(129+5, 60+11), new V2(129+5, 59+11)] }, 
+                                { dots: [new V2(186,45)] }
+                                // { dots: [new V2(0, 99), new V2(0, 96)] }, 
+                                // { dots: [new V2(64, 91), new V2(64, 89)] }, 
+                                // { dots: [new V2(135, 71), new V2(135, 70)] }, 
+                                // { dots: [new V2(186,45)] }
+                            ],
+                            xClamps, size: this.size })
 
-                // this.img = createCanvas(this.size, (ctx, size, hlp) => {
-                //     hlp.setFillColor('red');
-                //     points.forEach(p => hlp.dot(p))
-
-             
-                // })
-
-                this.frames = this.createWiresFrames({ framesCount:300, 
-                    dotsData: [
-                        { dots: [new V2(0, 91), new V2(0, 88)] }, 
-                        { dots: [new V2(50, 86), new V2(50, 84)] }, 
-                        { dots: [new V2(129, 60), new V2(129, 59)] }, 
-                        { dots: [new V2(175,34)] }
-                    ],
-                    xClamps, size: this.size })
-
-                this.registerFramesDefaultTimer({});
+                        this.registerFramesDefaultTimer({startFrameIndex: 50});
+                    }
+                }))
             }
         }), layersData.bush_l.renderIndex+1 )
 
