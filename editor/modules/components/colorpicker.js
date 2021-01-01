@@ -1,5 +1,5 @@
-components.createColorPicker = function(value, title, changeCallback, params = {readOnly: false}){
-    let el = htmlUtils.createElement('div', { classNames: ['colorPicker', 'row'] });
+components.createColorPicker = function(value, title, changeCallback, params = {readOnly: false, classNames: []}){
+    let el = htmlUtils.createElement('div', { classNames: ['colorPicker', 'row', ...params.classNames] });
     if(title){    
         el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
     }
