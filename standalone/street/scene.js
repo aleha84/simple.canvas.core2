@@ -44,7 +44,9 @@ class StreetScene extends Scene {
 
         let model = StreetScene.models.main;
         let layersData = {};
-        let exclude = [];
+        let exclude = [
+            'bottom_tree_p', 'tree2_l_p', 'tree1_l_p'
+        ];
         //let renderOnly = ['lamp_post_l']
 
         for(let i = 0; i < model.main.layers.length; i++) {
@@ -402,6 +404,17 @@ class StreetScene extends Scene {
             size: this.viewport.clone(),
             init() {
 
+                this.p = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.frames = animationHelpers.createMovementFrames({ framesCount: 150, itemFrameslength: 50, size: this.size, 
+                            pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'bottom_tree_p')) });
+            
+                        this.registerFramesDefaultTimer({});
+                    }
+                }))
+
                 let aniParams = [
                     {
                         model: StreetScene.models.lowerTreeFrames,
@@ -477,6 +490,29 @@ class StreetScene extends Scene {
                 })));
             }
         }), layersData.bottom_tree.renderIndex+1 )
+
+        this.tree2_l_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 100, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'tree2_l_p')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.tree2_l.renderIndex+1)
+
+
+        this.tree1_l_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 100, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'tree1_l_p')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.tree1_l_p.renderIndex+1)
 
         // this.lemn = this.addGo(new GO({
         //     position: this.sceneCenter.clone(),
