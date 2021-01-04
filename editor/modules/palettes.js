@@ -107,18 +107,23 @@ var paletteHelper = {
         let buttonsBlock = htmlUtils.createElement('div', { classNames: ['buttonBlock', 'rowFlex'] });
 
         let addNewItemWrapper = htmlUtils.createElement('div', { classNames: ['addNewItemWrapper', 'rowFlex'] });
-        let input = htmlUtils.createElement('input', { className: 'itemValue', value: '#' })
+        let input = //htmlUtils.createElement('input', { className: 'itemValue', value: '#' })
+            components.createColorPicker('#FFFFFF', '', () => { })
+
         let addButton = htmlUtils.createElement('input', { value: 'add', attributes: { type: 'button' }, events: {
             click: () => {
-                let match = /^#*([0-9A-F]{6})$/i.exec(input.value);
-                if(match){
-                    this.addPaletteItem(modelUtils.createDefaultPaletteItem('#' + match), paletteEl);
-                }
+                // let match = /^#*([0-9A-F]{6})$/i.exec(input.value);
+                // if(match){
+                //     this.addPaletteItem(modelUtils.createDefaultPaletteItem('#' + match), paletteEl);
+                // }
+
+                this.addPaletteItem(modelUtils.createDefaultPaletteItem(input.getValue()), paletteEl)
+
                 // if(/^#[0-9A-F]{6}$/i.test(input.value)){
                 //     this.addPaletteItem(modelUtils.createDefaultPaletteItem(input.value), paletteEl);
                 // }
                 
-                input.value = '#';
+                input.setValue('#FFFFFF');
             }
         }});
 

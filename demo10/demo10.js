@@ -226,6 +226,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(200,100)
     }))
 
+    SCG.scenes.cacheScene(new Demo10SnowfallScene({
+        name: 'snowfall', 
+        viewport: new V2(200,112)
+    }))
+
     sceneSelectByHashValue();
     
     SCG.main.start();

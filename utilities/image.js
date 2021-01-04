@@ -911,6 +911,110 @@ var colors = {
         link.click();
         document.body.removeChild(link);
         delete link;
+    },
+    createRadialGradient({ size, center, radius, gradientOrigin, angle, 
+        setter = undefined, easingType = 'quad', easingMethod = 'out',
+        maxValue= 1, minValue= 0
+         }) {
+        if(!size){
+            size = this.viewport.clone();
+        }
+
+        angle = degreeToRadians(angle);
+
+        if(!setter){
+            console.log('no setter detected. Set default');
+
+            setter = (dot, aValue) => {
+                    if(!dot.values){
+                        dot.values = [];
+                    }
+
+                    dot.values.push(aValue);
+                }
+            //throw 'Dot value setter is not provided';
+        }
+
+        let setDot = (x,y, setter) => {
+            let row = dots[y];
+            if(!row){
+                dots[y] = [];
+                row = dots[y];
+            }
+
+            if(!row[x]){
+                row[x] = {};
+            }
+
+            setter(row[x]);
+        }
+
+        let isInEllipsis = (x,y) => {
+            let _x = x-center.x;
+            let _y = y-center.y;
+
+            return Math.pow(_x*_cos + _y*_sin,2)/rxSq + Math.pow(-_x*_sin + _y*_cos,2)/rySq <= 1
+        }
+
+        let dots = [];
+        let rxSq = radius.x*radius.x;
+        let rySq = radius.y*radius.y;
+        let maxSize = radius.x > radius.y ? new V2(radius.x, radius.x) : new V2(radius.y, radius.y);
+        let _cos = Math.cos(angle);
+        let _sin = Math.sin(angle);
+        let ellipsisBox = new Box(center.substract(maxSize).toInt().add(new V2(-1,-1)), maxSize.mul(2).add(new V2(3,3)));
+
+        if(!isInEllipsis(gradientOrigin.x, gradientOrigin.y))
+            throw 'Gradient origin is not inside elipsis';
+
+        let pp = undefined;
+        createCanvas(new V2(1,1), (ctx, size, hlp) => {
+            pp = new PP({ctx});
+        })
+
+        for(let y = center.y-maxSize.y-1;y < center.y+maxSize.y+1;y++){
+            dots[y] = [];
+            for(let x = center.x-maxSize.x-1;x < center.x+maxSize.x+1;x++){
+                if(!isInEllipsis(x,y)){
+                    continue;
+                }
+
+                let currentDot = new V2(x,y);
+
+                if(currentDot.equal(gradientOrigin)){
+                    setDot(x,y, (dot) => setter(dot, 1))
+                    continue;
+                }
+
+                let currentDirection = gradientOrigin.direction(currentDot);
+                let point2 = rayBoxIntersection(currentDot, currentDirection, ellipsisBox);
+                if(!point2 || point2.length == 0)
+                    throw 'No box intersection found!';
+
+                point2 = point2[0];
+                let linePoints = pp.lineV2(gradientOrigin, point2);
+
+                let stopIndex = 0;
+                for(let i = 0; i < linePoints.length;i++){
+                    let linePoint = linePoints[i];
+                    let _x = linePoint.x-center.x;
+                    let _y = linePoint.y-center.y;
+                    stopIndex = i; // индекс первого элемента за границей эллипса
+                    if(Math.pow(_x*_cos + _y*_sin,2)/rxSq + Math.pow(-_x*_sin + _y*_cos,2)/rySq > 1)
+                        break;
+
+                }
+
+                let aValues = easing.fast({from: maxValue, to: minValue, steps: stopIndex, type:easingType, method:easingMethod});
+                for(let i = 0; i < stopIndex;i++){
+                    let linePoint = linePoints[i];
+
+                    setDot(linePoint.x, linePoint.y, (dot) => { setter(dot, aValues[i]) } )
+                }
+            }
+        }
+
+        return dots;
     }
     
 
