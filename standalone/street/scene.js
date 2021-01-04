@@ -397,7 +397,76 @@ class StreetScene extends Scene {
                     }
                 }))
             }
-        }), layersData.bush_l.renderIndex+1 )
+        }), layersData.bush_l.renderIndex+2 )
+
+        this.grassAnimation = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                let aniParams = [
+                    {
+                        layerName: 'a1',
+                        animationStartFrame: 0,
+                    },
+                    
+                ]
+
+                let totalFrames = 150;
+                let totalAnimationFrames = 80;
+
+                this.animations = aniParams.map(p => this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(StreetScene.models.grassAnimation, { renderOnly: [p.layerName] }),
+                    init() {
+                        let framesIndexValues = new Array(totalFrames).fill(0)//.map((el,i) => getRandomInt(0,3) == 0 ? 1: 0);
+
+                        let v = 0;
+                        for(let i = 0; i < totalFrames; i++){
+                            if(i%25 == 0){
+                                v = v==0? 1: 0;
+                            }
+
+                            let index = p.animationStartFrame+i;
+                            if(index > (totalFrames-1)){
+                                index-=totalFrames;
+                            }
+
+                            framesIndexValues[index] = v;
+                        }
+
+                        let animationStartFrame = p.animationStartFrame;
+
+                        let animationFramesIndexValues = [
+                            ...easing.fast({ from: 0, to: this.frames.length-1, steps: totalAnimationFrames/2, type: 'quad', method: 'out', round: 0}), 
+                            ...easing.fast({ from: this.frames.length-1, to: 0, steps: totalAnimationFrames/2, type: 'quad', method: 'inOut', round: 0})
+                        ]
+
+
+                        for(let i = 0; i < animationFramesIndexValues.length; i++){
+                            let index = animationStartFrame + i;
+                            
+                            if(index > (totalFrames-1)){
+                                index-=totalFrames;
+                            }
+
+                            framesIndexValues[index] = animationFramesIndexValues[i];
+                        }
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[framesIndexValues[this.currentFrame]];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            this.img = this.frames[framesIndexValues[this.currentFrame]];
+                            this.currentFrame++;
+                            if(this.currentFrame == totalFrames){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                })));
+            }
+        }), layersData.bush_l.renderIndex+1)
 
         this.lowerTreeAnimation = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -512,7 +581,29 @@ class StreetScene extends Scene {
     
                 this.registerFramesDefaultTimer({});
             }
-        }), layersData.tree1_l_p.renderIndex+1)
+        }), layersData.tree1_l.renderIndex+1)
+
+        this.right_b_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 100, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'right_b_p')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.right_b.renderIndex+1)
+
+        this.dpuble_bush_small_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 75, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'dpuble_bush_small_p')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.dpuble_bush_small.renderIndex+1)
 
         // this.lemn = this.addGo(new GO({
         //     position: this.sceneCenter.clone(),
