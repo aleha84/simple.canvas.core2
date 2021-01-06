@@ -408,11 +408,15 @@ class StreetScene extends Scene {
                         layerName: 'a1',
                         animationStartFrame: 0,
                     },
+                    {
+                        layerName: 'a2',
+                        animationStartFrame: 10,
+                    },
                     
                 ]
 
                 let totalFrames = 150;
-                let totalAnimationFrames = 80;
+                let totalAnimationFrames = 60;
 
                 this.animations = aniParams.map(p => this.addChild(new GO({
                     position: new V2(),
