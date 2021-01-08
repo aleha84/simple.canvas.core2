@@ -343,11 +343,18 @@ class EditorGO extends GO {
                     else if(this.model.editor.mode == 'colorpick'){
                         if(!this.img){
                             d.disable();
-                            console.log('image isnt visible');
+                            //console.log('image isnt visible');
+                            notifications.warning('image isnt visible', 2000)
                             return;
                         }
 
                         let colorData = this.img.getContext('2d').getImageData(this.model.editor.index.x, this.model.editor.index.y,1,1);
+
+                        if(colorData.data[0] == 0 && colorData.data[1] == 0 && colorData.data[2] == 0 && colorData.data[3] == 0 && 
+                        this.parentScene.underlyingImg && this.parentScene.underlyingImg.img) {
+                            colorData = this.parentScene.underlyingImg.img.getContext('2d').getImageData(this.model.editor.index.x, this.model.editor.index.y,1,1);
+                        }
+
                         this.parentScene.editor.editor.panels.colorPicker.setValue('#' + rgbToHex(Array.from(colorData.data)))
                         //console.log(colorData);
                         //this.model.editor.panels.colorPicker

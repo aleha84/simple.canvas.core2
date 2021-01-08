@@ -412,6 +412,30 @@ class StreetScene extends Scene {
                         layerName: 'a2',
                         animationStartFrame: 10,
                     },
+                    {
+                        layerName: 'a3',
+                        animationStartFrame: 20,
+                    },
+                    {
+                        layerName: 'a4',
+                        animationStartFrame: 40,
+                    },
+                    {
+                        layerName: 'a5',
+                        animationStartFrame: 30,
+                    },
+                    {
+                        layerName: 'a6',
+                        animationStartFrame: 0,
+                    },
+                    {
+                        layerName: 'a7',
+                        animationStartFrame: 10,
+                    },
+                    {
+                        layerName: 'a8',
+                        animationStartFrame: 20,
+                    }
                     
                 ]
 
