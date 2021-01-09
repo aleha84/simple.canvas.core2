@@ -45,7 +45,7 @@ class StreetScene extends Scene {
         let model = StreetScene.models.main;
         let layersData = {};
         let exclude = [
-            'bottom_tree_p', 'tree2_l_p', 'tree1_l_p', 'p'
+            'bottom_tree_p', 'tree2_l_p', 'tree1_l_p', 'p', 'p_l_box', 'p_fence_l', 'p_left_b'
         ];
         //let renderOnly = ['lamp_post_l']
 
@@ -643,6 +643,39 @@ class StreetScene extends Scene {
                 this.registerFramesDefaultTimer({});
             }
         }), layersData.box.renderIndex+1)
+
+        this.p_l_box = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 100, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'p_l_box')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.box_l.renderIndex+1)
+
+        this.p_fence_l = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 100, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'p_fence_l')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.fence_l.renderIndex+1)
+
+        this.p_left_b = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 100, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'p_left_b')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.left_b.renderIndex+1)
 
         // this.lemn = this.addGo(new GO({
         //     position: this.sceneCenter.clone(),
