@@ -45,7 +45,7 @@ class StreetScene extends Scene {
         let model = StreetScene.models.main;
         let layersData = {};
         let exclude = [
-            'bottom_tree_p', 'tree2_l_p', 'tree1_l_p'
+            'bottom_tree_p', 'tree2_l_p', 'tree1_l_p', 'p'
         ];
         //let renderOnly = ['lamp_post_l']
 
@@ -632,6 +632,17 @@ class StreetScene extends Scene {
                 this.registerFramesDefaultTimer({});
             }
         }), layersData.dpuble_bush_small.renderIndex+1)
+
+        this.p_l = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 100, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'p')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.box.renderIndex+1)
 
         // this.lemn = this.addGo(new GO({
         //     position: this.sceneCenter.clone(),
