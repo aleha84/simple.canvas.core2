@@ -385,8 +385,9 @@ class Scene {
 
             if(c.viewportSizeMultiplier){
                 c.size = this.viewport.mul(c.viewportSizeMultiplier).toInt();
-                console.log('recording size: ' + c.size.toString());
             }
+
+            console.log('recording size: ' + c.size.toString());
 
             if(!c.stopByCode && !c.totalFramesToRecord){
                 throw 'No totalFramesToRecord provided for recording!'

@@ -10,10 +10,11 @@ class StreetScene extends Scene {
                 enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 5,
+                //viewportSizeMultiplier: 7,
+                size: new V2(1200,1200),
                 totalFramesToRecord: 601,
                 frameRate: 60,
-                fileNamePrefix: 'street_wip'
+                fileNamePrefix: 'street'
             }
         }, options)
         super(options);
@@ -676,6 +677,87 @@ class StreetScene extends Scene {
                 this.registerFramesDefaultTimer({});
             }
         }), layersData.left_b.renderIndex+1)
+
+
+        // this.girl = this.addGo(new GO({
+        //     position: this.sceneCenter.clone(),
+        //     size: this.viewport.clone(),
+        //     init() {
+        //         this.img = PP.createImage(StreetScene.models.girl)
+        //     }
+        // }), layersData.road_d.renderIndex+2)
+
+        this.misticLights = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            createlightsFrames({framesCount, size, data}) {
+                let frames = [];
+                let mask = PP.createImage(StreetScene.models.additionals, { renderOnly: [data.maskLayerName]})
+                let sphereSize = new V2(50,50)
+                let halfSize = sphereSize.divide(2).toInt();
+                let gradientDots = colors.createRadialGradient({ size: sphereSize, center: halfSize, radius: new V2(20,20), gradientOrigin: halfSize, angle: 0, maxValue: 0.35 })
+                
+                let linePoints = [];
+                let mainImg = createCanvas(sphereSize, (ctx, size, hlp) => {
+                    for(let y = 0; y < gradientDots.length; y++){
+                        let row = gradientDots[y];
+                        if(!row)
+                            continue;
+
+                        for(let x = 0; x < row.length; x++){
+                            if(!row[x])
+                                continue;
+
+                            if(row[x].length == 0)
+                                continue;
+
+                            let a = Math.max(...row[x].values);
+
+                            a = fast.r(a, 1);
+                            if(row[x].maxValue == undefined)
+                                row[x].maxValue = a;
+                            
+                            hlp.setFillColor(`rgba(63,104,92,${a})`).dot(new V2(x, y));
+                        }
+                    }
+
+                    linePoints = new PP({ctx}).lineV2(data.p1.substract(halfSize), data.p2.substract(halfSize))
+                })
+
+                let indexValues = easing.fast({from: 0, to: linePoints.length-1, steps: framesCount, type: 'linear', round: 0 });
+
+                for(let f = 0; f < framesCount; f++){
+                    frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                        ctx.drawImage(mask, 0, 0);
+
+                        let p = linePoints[indexValues[f]];
+
+                        ctx.globalCompositeOperation = 'source-in'
+                        ctx.drawImage(mainImg, p.x,p.y)
+                    });
+                }
+                
+                return frames;
+            },
+            init() {
+                let data = [
+                    { p1: new V2(200, 7), p2: new V2(7, 200), maskLayerName: 'shine_mask1' },
+                    { p1: new V2(60, 0), p2: new V2(150, 90), maskLayerName: 'shine_mask2' },
+                    { p1: new V2(117, 199), p2: new V2(7, 94), maskLayerName: 'shine_mask3' },
+                    { p1: new V2(28, 111), p2: new V2(10, 24), maskLayerName: 'shine_mask4' }
+                ]
+
+                this.shine = data.map(d => this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.frames = this.parent.createlightsFrames({framesCount: 300, size: this.size, data: d});
+                        this.registerFramesDefaultTimer({});
+                    }
+                })))
+            }
+        }), layersData.luk.renderIndex+2)
+        //
 
         // this.lemn = this.addGo(new GO({
         //     position: this.sceneCenter.clone(),
