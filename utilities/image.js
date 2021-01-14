@@ -982,7 +982,7 @@ var colors = {
                 let currentDot = new V2(x,y);
 
                 if(currentDot.equal(gradientOrigin)){
-                    setDot(x,y, (dot) => setter(dot, 1))
+                    setDot(x,y, (dot) => setter(dot, maxValue))
                     continue;
                 }
 
