@@ -13,10 +13,10 @@ var animationHelpers = {
 
         return data;
     },
-    createMovementFrames({framesCount, itemFrameslength, pointsData, size}) {
+    createMovementFrames({framesCount, itemFrameslength, pointsData, size, pdPredicate = () => true}) {
         let frames = [];
         
-        let itemsData = pointsData.map((pd, i) => {
+        let itemsData = pointsData.filter(pdPredicate).map((pd, i) => {
             let startFrameIndex = getRandomInt(0, framesCount-1);
             let totalFrames = itemFrameslength;
         

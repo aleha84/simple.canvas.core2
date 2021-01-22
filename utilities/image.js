@@ -835,8 +835,23 @@ var colors = {
         return result;
     },
     rgbToString({value, isObject = false, opacity = 1}) {
-        if(isObject)
-            return `rgba(${value.r || value.red || 0}, ${value.g || value.green || 0}, ${value.b || value.blue || 0}, ${(value.opacity != undefined ? value.opacity : opacity)})`;
+        if(isObject){
+            let _opacity = undefined;
+            if(value.opacity != undefined){
+                _opacity = value.opacity;
+            }
+
+            if(_opacity == undefined){
+                _opacity = value.a;
+            }
+
+            if(_opacity == undefined){
+                _opacity = opacity;
+            }
+
+            return `rgba(${value.r || value.red || 0}, ${value.g || value.green || 0}, ${value.b || value.blue || 0}, ${_opacity})`;
+        }
+            
 
         return `rgba(${value[0]}, ${value[1]}, ${value[2]}, ${(value[3]!= undefined ? value[3] : opacity)})`;
     },
