@@ -55,6 +55,14 @@ class NoriBotwScene extends Scene {
                         layerName: 'a5',
                         animationStartFrame: 20,
                     },
+                    {
+                        layerName: 'a6',
+                        animationStartFrame: 25,
+                    },
+                    {
+                        layerName: 'a7',
+                        animationStartFrame: 30,
+                    },
                     
                 ]
 
