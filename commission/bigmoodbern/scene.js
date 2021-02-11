@@ -2,10 +2,20 @@ class BigmoodbernUmbrellaScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                //viewportSizeMultiplier: 5,
+                size: new V2(896,1600),
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'BigmoodbernUmbrella'
+            }
         }, options)
         super(options);
     }
@@ -26,7 +36,19 @@ class BigmoodbernUmbrellaScene extends Scene {
         this.main = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            img: PP.createImage(model, { renderOnly: 'm_0' })
+            img: PP.createImage(model, { renderOnly: 'm_0' }),
+            init() {
+                this.p = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.frames = animationHelpers.createMovementFrames({ framesCount: 150, itemFrameslength: 50, size: this.size, 
+                            pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'p')) });
+
+                        this.registerFramesDefaultTimer({});
+                    }
+                }))
+            }
         }), 10)
 
         this.rain = this.addGo(new GO({
@@ -72,7 +94,7 @@ class BigmoodbernUmbrellaScene extends Scene {
                 let itemFallFrameslengthDeviation = fast.r(itemFallFrameslength*0.1)
                 let itemSplashFramesLengthDeviation = fast.r(itemSplashFramesLength*0.1)
 
-                let oValues = easing.fast({ from: 1, to: 0, steps: itemLength, type: 'quad', method: 'out'}).map(v => fast.r(v,1));
+                let oValues = easing.fast({ from: 1, to: 0, steps: itemLength, type: 'cubic', method: 'out', round: 2})
 
                 let xClamps = [24,88];
                 let width = xClamps[1] - xClamps[0];
@@ -123,12 +145,14 @@ class BigmoodbernUmbrellaScene extends Scene {
                         }
                             
                         return {
-                            aChange: easing.fast({from: 1, to: 0.25, steps: totalSplashFrames, type: 'quad', method: 'out', round: 2}),
+                            aChange: easing.fast({from: 1, to: 0.5, steps: totalSplashFrames, type: 'quad', method: 'out', round: 2}),
                             current: new V2(x, impactY),
                             ds: angle.mul(getRandom(0.25,0.75)),
                             yDelta: getRandom(0.0125,0.025) //getRandom(0.025,0.05)
                         }
                     })
+
+
 
                     for(let f = 0; f < totalSplashFrames; f++){
                         let frameIndex = totalFallFrames + f + startFrameIndex;
@@ -193,13 +217,93 @@ class BigmoodbernUmbrellaScene extends Scene {
                 this.frames = this.createRainFrames({ framesCount: 300, itemsCount: 300, itemFallFrameslength: 100, itemSplashFramesLength: 50, 
                 size: this.size })
 
+                let repeat = 1;
                 this.registerFramesDefaultTimer({
                     framesChangeCallback: () => {
                         let a = true;
+                    },
+                    framesEndCallback: () => { 
+                        repeat--;
+                        if(repeat == 0)
+                            this.parentScene.capturing.stop = true; 
                     }
 
                 });
             }
         }), 15)
+
+        this.createDropsFrames = function({framesCount, itemsCount, itemFrameslength, size, color}) {
+            let frames = [];
+            
+            let dropsStartDots = animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'drop_start_p')).map(p => new V2(p.point).add(new V2(0,1)));
+
+            let itemsData = new Array(itemsCount).fill().map((el, i) => {
+                let startFrameIndex = getRandomInt(0, framesCount-1);
+                let totalFrames = itemFrameslength;
+            
+                let start = dropsStartDots[getRandomInt(0, dropsStartDots.length-1)];
+                if(getRandomBool()) {
+                    let indexClamps = [0, 20];
+                    if(getRandomBool()) {
+                        indexClamps = [dropsStartDots.length-20, dropsStartDots.length-1]
+                    }
+
+                    start = dropsStartDots[getRandomInt(indexClamps[0], indexClamps[1])];
+                }
+                let lengthValues = easing.fast({from: 1, to: getRandomInt(1,3), steps: totalFrames, type: 'quad', method: 'in', round: 0});
+                let yValues = easing.fast({from: start.y, to: size.y + getRandomInt(0,30), steps: totalFrames, type: 'quad', method: 'in'}).map(v => fast.r(v))
+
+                let frames = [];
+                for(let f = 0; f < totalFrames; f++){
+                    let frameIndex = f + startFrameIndex;
+                    if(frameIndex > (framesCount-1)){
+                        frameIndex-=framesCount;
+                    }
+            
+                    frames[frameIndex] = {
+                        y: yValues[f],
+                        length: lengthValues[f]
+                    };
+                }
+            
+                return {
+                    x: start.x,
+                    frames
+                }
+            })
+            
+            for(let f = 0; f < framesCount; f++){
+                frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                    for(let p = 0; p < itemsData.length; p++){
+                        let itemData = itemsData[p];
+                        
+                        if(itemData.frames[f]){
+                            hlp.setFillColor(color).rect(itemData.x,itemData.frames[f].y, 1, itemData.frames[f].length)
+                        }
+                        
+                    }
+                });
+            }
+            
+            return frames;
+        }
+
+        this.frontalDrops = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            frames: this.createDropsFrames({ framesCount: 300, itemsCount: 75, itemFrameslength: 125, size: this.viewport, color: '#009AFB' }),
+            init() {
+                this.registerFramesDefaultTimer({});
+            }
+        }), 20)
+
+        this.backDrops = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            frames: this.createDropsFrames({ framesCount: 300, itemsCount: 75, itemFrameslength: 125, size: this.viewport, color: '#0074bd' }),
+            init() {
+                this.registerFramesDefaultTimer({});
+            }
+        }), 5)
     }
 }
