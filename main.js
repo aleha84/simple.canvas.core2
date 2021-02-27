@@ -8,20 +8,38 @@ SCG.main = {
 		thresholdMaxCount: 10
 	},
 	cycle: {
-		process(){ //main work cycle, never stops
-			SCG.main.cycle.draw();
+		limitFps: {
+			enabled: true,
+			fpsInterval: 1000 / 60,
+			then: window.performance.now(),
+			startTime:window.performance.now()
+		},
+		process(newtime){ //main work cycle, never stops
+			let c = SCG.main.cycle;
+			if(c.shouldBreakCycle)
+				return;
 
-			if(SCG.scenes.activeScene.capturing && SCG.scenes.activeScene.capturing.enabled){
-				let processResult = Recorder.process();
+			requestAnimationFrame(SCG.main.cycle.process);
+			
+			let now = newtime;
+			let elapsed = now - c.limitFps.then;
 
-				if(processResult){
-					if(processResult.stopCycle){
-						return;
+			if (!c.limitFps.enabled || elapsed > c.limitFps.fpsInterval) {
+				c.limitFps.then = now - (elapsed % c.limitFps.fpsInterval);
+
+				c.draw();
+
+				if(SCG.scenes.activeScene.capturing && SCG.scenes.activeScene.capturing.enabled){
+					let processResult = Recorder.process();
+
+					if(processResult){
+						if(processResult.stopCycle){
+							c.shouldBreakCycle = true;
+							return;
+						}
 					}
 				}
 			}
-
-			requestAnimationFrame(SCG.main.cycle.process);
 		},
 		draw(){ // drawing on canvas based on current selected scene
 			var _as = SCG.scenes.activeScene;
