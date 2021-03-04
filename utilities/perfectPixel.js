@@ -1,9 +1,11 @@
 class PerfectPixel {
     constructor(options = {}){
         this.fillStyleProvider = undefined;
+        this.positionModifier = undefined;
         
         assignDeep(this, {
-            fillStyleProvider: undefined
+            fillStyleProvider: undefined,
+            positionModifier: undefined,
         }, options)
 
         if(this.ctx ==- undefined && this.context === undefined){
@@ -23,6 +25,14 @@ class PerfectPixel {
     setPixel(x, y){
         if(this.fillStyleProvider)
             this.ctx.fillStyle = this.fillStyleProvider(x, y);
+        
+        if(this.positionModifier){
+            let res = this.positionModifier(x,y)
+
+            x = res.x;
+            y = res.y;
+        }
+            
 
         if(this.clear){
             this.removePixel(x,y);
@@ -263,7 +273,8 @@ PP.createImage = function(model, params = {}) {
         renderOnly: [], 
         exclude: [],
         colorsSubstitutions: {},
-        forceVisivility: {}
+        forceVisivility: {},
+        positionModifier: undefined
     }, params);
 
     let renderGroup = (pp, group) => {
@@ -378,7 +389,7 @@ PP.createImage = function(model, params = {}) {
 
     let renderFrame =  (main) => {
         return createCanvas(general.size, (ctx, size) => {
-            let pp = new PerfectPixel({context: ctx});
+            let pp = new PerfectPixel({context: ctx, positionModifier: params.positionModifier});
             for(let layer of main.layers.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
                 if(params.forceVisivility[layer.name]) {
                     if(!params.forceVisivility[layer.name].visible)
