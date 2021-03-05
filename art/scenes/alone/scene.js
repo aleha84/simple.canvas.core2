@@ -2,10 +2,20 @@ class AloneHouseScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                //viewportSizeMultiplier: 5,
+                size: new V2(1200,1200),
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'alone'
+            }
         }, options)
         super(options);
     }
@@ -18,7 +28,7 @@ class AloneHouseScene extends Scene {
         let model = AloneHouseScene.models.main;
         let layersData = {};
         let exclude = [
-            'forest_p'
+            'forest_p', 'snow_p', 'tree_p', 'close_p'
         ];
 
         for(let i = 0; i < model.main.layers.length; i++) {
@@ -53,10 +63,17 @@ class AloneHouseScene extends Scene {
             //frames: PP.createImage(AloneHouseScene.models.smokeFrames2),
             init() {
                 let model = AloneHouseScene.models.smokeFrames2;
-                // model.main.forEach(frame => {
-                //     frame.layers[0].groups[1].visible = false;
-                //     frame.layers[0].groups[2].strokeColor = frame.layers[0].groups[0].strokeColor;
-                // });
+                model.main.forEach(frame => {
+                    //frame.layers[0].groups[1].visible = false;
+                    //frame.layers[0].groups[2].strokeColor = frame.layers[0].groups[0].strokeColor;
+                    frame.layers[0].groups[0].strokeColor  = '#F9BE7C'
+                    //frame.layers[0].groups[0].strokeColorOpacity = 0.75
+                    frame.layers[0].groups[0].fillColor  = '#F9BE7C'
+                    //frame.layers[0].groups[0].fillColorOpacity = 0.75
+                    frame.layers[0].groups[1].strokeColor  = '#EAA95D';
+                    //frame.layers[0].groups[1].fillColorOpacity = 0.75
+                    frame.layers[0].groups[2].strokeColor  = '#EAA95D';
+                });
 
                 this.frames =  PP.createImage(model, {
                     positionModifier: (x, y) => {
@@ -74,23 +91,83 @@ class AloneHouseScene extends Scene {
                         return res;
 
                     }
+                });
+
+                let overlay = createCanvas(this.size, (ctx, size, hlp) => {
+                    let aChange = easing.fast({from: 0, to: 0.3, steps: size.y-1, type: 'expo', method: 'in', round: 2})
+                    for(let y = 0; y < size.y; y++){
+                        if(y < size.y/2) {
+                            hlp.setFillColor(`rgba(255,255,255,${aChange[size.y-1-y]})`).rect(0,y,size.x, 1);
+                        }
+                        else {
+                            hlp.setFillColor(`rgba(0,0,0,${aChange[y]})`).rect(0,y,size.x, 1);
+                        }
+                    }
+                    
                 })
 
-                this.registerFramesDefaultTimer({originFrameChangeDelay: 8, debug: false});
+                this.frames = this.frames.map(frame => {
+                    return createCanvas(this.size, (ctx, size, hlp) => {
+                        ctx.drawImage(frame, 0,0);
+                        ctx.globalCompositeOperation = 'source-atop';
+                        ctx.drawImage(overlay, 0,0);
+                    })
+                })
+
+                this.registerFramesDefaultTimer({originFrameChangeDelay: 10, debug: false,
+                    
+                });
 
             }
         }), layersData['small_h'].renderIndex + 1)
 
-        this.addGo(new GO({
+        this.forest_p = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
-                this.frames = animationHelpers.createMovementFrames({ framesCount: 480, itemFrameslength: 100, size: this.size, 
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 600, itemFrameslength: 100, size: this.size, 
                     pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'forest_p')) });
+
+                this.registerFramesDefaultTimer({
+                    framesEndCallback: () => {
+                        this.parentScene.capturing.stop = true;
+                    }
+                });
+            }
+        }), layersData['forest'].renderIndex + 1)
+
+        this.snow_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 600, itemFrameslength: 100, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'snow_p')) });
 
                 this.registerFramesDefaultTimer({});
             }
-        }), layersData['forest'].renderIndex + 1)
+        }), layersData['car'].renderIndex + 1)
+
+        this.tree_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 150, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'tree_p')) });
+
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData['car'].renderIndex + 1)
+
+        this.close_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 150, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'close_p')) });
+
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData['car'].renderIndex + 1)
 
         this.fog = this.addGo(new GO({
             position: this.sceneCenter.clone(),
@@ -187,7 +264,7 @@ class AloneHouseScene extends Scene {
                     position: new V2(0,-5),
                     size: this.size,
                     init() {
-                        this.frames = this.parent.createFogFrames({xShiftClamps: [-5,-10], framesCount:480, itemsCount: 500, itemFrameslength: 480, size: this.size})
+                        this.frames = this.parent.createFogFrames({xShiftClamps: [-5,-10], framesCount:600, itemsCount: 500, itemFrameslength: 600, size: this.size})
                         this.registerFramesDefaultTimer({});
                     }
                 }))
@@ -196,7 +273,7 @@ class AloneHouseScene extends Scene {
                     position: new V2(),
                     size: this.size,
                     init() {
-                        this.frames = this.parent.createFogFrames({xShiftClamps:[-10,-15] , framesCount:480, itemsCount: 500, itemFrameslength: 480, size: this.size})
+                        this.frames = this.parent.createFogFrames({xShiftClamps:[-10,-15] , framesCount:600, itemsCount: 500, itemFrameslength: 600, size: this.size})
                         this.registerFramesDefaultTimer({});
                     }
                 }))
@@ -216,7 +293,7 @@ class AloneHouseScene extends Scene {
         this.wires = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
-            createWiresFrames({framesCount, dotsData,xClamps, size}) {
+            createWiresFrames({framesCount, dotsData,xClamps, yClamps, size, invert = false, c1, c2}) {
                 let frames = [];
                 let xClamp = [0, 174] //35
                 let _sharedPP;
@@ -256,24 +333,51 @@ class AloneHouseScene extends Scene {
                 let framesData = [];
                  for(let f = 0; f < framesCount; f++){
                     framesData[f] = {dots: []};
-                    let dots = dotsData.map(dd => dd.dots[f]);
+                    let dots = dotsData.map(dd => {
+                        if(invert) {
+                            return {x: dd.dots[f].y, y: dd.dots[f].x}
+                        }
+
+                        return dd.dots[f]
+                    });
+
+
                     let formula = mathUtils.getCubicSplineFormula(dots);
-                    for(let x = xClamps[0]; x < xClamps[1]; x++){
-                        let y=  fast.r(formula(x));
-                        framesData[f].dots.push({x,y});
+                    
+                    if(invert) {
+                        for(let _y = yClamps[0]; _y < yClamps[1]; _y++){
+                            let _x=  fast.r(formula(_y));
+                            framesData[f].dots.push({x:_x,y:_y});
+                        }
                     }
+                    else {
+                        for(let x = xClamps[0]; x < xClamps[1]; x++){
+                            let y=  fast.r(formula(x));
+                            framesData[f].dots.push({x,y});
+                        }
+                    }
+                    
                 }
                 
                 for(let f = 0; f < framesCount; f++){
                     frames[f] = createCanvas(size, (ctx, size, hlp) => {
                         let prev = undefined;
                         for(let i = 0; i < framesData[f].dots.length; i++){
-                            hlp.setFillColor('rgba(36,31,21,1)').dot(framesData[f].dots[i].x, framesData[f].dots[i].y);
+                            hlp.setFillColor(c1).dot(framesData[f].dots[i].x, framesData[f].dots[i].y);
 
-                            if(prev != undefined && prev.y != framesData[f].dots[i].y) {
-                                hlp.setFillColor('rgba(36,31,21,0.5)')
-                                    .dot(framesData[f].dots[i].x-1, framesData[f].dots[i].y)
-                                    .dot(framesData[f].dots[i].x, framesData[f].dots[i].y+1);
+                            if(invert) {
+                                if(prev != undefined && prev.x != framesData[f].dots[i].x) {
+                                    hlp.setFillColor(c2)
+                                        .dot(framesData[f].dots[i].x, framesData[f].dots[i].y-1)
+                                        .dot(framesData[f].dots[i].x+1, framesData[f].dots[i].y);
+                                }
+                            }
+                            else {
+                                if(prev != undefined && prev.y != framesData[f].dots[i].y) {
+                                    hlp.setFillColor(c2)
+                                        .dot(framesData[f].dots[i].x-1, framesData[f].dots[i].y)
+                                        .dot(framesData[f].dots[i].x, framesData[f].dots[i].y+1);
+                                }
                             }
 
                             prev = framesData[f].dots[i];
@@ -288,15 +392,18 @@ class AloneHouseScene extends Scene {
                     position: new V2(),
                     size: this.size,
                     init() {
-                        let xClamps = [0, 200] //35
+                        let xClamps = [0, 133] //35
 
-                        this.frames = this.parent.createWiresFrames({ framesCount:480, 
+                        this.frames = this.parent.createWiresFrames({ framesCount:600, 
                             dotsData: [
-                                { dots: [new V2(0, 138), new V2(0, 138.5)] }, 
-                                { dots: [new V2(48, 135), new V2(48, 135.25)] }, 
-                                { dots: [new V2(74, 132)] }
+                                { dots: [new V2(0, 148), new V2(0, 148.5)] }, 
+                                { dots: [new V2(48, 140), new V2(48, 140.25)] }, 
+                                { dots: [new V2(74, 132)] },
+                                // { dots: [new V2(44, 173), new V2(44.25, 173)] },
+                                // { dots: [new V2(4, 199), new V2(4.5, 199)] },
                             ],
-                            xClamps, size: this.size })
+                            xClamps, yClamps: [132, 200], size: this.size, invert: false,
+                        c1: 'rgba(36,31,21,1)', c2: 'rgba(36,31,21,0.5)' })
 
                         this.registerFramesDefaultTimer({});
                     }
@@ -304,28 +411,23 @@ class AloneHouseScene extends Scene {
 
                 
 
-                // this.wire2 = this.addChild(new GO({
-                //     position: new V2(),
-                //     size: this.size,
-                //     init() {
-                //         let xClamps = [0, 186] //35
+                this.wire2 = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        let xClamps = [51, 111] //35
 
-                //         this.frames = this.parent.createWiresFrames({ framesCount:300, 
-                //             dotsData: [
-                //                 { dots: [new V2(0, 91+11), new V2(0, 88+11)] }, 
-                //                 { dots: [new V2(50+5, 86+11), new V2(50+5, 84+11)] }, 
-                //                 { dots: [new V2(129+5, 60+11), new V2(129+5, 59+11)] }, 
-                //                 { dots: [new V2(186,45)] }
-                //                 // { dots: [new V2(0, 99), new V2(0, 96)] }, 
-                //                 // { dots: [new V2(64, 91), new V2(64, 89)] }, 
-                //                 // { dots: [new V2(135, 71), new V2(135, 70)] }, 
-                //                 // { dots: [new V2(186,45)] }
-                //             ],
-                //             xClamps, size: this.size })
+                        this.frames = this.parent.createWiresFrames({ framesCount:600, 
+                            dotsData: [
+                                { dots: [new V2(51,124), new V2(51, 124.25)] }, 
+                                { dots: [new V2(77,122), new V2(77,122.15)] }, 
+                                { dots: [new V2(110,116)] }
+                            ],
+                            xClamps, size: this.size, c1: 'rgba(0,0,0,0.25)', c2: 'rgba(0,0,0,0.05)' })
 
-                //         this.registerFramesDefaultTimer({startFrameIndex: 50});
-                //     }
-                // }))
+                        this.registerFramesDefaultTimer({startFrameIndex: 100});
+                    }
+                }))
             }
         }), layersData.close_snow.renderIndex+2 )
     }
