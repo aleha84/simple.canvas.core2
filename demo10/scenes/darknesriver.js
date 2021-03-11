@@ -5,10 +5,11 @@ class Demo10DarknessRiverScene extends Scene {
                 enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 7,
+                viewportSizeMultiplier: 5,
+                //size: new V2(896,1600),
                 totalFramesToRecord: 601,
                 frameRate: 60,
-                fileNamePrefix: 'river'
+                fileNamePrefix: 'river_red'
             },
             debug: {
                 enabled: false,
@@ -83,7 +84,7 @@ class Demo10DarknessRiverScene extends Scene {
                            
                            if(itemData.frames[f]){
                                let index = itemData.frames[f].index;
-                                hlp.setFillColor(`rgba(255,255,255, ${oValues[index]})`).dot(itemData.x, itemData.y - yShiftValues[index])
+                                hlp.setFillColor(`rgba(255,0,0, ${oValues[index]})`).dot(itemData.x, itemData.y - yShiftValues[index])
                            }
                            
                        }
@@ -126,13 +127,13 @@ class Demo10DarknessRiverScene extends Scene {
                     sharedPP = new PP({ctx});
                 })
                 
-                let opacityValues = easing.fast({from: 1, to: 0.3, steps: itemFrameslength, type: 'quad', method: 'out'}).map(v => fast.r(v,2));
+                let opacityValues = easing.fast({from: 1, to: 0.4, steps: itemFrameslength, type: 'quad', method: 'out'}).map(v => fast.r(v,2));
                 let tailLengthValues = easing.fast({from: tailLength, to: 1, steps: itemFrameslength, type: 'quad', method: 'out'}).map(v => fast.r(v));
 
                 let circlesData = [];
                 let circlesMaxR = 8;
 
-                let circlesOpacityValues = easing.fast({from: 0.25, to: 0, steps: circleFramesCount, type: 'cubic', method: 'out'}).map(v => fast.r(v,2));
+                let circlesOpacityValues = easing.fast({from: 0.3, to: 0, steps: circleFramesCount, type: 'cubic', method: 'out'}).map(v => fast.r(v,2));
                 let circlesYShift = easing.fast({from: 0, to: -15, steps: circleFramesCount, type: 'linear', method: 'base'}).map(v => fast.r(v));
 
 
@@ -158,7 +159,7 @@ class Demo10DarknessRiverScene extends Scene {
                     let totalFrames = itemFrameslength;
                 
                     let frames = [];
-                    for(let f = 0; f < totalFrames; f++){
+                    for(let f = 0; f < totalFrames - 5; f++){
                         let frameIndex = f + startFrameIndex;
                         if(frameIndex > (framesCount-1)){
                             frameIndex-=framesCount;
@@ -169,7 +170,7 @@ class Demo10DarknessRiverScene extends Scene {
                         };
                     }
 
-                    let circlesStartFrameIndex = startFrameIndex + totalFrames;
+                    let circlesStartFrameIndex = startFrameIndex + totalFrames-5;
                     totalFrames = circleFramesCount;
 
                     let circlesRValues = easing.fast({from: 1, to: getRandomInt(circlesMaxR/2, circlesMaxR), steps: circleFramesCount, type: 'quad', method: 'out'}).map(v => fast.r(v));
@@ -199,6 +200,9 @@ class Demo10DarknessRiverScene extends Scene {
                     }
                 })
                 
+                let cache = [];
+
+
                 for(let f = 0; f < framesCount; f++){
                     frames[f] = createCanvas(size, (ctx, size, hlp) => {
 
@@ -209,7 +213,13 @@ class Demo10DarknessRiverScene extends Scene {
                                 let r = itemData.circlesRValues[index];
                                 let opacity = circlesOpacityValues[index];
 
-                                let circleImage = PP.createImage(Demo10DarknessRiverScene.models.circles[r], { colorsSubstitutions: { '#FF0000': { color: '#ffffff', opacity  } } })
+                                let key = r + '_' + opacity;
+                                let circleImage = cache[key];
+                                if(!circleImage) {
+                                    circleImage = PP.createImage(Demo10DarknessRiverScene.models.circles[r], { colorsSubstitutions: { '#FF0000': { color: '#FF0000', opacity  } } })
+                                    cache[key] = circleImage
+                                }
+
                                 //hlp.setFillColor(`rgba(255,255,255, ${opacity})`).strokeEllipsis(0, 360, 5, itemData.p.add(new V2(0, circlesYShift[index])), r,r, undefined, true);
                                 ctx.drawImage(circleImage, itemData.p.x - r, itemData.p.y - r + circlesYShift[index])
 
@@ -238,7 +248,7 @@ class Demo10DarknessRiverScene extends Scene {
                                         let point = itemData.points[pointIndex];
 
                                         let opacity = oValues[i];
-                                        hlp.setFillColor(`rgba(255,255,255, ${opacity})`).dot(point.x, point.y);
+                                        hlp.setFillColor(`rgba(255,0,0, ${opacity})`).dot(point.x, point.y);
                                     }
                                     
                                 }
@@ -254,7 +264,7 @@ class Demo10DarknessRiverScene extends Scene {
             },
             init() {
                 this.frames = this.createDropsFrames({framesCount: 200, itemsCount: 600, itemFrameslength: 100, circleFramesCount: 50, size: this.size, tailLength: 40})
-                let count = 5;
+                let count = 1;
                 this.currentFrame = 0;
                 this.img = this.frames[this.currentFrame];
                 

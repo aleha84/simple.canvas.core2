@@ -10,6 +10,11 @@ function getRandom(min, max){
 }
 
 function getRandomInt(min, max){
+  if(isArray(min)){
+    max = min[1];
+    min = min[0]; 
+  }
+  
   return fastRoundWithPrecision(getRandom(min, max));
 }
 

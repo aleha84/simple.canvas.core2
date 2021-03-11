@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     SCG.scenes.cacheScene(new Demo10DarknessRiverScene({
         name: 'darkness',
-        viewport: _100x150_viewport
+        viewport: new V2(112, 200)//_100x150_viewport
     }))
 
     SCG.scenes.cacheScene(new Demo10IntouristScene({
