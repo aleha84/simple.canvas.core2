@@ -2,7 +2,7 @@ class TreeScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: false,
                 additional: ['WIP - work in progress'],
             },
@@ -10,8 +10,8 @@ class TreeScene extends Scene {
                 enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 5,
-                //size: new V2(1200,1200),
+                //viewportSizeMultiplier: 5,
+                size: new V2(2000,1130),
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'tree'
@@ -45,7 +45,7 @@ class TreeScene extends Scene {
         let model = TreeScene.models.main;
         let layersData = {};
         let exclude = [
-            'tree_p','lake_borders', "clouds_ref_p", 'g_p', 'fore_1', 'grass', 'fore_p'
+            'tree_p','lake_borders', "clouds_ref_p", 'g_p', 'fore_1', 'grass', 'fore_p', 'bg_p'
         ];
 
         for(let i = 0; i < model.main.layers.length; i++) {
@@ -439,6 +439,69 @@ class TreeScene extends Scene {
             }
         }), layersData.tree.renderIndex+1)
 
+        this.cloudsFront1 = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                if(!renderClouds)
+                    return;
+
+                let tf = 600
+
+                let params = [
+                    {
+                        framesCount: tf, itemsCount: 200, itemFrameslength: tf, color: '#DEF0FF', size: this.size,
+                            directionAngleClamps: [-100, -90], distanceClamps: [20,40], sizeClamps: [3,5], 
+                            initialProps: {
+                                line: true, p1: new V2(190,79), p2: new V2(155,79)
+                            }, yShiftClamps: [-4,-6]
+                    },
+
+                    {
+                        framesCount: tf, itemsCount: 200, itemFrameslength: tf, color: '#DEF0FF', size: this.size,
+                            directionAngleClamps: [-100, -90], distanceClamps: [20,40], sizeClamps: [3,5], 
+                            initialProps: {
+                                line: true, p1: new V2(125,79), p2: new V2(80,79)
+                            }, yShiftClamps: [-4,-6]
+                    },
+                ]
+
+                let itemsFrames = params.map(p => createCloudsFrames(p))
+                let lowerClampImg = createCanvas(this.size, (ctx, size, hlp) => {
+                    hlp.setFillColor('red').rect(0,0, size.x, 78);
+                })
+
+                this.frames = [];
+                for(let f =0; f < tf; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        for(let i = 0; i < itemsFrames.length; i++){
+                            ctx.drawImage(itemsFrames[i][f],0,0);
+                        }
+
+                        ctx.globalCompositeOperation = 'destination-in';
+                        ctx.drawImage(lowerClampImg,0,0);
+                    })
+                }
+
+                this.registerFramesDefaultTimer({});
+
+                // params.map(p => {
+                //     this.addChild(new GO({
+                //         position: new V2(),
+                //         size: this.size,
+                //         frames: createCloudsFrames(
+                //             p
+                //         ),
+                //         init() {
+                //             this.registerFramesDefaultTimer({});
+                //         }
+                //     }))
+                // })
+
+                
+            }
+        }), layersData.mid.renderIndex+1)
+
         this.tree_p = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
@@ -558,11 +621,15 @@ class TreeScene extends Scene {
                     innerDots = pp.fillByCornerPoints(cornerPoints.map(p => new V2(p.point)));
                 })
 
-                let itemsData = new Array(fast.r(innerDots.length/2)).fill().map((el, i) => {
+                let itemsData = new Array(fast.r(innerDots.length*2/2)).fill().map((el, i) => {
                     let startFrameIndex = getRandomInt(0, framesCount-1);
                     let totalFrames = getRandomInt(itemFrameslengthClamp[0], itemFrameslengthClamp[1]);
                 
-                    let aMax = fast.r(getRandom(0.25,0.75),2)
+                    let aMax = fast.r(getRandom(0.25,0.35),2)
+                    if(getRandomInt(0,4) == 0){
+                        aMax = fast.r(getRandom(0.6,0.8),2)
+                    }
+
                     let aValues = [
                         ...easing.fast({ from: 0, to: aMax, steps: fast.r(totalFrames/2), type: 'quad', method: 'inOut', round: 2}),
                         ...easing.fast({ from: aMax, to: 0, steps: fast.r(totalFrames/2), type: 'quad', method: 'inOut', round: 2})
@@ -572,6 +639,7 @@ class TreeScene extends Scene {
 
                     let frames = [];
                     if(getRandomInt(0,3) == 3){
+
                         for(let f = 0; f < totalFrames; f++){
                             let frameIndex = f + startFrameIndex;
                             if(frameIndex > (framesCount-1)){
@@ -737,5 +805,33 @@ class TreeScene extends Scene {
                 }))
             }
         }), layersData.grass.renderIndex)
+
+        this.bg_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                let data = [];
+
+                let pp = undefined;
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    pp = new PP({ctx});
+                })
+
+                // data.push(...pp.fillByCornerPoints([new V2(199,30), new V2(140,61), new V2(155,69), new V2(199,48)]).map(p => ({color: '#43a2bc', point: p})))
+                // data.push(...pp.fillByCornerPoints([new V2(199,22), new V2(133,59), new V2(143,64), new V2(199,34)]).map(p => ({color: '#3990b5', point: p})))
+                // data.push(...pp.fillByCornerPoints([new V2(199,45), new V2(153,68), new V2(162,72), new V2(199,46)]).map(p => ({color: '#3990b5', point: p})))
+                // data.push(...pp.fillByCornerPoints([new V2(199,17), new V2(121,61), new V2(129,60), new V2(199,24)]).map(p => ({color: '#2f7dad', point: p})))
+                // data.push(...pp.fillByCornerPoints([new V2(199,54), new V2(162,73), new V2(166,75), new V2(199,59)]).map(p => ({color: '#2f7dad', point: p})))
+                data = animationHelpers.extractPointData(TreeScene.models.main.main.layers.find(l => l.name == 'bg_p'));
+
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 150, itemFrameslength: 25, size: this.size, 
+                    pdPredicate: () => getRandomInt(0,3) == 0,
+                    pointsData: data });
+    
+                this.registerFramesDefaultTimer({
+                    
+                });
+            }
+        }), layersData.bg.renderIndex+1)
     }
 }
