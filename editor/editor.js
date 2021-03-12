@@ -970,9 +970,11 @@ class Editor {
 
                 let saveNameInput = htmlUtils.createElement('input', { value: 'image_000', attributes: { type: 'text' } });
                 let saveSizeInput = htmlUtils.createElement('input', { value: 1, attributes: { type: 'number' } });
+                let saveBg = components.createCheckBox(false, "Add bg", () => {})
 
                 containerEl.appendChild(saveNameInput);
                 containerEl.appendChild(saveSizeInput);
+                containerEl.appendChild(saveBg);
 
                 containerEl.appendChild(htmlUtils.createElement('input', { value: 'Ok', attributes: { type: 'button' }, events: {
                     click: function(){
@@ -984,7 +986,25 @@ class Editor {
                         if(saveSize < 1)
                             saveSize = 1
 
-                        colors.saveImage(SCG.scenes.activeScene.mainGo.img, 
+                        let img = SCG.scenes.activeScene.mainGo.img;
+
+                        if(saveBg.chk.checked){
+                            img = createCanvas(SCG.scenes.activeScene.mainGo.originalSize, (ctx, size, hlp) => {
+                              
+                                if(SCG.scenes.activeScene.underlyingImg.img){
+                                    ctx.drawImage(SCG.scenes.activeScene.underlyingImg.img, 0, 0)
+                                }
+                                else {
+                                    ctx.drawImage(createCanvas(size, (ctx, _size, hlp) => {
+                                        hlp.setFillColor(that.image.general.backgroundColor).rect(0,0, _size.x, _size.y);
+                                    }), 0, 0)    
+                                }
+
+                                ctx.drawImage(SCG.scenes.activeScene.mainGo.img, 0, 0)
+                            })
+                        }
+
+                        colors.saveImage(img, 
                             { 
                                 size: SCG.scenes.activeScene.mainGo.originalSize.mul(saveSize), 
                                 name: saveName + ( saveSize > 1 ? '_scale_' + saveSize : '' ) + '.png' 
