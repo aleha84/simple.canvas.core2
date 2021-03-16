@@ -297,7 +297,11 @@ PP.createImage = function(model, params = {}) {
                 if(substOpacity == undefined){
                     substOpacity = group.strokeColorOpacity;
                 }
-                strokeColor = `rgba(${hexToRgb(cSubst.color)},${substOpacity})`;
+
+                if(!cSubst.keepStrokeColor){
+                    strokeColor = `rgba(${hexToRgb(cSubst.color)},${substOpacity})`;
+                }
+
                 if(cSubst.changeFillColor){
                     fillColor = strokeColor;
                 }
