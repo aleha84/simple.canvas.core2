@@ -16,6 +16,45 @@
 	// 	"description": "Log output to console"
 	// }
 
+	"layersRenders": {
+		"scope": "javascript",
+		"prefix": "layersRenderers",
+		"description": "По слойный рендеринг модели в отдельные объекты",
+		"body": [
+			"let model = ${1:Scene}.models.main;",
+			"let layersData = {};",
+			"let exclude = [",
+				"\t",
+			"];",
+			"",
+			"for(let i = 0; i < model.main.layers.length; i++) {",
+				"\tlet layer = model.main.layers[i];",
+				"\tlet layerName = layer.name || layer.id;",
+				"\tlet renderIndex = i*10;",
+				"",
+				"layersData[layerName] = {",
+					"\trenderIndex",
+				"}",
+				"",
+				"if(exclude.indexOf(layerName) != -1){",
+					"\tconsole.log(`${layerName} - skipped`)",
+					"\tcontinue;",
+				"}",
+				"",
+				"this[layerName] = this.addGo(new GO({",
+					"\tposition: this.sceneCenter.clone(),",
+					"\tsize: this.viewport.clone(),",
+					"\timg: PP.createImage(model, { renderOnly: [layerName] }),",
+					"\tinit() {",
+					"",	
+					"\t}",
+				"}), renderIndex)",
+				"",
+				"console.log(`${layerName} - ${renderIndex}`)",
+			"}",
+		]
+	},
+
 	"recordingRedRectangle": {
 		"scope": "javascript",
 		"prefix": "redRectangle",
