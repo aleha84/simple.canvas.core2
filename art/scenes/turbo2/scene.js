@@ -19,7 +19,7 @@ class Turbo2Scene extends Scene {
         let model = Turbo2Scene.models.main;
         let layersData = {};
         let exclude = [
-            
+            'tree_p'
         ];
         
         for(let i = 0; i < model.main.layers.length; i++) {
@@ -103,6 +103,7 @@ class Turbo2Scene extends Scene {
                     { layerName: 'l21', animationStartFrame: 40},
                     { layerName: 'l22', animationStartFrame: 35},
                     { layerName: 'l23', animationStartFrame: 25},
+                    { layerName: 'l24', animationStartFrame: 10},
                 ]
 
                 this.animations = aniParams.map(p => this.addChild(new GO({
@@ -162,6 +163,17 @@ class Turbo2Scene extends Scene {
                 })));
             }
         }), layersData.tree.renderIndex+1)
+
+        this.tree_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementRotFrames({ framesCount: 300, itemFrameslength: 150, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'tree_p')) });
+
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.tree.renderIndex+2)
 
         //bushes
 
