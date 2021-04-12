@@ -19,7 +19,7 @@ class Turbo2Scene extends Scene {
         let model = Turbo2Scene.models.main;
         let layersData = {};
         let exclude = [
-            'tree_p', 'island_p', 'island_p2'
+            'tree_p', 'island_p', 'island_p2', 'bushes_p'
         ];
         
         for(let i = 0; i < model.main.layers.length; i++) {
@@ -311,6 +311,89 @@ class Turbo2Scene extends Scene {
         }), layersData.tree.renderIndex+2)
 
         //bushes
+        this.bushesAnimation = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                let totalFrames = 150;
+                let totalAnimationFrames = 100;
+                let oneFrameLength = 20;
+                let oneFrameStartShift = fast.r(((totalFrames-totalAnimationFrames)/2) - oneFrameLength/2);
+
+                let aniParams = [
+                    { layerName: 'l1', animationStartFrame: 0, },
+                    { layerName: 'l2', animationStartFrame: 40, },
+                    { layerName: 'l3', animationStartFrame: 50, },
+                    { layerName: 'l4', animationStartFrame: 60, },
+                    { layerName: 'l5', animationStartFrame: 70, },
+                    { layerName: 'l6', animationStartFrame: 80, },
+                ]
+
+                this.animations = aniParams.map(p => this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Turbo2Scene.models.bushAnimation, { renderOnly: [p.layerName] }),
+                    init() {
+                        let framesIndexValues = new Array(totalFrames).fill(0)//.map((el,i) => getRandomInt(0,3) == 0 ? 1: 0);
+
+                        let animationStartFrame = p.animationStartFrame;
+
+                        //animationStartFrame = getRandomInt(0, totalFrames-1);
+
+                        let animationFramesIndexValues = 
+                            [
+                                ...easing.fast({ from: 0, to: this.frames.length-1, steps: totalAnimationFrames/2, type: 'quad', method: 'out', round: 0}), 
+                                ...easing.fast({ from: this.frames.length-1, to: 0, steps: totalAnimationFrames/2, type: 'quad', method: 'out', round: 0})
+                            ]
+
+                        let aniIndex = 0;
+                        for(let i = 0; i < totalAnimationFrames; i++){
+                            let index = animationStartFrame + i;
+                            
+                            if(index > (totalFrames-1)){
+                                index-=totalFrames;
+                            }
+
+                            framesIndexValues[index] = animationFramesIndexValues[i];
+                            aniIndex = index;
+                        }
+
+                        for(let i =0; i < oneFrameLength; i++){
+                            let index = aniIndex + i;
+
+                            if(index > (totalFrames-1)){
+                                index-=totalFrames;
+                            }
+
+                            framesIndexValues[index] = 1;
+                        }
+
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[framesIndexValues[this.currentFrame]];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            this.img = this.frames[framesIndexValues[this.currentFrame]];
+                            this.currentFrame++;
+                            if(this.currentFrame == totalFrames){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                })));
+            }
+        }), layersData.bushes.renderIndex+1)
+
+        this.bushes_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementRotFrames({ framesCount: 300, itemFrameslength: 150, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'bushes_p')) });
+
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.bushes.renderIndex+2)
 
         //stolb
         this.wires = this.addGo(new GO({
@@ -502,6 +585,78 @@ class Turbo2Scene extends Scene {
     
 
         //road
+        this.roadAnimation = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                let totalFrames = 150;
+                let totalAnimationFrames = 80;
+                let oneFrameLength = 30;
+                let oneFrameStartShift = fast.r(((totalFrames-totalAnimationFrames)/2) - oneFrameLength/2);
+
+                let aniParams = [
+                    { layerName: 'l1', animationStartFrame: 0, },
+                    { layerName: 'l2', animationStartFrame: 10, },
+                    { layerName: 'l3', animationStartFrame: 20, },
+                    // { layerName: 'l4', animationStartFrame: 60, },
+                    // { layerName: 'l5', animationStartFrame: 70, },
+                    // { layerName: 'l6', animationStartFrame: 80, },
+                ]
+
+                this.animations = aniParams.map(p => this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(Turbo2Scene.models.roadAnimation, { renderOnly: [p.layerName] }),
+                    init() {
+                        let framesIndexValues = new Array(totalFrames).fill(0)//.map((el,i) => getRandomInt(0,3) == 0 ? 1: 0);
+
+                        let animationStartFrame = p.animationStartFrame;
+
+                        //animationStartFrame = getRandomInt(0, totalFrames-1);
+
+                        let animationFramesIndexValues = 
+                            [
+                                ...easing.fast({ from: 0, to: this.frames.length-1, steps: totalAnimationFrames/2, type: 'quad', method: 'out', round: 0}), 
+                                ...easing.fast({ from: this.frames.length-1, to: 0, steps: totalAnimationFrames/2, type: 'quad', method: 'out', round: 0})
+                            ]
+
+                        let aniIndex = 0;
+                        for(let i = 0; i < totalAnimationFrames; i++){
+                            let index = animationStartFrame + i;
+                            
+                            if(index > (totalFrames-1)){
+                                index-=totalFrames;
+                            }
+
+                            framesIndexValues[index] = animationFramesIndexValues[i];
+                            aniIndex = index;
+                        }
+
+                        for(let i =0; i < oneFrameLength; i++){
+                            let index = aniIndex +oneFrameStartShift+ i;
+
+                            if(index > (totalFrames-1)){
+                                index-=totalFrames;
+                            }
+
+                            framesIndexValues[index] = 1;
+                        }
+
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[framesIndexValues[this.currentFrame]];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            this.img = this.frames[framesIndexValues[this.currentFrame]];
+                            this.currentFrame++;
+                            if(this.currentFrame == totalFrames){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                })));
+            }
+        }), layersData.road.renderIndex+1)
 
         //car
     }
