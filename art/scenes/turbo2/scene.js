@@ -2,7 +2,7 @@ class Turbo2Scene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             capturing: {
-                enabled: true,
+                enabled: false,
                 addRedFrame: false,
                 stopByCode: true,
                 //viewportSizeMultiplier: 7,
