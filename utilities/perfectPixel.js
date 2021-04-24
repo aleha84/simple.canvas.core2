@@ -291,13 +291,17 @@ PP.createImage = function(model, params = {}) {
         }
 
         if(!isEmpty(params.colorsSubstitutions)){
-            let cSubst = params.colorsSubstitutions[Object.keys(params.colorsSubstitutions).find(key => key.toLowerCase() === strokeColor.toLowerCase())]
+            let cSubst = params.colorsSubstitutions[Object.keys(params.colorsSubstitutions).find(key => key.toLowerCase() === group.strokeColor.toLowerCase())]
             if(cSubst){
                 let substOpacity = cSubst.opacity;
                 if(substOpacity == undefined){
                     substOpacity = group.strokeColorOpacity;
                 }
-                strokeColor = `rgba(${hexToRgb(cSubst.color)},${substOpacity})`;
+
+                if(!cSubst.keepStrokeColor){
+                    strokeColor = `rgba(${hexToRgb(cSubst.color)},${substOpacity})`;
+                }
+
                 if(cSubst.changeFillColor){
                     fillColor = strokeColor;
                 }

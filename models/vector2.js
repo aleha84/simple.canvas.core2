@@ -288,6 +288,10 @@ class Vector2 {
     static get zero() {
         return new V2();
     }
+
+    static get one() {
+        return new V2(1,1)
+    }
 }
 
 var V2 = Vector2;

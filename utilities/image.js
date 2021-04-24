@@ -921,7 +921,7 @@ var colors = {
         //window.location.href = resultImg;
         var link = document.createElement("a");
         link.download = name;
-        link.href = resultImg.toDataURL(type).replace(type, "image/octet-stream");
+        link.href = resultImg.toDataURL();//resultImg.toDataURL(type).replace(type, "image/octet-stream");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
