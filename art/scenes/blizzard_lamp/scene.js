@@ -2,10 +2,20 @@ class BlizzardLampScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                //viewportSizeMultiplier: 5,
+                size: new V2(1330,2000),
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'blizzard'
+            }
         }, options)
         super(options);
     }
@@ -18,7 +28,7 @@ class BlizzardLampScene extends Scene {
         let model = BlizzardLampScene.models.main;
         let layersData = {};
         let exclude = [
-            'lamp_overlay'
+            'lamp_overlay', 'man_p', 'lamp_p', 'ground_p'
         ];
         
         for(let i = 0; i < model.main.layers.length; i++) {
@@ -245,12 +255,42 @@ class BlizzardLampScene extends Scene {
                                     opacity = maxA;
                                 }
                                 
+                                if(itemData.tailLength == 3) {
+                                    if(i == 0){
+                                        let __index = index+1;
+                                        if(__index < itemData.lineDots.length) {
+                                            let point = itemData.lineDots[__index];
+                                            hlp.setFillColor(`rgba(${rgbPart}, ${opacity/2})`).dot(point)
+                                        }
+                                    }
+                                    else if(i == itemData.tailLength-1){
+                                        opacity/=2;
+                                    }
+                                }
+                                else if(itemData.tailLength <= 5)
+                                {
+                                    if(i == 0 || i == itemData.tailLength-1){
+                                        opacity/=2;
+                                    }
+                                }
+                                else {
+                                    if(i == 0 || i == itemData.tailLength-1){
+                                        opacity/=4;
+                                    }
+
+                                    if(i == 1 || i == itemData.tailLength-2){
+                                        opacity/=2;
+                                    }
+                                }
 
                                 hlp.setFillColor(`rgba(${rgbPart}, ${opacity})`).dot(point)
 
                                 if(prev) {
                                     if(prev.y != point.y){
-                                        hlp.setFillColor(`rgba(${rgbPart}, ${opacity/2})`).dot(point.x-1, point.y)
+                                        hlp.setFillColor(`rgba(${rgbPart}, ${opacity/2})`)
+                                            .dot(point.x-1, point.y)
+                                            .dot(point.x, prev.y)
+                                            
                                     }
                                 }
                                 
@@ -294,7 +334,7 @@ class BlizzardLampScene extends Scene {
                     position: new V2(),
                     size: this.size,
                     init() {
-                        this.frames = createSnowFrames({ framesCount: 300, itemsCount: 1000, itemFrameslength: 100, size: this.size,
+                        this.frames = createSnowFrames({ framesCount: 300, itemsCount: 1000, itemFrameslength: 110, size: this.size,
                             tailLengthClamps: [3,5], angleClamps: [0,-20], maxA: 0.05, lowerYClamps: [150, 156] });
         
                         this.registerFramesDefaultTimer({});
@@ -315,12 +355,15 @@ class BlizzardLampScene extends Scene {
                     position: new V2(),
                     size: this.size,
                     init() {
-                        this.frames = createSnowFrames({ framesCount: 300, itemsCount: 1000, itemFrameslength: 80, size: this.size, mask: dots,
+                        this.frames = createSnowFrames({ framesCount: 300, itemsCount: 1000, itemFrameslength: 90, size: this.size, mask: dots,
                             tailLengthClamps: [3,5], angleClamps: [-10,-20], maxA: 0.15, overlay});
         
                         this.registerFramesDefaultTimer({
-                            framesChangeCallback: () => {
-                                let foo = true;
+                            // framesChangeCallback: () => {
+                            //     let foo = true;
+                            // }
+                            framesEndCallback: () => {
+                                this.parent.parentScene.capturing.stop = true;
                             }
                         });
                     }
@@ -355,7 +398,7 @@ class BlizzardLampScene extends Scene {
             
                                     value/=values.length;
             
-                                    hlp.setFillColor(`rgba(255,255,255, ${value*0.1})`).dot(x, y);//fast.r(value,2)/2
+                                    hlp.setFillColor(`rgba(255,255,255, ${fast.r(value*0.1,3)})`).dot(x, y);//fast.r(value,2)/2
                                 }
                             }
                         })
@@ -366,8 +409,8 @@ class BlizzardLampScene extends Scene {
                     position: new V2(),
                     size: this.size,
                     init() {
-                        this.frames = createSnowFrames({ framesCount: 300, itemsCount: 3000, itemFrameslength: 70, size: this.size, mask: dots,
-                            tailLengthClamps: [3,5], angleClamps: [0,15], maxA: 0.3});
+                        this.frames = createSnowFrames({ framesCount: 300, itemsCount: 3000, itemFrameslength: 90, size: this.size, mask: dots,
+                            tailLengthClamps: [3,5], angleClamps: [0,-15], maxA: 0.3});
         
                         this.registerFramesDefaultTimer({});
                     }
@@ -400,7 +443,7 @@ class BlizzardLampScene extends Scene {
                     position: new V2(),
                     size: this.size,
                     init() {
-                        this.frames = createSnowFrames({ framesCount: 300, itemsCount: 500, itemFrameslength: 70, size: this.size, mask: dots,
+                        this.frames = createSnowFrames({ framesCount: 300, itemsCount: 500, itemFrameslength: 90, size: this.size, mask: dots,
                             tailLengthClamps: [5,8], angleClamps: [-5,-5], maxA: 0.75});
         
                         this.registerFramesDefaultTimer({});
@@ -408,5 +451,119 @@ class BlizzardLampScene extends Scene {
                 }))
             }
         }), layersData.man.renderIndex+1)
+
+        this.treeAnimation = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                let totalFrames = 150;
+                let totalAnimationFrames = 140;
+                let oneFrameLength = 20;
+                let oneFrameStartShift = fast.r(((totalFrames-totalAnimationFrames)/2) - oneFrameLength/2);
+
+                let aniParams = [
+                    { layerName: 'l1', animationStartFrame: 20, },
+                    { layerName: 'l2', animationStartFrame: 40, },
+                    { layerName: 'l3', animationStartFrame: 50, },
+                    { layerName: 'l4', animationStartFrame: 60, },
+
+                    { layerName: 'l5', animationStartFrame: 80, },
+
+                    { layerName: 'l6', animationStartFrame: 70, },
+                    { layerName: 'l7', animationStartFrame: 60, },
+                    { layerName: 'l8', animationStartFrame: 50, },
+                    { layerName: 'l9', animationStartFrame: 30, },
+                ]
+
+                this.animations = aniParams.map(p => this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(BlizzardLampScene.models.treeAnimation, { renderOnly: [p.layerName] }),
+                    init() {
+                        let framesIndexValues = new Array(totalFrames).fill(0)//.map((el,i) => getRandomInt(0,3) == 0 ? 1: 0);
+
+                        //let oneFrameShift = oneFrame + getRandomInt(0,5);
+
+                        // let v = 0;
+                        // for(let i = 0; i < totalFrames; i++){
+                        //     // if(i%oneFrameShift == 0){
+                        //     //     v = v==0? 1: 0;
+                        //     // }
+
+                        //     let index = p.animationStartFrame+i;
+                        //     if(index > (totalFrames-1)){
+                        //         index-=totalFrames;
+                        //     }
+
+                        //     framesIndexValues[index] = v;
+                        // }
+
+                        //let animationStartFrame = p.animationStartFrame;
+
+                        let animationStartFrame = getRandomInt(0, totalFrames-1);
+
+                        let animationFramesIndexValues = 
+                            [
+                                ...easing.fast({ from: 0, to: this.frames.length-1, steps: totalAnimationFrames/2, type: 'quad', method: 'out', round: 0}), 
+                                ...easing.fast({ from: this.frames.length-1, to: 0, steps: totalAnimationFrames/2, type: 'quad', method: 'out', round: 0})
+                            ]
+
+                        for(let i = 0; i < totalAnimationFrames; i++){
+                            let index = animationStartFrame + i;
+                            
+                            if(index > (totalFrames-1)){
+                                index-=totalFrames;
+                            }
+
+                            framesIndexValues[index] = animationFramesIndexValues[i];
+                        }
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[framesIndexValues[this.currentFrame]];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            this.img = this.frames[framesIndexValues[this.currentFrame]];
+                            this.currentFrame++;
+                            if(this.currentFrame == totalFrames){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                })));
+            }
+        }), layersData.tree.renderIndex+1)
+
+        this.man_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 50, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'man_p')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.man.renderIndex+1)
+
+        this.lamp_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 50, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'lamp_p')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.lamp.renderIndex+1)
+
+        this.ground_p = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            init() {
+                this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 100, size: this.size, 
+                    pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'ground_p')) });
+    
+                this.registerFramesDefaultTimer({});
+            }
+        }), layersData.lamp.renderIndex+1)
     }
 }
