@@ -55,5 +55,10 @@ components.createColorPicker = function(value, title, changeCallback, params = {
 
     el.getValue = () => cPicker.value;
 
+    el.disable = (disabled) => {
+        cPicker.disabled = disabled;
+        hexInput.disabled = disabled;
+    }
+
     return el;
 }

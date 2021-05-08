@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+      <meta charset="UTF-8">    
+    
+    <script type="text/javascript" src='../../utilities/libs/webm-writer-0.2.5.js'></script>
+    <script type="text/javascript" src='../../utilities/libs/gif.js'></script>
+    <script type="text/javascript" src='../../models/vector2.js'></script>
+    <script type="text/javascript" src='../../models/renderProperties.js'></script>
+    <script type="text/javascript" src='../../models/box.js'></script>
+    <script type="text/javascript" src='../../models/line.js'></script>
+    <script type="text/javascript" src='../../models/effects.js'></script>
+    <script type="text/javascript" src='../../models/go.js'></script>
+    <script type="text/javascript" src='../../models/movingGo.js'></script>
+    <script type="text/javascript" src='../../utilities/utils.js'></script>
+    <script type="text/javascript" src='../../utilities/intersections.js'></script>
+    <script type="text/javascript" src='../../utilities/image.js'></script>
+    <script type="text/javascript" src='../../utilities/easing.js'></script>
+    <script type="text/javascript" src='../../utilities/perfectPixel.js'></script>
+    <script type="text/javascript" src='../../utilities/ppExtensions.js'></script>
+    <script type="text/javascript" src='../../utilities/mathUtils.js'></script>
+    <script type="text/javascript" src='../../utilities/recorder.js'></script>
+    <script type="text/javascript" src='../../utilities/animationHelpers.js'></script>
+
+    <script type="text/javascript" src='../../editor/modules/htmlutilities.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components/range.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components/button.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components/input.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components/v2.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components/checkbox.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components/select.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components/colorpicker.js'></script>
+    <script type="text/javascript" src='../../editor/modules/components/list.js'></script>
+
+    <script type="text/javascript" src='../../core.js'></script>
+    <script type="text/javascript" src='../../controls.js'></script>
+    <script type="text/javascript" src='../../viewport.js'></script>
+    <script type="text/javascript" src='../../events.js'></script>
+    <script type="text/javascript" src='../../scene.js'></script>
+    <script type="text/javascript" src='../../ai.js'></script>
+    <script type="text/javascript" src='../../ui.js'></script>
+    <script type="text/javascript" src='../../main.js'></script>
+
+    <script type="text/javascript" src='scene.js'></script>
+    <script type="text/javascript" src='index.js'></script>
+
+    <style>
+      html, 
+      body {
+          height: 100%;
+          margin: 0;
+      }
+
+      body {
+        min-height: 100%;
+      }
+
+      .rowFlex {
+        display: flex;
+      }
+
+      .V2>.value.edit > .read,
+    .inputBox>.value.edit > .read {
+        display: none;
+    }
+
+    .V2>.value > .edit,
+    .inputBox>.value > .edit {
+        display: none;
+    }
+
+    .V2>.value > .edit > input,
+    .inputBox>.value > .edit > input {
+        display: inline-block;
+        width: 30px;
+    }
+
+    .inputBox>.value > .edit > input.newValue {
+      width: 100px;
+    }
+
+    .V2>.value.edit > .edit,
+    .inputBox>.value.edit > .edit {
+        display: block;
+    }
+
+    .V2>.value:not(.edit),
+    .inputBox>.value:not(.edit) {
+        cursor: pointer;
+    }
+
+    .inputBox>.value>.read {
+      padding-left: 3px;
+    }
+
+    .colorPicker input[type='text'] {
+      width: 60px;
+    }
+
+    .colorPicker .readOnlyBlock {
+      width: 20px;
+      margin-right: 5px;
+      border: 1px solid black;
+    }
+
+    .colorPicker.row {
+      display: flex;
+    }
+
+    .colorPicker.row input[type='text'] {
+      height: 16px;
+    }
+    </style>
+  </head>
+	<body>
+
+	</body>
+</html>  

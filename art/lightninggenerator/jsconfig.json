@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ES6"
+    },
+    "files": [
+        "scene.js",
+        "index.js",
+    ],
+    "include": [
+        "../../utilities/*.js",
+        "../../models/*.js",
+        "../../editor/modules/*.js",
+        "../../editor/modules/components/*.js"
+    ],
+    "exclude": []
+}
