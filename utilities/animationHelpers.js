@@ -219,5 +219,491 @@ var animationHelpers = {
         }
         
         return frames;
+    },
+
+
+    createLightningFrames({framesCount, itemsCount, size, colors}) {
+        let getFrameIndex = function(f, startFrameIndex, framesCount) {
+            let frameIndex = f + startFrameIndex;
+            if(frameIndex > (framesCount-1)){
+                frameIndex-=framesCount;
+            }
+    
+            return frameIndex;
+        }
+        
+        let generatePath = function({mainMidPointRotationDirection, sharedPP,xClamps, targetY, mainMidPointShiftClamps, resultMidPointXShiftClamps, 
+            resultMidPointYShiftClamps, innerDotsCountClamp, target, start}) {
+            let innerDotsCount = getRandomInt(innerDotsCountClamp[0], innerDotsCountClamp[1]);
+            //let start = new V2(getRandomInt(xClamps[0], xClamps[1]), 0)
+            if(!start) {
+                start = new V2(getRandomInt(xClamps[0], xClamps[1]), 0)
+            }
+            //let target = new V2(start.x + getRandomInt(-20, 20), targetY);
+            if(!target){
+                target = new V2(start.x + getRandomInt(-20, 20), targetY);
+            }
+    
+            let stDirection = start.direction(target);
+            let stMid = start.add(stDirection.mul(start.distance(target)*getRandom(0.3, 0.6))).toInt();
+            let mainMidPoint = 
+                stMid.add(
+                    stDirection.rotate(90*(mainMidPointRotationDirection)).mul(getRandomInt(mainMidPointShiftClamps[0], mainMidPointShiftClamps[1]))
+                ).toInt()
+        
+            //debugger;
+            let mainPoints = distinct([
+                ...sharedPP.lineV2(start, mainMidPoint),
+                ...sharedPP.lineV2(mainMidPoint, target)
+            ], (p) => p.x + '_' + p.y);
+    
+            let resultPoints = [];
+            let midPointsIndexStep = fast.r(mainPoints.length/(innerDotsCount + 1));
+            let midPointsIntexStepVariations = fast.r(midPointsIndexStep/3);
+            let resultMidPoints = []
+            let resultMidPointsIndices = []
+            let prevPoint = undefined;
+            for(let i = 0; i < innerDotsCount +1; i++){
+                let mPoint1 = undefined;
+                let mPoint2 = undefined;
+                if(i == 0){
+                    mPoint1 = start;
+                    mPoint2 = new V2(mainPoints[midPointsIndexStep + getRandomInt(-midPointsIntexStepVariations, 0)]).add(
+                        new V2(
+                            getRandomInt(resultMidPointXShiftClamps[0], resultMidPointXShiftClamps[1]), 
+                            getRandomInt(resultMidPointYShiftClamps[0], resultMidPointYShiftClamps[1])
+                        )
+                    );
+    
+                    prevPoint = mPoint2;
+                    resultMidPoints.push(mPoint2);
+                }
+                else if(i == innerDotsCount){
+                    mPoint1 = prevPoint
+                    mPoint2 = target;
+                }
+                else {
+                    mPoint1 = prevPoint
+                    mPoint2 = new V2(mainPoints[midPointsIndexStep*(i+1) + getRandomInt(-midPointsIntexStepVariations, 0)]).add(
+                        new V2(
+                            getRandomInt(resultMidPointXShiftClamps[0], resultMidPointXShiftClamps[1]), 
+                            getRandomInt(resultMidPointYShiftClamps[0], resultMidPointYShiftClamps[1])
+                        )
+                    );
+    
+                    prevPoint = mPoint2;
+                    resultMidPoints.push(mPoint2);
+                }
+    
+                resultPoints.push(...sharedPP.lineV2(mPoint1, mPoint2));
+                resultPoints = distinct(resultPoints, (p) => p.x + '_' + p.y);
+    
+                if(i < innerDotsCount) {
+                    resultMidPointsIndices.push(resultPoints.length-1)
+                }
+            }
+    
+            return {
+                resultPoints,
+                resultMidPoints,
+                resultMidPointsIndices
+            }
+        }
+
+
+
+        let flipYOrigign = fast.r(size.y/2 + 8);
+
+        let frames = [];
+        
+        let xClamps = [50, 150];
+        let targetY = 100;
+        
+
+        let mainMidPointShiftClamps = [10, 30];
+        let resultMidPointXShiftClamps = [-10, 10];
+        let resultMidPointYShiftClamps = [-5, 5];
+        let innerDotsCountClamp = [6,8]
+
+        let animationStepFramesLength = 3;
+
+        let sharedPP; 
+        createCanvas(new V2(1,1), (ctx, size, hlp) => {
+            sharedPP = new PP({ctx})
+        })
+
+
+        let itemsData = new Array(itemsCount).fill().map((el, i) => {
+            let target = undefined;
+            let start = undefined;
+
+            let startFrameIndex = getRandomInt(0, framesCount-1);
+
+            // let timeSlot = awailableTimeSlots.pop();
+            // if(awailableTimeSlots.length == 0){
+            //     awailableTimeSlots = new Array(awailableTimeSlotsLength).fill().map((el, i) => i);
+            // }
+            
+            //startFrameIndex = getRandomInt(framesCount*(timeSlot/awailableTimeSlotsLength), (timeSlot == awailableTimeSlotsLength-1 ? framesCount-1 : framesCount*(timeSlot+1)/awailableTimeSlotsLength));
+
+            //console.log(startFrameIndex)
+
+            let hTarget = false;
+            let showParticles = true;
+            
+            
+            target = new V2(size.x/2, size.y -10).toInt();
+            start = new V2(size.x/2, 10).toInt()
+                //new V2(target.x + getRandomInt(-10, 10), -10);
+
+            let mainMidPointRotationDirection =  getRandomBool() ? 1 : -1;
+
+            let path1 = generatePath({ mainMidPointRotationDirection, start, target, sharedPP, xClamps, targetY, mainMidPointShiftClamps, resultMidPointXShiftClamps, resultMidPointYShiftClamps, innerDotsCountClamp });
+            let path2 = generatePath({ mainMidPointRotationDirection, start, target, sharedPP, xClamps, targetY, mainMidPointShiftClamps, resultMidPointXShiftClamps, resultMidPointYShiftClamps, innerDotsCountClamp });
+            console.log(path1)
+            let frames = [];
+
+            //step 0
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex+ animationStepFramesLength*0, framesCount);
+        
+                frames[frameIndex] = undefined;
+            }
+
+            //step 1
+            let step1Path1MaxIndex = fast.r(path1.resultPoints.length*getRandom(0.4, 0.6));
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex + animationStepFramesLength, framesCount);
+        
+                frames[frameIndex] = {
+                    stepIndex: 1,
+                    params: {
+                        path1MaxIndex: step1Path1MaxIndex,
+                        path1Color: colors.main
+                    }
+                };
+            }
+
+            //step 2
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex+ animationStepFramesLength*2, framesCount);
+        
+                frames[frameIndex] = undefined;
+            }
+
+             //step 3
+             for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex + animationStepFramesLength*3, framesCount);
+        
+                frames[frameIndex] = {
+                    stepIndex: 3,
+                    params: {
+                        path1MaxIndex: path1.resultPoints.length,
+                        path1Color: colors.main
+                    },
+                    hTarget: hTarget ? {} : undefined
+                };
+            }
+
+            //step 4
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex+ animationStepFramesLength*4, framesCount);
+        
+                frames[frameIndex] = undefined;
+            }
+
+            //step 5
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex + animationStepFramesLength*5, framesCount);
+        
+                frames[frameIndex] = {
+                    stepIndex: 5,
+                    params: {
+                        path2MaxIndex: path2.resultPoints.length,
+                        path2Color: colors.main
+                    },
+                    hTarget: hTarget ? {} : undefined
+                };
+            }
+
+            //step 6
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex+ animationStepFramesLength*6, framesCount);
+        
+                frames[frameIndex] = undefined;
+            }
+
+            //step 7
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex + animationStepFramesLength*7, framesCount);
+        
+                frames[frameIndex] = {
+                    stepIndex: 7,
+                    params: {
+                        path1MaxIndex: path1.resultPoints.length,
+                        path1Color: colors.main
+                    },
+                    hTarget: hTarget ? {} : undefined
+                };
+            }
+
+            let particlesFallStartFramesIndex = undefined;
+            //step 8
+            let cornersData = path1.resultMidPointsIndices.map(index => {
+                let p = new V2(path1.resultPoints[index]);
+                let prev = new V2(path1.resultPoints[index-1]);
+                let dir = prev.direction(p);
+
+                let c1 = p;
+                let c2 = p.add(dir.mul(getRandom(1,3))).toInt();
+                let c3 = new V2(path1.resultPoints[index + getRandomInt(2,5)]);
+
+                if(c3.x ==0 && c3.y == 0){
+                    c3 = new V2(path1.resultPoints[index - getRandomInt(1,3)])
+                }
+
+                return [c1, c2, c3];
+            })
+
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex + animationStepFramesLength*8, framesCount);
+                particlesFallStartFramesIndex = frameIndex + animationStepFramesLength;
+
+                frames[frameIndex] = {
+                    stepIndex: 8,
+                    params: {
+                        path1MaxIndex: path1.resultPoints.length,
+                        path1Color: colors.brighter,
+                        path2MaxIndex: path2.resultPoints.length,
+                        path2Color: colors.darker,
+                        cornersData, 
+                        cornersColor: colors.main
+                    },
+                    hTarget: hTarget ? {} : undefined
+                };
+            }
+
+            //step 9
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex + animationStepFramesLength*9, framesCount);
+        
+                frames[frameIndex] = {
+                    stepIndex: 9,
+                    params: {
+                        path2MaxIndex: path2.resultPoints.length,
+                        path2Color: colors.darker
+                    },
+                    hTarget: hTarget ? {} : undefined
+                };
+            }
+
+            //step 10
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex + animationStepFramesLength*10, framesCount);
+        
+                frames[frameIndex] = {
+                    stepIndex: 10,
+                    params: {
+                        path1MaxIndex: path1.resultPoints.length,
+                        path1Color: colors.main,
+                        cornersData, 
+                        cornersColor: colors.main
+                    },
+                    hTarget: hTarget ? {} : undefined
+                };
+            }
+
+            //step 11
+            let step11Dots = []
+            cornersData.forEach(cd => {
+                step11Dots.push(...sharedPP.fillByCornerPoints(cd))
+            })
+
+            let innerDotsPartsCount = getRandomInt(3,5);
+            for(let i = 0; i < innerDotsPartsCount; i++){
+                let index = getRandomInt(10, path1.resultPoints.length-10);
+                let dotsCount = getRandomInt(3, 5);
+                let direction = getRandomBool() ? 1: -1;
+                for(let j = 0; j < dotsCount; j++){
+                    step11Dots.push(path1.resultPoints[index + direction*j])
+                }
+            }
+
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex + animationStepFramesLength*11, framesCount);
+
+                frames[frameIndex] = {
+                    stepIndex: 11,
+                    params: {
+                        dots: step11Dots,
+                        dotsColor: colors.main
+                    }
+                }
+            }
+
+            //step 12
+            let step12Dots = [...step11Dots];
+            let removeCount = fast.r(step12Dots.length/2);
+            while(removeCount--){
+                let index = getRandomInt(0, step12Dots.length-1);
+                step12Dots.splice(index, 1);
+            }
+
+            for(let f = 0; f < animationStepFramesLength; f++){
+                let frameIndex = getFrameIndex(f, startFrameIndex + animationStepFramesLength*12, framesCount);
+
+                frames[frameIndex] = {
+                    stepIndex: 12,
+                    params: {
+                        dots: step12Dots,
+                        dotsColor: colors.main
+                    }
+                }
+            }
+
+            let particlesItemsData = new Array(getRandomInt(3,5)).fill().map((el, i) => {
+                let startFrameIndex = particlesFallStartFramesIndex; //getRandomInt(0, framesCount-1);
+                let totalFrames = getRandomInt(30, 60);
+            
+                //let p = target.add(, ));
+                let x = target.x  + getRandomInt(-2, 2);
+                let y= target.y + getRandomInt(-1,1);
+                let xAcceleration = 0.025;
+                let xSpeed = getRandom(0.1, 0.3);
+                let yAcceleration = 0.025;
+                let ySpeed = getRandom(0.3, 0.6);
+                if(x < target.x){
+                    xSpeed = -getRandom(0.1, 0.2);
+                }
+
+                if(x > target.x){
+                    xSpeed = getRandom(0.1, 0.2);
+                }
+
+                let frames = [];
+                for(let f = 0; f < totalFrames; f++){
+                    let frameIndex = f + startFrameIndex;
+                    if(frameIndex > (framesCount-1)){
+                        frameIndex-=framesCount;
+                    }
+
+                    y += ySpeed;
+                    x += xSpeed;
+
+                    let color = colors.main;
+                    if(f < totalFrames/3){
+                        color = colors.brighter
+                    }
+                    if(f > totalFrames*2/3){
+                        color = colors.darker
+                    }
+
+                    frames[frameIndex] = {
+                        color,
+                        p: new V2(x, y).toInt()
+                    };
+
+                    ySpeed+=yAcceleration;
+
+                    if(xSpeed < 0){
+                        xSpeed+=0.005
+                        if(xSpeed > 0)
+                            xSpeed = 0;
+                    }
+
+                    if(xSpeed > 0){
+                        xSpeed-=0.005
+                        if(xSpeed < 0)
+                            xSpeed = 0;
+                    }
+                }
+            
+                return {
+                    frames
+                }
+            })
+        
+            return {
+                path1,
+                path2,
+                frames,
+                target,
+                particlesItemsData,
+                showParticles
+            }
+        })
+
+        for(let f = 0; f < framesCount; f++){
+            frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                for(let p = 0; p < itemsData.length; p++){
+                    let itemData = itemsData[p];
+                    
+                    if(itemData.frames[f]){
+                        switch(itemData.frames[f].stepIndex){
+                            case 1:
+                            case 3:
+                            case 7:
+                                for(let i = 0; i < itemData.frames[f].params.path1MaxIndex; i++){
+                                    hlp.setFillColor(itemData.frames[f].params.path1Color).dot(itemData.path1.resultPoints[i])
+                                }
+                                break;
+                            case 5:
+                            case 9:
+                                for(let i = 0; i < itemData.frames[f].params.path2MaxIndex; i++){
+                                    hlp.setFillColor(itemData.frames[f].params.path2Color).dot(itemData.path2.resultPoints[i])
+                                }
+                                break;
+                            case 8:
+                            case 10:
+                                if(itemData.frames[f].params.path2MaxIndex) {
+                                    for(let i = 0; i < itemData.frames[f].params.path2MaxIndex; i++){
+                                        hlp.setFillColor(itemData.frames[f].params.path2Color).dot(itemData.path2.resultPoints[i])
+                                    }
+                                }
+
+                                let pp = new PP({ctx});
+
+                                itemData.frames[f].params.cornersData.forEach(cd => {
+                                    pp.setFillStyle(itemData.frames[f].params.cornersColor);
+                                    pp.fillByCornerPoints(cd)
+                                })
+
+                                for(let i = 0; i < itemData.frames[f].params.path1MaxIndex; i++){
+                                    hlp.setFillColor(itemData.frames[f].params.path1Color).dot(itemData.path1.resultPoints[i])
+                                }
+                                break;
+                            case 11:
+                            case 12:
+                                for(let i = 0; i < itemData.frames[f].params.dots.length; i++){
+                                    hlp.setFillColor(itemData.frames[f].params.dotsColor).dot(itemData.frames[f].params.dots[i])
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if(itemData.frames[f].hTarget) {
+                            let width = getRandomInt(10, 20);
+                            hlp.setFillColor(colors.darker).rect(itemData.target.x - fast.r(width/2), itemData.target.y + 1, width, 1)
+                        }
+                        //itemData.path1.resultPoints.forEach(mp => hlp.dot(mp))
+                    }
+
+                    if(itemData.showParticles) {
+                        for(let p = 0; p < itemData.particlesItemsData.length; p++){
+                            let pItemData = itemData.particlesItemsData[p];
+                    
+                            if(pItemData.frames[f]){
+                                hlp.setFillColor(pItemData.frames[f].color).dot(pItemData.frames[f].p)
+                            }
+                        }
+                    }
+                    
+                    
+                }
+            });
+        }
+        
+        return frames;
     }
 }

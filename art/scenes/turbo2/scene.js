@@ -298,8 +298,8 @@ class Turbo2Scene extends Scene {
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
             init() {
-                let totalFrames = 300;
-                let totalAnimationFrames = 250;
+                let totalFrames = 150;
+                let totalAnimationFrames = 125;
                 let oneFrame = 50;
 
                 let aniParams = [
