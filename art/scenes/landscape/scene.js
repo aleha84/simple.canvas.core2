@@ -6,6 +6,16 @@ class LandscapeScene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                addRedFrame: false,
+                stopByCode: true,
+                //viewportSizeMultiplier: 5,
+                size: new V2(1600,2000),
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'landscape'
+            }
         }, options)
         super(options);
     }
@@ -29,14 +39,82 @@ class LandscapeScene extends Scene {
 
         let globalYShift = 3;
 
+        this.button = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            startAnimation() {
+                let imgNormal = PP.createImage(LandscapeScene.models.button, { renderOnly: ['normal'] })
+                let imgClicked = PP.createImage(LandscapeScene.models.button, { renderOnly: ['clicked'], forceVisivility: { clicked: { visible: true } } })
+
+                let moveOutFramesLength = 30;
+                let moveInFramesLenght = 30;
+
+                let xValuesOut = easing.fast({ from: -160, to: 0, steps: moveOutFramesLength, type: 'quad', method: 'out', round: 0 })
+                let xValuesIn = easing.fast({ from: 0, to: 160, steps: moveInFramesLenght, type: 'quad', method: 'out', round: 0 })
+
+                this.frames = [];
+
+                for(let f = 0; f< moveOutFramesLength; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        ctx.drawImage(imgNormal, xValuesOut[f], 0);
+                    })
+                }
+
+                for(let f = 0; f< 20; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        ctx.drawImage(imgNormal, xValuesOut[moveOutFramesLength-1], 0);
+                    })
+                }
+                for(let f = 0; f< 40; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        ctx.drawImage(imgClicked, xValuesIn[0], 0);
+                    })
+                }
+                for(let f = 0; f< 10; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        ctx.drawImage(imgNormal, xValuesOut[moveOutFramesLength-1], 0);
+                    })
+                }
+                for(let f = 0; f< moveInFramesLenght; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        ctx.drawImage(imgNormal, xValuesIn[f], 0);
+                    })
+                }
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        this.unregTimer(this.timer);
+                        this.timer = undefined;
+                        
+                        that.green.startAnimation();
+
+                        return;
+                    }
+                    
+                    this.img = this.frames[this.currentFrame];
+                })
+
+            },
+            init() {
+                //
+            }
+        }), 1)
+
+
         this.green = this.addGo(new GO({
             position: this.sceneCenter.add(new V2(0, 125)),
             size: this.viewport.clone(),
             targetPosition: this.sceneCenter.add(new V2(0, globalYShift)),
             img: PP.createImage(model, { renderOnly: ['green', 'green_d'] }),
             startAnimation() {
-                let totalFrames = 40;
-                let outFramesCount = 35;
+                let totalFrames = 30;
+                let outFramesCount = 25;
                 let inFramesCount = totalFrames-outFramesCount;
                 let yValues = [
                     ...easing.fast({ from: this.position.y, to: this.targetPosition.y-globalYShift, steps: outFramesCount, type: 'quad', method: 'out', round: 0 }),
@@ -48,11 +126,17 @@ class LandscapeScene extends Scene {
                 this.timer = this.regTimerDefault(10, () => {
                 
                     this.currentFrame++;
+
+                    // if(this.currentFrame == 20) {
+                    //     that.far_mountains.startAnimation();
+                    // }
+
                     if(this.currentFrame == totalFrames){
                         this.currentFrame = 0;
                         this.unregTimer(this.timer);
                         this.timer = undefined;
 
+                        
                         that.right_mountain.startAnimation();
                         return;
                     }
@@ -74,8 +158,8 @@ class LandscapeScene extends Scene {
             isVisible: false,
             startAnimation() {
                 this.isVisible = true;
-                let totalFrames = 60;
-                let outFramesCount = 50;
+                let totalFrames = 50;
+                let outFramesCount = 40;
                 let inFramesCount = totalFrames-outFramesCount;
                 let xValues = [
                     ...easing.fast({ from: this.position.x, to: this.targetPosition.x, steps: outFramesCount, type: 'quad', method: 'out', round: 0 }),
@@ -92,11 +176,19 @@ class LandscapeScene extends Scene {
                         that.left_mountain.startAnimation();
                     }
 
+                    if(this.currentFrame == 20) {
+                        that.far_mountains.startAnimation();
+                    }
+
+                    if(this.currentFrame == 10) {
+                        that.road.startAnimation();
+                    }
+
                     if(this.currentFrame == totalFrames){
                         this.currentFrame = 0;
                         this.unregTimer(this.timer);
                         this.timer = undefined;
-                        that.road.startAnimation();
+                        // that.road.startAnimation();
                         return;
                     }
 
@@ -117,8 +209,8 @@ class LandscapeScene extends Scene {
             isVisible: false,
             startAnimation() {
                 this.isVisible = true;
-                let totalFrames = 60;
-                let outFramesCount = 50;
+                let totalFrames = 50;
+                let outFramesCount = 40;
                 let inFramesCount = totalFrames-outFramesCount;
                 let xValues = [
                     ...easing.fast({ from: this.position.x, to: this.targetPosition.x, steps: outFramesCount, type: 'quad', method: 'out', round: 0 }),
@@ -131,9 +223,9 @@ class LandscapeScene extends Scene {
                 
                     this.currentFrame++;
 
-                    if(this.currentFrame == 40) {
-                        that.far_mountains.startAnimation();
-                    }
+                    // if(this.currentFrame == 40) {
+                    //     that.far_mountains.startAnimation();
+                    // }
 
                     if(this.currentFrame == totalFrames){
                         this.currentFrame = 0;
@@ -163,8 +255,8 @@ class LandscapeScene extends Scene {
                 let outFramesCount = 45;
                 let inFramesCount = totalFrames-outFramesCount;
                 let yValues = [
-                    ...easing.fast({ from: this.position.y, to: this.targetPosition.y-globalYShift, steps: outFramesCount, type: 'quad', method: 'out', round: 0 }),
-                    ...easing.fast({ from: this.targetPosition.y-globalYShift, to: this.targetPosition.y, steps: inFramesCount, type: 'quad', method: 'in', round: 0 })
+                    ...easing.fast({ from: this.position.y, to: this.targetPosition.y, steps: totalFrames, type: 'quad', method: 'out', round: 0 }),
+                    //...easing.fast({ from: this.targetPosition.y-globalYShift, to: this.targetPosition.y, steps: inFramesCount, type: 'quad', method: 'in', round: 0 })
                 ]
 
                 this.currentFrame = 0;
@@ -181,6 +273,7 @@ class LandscapeScene extends Scene {
                         this.currentFrame = 0;
                         this.unregTimer(this.timer);
                         this.timer = undefined;
+                        // that.sky.startAnimation();
                         return;
                     }
 
@@ -205,8 +298,8 @@ class LandscapeScene extends Scene {
                 let outFramesCount = 45;
                 let inFramesCount = totalFrames-outFramesCount;
                 let yValues = [
-                    ...easing.fast({ from: this.position.y, to: this.targetPosition.y-globalYShift, steps: outFramesCount, type: 'quad', method: 'out', round: 0 }),
-                    ...easing.fast({ from: this.targetPosition.y-globalYShift, to: this.targetPosition.y, steps: inFramesCount, type: 'quad', method: 'in', round: 0 })
+                    ...easing.fast({ from: this.position.y, to: this.targetPosition.y, steps: totalFrames, type: 'quad', method: 'out', round: 0 }),
+                    //...easing.fast({ from: this.targetPosition.y-globalYShift, to: this.targetPosition.y, steps: inFramesCount, type: 'quad', method: 'in', round: 0 })
                 ]
 
                 this.currentFrame = 0;
@@ -267,12 +360,17 @@ class LandscapeScene extends Scene {
                 this.timer = this.regTimerDefault(10, () => {
                 
                     this.currentFrame++;
+
+                    if(this.currentFrame == 110){
+                        that.house1.startAnimation();
+                    }
+
                     if(this.currentFrame == totalFrames){
                         this.currentFrame = 0;
                         this.unregTimer(this.timer);
                         this.timer = undefined;
 
-                        that.house1.startAnimation();
+                        
                         that.grassAnimation.startAnimation();
 
                         return;
@@ -480,6 +578,8 @@ class LandscapeScene extends Scene {
                         this.unregTimer(this.timer);
                         this.timer = undefined;
                         
+                        that.car.startAnimation();
+
                         return;
                     }
 
@@ -565,8 +665,252 @@ class LandscapeScene extends Scene {
             }
         }), 22)
 
-        this.green.startAnimation();
+        this.car = this.addGo(new GO({
+            position: this.sceneCenter.add(new V2(0, globalYShift)),
+            size: this.viewport.clone(),
+            frames: PP.createImage(LandscapeScene.models.carAnimation),
+            startAnimation() {
+                let totalFrames = 300;
+                let frameIndexChange = easing.fast({ from: 0, to: this.frames.length-1, steps: totalFrames, type: 'linear', round: 0 });
+
+                this.currentFrame = 0;
+                this.img = this.frames[frameIndexChange[this.currentFrame]];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+                    if(this.currentFrame == frameIndexChange.length){
+                        this.currentFrame = 0;
+                        this.unregTimer(this.timer);
+                        this.timer = undefined;
+                        
+                        that.explosionFar.startAnimation();
+
+                        return;
+                    }
+                    
+                    this.img = this.frames[frameIndexChange[this.currentFrame]];
+                })
+            },
+            init() {
+                //
+            }
+        }), 23)
 
         
+
+        this.explosionFar = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            startAnimation() {
+                let p1 = new V2(130, 0);
+                let p2 = new V2(65, 110);
+                let points = []
+                createCanvas(new V2(1,1), (ctx, size, hlp) => {
+                    points = new PP({ctx}).lineV2(p1, p2)
+                })
+
+                let missileFramesLength = 15;
+                let explosionFramesLength = 15;
+                let tailLength = 20
+                let indexValues = easing.fast({ from: 0, to: points.length-1, steps: missileFramesLength, type: 'linear', round: 0});
+                let rValues = easing.fast({from: 5, to: 200, steps: explosionFramesLength, type: 'linear', round: 0} )
+
+                this.frames = []
+
+                for(let f = 0; f < missileFramesLength; f++){
+                    let index = indexValues[f];
+                    
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        for(let i = 0; i < tailLength; i++){
+                            let _index = index-i;
+                            if(_index < 0)
+                                break;
+    
+                            let p = points[_index];
+    
+                            if(i > 6){
+                                ctx.globalAlpha = 0.5
+                            }
+
+                            hlp.setFillColor('#1f2631').dot(p)
+                        }
+                    })
+                }
+
+                for(let f = 0; f < explosionFramesLength; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor('white').circle(p2, rValues[f])
+                    })
+                }
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+
+                    if(this.currentFrame == 25){
+                        that.explosionMid.startAnimation();
+                    }
+
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        this.unregTimer(this.timer);
+                        this.timer = undefined;
+                        
+                        return;
+                    }
+                    
+                    this.img = this.frames[this.currentFrame];
+                })
+            },
+            init() {
+                
+            }
+        }), 9)
+
+        this.explosionMid = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            startAnimation() {
+                let totalFrames = 15;
+                let aValues = easing.fast({ from: 0, to: 1, steps: totalFrames, type: 'linear', round: 1})
+                this.frames = [];
+              
+                for(let f = 0; f < totalFrames; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor(`rgba(255,255,255,${aValues[f]})`).rect(0,0,size.x, size.y);
+                    })
+                }
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+
+                    if(this.currentFrame == 10){
+                        that.explosionClose.startAnimation();
+                    }
+
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        this.unregTimer(this.timer);
+                        this.timer = undefined;
+                        
+                        return;
+                    }
+                    
+                    this.img = this.frames[this.currentFrame];
+                })
+
+            },
+            init() {
+                //
+            }
+        }), 11)
+
+        this.explosionClose = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            startAnimation() {
+                let totalFrames = 15;
+                let aValues = easing.fast({ from: 0, to: 1, steps: totalFrames, type: 'linear', round: 1})
+                this.frames = [];
+              
+                for(let f = 0; f < totalFrames; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor(`rgba(255,255,255,${aValues[f]})`).rect(0,0,size.x, size.y);
+                    })
+                }
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        this.unregTimer(this.timer);
+                        this.timer = undefined;
+                        
+                        that.fin.startAnimation();
+
+                        return;
+                    }
+                    
+                    this.img = this.frames[this.currentFrame];
+                })
+
+            },
+            init() {
+                //
+            }
+        }), 30)
+
+        this.fin = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            startAnimation() {
+                //#2b3b5e
+
+                let vFarmesLength = 20;
+                let hFramesLength = 40;
+
+                let heightValues = easing.fast({ from: 1, to: 100, steps: vFarmesLength, type: 'quad', method: 'out', round: 0})
+                let withValues = easing.fast({ from: 1, to: 80, steps: hFramesLength, type: 'linear', method: 'base', round: 0})
+
+                this.frames = [];
+
+                for(let f = 0; f < vFarmesLength; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+                        hlp.setFillColor('#2b3b5e')
+                            .rect(0,-1,size.x, heightValues[f])
+                            .rect(0, this.size.y-heightValues[f], size.x, heightValues[f]);
+                    })
+                }
+
+                for(let f = 0; f < hFramesLength; f++){
+                    this.frames[this.frames.length] = createCanvas(this.size, (ctx, size, hlp) => {
+
+                        hlp.setFillColor('#2b3b5e')
+                            .rect(0,-1,size.x, heightValues[vFarmesLength-1])
+                            .rect(0, this.size.y-heightValues[vFarmesLength-1], size.x, heightValues[vFarmesLength-1]);
+
+                        hlp.setFillColor('#2b3b5e')
+                            .rect(0,0,withValues[f], size.y)
+                            .rect(size.x - withValues[f], 0, withValues[f], size.y)
+                    })
+                }
+
+                this.currentFrame = 0;
+                this.img = this.frames[this.currentFrame];
+                
+                this.timer = this.regTimerDefault(10, () => {
+                
+                    this.currentFrame++;
+                    if(this.currentFrame == this.frames.length){
+                        this.currentFrame = 0;
+                        this.unregTimer(this.timer);
+                        this.timer = undefined;
+                        this.parentScene.capturing.stop = true;
+                        return;
+                    }
+                    
+                    this.img = this.frames[this.currentFrame];
+                })
+
+            },
+            init() {
+                //
+            }
+        }), 31)
+
+
+        this.button.startAnimation();
     }
 }
