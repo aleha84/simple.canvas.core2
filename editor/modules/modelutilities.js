@@ -24,6 +24,7 @@ var modelUtils = {
             patternType: g.patternType,
             visible: g.visible,
             clear: g.clear,
+            replace: g.replace,
             id: g.id,
             //points: deep ? 
         };
@@ -71,6 +72,7 @@ var modelUtils = {
             id: id,
             visible: true,
             clear: false,
+            replace: false,
             strokeColor: '#FF0000',
             strokeColorOpacity: 1,
             fillColor: '#FF0000',

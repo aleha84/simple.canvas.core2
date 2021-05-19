@@ -37,6 +37,10 @@ class PerfectPixel {
         if(this.clear){
             this.removePixel(x,y);
         }
+        else if(this.replace) {
+            this.removePixel(x,y);
+            this.ctx.fillRect(x,y, 1,1);
+        }
         else {
             this.ctx.fillRect(x,y, 1,1);
         }
@@ -310,6 +314,7 @@ PP.createImage = function(model, params = {}) {
 
         pp.setFillStyle(strokeColor)
         pp.clear = group.clear;
+        pp.replace = group.replace;
 
         if(group.type == 'dots'){
             for(let po of group.points){
