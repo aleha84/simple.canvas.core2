@@ -222,7 +222,16 @@ var animationHelpers = {
     },
 
 
-    createLightningFrames({framesCount, itemsCount, size, colors}) {
+    createLightningFrames({
+        framesCount, 
+        itemsCount, 
+        size, 
+        colors,
+        debug,
+        pathParams,
+        particlesParams,
+        highlightParams,
+    }) {
         let getFrameIndex = function(f, startFrameIndex, framesCount) {
             let frameIndex = f + startFrameIndex;
             if(frameIndex > (framesCount-1)){
@@ -232,14 +241,61 @@ var animationHelpers = {
             return frameIndex;
         }
         
-        let generatePath = function({mainMidPointRotationDirection, sharedPP,xClamps, targetY, mainMidPointShiftClamps, resultMidPointXShiftClamps, 
-            resultMidPointYShiftClamps, innerDotsCountClamp, target, start}) {
+        /** 
+        * @param mainMidPointRotationDirection - направление отклонения центральной точки
+        * @param sharedPP
+        * @param xClamps - если стартовая точка не указана, то используется при генерации Х части (вертикальная ориентация)
+        * @param targetY - если конечная точка не указана, то используется при генерации Х части (вертикальная ориентация)
+        * @param mainMidPointShiftClamps - диапазон отклонений центральной точки от оси
+        * @param resultMidPointXShiftClamps - диапазоны отклонений по X промежуточных точек
+        * @param resultMidPointYShiftClamps - диапазоны отклонений по Y промежуточных точек
+        * @param innerDotsCountClamp - диапазон промежуточных точек
+        * @param target - начальная точка
+        * @param start - конечная точка
+        */
+        let generatePath = function({
+                mainMidPointRotationDirection, 
+                sharedPP,
+                xClamps, 
+                targetY, 
+                mainMidPointShiftClamps, 
+                resultMidPointXShiftClamps, 
+                resultMidPointYShiftClamps, 
+                innerDotsCountClamp, 
+                target, 
+                start,
+                // startProvider,
+                // targetProvider
+            }) {
+
+                if(mainMidPointRotationDirection == undefined)
+                    throw 'mainMidPointRotationDirection is undefined';
+
+                if(!start && !xClamps )
+                    throw 'Start point cant be defined';
+
+                if(!target && targetY == undefined )
+                    throw 'Target point cant be defined';
+
+                if(!mainMidPointShiftClamps)
+                    throw 'mainMidPointShiftClamps is undefined';
+
+                if(!resultMidPointXShiftClamps)
+                    throw 'resultMidPointXShiftClamps is undefined';
+
+                if(!resultMidPointYShiftClamps)
+                    throw 'resultMidPointYShiftClamps is undefined';
+
+                if(!innerDotsCountClamp)
+                    throw 'innerDotsCountClamp is undefined';
+
+
             let innerDotsCount = getRandomInt(innerDotsCountClamp[0], innerDotsCountClamp[1]);
-            //let start = new V2(getRandomInt(xClamps[0], xClamps[1]), 0)
+
             if(!start) {
                 start = new V2(getRandomInt(xClamps[0], xClamps[1]), 0)
             }
-            //let target = new V2(start.x + getRandomInt(-20, 20), targetY);
+
             if(!target){
                 target = new V2(start.x + getRandomInt(-20, 20), targetY);
             }
@@ -304,6 +360,8 @@ var animationHelpers = {
             }
     
             return {
+                start,
+                target,
                 resultPoints,
                 resultMidPoints,
                 resultMidPointsIndices
@@ -349,8 +407,30 @@ var animationHelpers = {
             //console.log(startFrameIndex)
 
             let hTarget = false;
+            let hStart = false;
+
+            if(highlightParams) {
+                hTarget = highlightParams.showTarget
+                hStart = highlightParams.showStart
+            }
+
             let showParticles = true;
             
+            if(particlesParams) {
+                showParticles = particlesParams.enabled;
+            }
+            else {
+                particlesParams = {
+                    countClamps: [3,5],
+                    totalFramesClamps: [30,60],
+                    startXDelta: [-2,2],
+                    startYDelta: [-1,1],
+                    xSpeed: [0.1, 0.3],
+                    xSpeedReducer: 0.005,
+                    yAcceleration: 0.025,
+                    ySpeed: [0.3, 0.6]
+                }
+            }
             
             target = new V2(size.x/2, size.y -10).toInt();
             start = new V2(size.x/2, 10).toInt()
@@ -358,9 +438,46 @@ var animationHelpers = {
 
             let mainMidPointRotationDirection =  getRandomBool() ? 1 : -1;
 
-            let path1 = generatePath({ mainMidPointRotationDirection, start, target, sharedPP, xClamps, targetY, mainMidPointShiftClamps, resultMidPointXShiftClamps, resultMidPointYShiftClamps, innerDotsCountClamp });
-            let path2 = generatePath({ mainMidPointRotationDirection, start, target, sharedPP, xClamps, targetY, mainMidPointShiftClamps, resultMidPointXShiftClamps, resultMidPointYShiftClamps, innerDotsCountClamp });
-            console.log(path1)
+            if(pathParams) {
+                pathParams.sharedPP = sharedPP;
+                if(pathParams.mainMidPointRotationDirection == undefined)
+                    pathParams.mainMidPointRotationDirection = mainMidPointRotationDirection;
+
+                if(pathParams.startProvider && isFunction(pathParams.startProvider)) {
+                    pathParams.start = pathParams.startProvider();
+                }
+
+                if(pathParams.targetProvider && isFunction(pathParams.targetProvider)) {
+                    pathParams.target = pathParams.targetProvider(pathParams.start);
+                }
+            }
+            else {
+                pathParams = {
+                    mainMidPointRotationDirection,
+                    start, 
+                    target,
+                    sharedPP,
+                    xClamps,
+                    targetY,
+                    mainMidPointShiftClamps,
+                    resultMidPointXShiftClamps,
+                    resultMidPointYShiftClamps, 
+                    innerDotsCountClamp
+                }
+            }
+
+
+            let path1 = generatePath(pathParams);
+            let path2 = generatePath(pathParams);
+
+            start = path1.start;
+            target = path1.target;
+
+            if(debug) {
+                console.log("path1",path1)
+                console.log("path2",path2)
+            }
+
             let frames = [];
 
             //step 0
@@ -380,7 +497,8 @@ var animationHelpers = {
                     params: {
                         path1MaxIndex: step1Path1MaxIndex,
                         path1Color: colors.main
-                    }
+                    },
+                    hStart: hStart ? {} : undefined
                 };
             }
 
@@ -401,6 +519,7 @@ var animationHelpers = {
                         path1MaxIndex: path1.resultPoints.length,
                         path1Color: colors.main
                     },
+                    hStart: hStart ? {} : undefined,
                     hTarget: hTarget ? {} : undefined
                 };
             }
@@ -422,6 +541,7 @@ var animationHelpers = {
                         path2MaxIndex: path2.resultPoints.length,
                         path2Color: colors.main
                     },
+                    hStart: hStart ? {} : undefined,
                     hTarget: hTarget ? {} : undefined
                 };
             }
@@ -443,6 +563,7 @@ var animationHelpers = {
                         path1MaxIndex: path1.resultPoints.length,
                         path1Color: colors.main
                     },
+                    hStart: hStart ? {} : undefined,
                     hTarget: hTarget ? {} : undefined
                 };
             }
@@ -479,6 +600,7 @@ var animationHelpers = {
                         cornersData, 
                         cornersColor: colors.main
                     },
+                    hStart: hStart ? {} : undefined,
                     hTarget: hTarget ? {} : undefined
                 };
             }
@@ -493,6 +615,7 @@ var animationHelpers = {
                         path2MaxIndex: path2.resultPoints.length,
                         path2Color: colors.darker
                     },
+                    hStart: hStart ? {} : undefined,
                     hTarget: hTarget ? {} : undefined
                 };
             }
@@ -509,6 +632,7 @@ var animationHelpers = {
                         cornersData, 
                         cornersColor: colors.main
                     },
+                    hStart: hStart ? {} : undefined,
                     hTarget: hTarget ? {} : undefined
                 };
             }
@@ -561,24 +685,23 @@ var animationHelpers = {
                 }
             }
 
-            let particlesItemsData = new Array(getRandomInt(3,5)).fill().map((el, i) => {
+            let particlesItemsData = new Array(getRandomInt(particlesParams.countClamps)).fill().map((el, i) => {
                 let startFrameIndex = particlesFallStartFramesIndex; //getRandomInt(0, framesCount-1);
-                let totalFrames = getRandomInt(30, 60);
+                let totalFrames = getRandomInt(particlesParams.totalFramesClamps);
             
                 //let p = target.add(, ));
-                let x = target.x  + getRandomInt(-2, 2);
-                let y= target.y + getRandomInt(-1,1);
+                let x = target.x  + getRandomInt(particlesParams.startXDelta);
+                let y= target.y + getRandomInt(particlesParams.startYDelta);
                 let xAcceleration = 0.025;
-                let xSpeed = getRandom(0.1, 0.3);
-                let yAcceleration = 0.025;
-                let ySpeed = getRandom(0.3, 0.6);
+                let xSpeed = getRandom(particlesParams.xSpeed);
+                let yAcceleration = particlesParams.yAcceleration;
+                let ySpeed = getRandom(particlesParams.ySpeed);
                 if(x < target.x){
-                    xSpeed = -getRandom(0.1, 0.2);
+                    xSpeed = -xSpeed;
                 }
-
-                if(x > target.x){
-                    xSpeed = getRandom(0.1, 0.2);
-                }
+                // else {
+                //     xSpeed = getRandom(0.1, 0.2);
+                // }
 
                 let frames = [];
                 for(let f = 0; f < totalFrames; f++){
@@ -606,13 +729,13 @@ var animationHelpers = {
                     ySpeed+=yAcceleration;
 
                     if(xSpeed < 0){
-                        xSpeed+=0.005
+                        xSpeed+=particlesParams.xSpeedReducer
                         if(xSpeed > 0)
                             xSpeed = 0;
                     }
 
                     if(xSpeed > 0){
-                        xSpeed-=0.005
+                        xSpeed-=particlesParams.xSpeedReducer
                         if(xSpeed < 0)
                             xSpeed = 0;
                     }
@@ -627,6 +750,7 @@ var animationHelpers = {
                 path1,
                 path2,
                 frames,
+                start,
                 target,
                 particlesItemsData,
                 showParticles
@@ -682,9 +806,23 @@ var animationHelpers = {
                                 break;
                         }
 
+                        if(itemData.frames[f].hStart) {
+                            hlp.setFillColor(highlightParams.color);
+                            
+                            highlightParams.startPointsProvider(itemData.start).forEach(p => {
+                                hlp.dot(p)
+                            });
+                            // let width = getRandomInt(10, 20);
+                            // hlp.setFillColor(colors.darker).rect(itemData.target.x - fast.r(width/2), itemData.target.y + 1, width, 1)
+                        }
+
                         if(itemData.frames[f].hTarget) {
-                            let width = getRandomInt(10, 20);
-                            hlp.setFillColor(colors.darker).rect(itemData.target.x - fast.r(width/2), itemData.target.y + 1, width, 1)
+
+                            hlp.setFillColor(highlightParams.color);
+                            
+                            highlightParams.targetPointsProvider(itemData.target).forEach(p => {
+                                hlp.dot(p)
+                            });
                         }
                         //itemData.path1.resultPoints.forEach(mp => hlp.dot(mp))
                     }
@@ -694,6 +832,13 @@ var animationHelpers = {
                             let pItemData = itemData.particlesItemsData[p];
                     
                             if(pItemData.frames[f]){
+                                if(
+                                    particlesParams.xClamps && !isBetween(pItemData.frames[f].p.x, particlesParams.xClamps) ||
+                                    particlesParams.yClamps && !isBetween(pItemData.frames[f].p.y, particlesParams.yClamps)
+                                )
+                                    continue;
+
+
                                 hlp.setFillColor(pItemData.frames[f].color).dot(pItemData.frames[f].p)
                             }
                         }
