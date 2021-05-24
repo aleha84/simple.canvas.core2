@@ -16,7 +16,13 @@ class Recorder {
                     })
                 }
 
-                c.videoWriter.addFrame(frame);
+                if(c.type == 'gif') {
+                    c.gifWriter.addFrame(frame, { delay: c.frameDelay})
+                }
+                else {
+                    c.videoWriter.addFrame(frame);
+                }
+                
                 if(!c.stopByCode)
                     console.log(`${c.currentFrame} from ${c.totalFramesToRecord} added`);
                 else 
@@ -48,21 +54,44 @@ class Recorder {
                 
                 console.log('recording is completed');
 
-                c.videoWriter.complete().then(function(blob){
-                    let name = c.fileNamePrefix + '_' + new Date().getTime() + '.webm';
-                    // let blob = new Blob(this.recordedBlobs, { type: this.mimeType });
-                    let url = window.URL.createObjectURL(blob);
-                    let a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = name;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                    }, 100)
-                });
+                if(c.type == 'gif') {
+                    c.gifWriter.on('finished', function(blob) {
+                        console.log('gif render finished')
+                        //window.open(URL.createObjectURL(blob));
+                        let name = c.fileNamePrefix + '_' + new Date().getTime() + '.gif';
+                        let url = window.URL.createObjectURL(blob);
+                        let a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = name;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                        }, 100)
+                    });
+
+                    c.gifWriter.render();
+                }
+                else {
+                    c.videoWriter.complete().then(function(blob){
+                        let name = c.fileNamePrefix + '_' + new Date().getTime() + '.webm';
+                        // let blob = new Blob(this.recordedBlobs, { type: this.mimeType });
+                        let url = window.URL.createObjectURL(blob);
+                        let a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = name;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                        }, 100)
+                    });
+                }
+                
 
                 c.enabled = false;
 

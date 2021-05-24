@@ -776,6 +776,7 @@ var colors = {
                 colorData = value;
                 break;
             case "rgbstr": 
+            case "rgbstring": 
                 colorData = colors.rgbStringToObject({ value, asObject: true, shortNames: true });
                 break;
             default:
@@ -800,6 +801,7 @@ var colors = {
                 result = colorData;
                 break;
             case "rgbstr": 
+            case "rgbstring": 
                 result = colors.rgbToString({ value: colorData, isObject: true })
                 break;
             default:

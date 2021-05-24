@@ -2,13 +2,17 @@ class Demo10RecordingScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             capturing: {
-                enabled: true,
+                enabled: false,
+                type: 'gif',
                 addRedFrame: false,
                 stopByCode: true,
-                viewportSizeMultiplier: 5,
+                //viewportSizeMultiplier: 5,
                 totalFramesToRecord: 601,
+                size: new V2(600,600),
                 frameRate: 60,
-                addFrameBeforeStop: true
+                utilitiesPathPrefix: '..',
+                fileNamePrefix: 'recording_test',
+                workersCount: 10
             },
             debug: {
                 enabled: false,
@@ -97,7 +101,7 @@ class Demo10RecordingScene extends Scene {
                 this.img = this.frames[this.currentFrame];
                 
                 if(this.frames.length == 300){
-                    this.counter = 2;           
+                    this.counter = 1;           
                 }
 
                 this.timer = this.regTimerDefault(10, () => {

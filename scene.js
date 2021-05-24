@@ -405,10 +405,24 @@ class Scene {
 
             c.currentFrame = 0;
 
-            c.videoWriter = new WebMWriter({
-                quality: c.quadlity || 0.99999,
-                frameRate: c.frameRate || 60,
-            });
+            if(c.type == 'gif') {
+                c.gifWriter = new GIF({
+                    workers: c.workersCount || 2,
+                    quality: 1,
+                    transparent: null,
+                    background: null,
+                    workerScript: c.utilitiesPathPrefix + '/utilities/libs/gif.worker.js',
+                })
+
+                c.frameDelay = 1000 / (c.frameRate || 60); 
+            }
+            else {
+                c.videoWriter = new WebMWriter({
+                    quality: c.quadlity || 0.99999,
+                    frameRate: c.frameRate || 60,
+                });
+            }
+            
         }
 
         if(this.showLoadingOverlay){

@@ -125,6 +125,11 @@ function checkClamps(clamps, value)
 
 function isBetween(x, begin, end)
 {
+  if(isArray(begin)){
+    end = begin[1];
+    begin = begin[0];
+  }
+
   if(begin > end)
   {
     var swap = end;

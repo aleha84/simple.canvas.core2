@@ -21,6 +21,11 @@ components.createGroup = function(groupEl, groupProps, changeCallback){
         changeCallback();
     }));
 
+    groupEl.appendChild(this.createCheckBox(groupProps.replace, 'Replace', (value) =>{
+        groupProps.replace = value;
+        changeCallback();
+    }));
+
 
     let strokeColor = this.createColorPicker(groupProps.strokeColor, 'Stroke color', (color) => {
         groupProps.strokeColor = color;
