@@ -407,11 +407,11 @@ class Scene {
 
             if(c.type == 'gif') {
                 c.gifWriter = new GIF({
-                    workers: 2,
+                    workers: c.workersCount || 2,
                     quality: 1,
                     transparent: null,
                     background: null,
-                    workerScript: c.utilitiesPathPrefix + '/utilities/libs/gif.worker.js'
+                    workerScript: c.utilitiesPathPrefix + '/utilities/libs/gif.worker.js',
                 })
 
                 c.frameDelay = 1000 / (c.frameRate || 60); 

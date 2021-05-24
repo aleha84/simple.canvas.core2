@@ -11,7 +11,8 @@ class Demo10RecordingScene extends Scene {
                 size: new V2(600,600),
                 frameRate: 60,
                 utilitiesPathPrefix: '..',
-                fileNamePrefix: 'recording_test'
+                fileNamePrefix: 'recording_test',
+                workersCount: 10
             },
             debug: {
                 enabled: false,

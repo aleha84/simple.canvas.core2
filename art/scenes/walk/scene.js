@@ -6,6 +6,19 @@ class WalkScene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                type: 'gif',
+                addRedFrame: false,
+                stopByCode: true,
+                //viewportSizeMultiplier: 5,
+                size: new V2(1600,2000),
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'walk',
+                utilitiesPathPrefix: '../../..',
+                workersCount: 5
+            }
         }, options)
         super(options);
     }
@@ -15,6 +28,14 @@ class WalkScene extends Scene {
     }
 
     start(){
+        // this.bg = this.addGo(new GO({
+        //         position: this.sceneCenter.clone(),
+        //         size: this.viewport.clone(),
+        //         img: createCanvas(V2.one, (ctx, size, hlp) => {
+        //             hlp.setFillColor('#808080').dot(0,0);
+        //         })
+        // }))
+
         this.bg = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),
@@ -57,7 +78,14 @@ class WalkScene extends Scene {
                             })
                         }
 
-                        this.registerFramesDefaultTimer({});
+                        let repeat = 4;
+                        this.registerFramesDefaultTimer({
+                            framesEndCallback: () => {
+                                repeat--;
+                                if(repeat== 0)
+                                    this.parent.parentScene.capturing.stop = true;
+                            }
+                        });
                     }
                 }))
 
@@ -281,9 +309,15 @@ class WalkScene extends Scene {
                 this.currentFrame = 0;
                 this.img = this.frames[framesIndexValues[this.currentFrame]];
                 
+                let repeats = 1;
+
                 this.timer = this.regTimerDefault(10, () => {
                     this.currentFrame++;
                     if(this.currentFrame == totalFrames){
+                        // repeats--;
+                        // if(repeats == 0){
+                        //     this.parentScene.capturing.stop = true;
+                        // }
                         this.currentFrame = 0;
                     }
 
