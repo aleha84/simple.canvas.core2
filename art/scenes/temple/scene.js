@@ -8,16 +8,16 @@ class TempleScene extends Scene {
             },
             capturing: {
                 enabled: false,
-                type: 'webm',
+                type: 'gif',
                 addRedFrame: false,
                 stopByCode: true,
                 //viewportSizeMultiplier: 5,
-                size: new V2(1600,2000),
+                size: new V2(700,875),
                 totalFramesToRecord: 601,
                 frameRate: 60,
                 fileNamePrefix: 'temple',
                 utilitiesPathPrefix: '../../..',
-                workersCount: 5
+                workersCount: 8
             }
         }, options)
         super(options);
@@ -81,7 +81,11 @@ class TempleScene extends Scene {
                 });
 
                 this.frames = animationHelpers.createMovementFrames({ framesCount: 300, pointsData: pData, itemFrameslength: 100, size: this.size })
-                this.registerFramesDefaultTimer({});
+                this.registerFramesDefaultTimer({
+                    framesEndCallback: () => {
+                        this.parentScene.capturing.stop = true;
+                    }
+                });
             }
         }), layersData.trees.renderIndex+1)
 
