@@ -28,7 +28,9 @@ class PerfectPixel {
         
         if(this.positionModifier){
             let res = this.positionModifier(x,y)
-
+            if(res == undefined)
+                return;
+                
             x = res.x;
             y = res.y;
         }
