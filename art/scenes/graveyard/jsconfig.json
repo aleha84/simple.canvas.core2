@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "ES6"
+    },
+    "files": [
+        "scene_morning.js",
+        "scene_evening.js",
+        "index.js",
+    ],
+    "include": [
+        "../../../utilities/*.js",
+        "../../../models/*.js"
+    ],
+    "exclude": ["models.js", "models_evening.js"]
+}
