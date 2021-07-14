@@ -28,5 +28,10 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(200, 150)
     }));
 
-    SCG.main.startV2('graveyard_evening');
+    SCG.scenes.cacheScene(new GraveyardNightScene({
+        name:'graveyard_night',
+        viewport: new V2(200, 150)
+    }));
+
+    SCG.main.startV2('graveyard_night');
 });

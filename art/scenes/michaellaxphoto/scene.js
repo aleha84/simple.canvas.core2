@@ -460,9 +460,9 @@ class DetroitHandScene extends Scene {
                 // })
 
                 let images = [
-                    PP.createImage(model, { renderOnly: ['backlight_red'], forceVisivility: { 'backlight_red': { visible: true } }  }),
+                    PP.createImage(model, { renderOnly: ['backlight_green'], forceVisivility: { 'backlight_green': { visible: true } }  }),
                     PP.createImage(model, { renderOnly: ['backlight_yellow'], forceVisivility: { 'backlight_yellow': { visible: true } }  }),
-                    PP.createImage(model, { renderOnly: ['backlight_green'], forceVisivility: { 'backlight_green': { visible: true } }  })
+                    PP.createImage(model, { renderOnly: ['backlight_red'], forceVisivility: { 'backlight_red': { visible: true } }  })
                 ];
 
                 this.currentFrame = 0;
@@ -487,7 +487,7 @@ class DetroitHandScene extends Scene {
                     }
 
                     this.img = images[this.currentFrame];
-                    console.log('tl. ' + this.currentFrame)
+                    //console.log('tl. ' + this.currentFrame)
                 })
             }
         }), layersData['monument_fr'].renderIndex+1)

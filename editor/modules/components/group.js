@@ -278,6 +278,61 @@ components.fillGroups = function(layerProps, changeCallback) {
             }
         },
         {
+            text: 'Update prev frame',
+            click: () => {
+                let frames = components.editor.image.main;
+                let currentFrameIndex = components.editor.image.general.currentFrameIndex;
+                let f = currentFrameIndex-1;
+                if(currentFrameIndex < 0)
+                    f = frames.length-1;
+
+                let { groupId, layerId } = components.editor.editor.selected;
+                if(groupId == undefined) {
+                    notifications.error('No group selected', 2000);
+                    return;
+                }
+
+                let prevFrameLayer = frames[f].layers.find(l => l.id == layerId);
+                if(!prevFrameLayer){
+                    notifications.error('No layer with id: ' + layerId + ' found in frame index: ' + f , 2000);
+                    return;
+                }
+
+                let sameIdGroup = prevFrameLayer.groups.find(g => g.id == groupId);
+                let selectedGroup = groups.filter(g => g.selected)[0];
+
+                if(!sameIdGroup){
+                    //alert('Not found same Id group');
+                    let g = assignDeep(
+                        {},
+                        modelUtils.createDefaultGroup(selectedGroup.id, groups.length), 
+                        modelUtils.groupMapper(selectedGroup, true));
+
+                    let sameLayer = frames[f].layers.find(l => l.id == components.editor.editor.selected.layerId);
+                    if(sameLayer){
+                        if(sameLayer.groups == undefined){
+                            sameLayer.groups = [];
+                        }
+                        sameLayer.groups.push(g);
+                        alert('Added new group to next frame');
+                        return;
+                    }
+                    else {
+                        alert('Same layer in next frame not found!')
+                        return;
+                    }
+                }
+
+                sameIdGroup.points = selectedGroup.points.map(p => ({
+                    ...p,
+                    point: {...p.point}
+                }));
+
+                //alert('Done');
+                notifications.done('Done', 2000);
+            }
+        },
+        {
             text: 'Update next frame',
             click: () => {
                 let frames = components.editor.image.main;
