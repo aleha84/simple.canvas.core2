@@ -116,7 +116,7 @@ components.createGroup = function(groupEl, groupProps, changeCallback){
         changeCallback();
     }));
 
-    let patternType = components.createSelect(groupProps.patternType, ['type1','type2', 'type3'],'Pattern Type', function(value){
+    let patternType = components.createSelect(groupProps.patternType, ['type1','type2', 'type2_y1', 'type3'],'Pattern Type', function(value){
         groupProps.patternType = value;
         //groupProps.showPoints = value == 'lines';
         //console.log(groupProps.showPoints);

@@ -374,6 +374,11 @@ PP.createImage = function(model, params = {}) {
                                         pp.setPixel(up.x, up.y);
                                     }
                                 }
+                                else if(patternType == 'type2_y1'){
+                                    if((up.y) % 2 == 0 && up.x % 2 == 0) {
+                                        pp.setPixel(up.x, up.y);
+                                    }
+                                }
                                 else if(patternType == 'type3'){
                                     if(up.y % 4 == 0 && up.x % 4 == 0) {
                                         pp.setPixel(up.x, up.y);
