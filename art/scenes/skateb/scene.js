@@ -2,10 +2,23 @@ class BaechInterviewScene extends Scene {
     constructor(options = {}) {
         options = assignDeep({}, {
             debug: {
-                enabled: true,
+                enabled: false,
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                type: 'gif',
+                addRedFrame: false,
+                stopByCode: true,
+                //viewportSizeMultiplier: 5,
+                size: new V2(1920, 1080),//new V2(2000, 1330),
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'beach_guysepaking_camera',
+                utilitiesPathPrefix: '../../..',
+                workersCount: 8
+            }
         }, options)
         super(options);
     }
@@ -115,7 +128,11 @@ class BaechInterviewScene extends Scene {
             },
             init() {
                 this.frames = this.createParticlesFrames({ framesCount: 300, itemsCount: 300, itemFrameslength: 90, size: this.size });
-                this.registerFramesDefaultTimer({});
+                this.registerFramesDefaultTimer({
+                    framesEndCallback: () => {
+                        this.parentScene.capturing.stop = true;
+                    }
+                });
             }
         }), layersData.beach.renderIndex+1)
 
@@ -239,5 +256,141 @@ class BaechInterviewScene extends Scene {
 
             }
         }), layersData.palm1.renderIndex+1)
+
+        this.guy = this.addGo(new GO({
+            position: this.sceneCenter.add(new V2(-30.5, 10)),
+            size: new V2(67,100),
+            //img: PP.createImage(BaechInterviewScene.models.guy), 
+            init() {
+                let model = BaechInterviewScene.models.guy;
+                let layersData = {};
+                let exclude = [
+                    'p'
+                ];
+                
+                for(let i = 0; i < model.main.layers.length; i++) {
+                    let layer = model.main.layers[i];
+                    let layerName = layer.name || layer.id;
+                    let renderIndex = i*10;
+                
+                    layersData[layerName] = {
+                        renderIndex
+                    }
+                    
+                    if(exclude.indexOf(layerName) != -1){
+                        console.log(`${layerName} - skipped`)
+                        continue;
+                    }
+                    
+                    this[layerName] = this.addChild(new GO({
+                        position: new V2(),
+                        size: this.size.clone(),
+                        img: PP.createImage(model, { renderOnly: [layerName] }),
+                        init() {
+                            if(layerName == 'hands' || layerName == 'camera') {
+                                let totalFrames = 300
+                                this.currentFrame = 0;
+                                
+                                
+                                this.timer = this.regTimerDefault(15, () => {
+                                    if(this.currentFrame == 100) {
+                                        this.position.x = -1
+                                        this.needRecalcRenderProperties = true
+                                    }
+                                    else if(this.currentFrame == 200) {
+                                        this.position.x = 0
+                                        this.needRecalcRenderProperties = true
+                                    }
+                                    this.currentFrame++;
+                                    if(this.currentFrame == totalFrames){
+                                        this.currentFrame = 0;
+                                    }
+                                })
+                            }
+                    
+                        }
+                    }))
+                    
+                    console.log(`${layerName} - ${renderIndex}`)
+                }
+                
+                this.speakingAnimation = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(BaechInterviewScene.models.guySpeakingAnimation),
+                    init() {
+                        let params = [
+                            { length: 20, type: 1 },
+                            { length: 30, type: 2 },
+                            { length: 30, pause: true},
+                            { length: 30, type: 2 },
+                            { length: 20, type: 1 },
+                            { length: 60, pause: true},
+                            { length: 30, type: 2 },
+                            { length: 20, type: 1 },
+                            { length: 20, type: 2 },
+                            { length: 40, pause: true},
+                        ]
+
+                        // let sp1Length = 20;
+                        // let sp1LengthFramesIndicies = [
+                        //     ...easing.fast({ from: 0, to: 2, steps: sp1Length/2, type: 'linear', round: 0 }),
+                        //     ...easing.fast({ from: 2, to: 1, steps: sp1Length/2, type: 'linear', round: 0 })
+                        // ]
+
+                        let framesIndicies = [];
+
+                        for(let i = 0; i < params.length; i++) {
+                            let p = params[i];
+
+                            let from = 0;
+                            let to = 0;
+
+                            if(p.type == 1) {
+                                to = 1
+                            }
+
+                            if(p.type == 2) {
+                                to = 2
+                            }
+
+                            let _framesIndicies = [
+                                ...easing.fast({ from, to, steps: p.length/2, type: 'linear', round: 0 }),
+                                ...easing.fast({ from, to, steps: p.length/2, type: 'linear', round: 0 })
+                            ]
+
+                            for(let f = 0; f < p.length; f++) {
+                                framesIndicies[framesIndicies.length] = _framesIndicies[f]
+                            }
+                        }
+
+                        console.log(framesIndicies.length)
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[framesIndicies[this.currentFrame]];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                            this.currentFrame++;
+                            if(this.currentFrame == framesIndicies.length){
+                                this.currentFrame = 0;
+                            }
+
+                            this.img = this.frames[framesIndicies[this.currentFrame]];
+                        })
+                    }
+                }), false, false)
+
+                this.p = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 50, size: this.size, 
+                            pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'p')) });
+        
+                        this.registerFramesDefaultTimer({});
+                    }
+                }), false, false)
+            }
+        }), layersData.lamp.renderIndex+10)
     }
 }
