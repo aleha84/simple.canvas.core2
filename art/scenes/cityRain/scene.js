@@ -7,7 +7,7 @@ class CityRainScene extends Scene {
                 additional: [],
             },
             capturing: {
-                enabled: true,
+                enabled: false,
                 type: 'gif',
                 addRedFrame: false,
                 stopByCode: true,
