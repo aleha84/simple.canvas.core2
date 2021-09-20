@@ -280,8 +280,13 @@ PP.createImage = function(model, params = {}) {
         exclude: [],
         colorsSubstitutions: {},
         forceVisivility: {},
+        forceVisibility: {},
         positionModifier: undefined
     }, params);
+
+    if(isEmpty(params.forceVisivility) && !isEmpty(params.forceVisibility)) {
+        params.forceVisivility = params.forceVisibility
+    }
 
     let renderGroup = (pp, group) => {
         let strokeColor = group.strokeColor;

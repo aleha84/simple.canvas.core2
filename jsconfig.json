@@ -2,5 +2,7 @@
     "compilerOptions": {
         "target": "ES6"
     },
-    "exclude": ["additionals", "demo1", "demo2","demo3", "demo4","demo5","demo6/images","demo7/images","demo8/images", "demo9/images", "demo10/images", "commission"]
+    "exclude": ["additionals", "demo1", "demo2","demo3", "demo4","demo5","demo6/images","demo7/images","demo8/images", "demo9/images", "demo10/images", "commission", 
+        "art/scenes/*/models.js"
+    ]
 }

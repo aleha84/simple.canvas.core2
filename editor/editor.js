@@ -11,6 +11,8 @@
 // 23. Add progress recording - each minute add frame, pause, stop, start. Result in webm video
 // 25. change selected pixel color frame. Globally, per group. Depends on color? 
 // 27. auto save in localstorage !!!!!!!
+// 28. After group deletion keep scroll position (it is resetting now)
+// 29. Make list boxes height customable with saving to model special block
 
 class Editor {
     constructor(options = {}){
