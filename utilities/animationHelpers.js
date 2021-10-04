@@ -231,6 +231,7 @@ var animationHelpers = {
         pathParams,
         particlesParams,
         highlightParams,
+        stepFramesLength,
     }) {
         let getFrameIndex = function(f, startFrameIndex, framesCount) {
             let frameIndex = f + startFrameIndex;
@@ -383,7 +384,7 @@ var animationHelpers = {
         let resultMidPointYShiftClamps = [-5, 5];
         let innerDotsCountClamp = [6,8]
 
-        let animationStepFramesLength = 3;
+        let animationStepFramesLength = stepFramesLength || 3;
 
         let sharedPP; 
         createCanvas(new V2(1,1), (ctx, size, hlp) => {

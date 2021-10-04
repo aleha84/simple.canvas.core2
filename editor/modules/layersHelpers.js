@@ -12,7 +12,18 @@ components.layersHelpers = {
             }
         })
 
+        let cleanGroupsInLayerButton = htmlUtils.createElement('input', { 
+            value: 'Clean groups', 
+            attributes: { type: 'button' }, 
+            events: {
+                click: () => {
+                    components.layersHelpers.cleanGroupsInLayer();
+                }
+            }
+        })
+
         controls.push(moveCurrentGroupToAnotherLayerButton);
+        controls.push(cleanGroupsInLayerButton);
 
         components.editorContext.editor.panels.layersHelpers = components.createDraggablePanel({
             title: 'Layer helpers', 
@@ -24,6 +35,80 @@ components.layersHelpers = {
             onClose: () => { context.editor.panels.layersHelpers = undefined; },
             contentItems: controls
         });
+    },
+    cleanGroupsInLayer() {
+        let { groupId, layerId } = components.editorContext.editor.selected;
+
+        if(layerId == undefined){
+            notifications.error('No layer selected!', 2000);
+            return;
+        }
+
+        let { main, general } = components.editorContext.image;
+        if(general.animated){
+            main = main[general.currentFrameIndex];
+        }
+
+        let layer = main.layers.find(l => l.id == layerId);
+
+        let groupCleaningState = {};
+        let checkAll =false;
+        let availableGroups = htmlUtils.createElement('div', { className: 'availableGroups', 
+            children:  [
+                htmlUtils.createElement('div', { classNames: ['rowFlex', 'availableGroupsItem', 'selectAll'], children: [
+                    components.createCheckBox(false, '', (state) => {
+                        checkAll = !checkAll;
+                        layer.groups.forEach(g => {
+                            groupCleaningState[g.id] = {
+                                state: checkAll,
+                                group: g
+                            }
+                        })
+
+                        document.querySelectorAll('.availableGroupsItem:not(.selectAll) input[type=checkbox]').forEach(el => 
+                        {
+                            htmlUtils.setProps(el, { checked: checkAll })
+                        });
+                    },
+                    { classNames: ['rowFlex'] }),
+                    htmlUtils.createElement('span', { text: 'All' })
+                ]}),
+                ...layer.groups.map(group => 
+                htmlUtils.createElement('div', { classNames: ['rowFlex', 'availableGroupsItem'], children: [
+                    components.createCheckBox(false, '', (state) => {
+                        groupCleaningState[group.id] = {state, group};
+                    },
+                    { classNames: ['rowFlex'] }),
+                    htmlUtils.createElement('span', { text: `${group.id} (${group.points.length})` }),
+                    htmlUtils.createElement('div', { className: 'paletteItem', styles: {  backgroundColor: group.strokeColor }})
+                ] })
+            )]
+        })
+        
+        
+        let contentHolder = htmlUtils.createElement('div', { className: '', children: [
+            htmlUtils.createElement('p', { className: '', text: `Select groups in layer: ${layer.name || layer.id}`}),
+            availableGroups
+        ] });
+
+        components.overlay.create({
+            content: contentHolder, 
+            containerClassName: 'cleanGroupsInLayer', 
+            okCallback() {
+
+                
+                for(let key in groupCleaningState) {
+                    //console.log(key, groupCleaningState[key]);
+                    if(groupCleaningState[key].state) {
+                        groupCleaningState[key].group.points = [];
+                    }
+                }
+
+                console.log(groupCleaningState)
+                layer.removeImage();
+                components.resetGroups();
+            }
+        })
     },
     moveCurrentGroupToAnotherLayer() {
         let { groupId, layerId } = components.editorContext.editor.selected;

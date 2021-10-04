@@ -107,7 +107,7 @@ class GraveyardNightScene extends Scene {
                 let elCenter = elSize.divide(2).toInt();
                 let gO = elCenter.clone();
 
-                let gradientDots = colors.createRadialGradient({ size: elSize, center: elCenter, radius: new V2(16,12), gradientOrigin: gO, angle: -10 })
+                let gradientDots = colors.createRadialGradient({ size: elSize, center: elCenter, radius: new V2(16,12), gradientOrigin: gO, angle: 0 })
                 
                 let targetP = new V2(46,120);
                 let shift = targetP.substract(elCenter);

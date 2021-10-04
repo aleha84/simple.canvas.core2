@@ -1,5 +1,6 @@
-components.createCheckBox = function(value, title, changeCallback){
-    let el = htmlUtils.createElement('div', { classNames: ['checkbox', 'row'] });
+components.createCheckBox = function(value, title, changeCallback, params = { classNames: undefined }){
+    let classNames = params.classNames || ['checkbox', 'row'];
+    let el = htmlUtils.createElement('div', { classNames });
     if(title){    
         el.appendChild(htmlUtils.createElement('div', { className: 'title', text: title }))
     }

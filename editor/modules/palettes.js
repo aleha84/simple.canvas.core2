@@ -9,7 +9,7 @@ var paletteHelper = {
 
         let panels = editorContext.editor.panels;
 
-        if(panels.midColor){
+        if(panels.palettes){
             panels.palettes.remove()
         }
 
@@ -54,6 +54,14 @@ var paletteHelper = {
         let itemEl = htmlUtils.createElement('div', { className: 'paletteItem', events: {
             click: (event) => {
 
+                if(paletteItem.panel) {
+                    paletteItem.panel.remove();
+                    this.itemPanels = this.itemPanels.filter(p => p != paletteItem.panel);
+                    paletteItem.panel = undefined;
+
+                    return;
+                }
+
                 let p = new V2(event.clientX,event.clientY);
                 if(this.itemPanels.length){
                     let lastPanel = this.itemPanels[this.itemPanels.length-1].panel;
@@ -65,14 +73,20 @@ var paletteHelper = {
                 let panel = components.createDraggablePanel({title: paletteItem.color, closable: true, expandable: false, panelClassNames: [ 'paletteItem'], 
                 parent: document.body, position: new V2(p), 
                 onClose: () => {
+                    paletteItem.panel = undefined;
                     let indexToDelete = this.itemPanels.indexOf(panel);
                     if(indexToDelete!= -1){
                         this.itemPanels.splice(indexToDelete, 1);
                     }
                 },
                 contentItems: [
-                    htmlUtils.createElement('div', { text: paletteItem.color })
+                    htmlUtils.createElement('div', { className: 'rowFlex', children: [
+                        htmlUtils.createElement('div', { className: 'color', styles: {backgroundColor: paletteItem.color} }),
+                        htmlUtils.createElement('div', { text: paletteItem.color })
+                    ] })
                 ]});
+
+                paletteItem.panel = panel;
 
                 this.itemPanels[this.itemPanels.length] = panel;
             }

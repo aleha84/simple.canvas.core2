@@ -1138,6 +1138,15 @@ class Editor {
         paletteHelper.init(this, general.palettes);
         
         let generalEl = htmlUtils.createElement('div', { className: 'general' });
+        
+        generalEl.appendChild(htmlUtils.createElement('div', { classNames: ['collapsible', 'collapse'], text: 'General', events: {
+            click: (event) => {
+                generalEl.classList.toggle('collapsed');
+                event.target.classList.toggle('collapse')
+                event.target.classList.toggle('expand')
+            }
+        } }));
+
         generalEl.appendChild(components.createV2(general.originalSize, 'Size', this.updateEditor.bind(this)));
         generalEl.appendChild(components.createRange(general.zoom, 'Zoom', this.updateEditor.bind(this)));
         
