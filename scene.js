@@ -411,6 +411,7 @@ class Scene {
                     quality: 1,
                     transparent: null,
                     background: null,
+                    dither: false,
                     workerScript: c.utilitiesPathPrefix + '/utilities/libs/gif.worker.js',
                 })
 

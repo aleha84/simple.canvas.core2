@@ -8,14 +8,14 @@ class BaechInterviewScene extends Scene {
             },
             capturing: {
                 enabled: false,
-                type: 'gif',
+                type: 'webm',
                 addRedFrame: false,
                 stopByCode: true,
                 //viewportSizeMultiplier: 5,
                 size: new V2(1920, 1080),//new V2(2000, 1330),
                 totalFramesToRecord: 601,
                 frameRate: 60,
-                fileNamePrefix: 'beach_guysepaking_camera',
+                fileNamePrefix: 'beach_man_woman',
                 utilitiesPathPrefix: '../../..',
                 workersCount: 8
             }
@@ -257,6 +257,138 @@ class BaechInterviewScene extends Scene {
             }
         }), layersData.palm1.renderIndex+1)
 
+        let personsShift = new V2(-10,0)
+        this.man = this.addGo(new GO({
+            position: this.sceneCenter.add(personsShift),
+            size: this.viewport.clone(),
+            init() {
+                this.img = PP.createImage(BaechInterviewScene.models.secondScene.man, { exclude: ['hands2', 'p'] })
+
+                this.p = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 50, size: this.size, 
+                            pointsData: animationHelpers.extractPointData(BaechInterviewScene.models.secondScene.man.main.layers.find(l => l.name == 'p')) });
+        
+                        this.registerFramesDefaultTimer({});
+                    }
+                }), false, false)
+
+                this.man_animation = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.frames = PP.createImage(BaechInterviewScene.models.secondScene.man_animation)
+                        let totalFrames = 150;
+                        let framesIndexValues = [
+                            ...easing.fast({from: 0, to: this.frames.length-1, steps: totalFrames/2, type: 'quad', method: 'inOut', round: 0}),
+                            ...easing.fast({from: this.frames.length-1, to: 0, steps: totalFrames/2, type: 'quad', method: 'inOut', round: 0})
+                        ]
+
+                        this.currentFrame = 0;
+                        this.img = this.frames[framesIndexValues[this.currentFrame]];
+                        
+                        this.timer = this.regTimerDefault(10, () => {
+                        
+                            this.currentFrame++;
+                            if(this.currentFrame == totalFrames){
+                                this.currentFrame = 0;
+                            }
+                            this.img = this.frames[framesIndexValues[this.currentFrame]];
+                        })
+                    }
+                }))
+
+                this.hands = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    isVisible: true,
+                    init() {
+                        this.currentFrame = 0;
+                        this.img = PP.createImage(BaechInterviewScene.models.secondScene.man, { renderOnly: ['hands2'] })
+                        let totalFrames = 300;
+
+                        this.timer = this.regTimerDefault(10, () => {
+                            if(this.currentFrame == 100) {
+                                this.isVisible = true;
+                            } 
+
+                            if(this.currentFrame == 150) {
+                                this.isVisible = false;
+                            }
+
+                            this.currentFrame++;
+                            if(this.currentFrame == totalFrames){
+                                this.currentFrame = 0;
+                            }
+                        })
+                    }
+                }))
+            }
+        }), layersData.lamp.renderIndex+10)
+
+        
+        this.woman = this.addGo(new GO({
+            position: this.sceneCenter.add(personsShift),
+            size: this.viewport.clone(),
+            init() {
+                this.img = PP.createImage(BaechInterviewScene.models.secondScene.woman, { exclude: ['p'] })
+
+                this.p = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    init() {
+                        this.frames = animationHelpers.createMovementFrames({ framesCount: 300, itemFrameslength: 50, size: this.size, 
+                            pointsData: animationHelpers.extractPointData(BaechInterviewScene.models.secondScene.woman.main.layers.find(l => l.name == 'p')) });
+        
+                        this.registerFramesDefaultTimer({});
+                    }
+                }), false, false)
+
+                this.speakingAnimation = this.addChild(new GO({
+                    position: new V2(),
+                    size: this.size,
+                    frames: PP.createImage(BaechInterviewScene.models.secondScene.woman_faceAnimation),
+                    init() {
+
+                        this.currentFrame = 0;
+                        let framesLength = getRandomInt(5,10);
+                        this.img = this.frames[0];
+                        let lastTimeOpen = 0;
+                        this.timer = this.regTimerDefault(10, () => {
+                            this.currentFrame++;
+                            if(this.currentFrame == framesLength){
+                                this.currentFrame = 0;
+                                let framesIndex = getRandomInt(0, this.frames.length-1);
+
+                                lastTimeOpen++;
+
+                                if(framesIndex == 3) {
+                                    lastTimeOpen = 0;
+                                }
+                                else {
+                                   if(lastTimeOpen == 5){
+                                    lastTimeOpen = 0;
+                                    framesIndex =3;
+                                   } 
+                                }
+
+                                this.img = this.frames[framesIndex];
+                                framesLength = getRandomInt(5,10);
+                                if(framesIndex == 2) {
+                                    framesLength = getRandomInt(4,6);
+                                }
+                            }
+
+                            // this.img = this.frames[framesIndicies[this.currentFrame]];
+                        })
+                    }
+                }), false, false)
+            }
+        }), layersData.lamp.renderIndex+10)
+
+        /*
         this.guy = this.addGo(new GO({
             position: this.sceneCenter.add(new V2(-30.5, 10)),
             size: new V2(67,100),
@@ -392,5 +524,6 @@ class BaechInterviewScene extends Scene {
                 }), false, false)
             }
         }), layersData.lamp.renderIndex+10)
+        */
     }
 }

@@ -4,11 +4,6 @@
     },
     "files": [
         "scene.js",
-        "effectsScene.js",
-        "effects2.js",
-        "effects3.js",
-        "lamp.js",
-        "lamp2.js",
         "index.js",
     ],
     "include": [

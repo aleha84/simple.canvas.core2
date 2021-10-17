@@ -6,12 +6,6 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         
-        if(sceneName == 'rain') {
-            SCG.scenes.activeScene.setRain();
-        }
-        else if(sceneName == 'snow'){
-            SCG.scenes.activeScene.setSnow();
-        }
 
         // if(SCG.scenes.cachedScenes[sceneName] != undefined)
         //     SCG.scenes.selectScene(sceneName);
@@ -31,7 +25,32 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(150,150)
     }));
 
-    SCG.main.startV2('draft');
+    SCG.scenes.cacheScene(new EffectsScene({
+        name:'effects1',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.scenes.cacheScene(new Effects2Scene({
+        name:'effects2',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.scenes.cacheScene(new Effects3Scene({
+        name:'effects3',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.scenes.cacheScene(new LampScene({
+        name:'lamp',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.scenes.cacheScene(new Lamp2Scene({
+        name:'lamp2',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.main.startV2('lamp2');
 
     window.addEventListener("hashchange", sceneSelectByHashValue, false);
 });

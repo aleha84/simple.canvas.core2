@@ -269,6 +269,19 @@ class PerfectPixel {
 
 var PP = PerfectPixel;
 
+PP.createInstance = function(size) {
+    let pp = undefined;
+
+    if(!size)
+        size = V2.one;
+
+    createCanvas(size, (ctx, _size, hlp) => {
+        pp = new PP({ctx});
+    })
+
+    return pp;
+}
+
 PP.createImage = function(model, params = {}) {
     if(model == undefined)
         throw 'PP.createImage model is undefined!';

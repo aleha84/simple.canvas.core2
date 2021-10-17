@@ -1,0 +1,306 @@
+{
+	// Place your simple.canvas.core2 workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+
+	"layersRenders": {
+		"scope": "javascript",
+		"prefix": "layersRenderers",
+		"description": "По слойный рендеринг модели в отдельные объекты",
+		"body": [
+			"let model = ${1:Scene}.models.main;",
+			"let layersData = {};",
+			"let exclude = [",
+				"\t",
+			"];",
+			"",
+			"for(let i = 0; i < model.main.layers.length; i++) {",
+				"\tlet layer = model.main.layers[i];",
+				"\tlet layerName = layer.name || layer.id;",
+				"\tlet renderIndex = i*10;",
+				"",
+				"layersData[layerName] = {",
+					"\trenderIndex",
+				"}",
+				"",
+				"if(exclude.indexOf(layerName) != -1){",
+					"\tconsole.log(`${layerName} - skipped`)",
+					"\tcontinue;",
+				"}",
+				"",
+				"this[layerName] = this.addGo(new GO({",
+					"\tposition: this.sceneCenter.clone(),",
+					"\tsize: this.viewport.clone(),",
+					"\timg: PP.createImage(model, { renderOnly: [layerName] }),",
+					"\tinit() {",
+					"",	
+					"\t}",
+				"}), renderIndex)",
+				"",
+				"console.log(`${layerName} - ${renderIndex}`)",
+			"}",
+		]
+	},
+
+	"recordingRedRectangle": {
+		"scope": "javascript",
+		"prefix": "redRectangle",
+		"description": "Добавление моргающего красного прямоугольника при итерации через кадры",
+		"body": [
+			"if(!this.redFrame){",
+			"\tthis.redFrame = this.addChild(new GO({",
+			"\t\tposition: new V2(),",
+			"\t\tsize: this.size,",
+			"\t\timg: createCanvas(this.size, (ctx, size, hlp) => {",
+			"\t\t\thlp.setFillColor('red').rect(0,0, 50,50)",
+			"\t\t})",
+			"\t}));",
+			"}",
+			"else {",
+			"\tthis.removeChild(this.redFrame);",
+			"\tthis.redFrame = undefined;",
+			"}"
+		]
+	},
+
+	"useFrames": {
+		"scope": "javascript",
+		"prefix": "useFrames",
+		"description": "Create common frames iteration usage",
+		"body": [
+			"this.currentFrame = 0;",
+			"this.img = this.frames[this.currentFrame];",
+			"",
+			"this.timer = this.regTimerDefault(15, () => {",
+			"",
+			"\tthis.img = this.frames[this.currentFrame];",
+			"\tthis.currentFrame++;",
+			"\tif(this.currentFrame == this.frames.length){",
+			"\t\tthis.currentFrame = 0;",
+			"\t}",
+			"})"
+		]
+	},
+
+	"useFrames2": {
+		"scope": "javascript",
+		"prefix": "useFrames2",
+		"description": "Create common frames iteration usage with delays",
+		"body": [
+			"this.currentFrame = 0;",
+			"this.img = this.frames[this.currentFrame];",
+			"",
+			"let originFrameChangeDelay = ${1:0};",
+			"let frameChangeDelay = originFrameChangeDelay;",
+			"",
+			"let animationRepeatDelayOrigin = ${2:0};",
+			"let animationRepeatDelay = animationRepeatDelayOrigin;",
+			"",
+			"this.timer = this.regTimerDefault(${3:10}, () => {",
+			"\tanimationRepeatDelay--;",
+			"\tif(animationRepeatDelay > 0)",
+			"\t\treturn;",
+			"",
+			"\tframeChangeDelay--;",
+			"\tif(frameChangeDelay > 0)",
+			"\t\treturn;",
+			"",
+			"\tframeChangeDelay = originFrameChangeDelay;",
+			"",
+			"\tthis.img = this.frames[this.currentFrame];",
+			"\tthis.currentFrame++;",
+			"\tif(this.currentFrame == this.frames.length){",
+			"\t\tthis.currentFrame = 0;",
+			"\t\tanimationRepeatDelay = animationRepeatDelayOrigin;",
+			"\t}",
+			"})"
+		]
+	},
+
+	"useFramesReg": {
+		"scope": "javascript",
+		"prefix": "useFramesReg",
+		"description": "Create registerFramesDefaultTimer",
+		"body": [
+			"this.registerFramesDefaultTimer({});"
+		]
+	},
+
+	"createFrames": {
+		"scope": "javascript",
+		"prefix": "createFrames",
+		"description": "Create common frames preparer structure",
+		"body": [
+			"create${1:name}Frames({framesCount, itemsCount, size}) {",
+			"\tlet frames = [];",
+			"\t",
+			"\tlet itemsData = new Array(itemsCount).fill().map((el, i) => {",
+			"\t\treturn {",
+			"\t\t\t// other values",
+			"\t\t\tinitialIndex: getRandomInt(0, framesCount-1)",
+			"\t\t}",
+			"\t})",
+			"\t",
+			"\tfor(let f = 0; f < framesCount; f++){",
+			"\t\tframes[f] = createCanvas(size, (ctx, size, hlp) => {",
+			"\t\t\tfor(let p = 0; p < itemsCount; p++){",
+			"\t\t\t\tlet pointData = itemsData[p];",
+			"\t\t\t\t",
+			"\t\t\t\tlet currentIndex = pointData.initialIndex + f;",
+			"\t\t\t\tif(currentIndex > (framesCount-1)){",
+			"\t\t\t\t\tcurrentIndex-=framesCount;",
+			"\t\t\t\t}",
+			"\t\t\t\t",
+			"\t\t\t}",
+			"\t\t});",
+			"\t}",
+			"\t",
+			"\treturn frames;",
+			"}"		
+		]
+	},
+	
+	"createFrames2": {
+		"scope": "javascript",
+		"prefix": "createFrames2",
+		"description": "Create common frames preparer structure V2",
+		"body": [
+			"create${1:name}Frames({framesCount, itemsCount, itemFrameslength, size}) {",
+			"\tlet frames = [];",
+			"\t",
+			"\tlet itemsData = new Array(itemsCount).fill().map((el, i) => {",
+			"\t\tlet startFrameIndex = getRandomInt(0, framesCount-1);",
+			"\t\tlet totalFrames = itemFrameslength;",
+			"\t",
+			"\t\tlet frames = [];",
+			"\t\tfor(let f = 0; f < totalFrames; f++){",
+			"\t\t\tlet frameIndex = f + startFrameIndex;",
+			"\t\t\tif(frameIndex > (framesCount-1)){",
+			"\t\t\t\tframeIndex-=framesCount;",
+			"\t\t\t}",
+			"\t",
+			"\t\t\tframes[frameIndex] = {",
+			"\t",
+			"\t\t\t};",
+			"\t\t}",
+			"\t",
+			"\t\treturn {",
+			"\t\t\tframes",
+			"\t\t}",
+			"\t})",
+			"\t",
+			"\tfor(let f = 0; f < framesCount; f++){",
+			"\t\tframes[f] = createCanvas(size, (ctx, size, hlp) => {",
+			"\t\t\tfor(let p = 0; p < itemsData.length; p++){",
+			"\t\t\t\tlet itemData = itemsData[p];",
+			"\t\t\t\t",
+			"\t\t\t\tif(itemData.frames[f]){",
+			"\t",
+			"\t\t\t\t}",
+			"\t\t\t\t",
+			"\t\t\t}",
+			"\t\t});",
+			"\t}",
+			"\t",
+			"\treturn frames;",
+			"}"		
+		]
+	},
+
+	"AddGo": {
+		"scope": "javascript",
+		"prefix": "addgo",
+		"body": [
+			"this.addGo(new GO({",
+			"\tposition: ${1:this.sceneCenter.clone()},",
+			"\tsize: ${2:this.viewport.clone()},",
+			"\tinit() {",
+			"\t\t$4//",
+			"\t}",
+			"}), ${3:1})"
+					
+		]
+	},
+
+
+	"CreateCanvas": {
+		"scope": "javascript",
+		"prefix": "_createCanvas",
+		"body": [
+			"createCanvas(${1:size}, (ctx, size, hlp) => {",
+			"\t//$2",
+			"})"
+		]
+	},
+
+	"SceneClass": {
+		"scope": "javascript",
+		"prefix": "createScene",
+		"body": [
+			"class ${1:name}Scene extends Scene {",
+			"\tconstructor(options = {}) {",
+			"\t\toptions = assignDeep({}, {",
+			"\t\t\tdebug: {",
+			"\t\t\t\tenabled: true,",
+			"\t\t\t\tshowFrameTimeLeft: true,",
+			"\t\t\t\tadditional: [],",
+			"\t\t\t},",
+			"\t\t}, options)",
+			"\t\tsuper(options);",
+			"\t}",
+			"",
+			"\tbackgroundRender() {",
+			"\t\tthis.backgroundRenderDefault();",
+			"\t}",
+			"",
+			"\tstart(){",
+			"\t\t//$2",
+			"\t}",
+			"}"
+		],
+		"description": "Create scene class boilerplate"
+	},
+
+	"GOClass": {
+		"scope": "javascript",
+		"prefix": "createGO",
+		"description": "Create GO class boilerplate",
+		"body": [
+			"class ${1:name}GO extends GO {",
+			"\tconstructor(options = {}) {",
+			"\t\toptions = assignDeep({}, {",
+			"\t\t}, options)",
+			"",
+			"\t\tsuper(options);",
+			"\t}",
+			"",
+			"\tinit() {",
+			"\t\t//$2",
+			"\t}",
+			"}"
+		]
+	},
+
+	"effectParticles": {
+		"scope": "javascript",
+		"prefix": "effectParticles",
+		"description": "Create show|hide particles effect based on data layer",
+		"body": [
+			"this.frames = animationHelpers.createMovementFrames({ framesCount: ${1:200}, itemFrameslength: ${2:20}, size: ${3:this.size}, ",
+			"\tpointsData: animationHelpers.extractPointData(${4:Scene.main.layers.find(l => l.name == 'p1'))} });"
+		]
+	}
+}
