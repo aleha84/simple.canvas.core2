@@ -26,12 +26,12 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     
-    SCG.scenes.cacheScene(new NeonEveningScene({
-        name:'subway',
-        viewport: new V2(113,200)
+    SCG.scenes.cacheScene(new LastTreeScene({
+        name:'lasttree',
+        viewport: new V2(200,200)
     }));
 
-    SCG.main.startV2('subway');
+    SCG.main.startV2('lasttree');
 
     window.addEventListener("hashchange", sceneSelectByHashValue, false);
 });

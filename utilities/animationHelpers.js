@@ -111,7 +111,7 @@ var animationHelpers = {
     },
 
     createCloudsFrames({framesCount, itemsCount, itemFrameslength, color, sec, size,circleImages,
-        directionAngleClamps, distanceClamps, sizeClamps, initialProps, yShiftClamps, invertMovement = false,
+        directionAngleClamps, distanceClamps, sizeClamps, initialProps, yShiftClamps, xShiftClamps, invertMovement = false,
         createPoligon 
     }) {
         let frames = [];
@@ -128,10 +128,19 @@ var animationHelpers = {
             throw 'Unknown initial props type';
         }
 
+        if(!yShiftClamps)
+            yShiftClamps = [0,0]
+
+        if(!xShiftClamps)
+            xShiftClamps = [0,0]
+
         if(createPoligon) {
+            if(createPoligon.position == undefined)
+                createPoligon.position = 'before';
+
             createPoligon.img = createCanvas(size, (ctx, _size, hlp) => {
                 let pp = new PP({ctx});
-                pp.setFillStyle(color)
+                pp.setFillStyle(createPoligon.color || color)
 
                 pp.fillByCornerPoints(createPoligon.cornerPoints)
             })
@@ -164,6 +173,14 @@ var animationHelpers = {
 
             yShiftValues = [...yShiftValues, ...yShiftValues.map(x => -x)];
 
+            let xShift = getRandomInt(xShiftClamps[0], xShiftClamps[1]);
+            let xShiftValues = [
+                ...easing.fast({from: 0, to: xShift, steps: fast.r(halfFrames/2), type: 'quad', method: 'out', round: 0}),
+                ...easing.fast({from: xShift, to: 0, steps: fast.r(halfFrames/2), type: 'quad', method: 'in', round: 0})
+            ]
+
+            xShiftValues = [...xShiftValues, ...xShiftValues.map(x => -x)];
+
             let frames = [];
             for(let f = 0; f < totalFrames; f++){
                 let frameIndex = f + startFrameIndex;
@@ -173,6 +190,7 @@ var animationHelpers = {
         
                 frames[frameIndex] = {
                     y: yShiftValues[f],
+                    x: xShiftValues[f],
                     p: points[pointsIndexChange[f]]
                 };
             }
@@ -187,7 +205,7 @@ var animationHelpers = {
         for(let f = 0; f < framesCount; f++){
             frames[f] = createCanvas(size, (ctx, size, hlp) => {
 
-                if(createPoligon && createPoligon.img) {
+                if(createPoligon && createPoligon.img && createPoligon.position == 'before') {
                     ctx.drawImage(createPoligon.img, 0,0)
                 }
 
@@ -198,12 +216,13 @@ var animationHelpers = {
                     if(itemData.frames[f]){
                         let _p = itemData.frames[f].p;
                         let yShift = itemData.frames[f].y;
-                        ctx.drawImage(circleImages[color][itemData.s], _p.x, _p.y + yShift)
+                        let xShift = itemData.frames[f].x;
+                        ctx.drawImage(circleImages[color][itemData.s], _p.x + xShift, _p.y + yShift)
 
                         if(itemData.sec) {
                             secData[secData.length] = {
                                 s: itemData.sec.s,
-                                x: _p.x + itemData.sec.xShift,
+                                x: _p.x + xShift + itemData.sec.xShift,
                                 y: _p.y + yShift + itemData.sec.yShift
                             }
                             //ctx.drawImage(circleImages[secColor][itemData.sec.s], _p.x, _p.y + yShift + itemData.sec.yShift)
@@ -214,6 +233,10 @@ var animationHelpers = {
 
                 for(let i = 0; i < secData.length; i++){
                     ctx.drawImage(circleImages[sec.color][secData[i].s],secData[i].x, secData[i].y)
+                }
+
+                if(createPoligon && createPoligon.img && createPoligon.position == 'after') {
+                    ctx.drawImage(createPoligon.img, 0,0)
                 }
             });
         }
