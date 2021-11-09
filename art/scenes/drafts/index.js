@@ -40,6 +40,16 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(150,150)
     }));
 
+    SCG.scenes.cacheScene(new Effects4Scene({
+        name:'effects4',
+        viewport: new V2(200,200)
+    }));
+
+    SCG.scenes.cacheScene(new Effects5Scene({
+        name:'effects5',
+        viewport: new V2(200,200)
+    }));
+
     SCG.scenes.cacheScene(new LampScene({
         name:'lamp',
         viewport: new V2(150,150)
@@ -50,7 +60,17 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(150,150)
     }));
 
-    SCG.main.startV2('lamp2');
+    SCG.scenes.cacheScene(new Lamp3Scene({
+        name:'lamp3',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.scenes.cacheScene(new EarthScene({
+        name:'earth',
+        viewport: new V2(150,150)
+    }));
+
+    SCG.main.startV2('lamp3');
 
     window.addEventListener("hashchange", sceneSelectByHashValue, false);
 });

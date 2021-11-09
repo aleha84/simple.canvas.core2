@@ -2,13 +2,15 @@ class PerfectPixel {
     constructor(options = {}){
         this.fillStyleProvider = undefined;
         this.positionModifier = undefined;
+        this.modifyContext = undefined;
         
         assignDeep(this, {
             fillStyleProvider: undefined,
             positionModifier: undefined,
+            modifyContext: true,
         }, options)
 
-        if(this.ctx ==- undefined && this.context === undefined){
+        if(this.ctx == undefined && this.context === undefined){
             console.trace();
             throw 'PerfectPixel -> context is not defined';
         }
@@ -34,7 +36,10 @@ class PerfectPixel {
             x = res.x;
             y = res.y;
         }
-            
+         
+        if(!this.modifyContext) {
+            return;
+        }
 
         if(this.clear){
             this.removePixel(x,y);
@@ -49,6 +54,10 @@ class PerfectPixel {
         
     }
     removePixel(x,y){
+        if(!this.modifyContext) {
+            return;
+        }
+
         this.ctx.clearRect(x, y, 1,1);
     }
     lineV2(p1, p2){

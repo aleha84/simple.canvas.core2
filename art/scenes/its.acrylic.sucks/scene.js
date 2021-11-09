@@ -7,7 +7,7 @@ class ItsAcrylicSucksKingsScene extends Scene {
                 additional: [],
             },
             capturing: {
-                enabled: true,
+                enabled: false,
                 type: 'webm',
                 addRedFrame: false,
                 stopByCode: true,

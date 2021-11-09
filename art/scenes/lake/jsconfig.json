@@ -4,18 +4,10 @@
     },
     "files": [
         "scene.js",
-        "effectsScene.js",
-        "effects2.js",
-        "effects3.js",
-        "effects4.js",
-        "effects5.js",
-        "lamp.js",
-        "lamp2.js",
-        "lamp3.js",
-        "earth.js",
         "index.js",
     ],
     "include": [
+        "models.js",
         "../../../utilities/*.js",
         "../../../models/*.js"
     ],

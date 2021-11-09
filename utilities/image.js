@@ -770,10 +770,26 @@ var colors = {
                 colorData = hexToRgb(value, false, true);
                 break;
             case "hsv": 
-                colorData = hsvToRgb(value.h, value.s, value.v, false, (Number.isInteger(value.h) && Number.isInteger(value.s) && Number.isInteger(value.v)));
+                let h,s,v;
+                if(isArray(value)){
+                    h = value[0];
+                    s = value[1];
+                    v = value[2];
+                }
+                else {
+                    h = value.h;
+                    s = value.s;
+                    v = value.v;
+                }
+                colorData = hsvToRgb(h, s, v, false, (Number.isInteger(h) && Number.isInteger(s) && Number.isInteger(v)));
                 break;
             case "rgb": 
-                colorData = value;
+                if(isArray(value)) {
+                    colorData = { r: value[0], g: value[1], b: value[2] }
+                }
+                else {
+                    colorData = value;
+                }
                 break;
             case "rgbstr": 
             case "rgbstring": 
@@ -986,7 +1002,7 @@ var colors = {
 
         let pp = undefined;
         createCanvas(new V2(1,1), (ctx, size, hlp) => {
-            pp = new PP({ctx});
+            pp = new PP({ctx, modifyContext: false});
         })
 
         for(let y = center.y-maxSize.y-1;y < center.y+maxSize.y+1;y++){
