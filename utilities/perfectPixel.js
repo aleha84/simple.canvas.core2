@@ -278,17 +278,21 @@ class PerfectPixel {
 
 var PP = PerfectPixel;
 
-PP.createInstance = function(size) {
+PP.createInstance = function(size, options = {}) {
     let pp = undefined;
 
     if(!size)
         size = V2.one;
 
     createCanvas(size, (ctx, _size, hlp) => {
-        pp = new PP({ctx});
+        pp = new PP({ctx, ...options});
     })
 
     return pp;
+}
+
+PP.createNonDrawingInstance = function() {
+    return PP.createInstance(V2.one, { modifyContext: false });
 }
 
 PP.createImage = function(model, params = {}) {
