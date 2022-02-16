@@ -175,9 +175,9 @@ components.createGroup = function(groupEl, groupProps, changeCallback){
          }
     } }))
 
-    groupEl.appendChild(components.createSelect(groupProps.type, ['dots','lines'],'Type', function(value){
+    groupEl.appendChild(components.createSelect(groupProps.type, ['dots','lines', 'curve'],'Type', function(value){
         groupProps.type = value;
-        groupProps.showPoints = value == 'lines';
+        groupProps.showPoints = value == 'lines' || value == 'curve';
         //console.log(groupProps.showPoints);
         components.fillPoints(groupProps, changeCallback) 
 

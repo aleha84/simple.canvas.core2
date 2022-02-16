@@ -1274,8 +1274,12 @@ class LastTreeScene extends Scene {
                     position: new V2(),
                     size: this.size,
                     init() {
+
+                        let pointsData = [
+                            ...
+                        ]
                         this.frames = animationHelpers.createMovementRotFrames({ framesCount: 150, itemFrameslength: 80, size: this.size, 
-                            pointsData: animationHelpers.extractPointData(model.main.layers.find(l => l.name == 'tree_p')) });
+                            pointsData, });
 
 
                         this.registerFramesDefaultTimer({});

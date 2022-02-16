@@ -224,7 +224,7 @@ class DedMorozScene extends Scene {
 
                 this.registerFramesDefaultTimer({});
             }
-        }), layersData.fake_beard.renderIndex+1)
+        }), layersData.fake_beard_3.renderIndex+1)
 
         this.main_p = this.addGo(new GO({
             position: this.sceneCenter.clone(),
