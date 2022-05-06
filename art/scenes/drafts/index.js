@@ -50,6 +50,11 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(200,200)
     }));
 
+    SCG.scenes.cacheScene(new Effects6Scene({
+        name:'effects6',
+        viewport: new V2(200,200)
+    }));
+
     SCG.scenes.cacheScene(new LampScene({
         name:'lamp',
         viewport: new V2(150,150)
@@ -70,7 +75,12 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(150,150)
     }));
 
-    SCG.main.startV2('lamp3');
+    SCG.scenes.cacheScene(new FishScene({
+        name:'fish',
+        viewport: new V2(100,100)
+    }));
+
+    SCG.main.startV2('fish');
 
     window.addEventListener("hashchange", sceneSelectByHashValue, false);
 });

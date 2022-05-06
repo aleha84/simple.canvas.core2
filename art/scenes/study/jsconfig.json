@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "ES6"
+    },
+    "files": [
+        "arid_scene.js",
+        "index.js",
+    ],
+    "include": [
+        "../../../utilities/*.js",
+        "../../../models/*.js"
+    ],
+    "exclude": ["arid_models.js"]
+}

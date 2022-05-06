@@ -60,6 +60,22 @@ class PerfectPixel {
 
         this.ctx.clearRect(x, y, 1,1);
     }
+    lineByCornerPoints(corners) {
+        if(!isArray(corners)) {
+            throw 'Should be an array';
+        }
+
+        if(corners.length < 2) {
+            throw 'Array should contain more than 1 point';
+        }
+
+        let result = []
+        for(let i = 1; i < corners.length; i++) {
+            result= [...result, ...this.lineV2(corners[i-1], corners[i])];
+        }
+
+        return distinctPoints(result);
+    }
     lineV2(p1, p2){
         if(!p1 || !(p1 instanceof Vector2)){
             if(isObject(p1) && p1.x != undefined && p1.y != undefined){
@@ -313,7 +329,8 @@ PP.createImage = function(model, params = {}) {
         colorsSubstitutions: {},
         forceVisivility: {},
         forceVisibility: {},
-        positionModifier: undefined
+        positionModifier: undefined,
+        layerSeparateCanvas: false,
     }, params);
 
     if(isEmpty(params.forceVisivility) && !isEmpty(params.forceVisibility)) {
@@ -414,7 +431,7 @@ PP.createImage = function(model, params = {}) {
 
                     if(group.fill){
                         if(group.fillPattern){
-                            let filledPoints = pp.fill(uniquePoints, group.points.map(p => p.point), { type: group.type });
+                            let filledPoints = pp.fill(uniquePoints, uniquePoints, { type: 'line' });
                             pp.setFillStyle(fillColor);
 
                             renderPattern(pp, group.patternType, filledPoints);
@@ -426,7 +443,7 @@ PP.createImage = function(model, params = {}) {
                             }
 
                             pp.setFillStyle(fillColor)
-                            pp.fill(uniquePoints, group.points.map(p => p.point), { type: group.type })
+                            pp.fill(uniquePoints, uniquePoints, { type: 'line' })
                         }
                     }
                     else {
@@ -546,17 +563,30 @@ PP.createImage = function(model, params = {}) {
                         continue;
                 }
 
+                let __pp = pp;
+                let layerImg = undefined;
+                if(params.layerSeparateCanvas) {
+                    layerImg = createCanvas(general.size, (ctx, size, hlp) => {
+                        __pp = new PP({context: ctx, positionModifier: params.positionModifier})
+                    })
+                }
+
                 if(layer.groups){
                     //for(let g = 0; g < layer.groups.length; g++){
                     for(let group of layer.groups.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
                         if(group.visible != undefined && group.visible == false)
                             continue;
     
-                        renderGroup(pp, group)
+                        renderGroup(__pp, group)
                     }
                 }
                 else {
-                    renderGroup(pp, layer);
+                    renderGroup(__pp, layer);
+                }
+
+                if(layerImg) {
+                    ctx.drawImage(layerImg, 0,0);
+                    layerImg = undefined;
                 }
             }
         })

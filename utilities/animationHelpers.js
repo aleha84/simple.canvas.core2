@@ -255,6 +255,7 @@ var animationHelpers = {
         particlesParams,
         highlightParams,
         stepFramesLength,
+        noDots = false,
     }) {
         let getFrameIndex = function(f, startFrameIndex, framesCount) {
             let frameIndex = f + startFrameIndex;
@@ -468,11 +469,11 @@ var animationHelpers = {
                     pathParams.mainMidPointRotationDirection = mainMidPointRotationDirection;
 
                 if(pathParams.startProvider && isFunction(pathParams.startProvider)) {
-                    pathParams.start = pathParams.startProvider();
+                    pathParams.start = pathParams.startProvider({ index: i});
                 }
 
                 if(pathParams.targetProvider && isFunction(pathParams.targetProvider)) {
-                    pathParams.target = pathParams.targetProvider(pathParams.start);
+                    pathParams.target = pathParams.targetProvider(pathParams.start, { index: i });
                 }
             }
             else {
@@ -811,19 +812,23 @@ var animationHelpers = {
 
                                 let pp = new PP({ctx});
 
-                                itemData.frames[f].params.cornersData.forEach(cd => {
-                                    pp.setFillStyle(itemData.frames[f].params.cornersColor);
-                                    pp.fillByCornerPoints(cd)
-                                })
-
+                                if(!noDots) {
+                                    itemData.frames[f].params.cornersData.forEach(cd => {
+                                        pp.setFillStyle(itemData.frames[f].params.cornersColor);
+                                        pp.fillByCornerPoints(cd)
+                                    })
+                                }
+                                
                                 for(let i = 0; i < itemData.frames[f].params.path1MaxIndex; i++){
                                     hlp.setFillColor(itemData.frames[f].params.path1Color).dot(itemData.path1.resultPoints[i])
                                 }
                                 break;
                             case 11:
                             case 12:
-                                for(let i = 0; i < itemData.frames[f].params.dots.length; i++){
-                                    hlp.setFillColor(itemData.frames[f].params.dotsColor).dot(itemData.frames[f].params.dots[i])
+                                if(!noDots) {
+                                    for(let i = 0; i < itemData.frames[f].params.dots.length; i++){
+                                        hlp.setFillColor(itemData.frames[f].params.dotsColor).dot(itemData.frames[f].params.dots[i])
+                                    }
                                 }
                                 break;
                             default:

@@ -9,15 +9,17 @@
         "effects3.js",
         "effects4.js",
         "effects5.js",
+        "effects6.js",
         "lamp.js",
         "lamp2.js",
         "lamp3.js",
         "earth.js",
+        "fish.js",
         "index.js",
     ],
     "include": [
         "../../../utilities/*.js",
         "../../../models/*.js"
     ],
-    "exclude": ["models.js"]
+    "exclude": ["models.js", "fishModels.js"]
 }

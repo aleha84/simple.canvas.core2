@@ -6,6 +6,19 @@ class Departure6Scene extends Scene {
                 showFrameTimeLeft: true,
                 additional: [],
             },
+            capturing: {
+                enabled: false,
+                type: 'webm',
+                addRedFrame: false,
+                stopByCode: true,
+                //viewportSizeMultiplier: 5,
+                size: new V2(200,200).mul(10),
+                totalFramesToRecord: 601,
+                frameRate: 60,
+                fileNamePrefix: 'departure6',
+                utilitiesPathPrefix: '../../..',
+                workersCount: 8
+            },
         }, options)
         super(options);
     }
@@ -90,6 +103,7 @@ class Departure6Scene extends Scene {
                     index++;
                     if(index == totalFrames){
                         index = 0;
+                        this.parentScene.capturing.stop = true;
                     }
                 })
             }

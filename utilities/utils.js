@@ -836,6 +836,10 @@ function distinct(array, keyCreator){
   })
 }
 
+function distinctPoints(array) {
+  return distinct(array, (p) => p.x + '_' + p.y);
+}
+
 function createLine(begin, end) {
   return {
     begin, end

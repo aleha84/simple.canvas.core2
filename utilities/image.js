@@ -976,7 +976,9 @@ var colors = {
             }
 
             if(!row[x]){
-                row[x] = {};
+                row[x] = {
+                    p: {x, y}
+                };
             }
 
             setter(row[x]);
@@ -1052,3 +1054,5 @@ var colors = {
     
 
 }
+
+var colorsHelpers = colors;
