@@ -9,7 +9,7 @@ var paletteHelper = {
 
         let panels = editorContext.editor.panels;
 
-        if(panels.midColor){
+        if(panels.palettes){
             panels.palettes.remove()
         }
 
@@ -23,21 +23,27 @@ var paletteHelper = {
         
         var buttonsBlock = htmlUtils.createElement('div', { className: 'buttonsBlock' });
         htmlUtils.appendChild(buttonsBlock, 
-            [htmlUtils.createElement('input', { value: 'add', attributes: { type: 'button' }, events: {
-                click: () => {
-                    this.addItem(modelUtils.createDefaultPalette())
-                }
-            } }),
-            htmlUtils.createElement('input', { value: 'Close panels', attributes: { type: 'button' }, events: {
-                click: () => {
-                    while(this.itemPanels.length){
-                        this.itemPanels[0].remove();
+            [
+                htmlUtils.createElement('input', { value: 'add', attributes: { type: 'button' }, events: {
+                    click: () => {
+                        this.addItem(modelUtils.createDefaultPalette())
                     }
+                } }),
+                htmlUtils.createElement('input', { value: 'Close panels', attributes: { type: 'button' }, events: {
+                    click: () => {
+                        while(this.itemPanels.length){
+                            this.itemPanels[0].remove();
+                        }
 
-                    this.lastItemPanelPosition = undefined;
-                    this.itemPanels = [];
-                }
-            } })
+                        this.lastItemPanelPosition = undefined;
+                        this.itemPanels = [];
+                    }
+                } }),
+                htmlUtils.createElement('input', { value: 'Generate', attributes: { type: 'button' }, events: {
+                    click: () => {
+                        this.generatePalette();
+                    }
+                } }),
         ]
         );
 
@@ -54,6 +60,14 @@ var paletteHelper = {
         let itemEl = htmlUtils.createElement('div', { className: 'paletteItem', events: {
             click: (event) => {
 
+                if(paletteItem.panel) {
+                    paletteItem.panel.remove();
+                    this.itemPanels = this.itemPanels.filter(p => p != paletteItem.panel);
+                    paletteItem.panel = undefined;
+
+                    return;
+                }
+
                 let p = new V2(event.clientX,event.clientY);
                 if(this.itemPanels.length){
                     let lastPanel = this.itemPanels[this.itemPanels.length-1].panel;
@@ -65,14 +79,20 @@ var paletteHelper = {
                 let panel = components.createDraggablePanel({title: paletteItem.color, closable: true, expandable: false, panelClassNames: [ 'paletteItem'], 
                 parent: document.body, position: new V2(p), 
                 onClose: () => {
+                    paletteItem.panel = undefined;
                     let indexToDelete = this.itemPanels.indexOf(panel);
                     if(indexToDelete!= -1){
                         this.itemPanels.splice(indexToDelete, 1);
                     }
                 },
                 contentItems: [
-                    htmlUtils.createElement('div', { text: paletteItem.color })
+                    htmlUtils.createElement('div', { className: 'rowFlex', children: [
+                        htmlUtils.createElement('div', { className: 'color', styles: {backgroundColor: paletteItem.color} }),
+                        htmlUtils.createElement('div', { text: paletteItem.color })
+                    ] })
                 ]});
+
+                paletteItem.panel = panel;
 
                 this.itemPanels[this.itemPanels.length] = panel;
             }
@@ -167,5 +187,149 @@ var paletteHelper = {
         itemWrapper.remove();
 
         console.log(this.palettes)
+    },
+    generatePalette() {
+        let pixels = getPixels(PP.createImage(this.editorContext.prepareModel(), { exclude: ['generated'] })
+            ,this.editorContext.mainGo.originalSize)
+        //getPixels(this.editorContext.mainGo.img, this.editorContext.mainGo.originalSize);
+        // console.log(this);
+        if(pixels.length == 0) {
+            notifications.error('No non transparent points on canvas', 2000);
+            return;
+        }
+
+        let colorsCache = [];
+        let total = 0;
+
+        let rgbToHex = (rgb) => {
+            //let key = rgb[0]*1000000 + rgb[1]*1000 + rgb[2];
+            let hsv = colors.colorTypeConverter({ value: rgb, fromType: 'rgb', toType: 'hsv' })
+            let key = hsv.h*1000000 + hsv.v*1000 + hsv.s;
+
+            if(!colorsCache[key]) {
+                colorsCache[key] = {
+                    hex: colors.colorTypeConverter({ value: rgb, fromType: 'rgb', toType: 'hex' }),
+                    hsv,
+                    hsvAverage: (hsv.h + hsv.s + hsv.v)/3,
+                    hsvSum: hsv.h + hsv.s + hsv.v
+                }
+
+                total++;
+            }
+
+            return colorsCache[key];
+        }
+
+        // let y = fast.f(key);
+        // let x = key%15;
+
+        pixels.forEach(pd => {
+            if(pd.color[3] != 1)
+                return;
+
+            rgbToHex(pd.color)
+        })
+
+        let main = this.editorContext.image.main;
+
+        let generatedLayerId = `generated`;
+        main.layers.forEach(l => l.selected = false);
+
+        let layer = main.layers.find(l => l.id == generatedLayerId);
+        if(!layer) {
+            layer = modelUtils.createDefaultLayer(generatedLayerId, main.layers.length);
+            layer.selected = true;
+            main.layers.push(layer);
+        }
+        else {
+            layer.removeImage();
+        }
+
+        layer.groups = [];
+
+        let colorItemSize = new V2(3,3);
+        let shift = new V2(0,0);
+        let itemsShift = new V2(1,1)
+        let rowSize = fast.r(total*0.2);
+        if(rowSize*colorItemSize.x > this.editorContext.mainGo.originalSize.x/2) {
+            rowSize = fast.r((this.editorContext.mainGo.originalSize.x/2)/colorItemSize.x);
+        }
+
+        let totalRows = fast.f(total/rowSize);
+        let boxSize = new V2((rowSize*colorItemSize.x+itemsShift.x*2) - 1, (totalRows*colorItemSize.y + itemsShift.y*2) - 1)
+        
+        let g = modelUtils.createDefaultGroup(generatedLayerId + '_g_0', 0);
+        g.type = 'lines';
+        g.fill = true;
+        g.closePath = true;
+        g.points = [shift.clone(), shift.add(new V2(boxSize.x, 0)), shift.add(boxSize), shift.add(new V2(0, boxSize.y))].map((p, i) => ({
+            point: p, 
+            order: i,
+            selected: false,
+            id: generatedLayerId + '_g_0' + '_p' + i
+        }))
+
+        layer.groups.push(g)
+
+        let gi = 1;
+        let kv = Object.entries(colorsCache)//.map(kv => kv[1]).sort((a, b) => a.hsvAverage - b.hsvAverage);
+            //.sort((a, b) => a[1].hsvSum - b[1].hsvSum)
+
+        for(let i = 0; i<kv.length;i++) {
+            let gItem = modelUtils.createDefaultGroup(generatedLayerId + '_g_' + gi, gi);
+            gItem.type = 'lines';
+            gItem.fill = true;
+            gItem.closePath = true;
+
+            gItem.strokeColor = kv[i][1].hex//kv[i][1];
+            gItem.fillColor = kv[i][1].hex//kv[i][1]
+
+            let itemLeftCorner = new V2(colorItemSize.x*((gi-1)%rowSize), colorItemSize.y*fast.f((gi-1)/rowSize))
+                .add(shift).add(itemsShift)
+
+            gItem.points = [itemLeftCorner, itemLeftCorner.add(new V2(colorItemSize.x-1, 0)), itemLeftCorner.add(new V2(colorItemSize.x-1, colorItemSize.y-1)), itemLeftCorner.add(new V2(0, colorItemSize.y-1))].map((p, i) => ({
+                point: p, 
+                order: i,
+                selected: false,
+                id: generatedLayerId + '_g_' + gi + '_p' + i
+            }))
+
+            layer.groups.push(gItem)
+
+            gi++
+        }
+
+        this.editorContext.editor.selected.layerId = generatedLayerId;
+        this.editorContext.createMain();
+        // this.editorContext.updateEditor();
+
+        // let canvas = createCanvas(new V2(15,51).mul(colorSize), (ctx, size, hlp) => {
+            
+
+
+        //     // let i = 0;
+        //     // for(let r = 0; r <=255;r++) {
+        //     //     for(let g = 0; g <=255;g++) {
+        //     //         for(let b = 0; b <=255;b++) {
+        //     //             let key = i//r*1000000 + g*1000 + b;
+        //     //             let y = fast.f(i/rowSize);
+        //     //             let x = key%rowSize;
+
+        //     //             hlp.setFillColor(colors.colorTypeConverter({ value: [r,g,b], fromType: 'rgb', toType: 'hex' })).rect(x*colorSize,y*colorSize,colorSize,colorSize);
+        //     //             i++;
+        //     //             // colorsLine[key] = rgbToHex([r,g,b], key)
+        //     //         }
+        //     //     }
+        //     // }
+        // })
+
+        // let dataUrl = canvas.toDataURL();
+        // let img = htmlUtils.createElement('img');
+        // img.src = dataUrl;
+        // let panel = components.createDraggablePanel({title: 'Generated palette', closable: true, expandable: false, parent: document.body, position: new V2(250,50), 
+        // contentItems: [
+        //     img
+        // ]})
+        
     }
 }

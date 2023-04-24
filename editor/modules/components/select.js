@@ -26,6 +26,7 @@ components.createSelect = function(value, options, title, changeCallback){
     }
 
     el.appendChild(select);
+    el.selectElement = select;
 
     return el;
 }

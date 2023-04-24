@@ -1,4 +1,4 @@
-components.createInput = function(value, title, changeCallback, validation){
+components.createInput = function(value, title, changeCallback, validation, params = { editBlockType: 'text' }){
     let el = htmlUtils.createElement('div', { classNames: ['inputBox', 'rowFlex'] });
 
     if(title){    
@@ -21,7 +21,7 @@ components.createInput = function(value, title, changeCallback, validation){
             let readBlock = this.querySelector('.read');
             htmlUtils.removeChilds(editBlock);
 
-            editBlock.appendChild(htmlUtils.createElement('input', { className: 'newValue', value: value }));
+            editBlock.appendChild(htmlUtils.createElement('input', { className: 'newValue', value: value, attributes: { type: params.editBlockType } }));
 
             editBlock.appendChild(htmlUtils.createElement('input', { attributes: { type: 'button' }, 
             events: { click: (event) => {

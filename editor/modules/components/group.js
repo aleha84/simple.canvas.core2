@@ -116,7 +116,7 @@ components.createGroup = function(groupEl, groupProps, changeCallback){
         changeCallback();
     }));
 
-    let patternType = components.createSelect(groupProps.patternType, ['type1','type2', 'type3'],'Pattern Type', function(value){
+    let patternType = components.createSelect(groupProps.patternType, ['type1','type2', 'type2_y1', 'type3'],'Pattern Type', function(value){
         groupProps.patternType = value;
         //groupProps.showPoints = value == 'lines';
         //console.log(groupProps.showPoints);
@@ -133,29 +133,39 @@ components.createGroup = function(groupEl, groupProps, changeCallback){
 
     groupEl.appendChild(htmlUtils.createElement('button', { text: 'To points', attributes: {}, events: { 
         click: function() { 
+            if(groupProps.type != 'lines') {
+                notifications.error('type should be lines', 2000);
+            }
+
             if(groupProps.points.length < 3){
                 notifications.error('Points count should be > 2', 2000);
                 return;
             }
             
-            if(groupProps.type == 'dots'){
-                notifications.error('type shouldn\'t be dots', 2000);
-                return;
-            }
+            // if(groupProps.type != 'dots' || ){
+            //     notifications.error('type shouldn\'t be dots', 2000);
+            //     return;
+            // }
 
             if(!confirm('Convert poligon to points?')){
                 return;
             }
 
+            let sharedPP = PP.createNonDrawingInstance();
+            let dots = sharedPP.fillByCornerPoints(groupProps.points.map(p => p.point))
 
-            let dots = [];
-            createCanvas(new V2(1,1), (ctx, size, hlp) => {
-                dots = new PP({ctx}).fillByCornerPoints(groupProps.points.map(p => p.point))
-            })
+            if(groupProps.fillPattern) {
+                dots = sharedPP.renderPattern(groupProps.patternType, dots);
+            }
+            // createCanvas(new V2(1,1), (ctx, size, hlp) => {
+            //     dots = new PP({ctx}).fillByCornerPoints(groupProps.points.map(p => p.point))
+            // })
 
             groupProps.type = 'dots';
-            groupProps.fill = false;
-            groupProps.closePath = false;
+            groupEl.groupTypeElement.selectElement.value = 'dots';
+
+            // groupProps.fill = false;
+            // groupProps.closePath = false;
 
             groupProps.points = [];
             for(let i = 0; i < dots.length; i++){
@@ -175,16 +185,32 @@ components.createGroup = function(groupEl, groupProps, changeCallback){
          }
     } }))
 
-    groupEl.appendChild(components.createSelect(groupProps.type, ['dots','lines'],'Type', function(value){
+    groupEl.groupTypeElement = components.createSelect(groupProps.type, ['dots','lines', 'curve'],'Type', function(value){
         groupProps.type = value;
-        groupProps.showPoints = value == 'lines';
+        groupProps.showPoints = value == 'lines' || value == 'curve';
         //console.log(groupProps.showPoints);
         components.fillPoints(groupProps, changeCallback) 
 
+        if(value == 'curve')
+            numOfSegmentsEl.style.display = 'block';
+        else 
+            numOfSegmentsEl.style.display = 'none';
+
         changeCallback();
-    } ))
+    } )
 
+    groupEl.appendChild(groupEl.groupTypeElement)
 
+    let numOfSegmentsEl = components.createInput(groupProps.numOfSegments, "Segments", (value) => {
+        groupProps.numOfSegments = value;
+        changeCallback();
+    }, (value) => !Number.isNaN(Number.parseInt(value)), { editBlockType: 'number' })
+
+    if(groupProps.type != 'curve'){
+        numOfSegmentsEl.style.display = 'none';
+    }
+
+    groupEl.appendChild(numOfSegmentsEl)
 
     groupProps.pointsEl = htmlUtils.createElement('div', { className: 'pointsListWrapper' });
     groupProps.pointEl = htmlUtils.createElement('div', { className: 'point'});
@@ -278,14 +304,13 @@ components.fillGroups = function(layerProps, changeCallback) {
             }
         },
         {
-            text: 'Update next frame',
+            text: 'Update prev frame',
             click: () => {
                 let frames = components.editor.image.main;
                 let currentFrameIndex = components.editor.image.general.currentFrameIndex;
-
-                let f = currentFrameIndex+1;
-                if(currentFrameIndex == frames.length-1)
-                    f = 0;
+                let f = currentFrameIndex-1;
+                if(currentFrameIndex < 0)
+                    f = frames.length-1;
 
                 let { groupId, layerId } = components.editor.editor.selected;
                 if(groupId == undefined) {
@@ -293,16 +318,15 @@ components.fillGroups = function(layerProps, changeCallback) {
                     return;
                 }
 
-                let nextFrameLayer = frames[f].layers.find(l => l.id == layerId);
-                if(!nextFrameLayer){
+                let prevFrameLayer = frames[f].layers.find(l => l.id == layerId);
+                if(!prevFrameLayer){
                     notifications.error('No layer with id: ' + layerId + ' found in frame index: ' + f , 2000);
                     return;
                 }
 
-                let sameIdGroup = nextFrameLayer.groups.find(g => g.id == groupId);
+                let sameIdGroup = prevFrameLayer.groups.find(g => g.id == groupId);
                 let selectedGroup = groups.filter(g => g.selected)[0];
-                // let sameIdGroup = undefined;
-                
+
                 if(!sameIdGroup){
                     //alert('Not found same Id group');
                     let g = assignDeep(
@@ -333,6 +357,10 @@ components.fillGroups = function(layerProps, changeCallback) {
                 //alert('Done');
                 notifications.done('Done', 2000);
             }
+        },
+        {
+            text: 'Update next frame',
+            click: components.animationHelpers.updateNextFrame
         }
     ] : []
 
@@ -432,10 +460,13 @@ components.fillGroups = function(layerProps, changeCallback) {
                 if(!confirm('Remove group?'))
                     return;
 
+                layerProps.currentScrollTop = select.scrollTop;
+
                 layerProps.removeImage();
                 groups = groups.filter(g => g.id != select.value);  
                 groups.forEach((p, i) => p.order = i);
                 select.value = undefined;
+                
                 
                 components.editor.editor.selected.groupId = undefined;
                 components.editor.editor.selected.pointId = undefined;
@@ -444,7 +475,7 @@ components.fillGroups = function(layerProps, changeCallback) {
                 components.fillGroups(layerProps, changeCallback);
 
                 components.editor.editor.setModeState(false, 'edit');
-                components.editor.editor.setMoveGroupModeState(false);
+                components.editor.editor.setMoveGroupModeState(false); 
 
                 changeCallback();
             },
@@ -494,8 +525,8 @@ components.fillGroups = function(layerProps, changeCallback) {
                 groups.forEach((g, i) => g.order = i);
                 components.fillGroups(layerProps, changeCallback);
                 
-                components.editor.editor.setModeState(false, 'edit');
-                components.editor.editor.setMoveGroupModeState(false);
+                components.editor.editor.setModeState(true, 'edit');
+                components.editor.editor.setMoveGroupModeState(true);
 
                 changeCallback();
             },
@@ -506,6 +537,11 @@ components.fillGroups = function(layerProps, changeCallback) {
 
     groupsEl.appendChild(groupsList);
     groupsEl.list = groupsList;
+
+    if(layerProps.currentScrollTop) {
+        groupsList.selectHolder.select.scrollTop = layerProps.currentScrollTop;
+        layerProps.currentScrollTop = undefined;
+    }
 
     if(components.editor.editor.selected.groupId){
         let selectedGroups = groups.filter(g => g.id == components.editor.editor.selected.groupId);

@@ -43,6 +43,9 @@ class LightningGeneratorScene extends Scene {
                 if(!transparentCheckBox.chk.checked) {
                     hlp.setFillColor(backgroundColorPicker.getValue()).rect(0,0,size.x, size.y);
                 }
+                // else {
+                //     hlp.setFillColor(transparentColor).rect(0,0,size.x, size.y);
+                // }
                 
                 ctx.drawImage(frame, 0, 0)
             }));
@@ -125,6 +128,7 @@ class LightningGeneratorScene extends Scene {
             if(transparentCheckBox.chk.checked) {
                 params.transparent = transparentColor;
                 params.background = transparentColor;
+                console.log(params.transparent, params.background)
             }
 
             var gif = new GIF(params);

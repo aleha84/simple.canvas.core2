@@ -2,13 +2,15 @@ class PerfectPixel {
     constructor(options = {}){
         this.fillStyleProvider = undefined;
         this.positionModifier = undefined;
+        this.modifyContext = undefined;
         
         assignDeep(this, {
             fillStyleProvider: undefined,
             positionModifier: undefined,
+            modifyContext: true,
         }, options)
 
-        if(this.ctx ==- undefined && this.context === undefined){
+        if(this.ctx == undefined && this.context === undefined){
             console.trace();
             throw 'PerfectPixel -> context is not defined';
         }
@@ -19,8 +21,14 @@ class PerfectPixel {
         
         this.context = this.ctx;
     }
+    getFillStyle() {
+        return this.ctx.fillStyle;
+    }
     setFillStyle(color){
         this.ctx.fillStyle = color;
+    }
+    setFillColor(color) {
+        this.setFillStyle(color);
     }
     setPixel(x, y){
         if(this.fillStyleProvider)
@@ -28,11 +36,16 @@ class PerfectPixel {
         
         if(this.positionModifier){
             let res = this.positionModifier(x,y)
-
+            if(res == undefined)
+                return;
+                
             x = res.x;
             y = res.y;
         }
-            
+         
+        if(!this.modifyContext) {
+            return;
+        }
 
         if(this.clear){
             this.removePixel(x,y);
@@ -47,7 +60,37 @@ class PerfectPixel {
         
     }
     removePixel(x,y){
+        if(!this.modifyContext) {
+            return;
+        }
+
         this.ctx.clearRect(x, y, 1,1);
+    }
+    curveByCornerPoints(corners, numOfSegments) {
+        let filledPixels = [];
+        let curvePoints = mathUtils.getCurvePointsMain({points: corners, numOfSegments });
+
+        for(let i = 1; i < curvePoints.length; i++) {
+            filledPixels= [...filledPixels, ...this.lineV2(curvePoints[i-1], curvePoints[i])];
+        }
+
+        return distinctPoints(filledPixels);
+    }
+    lineByCornerPoints(corners) {
+        if(!isArray(corners)) {
+            throw 'Should be an array';
+        }
+
+        if(corners.length < 2) {
+            throw 'Array should contain more than 1 point';
+        }
+
+        let result = []
+        for(let i = 1; i < corners.length; i++) {
+            result= [...result, ...this.lineV2(corners[i-1], corners[i])];
+        }
+
+        return distinctPoints(result);
     }
     lineV2(p1, p2){
         if(!p1 || !(p1 instanceof Vector2)){
@@ -109,6 +152,12 @@ class PerfectPixel {
         y0 = fastRoundWithPrecision(y0, 0);
         x1 = fastRoundWithPrecision(x1, 0);
         y1 = fastRoundWithPrecision(y1, 0);
+
+        if(x0 == x1 && y0 == y1) {
+            this.setPixel(x0,y0);  
+            return [{x: x0, y: y0}];
+        }
+
         var dx = Math.abs(x1-x0);
         var dy = Math.abs(y1-y0);
         var sx = (x0 < x1) ? 1 : -1;
@@ -128,12 +177,58 @@ class PerfectPixel {
 
         return filledPoints;
      }
+
+     renderPattern(patternType, filledPoints){
+         let result = [];
+        if(!patternType){
+            patternType = 'type1';
+        }
+
+        let setPixel = (x,y) => {
+            this.setPixel(x, y);
+            result.push({x,y});
+        }
+
+        for(let i = 0; i < filledPoints.length; i++){
+            let up = filledPoints[i];
+
+            if(patternType == 'type1'){
+                let shift = up.y %2 == 0;
+                if((shift && up.x % 2 != 0) || (!shift && up.x%2 == 0)){
+                    setPixel(up.x, up.y);
+                }
+            }
+            else if(patternType == 'type2'){
+                if((up.y+1) % 2 == 0 && up.x % 2 == 0) {
+                    setPixel(up.x, up.y);
+                }
+            }
+            else if(patternType == 'type2_y1'){
+                if((up.y) % 2 == 0 && up.x % 2 == 0) {
+                    setPixel(up.x, up.y);
+                }
+            }
+            else if(patternType == 'type3'){
+                if(up.y % 4 == 0 && up.x % 4 == 0) {
+                    setPixel(up.x, up.y);
+                }
+            }  
+        }
+
+        return result;
+    }
      
-     fillByCornerPoints(cornerPoints) {
+     fillByCornerPoints(cornerPoints, params = { fixOpacity: false }) {
          if(cornerPoints.length < 3)
             throw 'fillByCornerPoints -> cornerPoints should be 3 or more!';
 
         let filledPixels = [];
+
+        let cachedFillStyle = this.getFillStyle();
+        if(params.fixOpacity) {
+            this.setFillStyle('rgba(0,0,0,0)')
+        }
+
         for(let i = 0; i < cornerPoints.length;i++){
             if(i < cornerPoints.length-1)
                 filledPixels= [...filledPixels, ...this.lineV2(cornerPoints[i], cornerPoints[i+1])];
@@ -142,10 +237,15 @@ class PerfectPixel {
         filledPixels = [...filledPixels, ...this.lineV2(cornerPoints[cornerPoints.length-1], cornerPoints[0])];
         let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
 
+        if(params.fixOpacity) {
+            this.setFillStyle(cachedFillStyle)
+            uniquePoints.forEach(p => this.setPixel(p.x,p.y));
+        }
+
         return this.fill(uniquePoints, cornerPoints)
      }
 
-     fill(filledPoints, cornerPoints) {//, _fillPoints) {
+     fill(filledPoints, cornerPoints, params = { type: 'line' } ) {//, _fillPoints) {
         let _fillPointsResult = [...filledPoints];
         let checkBoundaries = function(p) {
             let checkedPoints = [];
@@ -236,7 +336,7 @@ class PerfectPixel {
                 if(matrix[p.y][p.x] != undefined && matrix[p.y][p.x].filled)
                     continue;
 
-                if(!pointInsidePoligon(p, cornerPoints))
+                if(params.type == 'line' && !pointInsidePoligon(p, cornerPoints))
                     continue;
 
                 // 3.1 Check boundaries
@@ -267,6 +367,23 @@ class PerfectPixel {
 
 var PP = PerfectPixel;
 
+PP.createInstance = function(size, options = {}) {
+    let pp = undefined;
+
+    if(!size)
+        size = V2.one;
+
+    createCanvas(size, (ctx, _size, hlp) => {
+        pp = new PP({ctx, ...options});
+    })
+
+    return pp;
+}
+
+PP.createNonDrawingInstance = function() {
+    return PP.createInstance(V2.one, { modifyContext: false });
+}
+
 PP.createImage = function(model, params = {}) {
     if(model == undefined)
         throw 'PP.createImage model is undefined!';
@@ -278,8 +395,46 @@ PP.createImage = function(model, params = {}) {
         exclude: [],
         colorsSubstitutions: {},
         forceVisivility: {},
-        positionModifier: undefined
+        forceVisibility: {},
+        positionModifier: undefined,
+        layerSeparateCanvas: false,
     }, params);
+
+    if(isEmpty(params.forceVisivility) && !isEmpty(params.forceVisibility)) {
+        params.forceVisivility = params.forceVisibility
+    }
+
+    // let renderPattern = (pp, patternType, filledPoints) => {
+    //     if(!patternType){
+    //         patternType = 'type1';
+    //     }
+
+    //     for(let i = 0; i < filledPoints.length; i++){
+    //         let up = filledPoints[i];
+
+    //         if(patternType == 'type1'){
+    //             let shift = up.y %2 == 0;
+    //             if((shift && up.x % 2 != 0) || (!shift && up.x%2 == 0)){
+    //                 pp.setPixel(up.x, up.y);
+    //             }
+    //         }
+    //         else if(patternType == 'type2'){
+    //             if((up.y+1) % 2 == 0 && up.x % 2 == 0) {
+    //                 pp.setPixel(up.x, up.y);
+    //             }
+    //         }
+    //         else if(patternType == 'type2_y1'){
+    //             if((up.y) % 2 == 0 && up.x % 2 == 0) {
+    //                 pp.setPixel(up.x, up.y);
+    //             }
+    //         }
+    //         else if(patternType == 'type3'){
+    //             if(up.y % 4 == 0 && up.x % 4 == 0) {
+    //                 pp.setPixel(up.x, up.y);
+    //             }
+    //         }  
+    //     }
+    // }
 
     let renderGroup = (pp, group) => {
         let strokeColor = group.strokeColor;
@@ -321,6 +476,58 @@ PP.createImage = function(model, params = {}) {
                 pp.setPixel(po.point.x, po.point.y);    
             }
         }
+        else if(group.type == 'curve') {
+            if(group.points.length == 1){
+                pp.setPixel(group.points[0].point.x, group.points[0].point.y);
+            }
+            else if(group.points.length > 1){
+                if(scOpacity || (group.fillPattern)){
+                    pp.setFillStyle('rgba(0,0,0,0)');
+                }
+
+                let filledPixels = [];
+                let curvePoints = mathUtils.getCurvePointsMain({points: group.points.map(p => p.point), isClosed: group.closePath, numOfSegments: group.numOfSegments || 16 });
+                //let distinctCurvePoints = distinct(curvePoints.map(p => p.toInt()), (p) => p.x + '_' + p.y);
+
+                for(let i = 1; i < curvePoints.length; i++) {
+                    filledPixels= [...filledPixels, ...pp.lineV2(curvePoints[i-1], curvePoints[i])];
+                }
+
+                if(group.closePath){
+                    let uniquePoints = distinct(filledPixels, (p) => p.x+'_'+p.y);
+
+                    if(group.fill){
+                        if(group.fillPattern){
+                            let filledPoints = pp.fill(uniquePoints, uniquePoints, { type: 'line' });
+                            pp.setFillStyle(fillColor);
+
+                            pp.renderPattern(group.patternType, filledPoints);
+                        }
+                        else {
+                            if(scOpacity){
+                                pp.setFillStyle(strokeColor);
+                                uniquePoints.forEach(p => pp.setPixel(p.x,p.y));
+                            }
+
+                            pp.setFillStyle(fillColor)
+                            pp.fill(uniquePoints, uniquePoints, { type: 'line' })
+                        }
+                    }
+                    else {
+                        if(scOpacity){
+                            pp.setFillStyle(strokeColor);
+                            uniquePoints.forEach(p => pp.setPixel(p.x,p.y));
+                        }
+                    }
+                }
+                else {
+                    if(scOpacity){
+                        pp.setFillStyle(strokeColor);
+                        distinct(filledPixels, (p) => p.x+'_'+p.y).forEach(p => pp.setPixel(p.x,p.y));
+                    }
+                }
+            }
+        }
         else if(group.type == 'lines'){
             if(group.points.length == 1){
                 pp.setPixel(group.points[0].point.x, group.points[0].point.y);
@@ -353,32 +560,7 @@ PP.createImage = function(model, params = {}) {
                             let filledPoints = pp.fill(uniquePoints, p.map(p => p.point));
                             
                             pp.setFillStyle(fillColor);
-                            let patternType = group.patternType;
-                            if(!patternType){
-                                patternType = 'type1';
-                            }
-
-                            for(let i = 0; i < filledPoints.length; i++){
-                                let up = filledPoints[i];
-
-                                if(patternType == 'type1'){
-                                    let shift = up.y %2 == 0;
-                                    if((shift && up.x % 2 != 0) || (!shift && up.x%2 == 0)){
-                                        pp.setPixel(up.x, up.y);
-                                    }
-                                }
-                                else if(patternType == 'type2'){
-                                    if((up.y+1) % 2 == 0 && up.x % 2 == 0) {
-                                        pp.setPixel(up.x, up.y);
-                                    }
-                                }
-                                else if(patternType == 'type3'){
-                                    if(up.y % 4 == 0 && up.x % 4 == 0) {
-                                        pp.setPixel(up.x, up.y);
-                                    }
-                                }
-                                
-                            }
+                            pp.renderPattern(group.patternType, filledPoints);
                         }
                         else {
                             pp.setFillStyle(fillColor)
@@ -417,17 +599,30 @@ PP.createImage = function(model, params = {}) {
                         continue;
                 }
 
+                let __pp = pp;
+                let layerImg = undefined;
+                if(params.layerSeparateCanvas) {
+                    layerImg = createCanvas(general.size, (ctx, size, hlp) => {
+                        __pp = new PP({context: ctx, positionModifier: params.positionModifier})
+                    })
+                }
+
                 if(layer.groups){
                     //for(let g = 0; g < layer.groups.length; g++){
                     for(let group of layer.groups.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
                         if(group.visible != undefined && group.visible == false)
                             continue;
     
-                        renderGroup(pp, group)
+                        renderGroup(__pp, group)
                     }
                 }
                 else {
-                    renderGroup(pp, layer);
+                    renderGroup(__pp, layer);
+                }
+
+                if(layerImg) {
+                    ctx.drawImage(layerImg, 0,0);
+                    layerImg = undefined;
                 }
             }
         })

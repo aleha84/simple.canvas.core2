@@ -78,6 +78,8 @@ var components = {
             } catch (err) {
             alert('Failed to copy to clipboard');
             }
+
+            hexInput.blur();
         }
 
 

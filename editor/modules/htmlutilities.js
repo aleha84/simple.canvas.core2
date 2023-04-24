@@ -1,5 +1,9 @@
 var htmlUtils = {
-    createElement(tag, props = { classNames: undefined, className: undefined, text: undefined, value: undefined, attributes: undefined, events: undefined, props: undefined } ) {
+    createElement(tag, props = { 
+            classNames: undefined, className: undefined, text: undefined, value: undefined, 
+            attributes: undefined, events: undefined, props: undefined, styles: undefined,
+            children: undefined,
+        } ) {
         if(!tag){
             console.error('No tag specified');
             throw 'No tag specified';
@@ -44,9 +48,28 @@ var htmlUtils = {
             if(props.props){
                 this.setProps(el, props.props)
             }
+
+            if(props.styles) {
+                this.setStyles(el, props.styles);
+            }
+
+            if(props.children) {
+                let children = [];
+                if(!isArray(props.children)) {
+                    children.push(props.children)
+                }
+                else {
+                    children = [...props.children];
+                }
+
+                children.forEach(child => this.appendChild(el, child))
+            }
         }
 
         return el;
+    },
+    setStyles(el, styles) {
+        Object.assign(el.style, styles);
     },
     removeChilds(element) {
         while (element.firstChild) {
@@ -57,6 +80,8 @@ var htmlUtils = {
         for(var key in props) {
             if(props[key])
                 el.setAttribute(key, props[key]);
+            else 
+                el.removeAttribute(key);
         }
     },
     setAttributes(el, attrs) {

@@ -1,6 +1,11 @@
 components.createDraggablePanel = function({parent, title, position, closable = false, panelClassNames = [], expandable = true, contentWidth = undefined, contentItems = [],
     onClose = () => {}, onCreate = () => {}, onMove = () => {}
 }) {
+    if(!parent) {
+        notifications.error('Error, check console!', 2000);
+        throw 'Parent not defined for draggable element'
+    }
+        
     let editorBr = parent.querySelector('#editor').getBoundingClientRect();
     let panelBr = undefined;
     //console.log(editorBr)

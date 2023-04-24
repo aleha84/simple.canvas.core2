@@ -22,6 +22,9 @@
 		"description": "По слойный рендеринг модели в отдельные объекты",
 		"body": [
 			"let model = ${1:Scene}.models.main;",
+			"let appSharedPP = PP.createNonDrawingInstance();",
+			"let rgbColorPart = 'rgba(255,255,255,';",
+			"",
 			"let layersData = {};",
 			"let exclude = [",
 				"\t",

@@ -15,6 +15,14 @@ class Demo9TrainScene extends Scene {
     }
 
     start(){
+        this.bg = this.addGo(new GO({
+            position: this.sceneCenter.clone(),
+            size: this.viewport.clone(),
+            img: createCanvas(V2.one, (ctx, size, hlp) => {
+                hlp.setFillColor('#362013').dot(0,0)
+            })
+        }), 0)
+
         this.background = this.addGo(new GO({
             position: this.sceneCenter.clone(),
             size: this.viewport.clone(),

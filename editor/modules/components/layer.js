@@ -1,3 +1,20 @@
+components.addLayerToSelect = function({layer, select, eventParams}) {
+    if(select == undefined) {
+        select = document.querySelector('.layers select');
+    }
+
+    let editor = components.editorContext.editor;
+    
+    select.options[select.options.length] = new Option(layer.name || layer.id, layer.id);
+    select.value = layer.id;
+    
+    editor.selected.layerId = layer.id;
+    editor.selected.groupId = undefined;
+    editor.selected.pointId = undefined;
+
+    select.dispatchEvent(new CustomEvent('change', eventParams));
+}
+
 components.createLayer = function(layerEl, layerProps, changeCallback, additionals = {}) {
     htmlUtils.removeChilds(layerEl);
 

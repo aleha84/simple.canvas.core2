@@ -1,4 +1,49 @@
 var mathUtils = {
+    getCurvePointsMain({points, tenstion = 0.5, isClosed = false, numOfSegments = 16}) {
+        let _points = [
+            ...points
+        ]
+
+        if(isClosed) {
+            _points.unshift(points[points.length-1])
+            _points.unshift(points[points.length-1])
+            _points.push(points[0])
+        }
+        else {
+            _points.unshift(points[0]);
+            _points.push(points[points.length-1])
+        }
+
+        let res = [];
+
+        for (let i = 1; i < _points.length-2; i++) {
+            for (let t=0; t <= numOfSegments; t++) {
+                let t1 = new V2(
+                    (_points[i+1].x - _points[i-1].x)*tenstion,
+                    (_points[i+1].y - _points[i-1].y)*tenstion,
+                )
+
+                let t2 = new V2(
+                    (_points[i+2].x - _points[i].x)*tenstion,
+                    (_points[i+2].y - _points[i].y)*tenstion,
+                )
+
+                let st = t / numOfSegments;
+
+                let c1 = 2 * Math.pow(st, 3) - 3*Math.pow(st, 2) + 1;
+                let c2 = -(2 * Math.pow(st, 3)) + 3*Math.pow(st, 2); 
+                let c3 = Math.pow(st, 3) -2*Math.pow(st, 2) + st; 
+                let c4 = Math.pow(st, 3) - Math.pow(st, 2);
+
+                let x = c1*_points[i].x + c2*_points[i+1].x + c3*t1.x + c4*t2.x;
+                let y = c1*_points[i].y + c2*_points[i+1].y + c3*t1.y + c4*t2.y; 
+
+                res.push(new V2(x,y));
+            }
+        }
+
+        return res;
+    },
     getCurvePoints ({ start, end, midPoints, startMethod = 'out', endMethod = 'in', midPointsDefaultMethod = 'inOut', type = 'quad' }) {
         let direction = start.direction(end);
         let angle =  direction.angleTo(V2.right);

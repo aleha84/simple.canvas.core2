@@ -770,10 +770,26 @@ var colors = {
                 colorData = hexToRgb(value, false, true);
                 break;
             case "hsv": 
-                colorData = hsvToRgb(value.h, value.s, value.v, false, (Number.isInteger(value.h) && Number.isInteger(value.s) && Number.isInteger(value.v)));
+                let h,s,v;
+                if(isArray(value)){
+                    h = value[0];
+                    s = value[1];
+                    v = value[2];
+                }
+                else {
+                    h = value.h;
+                    s = value.s;
+                    v = value.v;
+                }
+                colorData = hsvToRgb(h, s, v, false, (Number.isInteger(h) && Number.isInteger(s) && Number.isInteger(v)));
                 break;
             case "rgb": 
-                colorData = value;
+                if(isArray(value)) {
+                    colorData = { r: value[0], g: value[1], b: value[2] }
+                }
+                else {
+                    colorData = value;
+                }
                 break;
             case "rgbstr": 
             case "rgbstring": 
@@ -960,7 +976,9 @@ var colors = {
             }
 
             if(!row[x]){
-                row[x] = {};
+                row[x] = {
+                    p: {x, y}
+                };
             }
 
             setter(row[x]);
@@ -986,7 +1004,7 @@ var colors = {
 
         let pp = undefined;
         createCanvas(new V2(1,1), (ctx, size, hlp) => {
-            pp = new PP({ctx});
+            pp = new PP({ctx, modifyContext: false});
         })
 
         for(let y = center.y-maxSize.y-1;y < center.y+maxSize.y+1;y++){
@@ -1032,7 +1050,175 @@ var colors = {
         }
 
         return dots;
+    },
+    createDithering({data, hlp, xClamps, rValues, sharedPP, 
+        affectedDots = undefined, doNotPutDots = false, preventDuplicates = false, restrictedZones, debug = false}) {
+
+        let a1 = new Array(50).fill().map((el, i) => 1 + i*4)
+        let a2 = new Array(50).fill().map((el, i) => 3 + i*4)
+
+        let b1 = new Array(50).fill().map((el, i) => i*4)
+        let b2 = new Array(50).fill().map((el, i) => 2+ i*4)
+
+        if(!sharedPP)
+            sharedPP = PP.createNonDrawingInstance();
+
+        let puttedDots = new Map();
+
+        data.forEach(d => {
+            let {c1, c2, divider, dividerPoints, rv} = d;
+
+            let linePoints = [];
+
+            if(divider) {
+                let p1 = new V2(x1,divider);
+                let p2 = new V2(x2,divider);
+
+                linePoints = sharedPP.lineV2(p1, p2).map(p => new V2(p))
+            }
+
+            if(dividerPoints) {
+                linePoints = dividerPoints.map(p => new V2(p))
+            }
+
+            if(debug) {
+                hlp.setFillColor('red')
+                linePoints.forEach(p => hlp.dot(p))
+                return;
+            }
+
+            for(let i = 0; i < 2; i++) {
+                let c = undefined;
+                if(i == 0) {
+                    c = c1;
+                }
+                else {
+                    c = c2;
+                }
+
+                let d = i == 0 ? -1 : 1;
+                let xShift = i == 1 ? new V2(1, 0) : new V2()
+
+                let affectedPoints0 = [];
+                let affectedPoints1 = [];
+                let affectedPoints2 = [];
+                let affectedPoints3 = [];
+                // let r1 = 7;
+                // let r2 = 4;
+                // let r3 = 2;
+
+                let r0 = rValues[0] //14;
+                let r1 = rValues[1] //10;
+                let r2 = rValues[2] //6;
+                let r3 = rValues[3] //2;
+
+                if(rv) {
+                    r0 = rv[0] || 0
+                    r1 = rv[1] || 0
+                    r2 = rv[2] || 0
+                    r3 = rv[3] || 0
+                }
+
+                if(i == 1) {
+                    r0-=2
+                    r1-=2
+                    r2-=2
+                }
+
+                linePoints.forEach(lp => {
+                    //let aPoints = sharedPP.lineV2(lp, lp.add(direction2.mul(r1)));
+                    let aPoints0 = sharedPP.lineV2(lp, lp.add(new V2(0, d*r0))).map(p => new V2(p));
+                    affectedPoints0.push(...aPoints0);
+
+                    let aPoints1 = sharedPP.lineV2(lp, lp.add(new V2(0, d*r1))).map(p => new V2(p));
+                    affectedPoints1.push(...aPoints1);
+
+                    let aPoints2 = sharedPP.lineV2(lp, lp.add(new V2(0, d*r2))).map(p => new V2(p));
+                    affectedPoints2.push(...aPoints2);
+
+                    //let aPoints2 = sharedPP.lineV2(lp, lp.add(direction2.mul(r2)));
+                    let aPoints3 = sharedPP.lineV2(lp, lp.add(new V2(0, d*r3))).map(p => new V2(p));
+                    affectedPoints3.push(...aPoints3);
+                })
+
+                affectedPoints0 = distinctPoints(affectedPoints0)
+                affectedPoints1 = distinctPoints(affectedPoints1)
+                affectedPoints2 = distinctPoints(affectedPoints2)
+                affectedPoints3 = distinctPoints(affectedPoints3)
+
+                let putDot = (p, c) => {
+                    let key = p.x + '_' + p.y;
+                    if(puttedDots.has(key) && preventDuplicates) {
+                        return;
+                    }
+
+                    if(restrictedZones && restrictedZones.find(rzp => rzp.x == p.x && rzp.y == p.y)) {
+                        return;
+                    }
+
+                    if(!doNotPutDots) {
+                        if(p.x > xClamps[1])
+                            return;
+
+                        hlp.setFillColor(c).dot(p)
+                    }
+                    
+                    puttedDots.set(key, {p,c});
+                    // if(affectedDots) {
+                    //     affectedDots.push({p, c})
+                    // }
+                }
+
+                affectedPoints0.forEach(ap => {
+                    if(ap.x%2 == 0 && ap.y%2==0) {
+                        if(b1.indexOf(ap.y)!=-1 && b1.indexOf(ap.x) !=-1)
+                            putDot(ap.add(xShift),c)
+                        else if(b2.indexOf(ap.y)!=-1 && b2.indexOf(ap.x) !=-1)
+                            putDot(ap.add(xShift),c)
+                    }
+                })
+
+                affectedPoints1.forEach(ap => {
+                    if(ap.x%2 == 0 && ap.y%2==0) {
+                        putDot(ap.add(xShift),c)
+                    }
+                })
+
+                affectedPoints2.forEach(ap => {
+                    if(ap.x%2 == 0 && ap.y%2==0) {
+                        putDot(ap.add(xShift), c)
+                    }
+                    else {
+                        if(a1.indexOf(ap.y) != -1 && a1.indexOf(ap.x) != -1) {
+                            putDot(ap.add(xShift),c)
+                        }
+                        else if(a2.indexOf(ap.y) != -1 && a2.indexOf(ap.x) != -1){
+                            putDot(ap.add(xShift),c)
+                        }
+
+                    }
+
+                })
+
+                if( i == 0) {
+
+                    affectedPoints3.forEach(ap => {
+                        let shift = ap.y %2 == 0;
+                        if((shift && ap.x % 2 == 0) || (!shift && ap.x%2 != 0)){
+                            //hlp.setFillColor(c).dot(ap)
+                            putDot(ap, c);
+                        }
+                    })
+                }
+            }
+        });
+
+        if(affectedDots) {
+            affectedDots.push(...Array.from(puttedDots.values())); //distinct(affectedDots, (ad) => ad.p.x + '_' + ad.p.y)
+        }
     }
     
 
 }
+
+var colorsHelpers = colors;

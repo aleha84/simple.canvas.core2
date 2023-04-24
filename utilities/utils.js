@@ -836,6 +836,10 @@ function distinct(array, keyCreator){
   })
 }
 
+function distinctPoints(array) {
+  return distinct(array, (p) => p.x + '_' + p.y);
+}
+
 function createLine(begin, end) {
   return {
     begin, end
@@ -861,6 +865,21 @@ function getPixels(img, size) {
   return pixels;
 }
 
+function getPixelsAsMatrix(img, size) {
+  let pixels = getPixels(img, size);
+  let result = [];
+  pixels.forEach(pixel => {
+    let p = pixel.position;
+    if(result[p.y] == undefined) {
+      result[p.y] = [];
+    }
+
+    result[p.y][p.x] = pixel.color;
+  })
+
+  return result;
+}
+
 function getLineFunction(origin, direction){
   let ox = origin.x;
   let oy = origin.y;
@@ -872,5 +891,8 @@ function getLineFunction(origin, direction){
   }
 }
 
+function zeroPad(num, places)  {
+  return String(num).padStart(places, '0')
+}
 
 

@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "ES6"
+    },
+    "files": [
+        "pagoda_scene.js",
+        "index.js",
+    ],
+    "include": [
+        "../../../utilities/*.js",
+        "../../../models/*.js"
+    ],
+    "exclude": ["pagoda_models.js"]
+}

@@ -196,6 +196,8 @@ html,
       font-size: 28px;
     }
 
+    
+
     .overlay>.content.moveToLayer {
       padding: 10px;
       background-color: white;
@@ -216,6 +218,26 @@ html,
     }
 
     /* end moveToLayer */
+
+    /*cleanGroupsInLayer*/
+    .overlay>.content.cleanGroupsInLayer {
+      padding: 10px;
+      background-color: white;
+    }
+    
+    .cleanGroupsInLayer .availableGroupsItem>*{
+      margin: 0 2px;
+    }
+
+    .availableGroups .paletteItem {
+      border: 1px solid black;
+    }
+
+    .availableGroups .availableGroupsItem.selectAll {
+      border-bottom: 1px solid black;
+    }
+
+    /*end cleanGroupsInLayer*/
 
     .editorBlock>.modeSwitch>.stateName {
         font-size: 20px;
@@ -315,7 +337,13 @@ html,
       background-color: red;
     }
 
-    .panel.palettes .paletteItem {
+    .panel.palettes .paletteItem,
+    .availableGroups .paletteItem {
+      width: 20px;
+      height: 20px;
+    }
+
+    .panel.paletteItem .color {
       width: 20px;
       height: 20px;
     }
@@ -402,6 +430,28 @@ html,
       animation: blinker 0.5s;
     }
 
+    .collapsible {
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .collapsible.expand {
+      border: 1px solid black;
+    }
+
+    .collapsible.expand::after {
+      content: "\25BC";
+    }
+
+    .collapsible.collapse::after {
+      content: "\25B2";
+    }
+
+    .general.collapsed {
+      overflow-y: hidden;
+      height: 20px;
+    }
+ 
     @keyframes blinker {
       50% {
         background-color: blue;

@@ -394,6 +394,21 @@ class EditorGO extends GO {
                         }
                         d.disable();
                     }
+
+                    if(this.model.editor.mode == 'selection' && this.model.editor.selectedLayer && this.model.editor.selectedLayer.selectedGroup){
+                        if(this.selection.boxParams){
+                            let selectionBox = new Box(this.selection.boxParams.tl.substract(this.size.divide(2)).toInt(), this.selection.boxParams.size);
+
+                            let inSelection = this.dots.filter(d => new Box(d.position.substract(this.itemSize.divide(2)).toInt(), this.itemSize).isIntersectsWithBox(selectionBox));
+    
+                            inSelection.forEach(dot => dot.setSelected(true, { multiselect: true }))
+                        }
+                        
+
+                        this.removeChild(this.selection.go);
+                        this.selection.cancel();
+                    }
+
                     if(this.model.editor.mode == 'add'){
                         let os  = this.model.general.originalSize;
                         let sg = this.model.editor.selectedLayer.selectedGroup;
@@ -483,6 +498,14 @@ class EditorGO extends GO {
                 ctx.strokeRect(0,0, size.x-1, size.y-1);
             })
         }
+
+        if(!this.notSelectedImgDark) {
+            this.notSelectedImgDark = createCanvas(this.itemSize, (ctx, size) => {
+                ctx.translate(0.5,0.5);
+                ctx.strokeStyle = 'black';
+                ctx.strokeRect(0,0, size.x-1, size.y-1);
+            })
+        }
         
         if(!this.selectedImg){
             this.selectedImg = createCanvas(this.itemSize, (ctx, size) => {
@@ -490,6 +513,16 @@ class EditorGO extends GO {
                 ctx.fillRect(0,0, size.x, size.y);
                 ctx.translate(0.5,0.5);
                 ctx.strokeStyle = 'white';
+                ctx.strokeRect(0,0, size.x-1, size.y-1);
+            })
+        }
+
+        if(!this.selectedImgDark){
+            this.selectedImgDark = createCanvas(this.itemSize, (ctx, size) => {
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(0,0, size.x, size.y);
+                ctx.translate(0.5,0.5);
+                ctx.strokeStyle = 'black';
                 ctx.strokeRect(0,0, size.x-1, size.y-1);
             })
         }
@@ -547,6 +580,9 @@ class EditorGO extends GO {
                     selectedGroup= selectedGroup[0]
                     this.model.editor.selectedLayer.selectedGroup = selectedGroup;
 
+                    let rgb = colors.colorTypeConverter({value:selectedGroup.strokeColor, fromType: 'hex', toType: 'rgb' });
+                    let isBright = rgb.r > 200 && rgb.g > 200 && rgb.b > 200;
+                    
                     selectedGroup.points.forEach(p => {
                         let selected = p.selected;
                         //if(this.parentScene.editor.editor.getModeState().mode == 'moveselection'){
@@ -560,8 +596,8 @@ class EditorGO extends GO {
                             selected,
                             index: p.point.clone(),
                             position: new V2(this.tl.x + this.itemSize.x/2 + this.itemSize.x*p.point.x, this.tl.y + this.itemSize.y/2 + this.itemSize.y*p.point.y),
-                            notSelectedImg: this.notSelectedImg,
-                            selectedImg: this.selectedImg
+                            notSelectedImg: isBright? this.notSelectedImgDark : this.notSelectedImg,
+                            selectedImg: isBright ? this.selectedImgDark : this.selectedImg,
                         }), true)
                     )})
                 }
