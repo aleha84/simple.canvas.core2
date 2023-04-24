@@ -1,9 +1,14 @@
 var animationHelpers = {
-    extractPointData(layer) {
+    extractPointData(layer, params = { excludeClear: true }) {
         let data = [];
         layer.groups.forEach(group => {
             let color = group.strokeColor;
             let opacity = group.strokeColorOpacity;
+            let clear = group.clear;
+
+            if(params.excludeClear && clear)
+                return;
+
             group.points.forEach(point => {
                 data.push({
                     color, 
@@ -30,6 +35,11 @@ var animationHelpers = {
         let itemsData = pointsData.filter(pdPredicate).map((el, i) => {
             let startFrameIndex = startFrameIndexPredicate(el.point);
             let totalFrames = itemFrameslength;
+
+            if(isArray(itemFrameslength)) {
+                totalFrames = isArray(itemFrameslength) ? getRandomInt(itemFrameslength) : itemFrameslength;
+                pChange = easing.fast({ from: 0, to: pos.length-1, steps: totalFrames, type: 'linear', round: 0 });
+            }
             
             let _p = getRandomInt(0, pos.length-1);
 
@@ -71,13 +81,21 @@ var animationHelpers = {
         
         return frames;
     },
-    createMovementFrames({framesCount, itemFrameslength, pointsData, size, pdPredicate = () => true}) {
+    createMovementFrames({framesCount, itemFrameslength, pointsData, size, pdPredicate = () => true, smooth = undefined}) {
         let frames = [];
         
         let itemsData = pointsData.filter(pdPredicate).map((pd, i) => {
             let startFrameIndex = getRandomInt(0, framesCount-1);
             let totalFrames = isArray(itemFrameslength) ? getRandomInt(itemFrameslength) : itemFrameslength;
         
+            let aValues = undefined;
+            if(smooth) {
+                aValues = [
+                    ...easing.fast({from: smooth.aClamps[0], to: smooth.aClamps[1], steps: fast.r(totalFrames/2), type: smooth.easingType, method: smooth.easingMethod, round: smooth.easingRound}),
+                    ...easing.fast({from: smooth.aClamps[1], to: smooth.aClamps[0], steps: fast.r(totalFrames/2), type: smooth.easingType, method: smooth.easingMethod, round: smooth.easingRound})
+                ]
+            }
+
             let frames = [];
             for(let f = 0; f < totalFrames; f++){
                 let frameIndex = f + startFrameIndex;
@@ -86,6 +104,11 @@ var animationHelpers = {
                 }
         
                 frames[frameIndex] = true;
+                if(aValues) {
+                    frames[frameIndex] = {
+                        a: aValues[f] != undefined ? aValues[f] : 0
+                    }
+                }
             }
         
             return {
@@ -100,7 +123,15 @@ var animationHelpers = {
                     let itemData = itemsData[p];
                     
                     if(itemData.frames[f]){
+                        if(smooth) {
+                            ctx.globalAlpha = itemData.frames[f].a
+                        }
+
                         hlp.setFillColor(itemData.pd.color).dot(itemData.pd.point.x, itemData.pd.point.y)
+
+                        if(smooth) {
+                            ctx.globalAlpha = 1
+                        }
                     }
                     
                 }
@@ -122,7 +153,15 @@ var animationHelpers = {
 
         let initialDots = [];
         if(initialProps.line) {
-            initialDots = sharedPP.lineV2(initialProps.p1, initialProps.p2).map(p => new V2(p))
+            if(initialProps.points) {
+                initialDots = sharedPP.lineByCornerPoints(initialProps.points).map(p => new V2(p))
+            }
+            else {
+                initialDots = sharedPP.lineV2(initialProps.p1, initialProps.p2).map(p => new V2(p))
+            }
+        }
+        else if(initialProps.curve) {
+            initialDots = sharedPP.curveByCornerPoints(initialProps.points, initialProps.numOfSegments).map(p => new V2(p))
         }
         else {
             throw 'Unknown initial props type';
@@ -875,6 +914,380 @@ var animationHelpers = {
                     
                     
                 }
+            });
+        }
+        
+        return frames;
+    },
+
+    createWiresFrames({framesCount, dotsData,xClamps, yClamps, size, invert = false, c1, c2, usePP}) {
+        let frames = [];
+
+        let halfFramesCount = fast.r(framesCount/2);
+
+        dotsData.forEach(dotData => {
+            if(dotData.dots.length == 1){
+                dotData.dots = new Array(framesCount).fill().map(_ => dotData.dots[0])
+            }
+            else {
+                let distance = dotData.dots[0].distance(dotData.dots[1]);
+                let direction = dotData.dots[0].direction(dotData.dots[1]);
+                let dValues = [
+                    ...easing.fast({ from: 0, to: distance, steps: halfFramesCount, type: 'quad', method: 'inOut'}),
+                    ...easing.fast({ from: distance, to: 0, steps: halfFramesCount, type: 'quad', method: 'inOut'}),
+                ]
+
+                dotData.dots = new Array(framesCount).fill().map((el, i) => dotData.dots[0].add(direction.mul(dValues[i])));
+            }
+        });
+
+        let framesData = [];
+         for(let f = 0; f < framesCount; f++){
+            framesData[f] = {dots: []};
+            let dots = dotsData.map(dd => {
+                if(invert) {
+                    return {x: dd.dots[f].y, y: dd.dots[f].x}
+                }
+
+                return dd.dots[f]
+            });
+
+
+            let formula = mathUtils.getCubicSplineFormula(dots);
+            
+            if(invert) {
+                for(let _y = yClamps[0]; _y < yClamps[1]; _y++){
+                    let _x=  fast.r(formula(_y));
+                    framesData[f].dots.push({x:_x,y:_y});
+                }
+            }
+            else {
+                for(let x = xClamps[0]; x < xClamps[1]; x++){
+                    let y=  fast.r(formula(x));
+                    framesData[f].dots.push({x,y});
+                }
+            }
+            
+        }
+        
+        for(let f = 0; f < framesCount; f++){
+            frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                let prev = undefined;
+                let pp = usePP ? new PP({ctx}) : undefined;
+
+                for(let i = 0; i < framesData[f].dots.length; i++){
+                    let color1 = undefined;
+                    if(isFunction(c1)) {
+                        color1 = c1(framesData[f].dots[i].x, framesData[f].dots[i].y)
+                    }
+                    else {
+                        color1 = c1;
+                    }
+
+                    hlp.setFillColor(color1)
+
+                    if(usePP) {
+                        if(prev) {
+                            pp.lineV2(prev, framesData[f].dots[i])
+                        }
+                    }
+                    else {
+                        hlp.dot(framesData[f].dots[i].x, framesData[f].dots[i].y);
+
+                        if(c2 && prev != undefined && prev.y != framesData[f].dots[i].y) {
+                            hlp.setFillColor(c2)
+                                .dot(framesData[f].dots[i].x-1, framesData[f].dots[i].y)
+                                //.dot(framesData[f].dots[i].x, framesData[f].dots[i].y-1);
+                                .dot(prev.x+1, prev.y)
+                        }
+                    }
+
+                    
+
+                    prev = framesData[f].dots[i];
+                }
+            });
+        }
+        
+        return frames;
+    }, 
+
+    createDynamicMovementFrames({framesCount, 
+        triggerData = [
+            { 
+                /*
+                triggerMovementStartIndex - когда запускается триггерная линия,
+                triggerMovementFramesCount - сколько длится движение триггерной линии
+                itemFramesCount - сколько длится анимация стриггереной точки
+                startFrameIndex - через сколько стриггеренная точка начнет анимацию
+                */
+                easingType, easingMethod, cornerPoints, p0, p1, triggerMovementFramesCount, triggerMovementStartIndex,
+                itemFramesCount, startFrameIndex, debugColor,
+                animation: {}
+            }
+        ], 
+        img, itemFrameslength, excludeColors = [],size}) {
+        let frames = [];
+        
+        let sharedPP = PP.createNonDrawingInstance();
+        let modifiersItemsData = [];
+        let modifiersItemsDataFastAccess = [];
+
+        let colorsCache = {};
+
+        let rgbToHexByKey = (rgb) => {
+            let key = rgb[0]*1000000 + rgb[1]*1000 + rgb[2];
+            if(!colorsCache[key]) {
+                colorsCache[key] = colors.colorTypeConverter({ value: rgb, fromType: 'rgb', toType: 'hex' })
+            }
+
+            return colorsCache[key];
+        }
+
+        let createModifiersContainer = (p) => {
+            if(modifiersItemsData[p.y] == undefined) {
+                modifiersItemsData[p.y] = [];
+            }
+
+            if(modifiersItemsData[p.y][p.x] == undefined) {
+                modifiersItemsData[p.y][p.x] = {
+                    frames: [],
+                    p: p
+                };
+
+                modifiersItemsDataFastAccess.push(modifiersItemsData[p.y][p.x]);
+            }
+        }
+
+        let originPixelsMatrix = getPixelsAsMatrix(img, size);
+
+        for(let tdIndex = 0; tdIndex < triggerData.length; tdIndex++) {
+            let td = triggerData[tdIndex];
+
+            let triggerLinePoints = sharedPP.lineByCornerPoints(td.cornerPoints).map(p => new V2(p));
+            let triggerMovementPoints = sharedPP.lineV2(td.p0, td.p1).map(p => new V2(p));
+            let triggerMovementPointsIndices = easing.fast({
+                from: 0, to: triggerMovementPoints.length-1, steps: td.triggerMovementFramesCount, 
+                type: td.easingType, method: td.easingMethod, round: 0 })
+
+            let triggeredOriginPoints = [];
+
+            for(let f = 0; f < td.triggerMovementFramesCount; f++) {
+                let triggerLineShift = triggerMovementPoints[triggerMovementPointsIndices[f]].substract(td.p0);
+
+                let currentTriggerLinePoints = triggerLinePoints.map(tlp => tlp.add(triggerLineShift));
+
+                currentTriggerLinePoints.forEach(triggerPoint => {
+                    if(triggeredOriginPoints[triggerPoint.y] && triggeredOriginPoints[triggerPoint.y][triggerPoint.x]) {
+                        return; //уже активировано
+                    }
+
+                    if(!originPixelsMatrix[triggerPoint.y] || !originPixelsMatrix[triggerPoint.y][triggerPoint.x]) {
+                        return; // в матрице пусто
+                    }
+
+                    let triggerPointColor = rgbToHexByKey(originPixelsMatrix[triggerPoint.y][triggerPoint.x]);
+                    if(excludeColors.indexOf(triggerPointColor) != -1) {
+                        return;
+                    }
+
+                    // формируем контейнер для записи при её отсутствии в коллекции модификаторов по x,y
+                    createModifiersContainer(triggerPoint);
+
+                    // для текущего триггера, отмечаем, что данный пиксель уже подвергя модификации - активируем
+                    if(triggeredOriginPoints[triggerPoint.y] == undefined) {
+                        triggeredOriginPoints[triggerPoint.y] = [];
+                    }
+
+                    if(triggeredOriginPoints[triggerPoint.y][triggerPoint.x] == undefined) {
+                        triggeredOriginPoints[triggerPoint.y][triggerPoint.x] = {
+                            triggered: true
+                        };
+                    }
+
+                    let startFrameIndex = f + td.triggerMovementStartIndex + (isArray(td.startFrameIndex) ? getRandomInt(td.startFrameIndex) : td.startFrameIndex);
+                    let totalFrames = isArray(td.itemFramesCount) ? getRandomInt(td.itemFramesCount) : td.itemFramesCount;
+                    
+                    let currentAnimationValues = {}
+                    if(td.animation && td.animation.type == 0) {
+                        let animationStep = fast.r(totalFrames/4);
+                        currentAnimationValues.animationStep = animationStep;
+                        currentAnimationValues.steps = [
+                            { values: easing.fast({from: 0, to: 1, steps: animationStep, type: 'quad', method: 'inOut', round: 0}) },
+                            { values: easing.fast({from: 1, to: 0, steps: animationStep, type: 'quad', method: 'inOut', round: 0}) },
+                            { values: easing.fast({from: 0, to: 1, steps: animationStep, type: 'quad', method: 'inOut', round: 0}) },
+                            { values: easing.fast({from: 1, to: 0, steps: animationStep, type: 'quad', method: 'inOut', round: 0}) }
+                        ]
+
+                        currentAnimationValues.color = triggerPointColor//rgbToHexByKey(originPixelsMatrix[triggerPoint.y][triggerPoint.x]);
+                        
+                        let neighborPixel = triggerPoint.add(td.animation.shiftDirection);
+                        let oppositePixel = triggerPoint.add(td.animation.shiftDirection.mul(-1));
+                        
+                        let oppositePixelColor = undefined
+                        if(originPixelsMatrix[oppositePixel.y] && originPixelsMatrix[oppositePixel.y][oppositePixel.x]) {
+                            oppositePixelColor = rgbToHexByKey(originPixelsMatrix[oppositePixel.y][oppositePixel.x]);
+                        }
+
+                        if(excludeColors.indexOf(oppositePixelColor) != -1) {
+                            return;
+                        }
+
+                        currentAnimationValues.oppositePixelColor = oppositePixelColor;
+
+                        createModifiersContainer(neighborPixel);
+                        currentAnimationValues.neighborPixel = neighborPixel;
+                    }
+
+                    for(let _f = 0; _f < totalFrames; _f++){
+                        let frameIndex = _f + startFrameIndex;
+                        if(frameIndex > (framesCount-1)){
+                            frameIndex-=framesCount;
+                        }
+
+                        // в конкретной точке модификатора для конкретного фрейма создаем коллекцию модификаций, если таковой нету
+                        if(modifiersItemsData[triggerPoint.y][triggerPoint.x].frames[frameIndex] == undefined) {
+                            modifiersItemsData[triggerPoint.y][triggerPoint.x].frames[frameIndex] = [];
+                        }
+
+                        if(td.debugColor) {
+                            modifiersItemsData[triggerPoint.y][triggerPoint.x].frames[frameIndex].push({
+                                type: 1,
+                                color: td.debugColor
+                            });
+                        }
+                        else if(td.animation) {
+                            if(td.animation.type == 0) {
+                                let np = currentAnimationValues.neighborPixel;
+                                let currentAnimationStep = fast.f(_f/currentAnimationValues.animationStep);
+                                if(modifiersItemsData[np.y][np.x].frames[frameIndex] == undefined) {
+                                    modifiersItemsData[np.y][np.x].frames[frameIndex] = [];
+                                }
+                                switch(currentAnimationStep) {
+                                    case 0: 
+                                        if(currentAnimationValues.steps[currentAnimationStep].values[_f%currentAnimationValues.animationStep] == 1) {
+                                            modifiersItemsData[np.y][np.x].frames[frameIndex].push({
+                                                type: 1,
+                                                color: currentAnimationValues.color
+                                            });
+                                        }
+                                        break;
+                                    case 1: 
+                                        modifiersItemsData[np.y][np.x].frames[frameIndex].push({
+                                            type: 1,
+                                            color: currentAnimationValues.color
+                                        });
+                                        if(currentAnimationValues.steps[currentAnimationStep].values[_f%currentAnimationValues.animationStep] == 0) {
+                                            
+                                            if(currentAnimationValues.oppositePixelColor) {
+                                                modifiersItemsData[triggerPoint.y][triggerPoint.x].frames[frameIndex].push({
+                                                    type: 1,
+                                                    color: currentAnimationValues.oppositePixelColor
+                                                });
+                                            }
+                                            else {
+                                                modifiersItemsData[triggerPoint.y][triggerPoint.x].frames[frameIndex].push({
+                                                    type: 0
+                                                });
+                                            }
+                                            
+                                        }
+                                        break;
+                                    case 2: 
+                                        modifiersItemsData[np.y][np.x].frames[frameIndex].push({
+                                            type: 1,
+                                            color: currentAnimationValues.color
+                                        });
+                                        if(currentAnimationValues.steps[currentAnimationStep].values[_f%currentAnimationValues.animationStep] == 0) {
+                                            if(currentAnimationValues.oppositePixelColor) {
+                                                modifiersItemsData[triggerPoint.y][triggerPoint.x].frames[frameIndex].push({
+                                                    type: 1,
+                                                    color: currentAnimationValues.oppositePixelColor
+                                                })
+                                            }
+                                            else {
+                                                modifiersItemsData[triggerPoint.y][triggerPoint.x].frames[frameIndex].push({
+                                                    type: 0
+                                                })
+                                            }
+                                            
+                                        }
+                                        break;
+                                    case 3: 
+                                        if(currentAnimationValues.steps[currentAnimationStep].values[_f%currentAnimationValues.animationStep] == 1) {
+                                            modifiersItemsData[np.y][np.x].frames[frameIndex].push({
+                                                type: 1,
+                                                color: currentAnimationValues.color
+                                            });
+                                        }
+                                        break;
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                })
+            }
+        }
+
+        // let itemsData = new Array(itemsCount).fill().map((el, i) => {
+        //     let startFrameIndex = getRandomInt(0, framesCount-1);
+        //     let totalFrames = itemFrameslength;
+        
+        //     let frames = [];
+        //     for(let f = 0; f < totalFrames; f++){
+        //         let frameIndex = f + startFrameIndex;
+        //         if(frameIndex > (framesCount-1)){
+        //             frameIndex-=framesCount;
+        //         }
+        
+        //         frames[frameIndex] = {
+        
+        //         };
+        //     }
+        
+        //     return {
+        //         frames
+        //     }
+        // })
+        
+        for(let f = 0; f < framesCount; f++){
+            frames[f] = createCanvas(size, (ctx, size, hlp) => {
+                ctx.drawImage(img, 0,0);
+
+                for(let mIndex = 0; mIndex < modifiersItemsDataFastAccess.length; mIndex++ ) {
+                    let mData = modifiersItemsDataFastAccess[mIndex];
+
+                    if(mData.frames[f]) {
+                        let isClear = false;
+                        let fillColor = undefined;
+
+                        for(let mi = 0; mi < mData.frames[f].length; mi++) {
+                            let mValue = mData.frames[f][mi];
+
+                            if(mValue.type == 0) { // clear
+                                if(fillColor) {
+                                    continue;
+                                }
+
+                                isClear = true;
+                            }
+                            else if(mValue.type == 1) { // add
+                                isClear = false;
+                                fillColor = mValue.color
+                            }
+                        }
+
+                        if(fillColor) {
+                            hlp.setFillColor(fillColor).dot(mData.p);
+                        }
+                        else if(isClear) {
+                            hlp.clear(mData.p.x, mData.p.y)
+                        }
+                    }
+                }
+
             });
         }
         

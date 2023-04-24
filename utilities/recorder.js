@@ -19,6 +19,9 @@ class Recorder {
                 if(c.type == 'gif') {
                     c.gifWriter.addFrame(frame, { delay: c.frameDelay})
                 }
+                else if(c.type == 'zip') {
+                    c.zip.file("frame_" + zeroPad(c.frameCounter++, 4) + '.png', frame.toDataURL().split(',')[1], {base64: true});
+                }
                 else {
                     c.videoWriter.addFrame(frame);
                 }
@@ -73,6 +76,16 @@ class Recorder {
                     });
 
                     c.gifWriter.render();
+                }
+                else if(c.type == 'zip') {
+                    c.zip.generateAsync({type: 'base64'}).then(function(content) {
+                        let link = document.createElement("a");
+                        link.download = c.fileNamePrefix + '_' + new Date().getTime() +'.zip';
+                        link.href = "data:application/zip;base64,"+content
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
                 }
                 else {
                     c.videoWriter.complete().then(function(blob){

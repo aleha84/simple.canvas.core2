@@ -4,6 +4,14 @@ components.createList = function(listProps) {
     lb.appendChild(htmlUtils.createElement('p', { className: 'title', text: listProps.title }));
     let selectHolder = htmlUtils.createElement('div', { className: 'selectHolder'});
     
+    let styles = undefined;
+    if(listProps.resizable) {
+        styles = {
+            "resize": "vertical",
+            "min-height": "90px"
+        }
+    }
+
     let select = htmlUtils.createElement('select', { attributes: { size: listProps.maxSize || 10 }, events: {
         keypress: function(e) {
             e.preventDefault();
@@ -31,7 +39,15 @@ components.createList = function(listProps) {
             else 
                 console.log(e.target.value)
      }
-    } });
+    }, styles });
+
+    // if(listProps.resizable) {
+    //     new ResizeObserver(() => {
+    //         if(select.clientHeight < 90) {
+    //             select.style.height = '90px';
+    //         }
+    //     }).observe(select);
+    // }
 
     for(let item of listProps.items){
         let op = new Option(item.title || item.text, item.value);

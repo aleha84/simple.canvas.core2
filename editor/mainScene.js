@@ -203,6 +203,10 @@ class EditorScene extends Scene {
                             notifications.done('Show prev frames', 1000)
                             // todo action
                         }
+
+                        if(event.code == 'KeyU'){
+                            components.animationHelpers.updateNextFrame();
+                        }
                     }
                     
                 }

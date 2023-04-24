@@ -3,23 +3,31 @@
         "target": "ES6"
     },
     "files": [
-        "scene.js",
-        "effectsScene.js",
-        "effects2.js",
-        "effects3.js",
-        "effects4.js",
-        "effects5.js",
-        "effects6.js",
-        "lamp.js",
-        "lamp2.js",
-        "lamp3.js",
-        "earth.js",
-        "fish.js",
+        // "scene.js",
+        // "effectsScene.js",
+        // "effects2.js",
+        // "effects3.js",
+        // "effects4.js",
+        // "effects5.js",
+        // "effects6.js",
+        // "lamp.js",
+        // "lamp2.js",
+        // "lamp3.js",
+        // "earth.js",
+        // "fish.js",
+        // "dithering.js",
+        // "character.js",
+        // "draft1.js",
+        // "flow_art.js",
+        // "snow_isolated.js",
+        "effects7.js",
         "index.js",
     ],
     "include": [
         "../../../utilities/*.js",
         "../../../models/*.js"
     ],
-    "exclude": ["models.js", "fishModels.js"]
+    "exclude": [
+        // "models.js", "fishModels.js"
+    ]
 }

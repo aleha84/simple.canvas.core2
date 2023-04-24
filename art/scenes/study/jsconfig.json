@@ -4,11 +4,12 @@
     },
     "files": [
         "arid_scene.js",
+        "dandelions_scene.js",
         "index.js",
     ],
     "include": [
         "../../../utilities/*.js",
         "../../../models/*.js"
     ],
-    "exclude": ["arid_models.js"]
+    "exclude": ["arid_models.js", "dandelions_models.js"]
 }

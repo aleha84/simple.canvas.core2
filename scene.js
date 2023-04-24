@@ -252,6 +252,16 @@ class Scene {
         SCG.contexts.background.drawImage(img, 0,0, SCG.viewport.real.width,SCG.viewport.real.height);
     }
 
+    backgroundRenderAddGo({color}) {
+        if(color) {
+            this.bg = this.addGo(new GO({
+                position: this.sceneCenter.clone(),
+                size: this.viewport.clone(),
+                img: createCanvas(V2.one, (ctx, size, hlp) => { hlp.setFillColor(color).dot(0,0) })       
+            }), 0)
+        }
+    }
+
     addUIGo(go) {
         if(go === undefined)
             throw 'No GO provided';
@@ -416,6 +426,10 @@ class Scene {
                 })
 
                 c.frameDelay = 1000 / (c.frameRate || 60); 
+            }
+            else if(c.type == 'zip') {
+                c.zip = new JSZip();
+                c.frameCounter = 0;
             }
             else {
                 c.videoWriter = new WebMWriter({

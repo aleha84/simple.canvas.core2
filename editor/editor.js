@@ -1,18 +1,13 @@
 // TODO. Bugs:
-// 2. Current palettes list - stored in json; stopped working, not showing color
 // 4. gradient tool, update, add easings support
-// 13. Import model - dublicate palette if already exists
-// 14. imput - paddings/old value missing
 // 16. Autosave model in localstorage
-// 17. Move\copy group to layer
 // 19. Remove all points from layer button
 // 21. ColorSelector create own component - RGB, HSV
 // 22. CShift - add HSV, RGB, Easings type and methods selection
 // 23. Add progress recording - each minute add frame, pause, stop, start. Result in webm video
 // 25. change selected pixel color frame. Globally, per group. Depends on color? 
 // 27. auto save in localstorage !!!!!!!
-// 28. After group deletion keep scroll position (it is resetting now)
-// 29. Make list boxes height customable with saving to model special block
+// 29. Палитры - сделать возможным перемещение элемена палитры в группе
 
 class Editor {
     constructor(options = {}){
@@ -1372,6 +1367,31 @@ class Editor {
                             notifications.done('New frame inserted at position: ' + index, 1000);
                             document.querySelectorAll('.frames select>option')[index].classList.add('blink');
                         }
+                    },
+                    {
+                        text: "Save as ZIP",
+                        click: () => {
+                            let frames = PP.createImage(that.image);
+                            //console.log(frames);
+                            let zip = new JSZip();
+                            frames.forEach((frame, i) => {
+                                zip.file("frame_" + zeroPad(i, 3) + '.png', frame.toDataURL().split(',')[1], {base64: true});
+                            })
+
+                            //zip.file("Hello.txt", "Hello World\n");
+
+                            zip.generateAsync({type: 'base64'}).then(function(content) {
+                                // console.log(content)
+                                // debugger;
+                                
+                                let link = document.createElement("a");
+                                link.download = 'frames.zip';
+                                link.href = "data:application/zip;base64,"+content//URL.createObjectURL(content);
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            });
+                        }
                     }
                 ],
                 callbacks: {
@@ -1448,6 +1468,7 @@ class Editor {
             items: main.layers.map(l => {return { title: l.name || l.id, value: l.id, selected: l.id == that.editor.selected.layerId }}),
             maxSize: 5,
             buttons,
+            resizable: true,
             callbacks: {
                 select: function(e){ 
                     main.layers.forEach(l => l.selected = false);

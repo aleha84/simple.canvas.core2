@@ -22,7 +22,12 @@ document.addEventListener("DOMContentLoaded", function() {
         viewport: new V2(150,150)
     }));
 
-    SCG.main.startV2('arid');
+    SCG.scenes.cacheScene(new DandelionsScene({
+        name:'dandelions',
+        viewport: new V2(100,100)
+    }));
+
+    SCG.main.startV2('dandelions');
 
     window.addEventListener("hashchange", sceneSelectByHashValue, false);
 });

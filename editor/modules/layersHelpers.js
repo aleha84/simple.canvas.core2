@@ -22,8 +22,95 @@ components.layersHelpers = {
             }
         })
 
+        let cleanBackgroundImgButton = htmlUtils.createElement('input', { 
+            value: 'Clean BG', 
+            attributes: { type: 'button' }, 
+            events: {
+                click: () => {
+                    SCG.scenes.activeScene.underlyingImg.img = undefined;
+                }
+            }
+        })
+
+        let bgToLayerButton = htmlUtils.createElement('input', { 
+            value: 'BG to Layer', 
+            attributes: { type: 'button' }, 
+            events: {
+                click: () => {
+                    let uimg = SCG.scenes.activeScene.underlyingImg.img;
+                    if(uimg == undefined) {
+                        notifications.error('No underlying image detected!', 2000);
+                        return;
+                    }
+
+                    let { image: {main, general}, editor } = components.editorContext;
+                    if(general.animated){
+                        main = main[general.currentFrameIndex];
+                    }
+
+                    let imgPixels = getPixels(uimg, general.originalSize);
+
+                    let colorsCache = {};
+                    let rgbToHex = (rgb) => {
+                        let key = rgb[0]*1000000 + rgb[1]*1000 + rgb[2];
+                        if(!colorsCache[key]) {
+                            colorsCache[key] = {
+                                points: [],
+                                hex: colors.colorTypeConverter({ value: rgb, fromType: 'rgb', toType: 'hex' })
+                            } 
+                        }
+            
+                        return colorsCache[key];
+                    }
+
+                    imgPixels.forEach(pixel => {
+                        let ccItem = rgbToHex(pixel.color);
+                        ccItem.points.push(pixel.position);
+                    })
+
+                    console.log(colorsCache);
+
+                    let nextLayerId = `m_${main.currentLayerId++}`;
+                    while(main.layers.filter(g => g.id == nextLayerId).length > 0){
+                        nextLayerId = `m_${main.currentLayerId++}`;
+                    }
+
+                    let newLayer = modelUtils.createDefaultLayer(nextLayerId, main.layers.length);
+                    newLayer.selected = true;
+
+                    Object.values(colorsCache).forEach(item => {
+                        let nextGroupId = `${newLayer.id}_g_${newLayer.currentGroupId++}`;
+                        let group = modelUtils.createDefaultGroup(nextGroupId, 0);
+                        group.strokeColor = item.hex;
+
+                        item.points.forEach(p => {
+                            let nextPointId = `${group.id}_p_${group.currentPointId++}`;
+
+                            group.points.push({
+                                id: nextPointId,
+                                order: group.points.length,
+                                point: {x: p.x, y: p.y},
+                                selected: false
+                            })
+                        })
+
+                        newLayer.groups.push(group);
+                    })
+
+                    main.layers.push(newLayer);
+
+                    let select = document.querySelector('.layers select');
+                    components.addLayerToSelect({layer: newLayer, select})
+                }
+            }
+        })
+
+
+
         controls.push(moveCurrentGroupToAnotherLayerButton);
         controls.push(cleanGroupsInLayerButton);
+        controls.push(bgToLayerButton);
+        controls.push(cleanBackgroundImgButton);
 
         components.editorContext.editor.panels.layersHelpers = components.createDraggablePanel({
             title: 'Layer helpers', 

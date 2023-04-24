@@ -252,6 +252,29 @@ class Demo10GoodScene extends Scene {
                     isVisible: false, position: new V2(), size: this.size, img: PP.createImage(Demo10GoodScene.models.main, { renderOnly: ['l_h3'] })
                 }))
 
+                this.h_all = this.addChild(new GO({
+                    isVisible: false, position: new V2(), size: this.size, img: PP.createImage(Demo10GoodScene.models.main, { renderOnly: ['l_h_all'] })
+                }))
+
+                // for(let i =0; i < 3; i++) {
+                //     setTimeout(() => {
+                        
+
+                //         colors.saveImage(SCG.canvases.main, {size: SCG.scenes.activeScene.viewport.mul(10), name: `good_${i}.png`});
+
+                //         if(i == 0) {
+                //             this.h1.isVisible = true
+                //             this.h2.isVisible = true
+                //             this.h3.isVisible = true
+                //         }
+                        
+                //         if(i == 1) {
+                //             this.h_all.isVisible = true
+                //         }
+
+                //     }, i*300)
+                // }
+
                 let showTimings = 
                 {50: ['h1'], 51: ['h1'], 54: ['h1'], 113: ['h1'],115: ['h1'], 125: ['h3'], 127:['h3'], 130: ['h3'], 150: ['h2'], 152: ['h2'], 153: ['h2'], 155: ['h2']}
 

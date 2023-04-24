@@ -891,5 +891,8 @@ function getLineFunction(origin, direction){
   }
 }
 
+function zeroPad(num, places)  {
+  return String(num).padStart(places, '0')
+}
 
 
