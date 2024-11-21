@@ -6,6 +6,21 @@ class EditorScene extends Scene {
                 restrictBySpace: false
             },
             events: {
+                move: (moveEvent) => {
+                    if(moveEvent.state.moving && moveEvent.state.downTriggered) {
+                        // console.log(moveEvent);
+                        // console.log(this);
+
+                        let nextLogical = SCG.viewport.logical.clone();
+                        nextLogical.update(SCG.viewport.shift.add(moveEvent.state.movingDelta.division(SCG.viewport.scale)) , SCG.viewport.logical.size)
+                        
+                        if(!nextLogical.isIntersectsWithBox(this.mainGo.box)) {
+                            return {
+                                preventMove: true
+                            }
+                        }
+                    }
+                },
                 checkTextInput() {
                     return document.activeElement.type == 'text' 
                     || document.activeElement.type == 'textarea' 
@@ -13,6 +28,17 @@ class EditorScene extends Scene {
                 },
                 checkSelect() {
                     return (document.activeElement.tagName.toLowerCase() == 'select')
+                },
+                scroll: (event) => {
+                    let zoom = this.editor.image.general.zoom;
+                    if(event.wheelDelta < 0)
+                        zoom.current--;
+                    else if(event.wheelDelta > 0)
+                        zoom.current++;
+
+                    let el = document.querySelector('.general .range input');
+                    el.value = zoom.current;
+                    el.dispatchEvent(new Event('change'))
                 },
                 down: () => {
                     if(document.activeElement && (this.events.checkTextInput() || this.events.checkSelect()))
@@ -302,7 +328,7 @@ class EditorScene extends Scene {
         let uimg = this.underlyingImg;
         let fp = this.framesPreview;
         let {general, main} = model;
-
+        //console.log('disableLayerImageOptimization: ' + general.disableLayerImageOptimization);
         if(general.backgroundColor && this.bgColor != general.backgroundColor){
             this.bgColor = general.backgroundColor;
             this.backgroundRenderDefault(this.bgColor);
@@ -319,17 +345,22 @@ class EditorScene extends Scene {
     
             let imagesCreated = 0;
             if(!mg.hideImage){
-                mg.img = createCanvas(general.size, (ctx, size, hlp) => {
-                    model.main.layers.forEach(l => {
-                        if(!l.layerImage){
-                            l.layerImage = PP.createImage(model, {renderOnly: [l.name || l.id]});
-                            l.layerImageCreatedCallback(l.layerImage)
-                            imagesCreated++;
-                        }
-    
-                        ctx.drawImage(l.layerImage, 0,0);
+                if(general.disableLayerImageOptimization) {
+                    mg.img = PP.createImage(model);
+                }
+                else {
+                    mg.img = createCanvas(general.size, (ctx, size, hlp) => {
+                        model.main.layers.forEach(l => {
+                            if(!l.layerImage){
+                                l.layerImage = PP.createImage(model, {renderOnly: [l.name || l.id]});
+                                l.layerImageCreatedCallback(l.layerImage)
+                                imagesCreated++;
+                            }
+        
+                            ctx.drawImage(l.layerImage, 0,0);
+                        })
                     })
-                })
+                }
             }
             else {
                 mg.img = undefined;
@@ -339,6 +370,9 @@ class EditorScene extends Scene {
 
             console.log('renderModel: imagesCreated: ' + imagesCreated);
             
+            if(imagesCreated > 0 ){
+                components.autosave.addFrame(mg.img)
+            }
 
             //mg.img = PP.createImage(model);
     

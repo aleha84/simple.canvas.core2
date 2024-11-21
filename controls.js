@@ -176,7 +176,7 @@ SCG.controls = {
             
 
             if(SCG.scenes.activeScene.events.up)
-                SCG.scenes.activeScene.events.up({state: this.state});
+                SCG.scenes.activeScene.events.up({state: this.state, event});
 
             event.preventDefault();
         },
@@ -186,7 +186,7 @@ SCG.controls = {
             this.state.doEventCheck('down');
 
             if(SCG.scenes.activeScene.events.down)
-                SCG.scenes.activeScene.events.down();
+                SCG.scenes.activeScene.events.down({event});
 
             this.state.downTriggered = true;
 
@@ -202,9 +202,6 @@ SCG.controls = {
 
             state.doEventCheck('move');
 
-            if(SCG.scenes.activeScene.events.move)
-                SCG.scenes.activeScene.events.move();
-
             if(prevPosition != undefined){
                 state.movingDelta = prevPosition.substract(state.position);
                 if(!state.movingDelta.equal(new V2())){
@@ -212,9 +209,22 @@ SCG.controls = {
                 }
             }
 
+            let canMove = true;
+            if(SCG.scenes.activeScene.events.move) {
+                let moveResult = SCG.scenes.activeScene.events.move({
+                    event, 
+                    state
+                });
+
+                if(moveResult && moveResult.preventMove) {
+                    canMove = false;
+                }
+            }
+                
             let vp = SCG.viewport;
             if( // drag logics
                 vp.scrollOptions.enabled 
+                && canMove
                 && vp.scrollOptions.type === vp.scrollTypes.drag 
                 && prevPosition != undefined
                 && state.downTriggered
@@ -237,6 +247,9 @@ SCG.controls = {
         },
         scroll(event) {
             SCG.viewport.camera.updateZoom(event.wheelDelta);
+
+            if(SCG.scenes.activeScene.events.scroll)
+                SCG.scenes.activeScene.events.scroll(event);
             // if(event.wheelDelta >= 0){
             //     SCG2.gameControls.scale.change(1);
             // }else{

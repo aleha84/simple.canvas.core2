@@ -66,9 +66,9 @@ class PerfectPixel {
 
         this.ctx.clearRect(x, y, 1,1);
     }
-    curveByCornerPoints(corners, numOfSegments) {
+    curveByCornerPoints(corners, numOfSegments, isClosed = false) {
         let filledPixels = [];
-        let curvePoints = mathUtils.getCurvePointsMain({points: corners, numOfSegments });
+        let curvePoints = mathUtils.getCurvePointsMain({points: corners, numOfSegments, isClosed });
 
         for(let i = 1; i < curvePoints.length; i++) {
             filledPixels= [...filledPixels, ...this.lineV2(curvePoints[i-1], curvePoints[i])];
@@ -92,7 +92,7 @@ class PerfectPixel {
 
         return distinctPoints(result);
     }
-    lineV2(p1, p2){
+    lineV2(p1, p2, params = { toV2: false}){
         if(!p1 || !(p1 instanceof Vector2)){
             if(isObject(p1) && p1.x != undefined && p1.y != undefined){
                 p1 = new V2(p1);
@@ -113,8 +113,13 @@ class PerfectPixel {
             }
 			
         }
+
+        let result = this.line(p1.x, p1.y, p2.x, p2.y);
+        if(params.toV2) {
+            return result.map(p => new V2(p))
+        }
         
-        return this.line(p1.x, p1.y, p2.x, p2.y);
+        return result;
     }
 
     lineL(line){
@@ -218,7 +223,7 @@ class PerfectPixel {
         return result;
     }
      
-     fillByCornerPoints(cornerPoints, params = { fixOpacity: false }) {
+     fillByCornerPoints(cornerPoints, params = { fixOpacity: false, toV2: false }) {
          if(cornerPoints.length < 3)
             throw 'fillByCornerPoints -> cornerPoints should be 3 or more!';
 
@@ -242,7 +247,13 @@ class PerfectPixel {
             uniquePoints.forEach(p => this.setPixel(p.x,p.y));
         }
 
-        return this.fill(uniquePoints, cornerPoints)
+        let result = this.fill(uniquePoints, cornerPoints)
+
+        if(params.toV2) {
+            return result.map(p => new V2(p))
+        }
+
+        return result;
      }
 
      fill(filledPoints, cornerPoints, params = { type: 'line' } ) {//, _fillPoints) {
@@ -384,6 +395,13 @@ PP.createNonDrawingInstance = function() {
     return PP.createInstance(V2.one, { modifyContext: false });
 }
 
+PP.getLayerByName = function(model, name) {
+    if(!model || !model.main || !model.main.layers)
+        return;
+        
+    return model.main.layers.find(l => l.name == name || l.id == name);
+}
+
 PP.createImage = function(model, params = {}) {
     if(model == undefined)
         throw 'PP.createImage model is undefined!';
@@ -436,7 +454,29 @@ PP.createImage = function(model, params = {}) {
     //     }
     // }
 
-    let renderGroup = (pp, group) => {
+    let renderGroup = (pp, hlp, group) => {
+
+        if(group.groupType == 'gradient') {
+            //console.log('gradient rendering is under construction')
+            let rgb = colors.colorTypeConverter({ value: group.color, fromType: 'hex', toType: 'rgb' });
+            let colorPrefix = `rgba(${rgb.r},${rgb.g}, ${rgb.b},`
+
+            group.center = V2.objToV2(group.center)
+            group.radius = V2.objToV2(group.radius)
+            group.origin = V2.objToV2(group.origin)
+
+            if(group.radius.equal(V2.zero))
+                return;
+
+            scenesHelper.createGradient({ 
+                hlp, aValueMul: group.aValueMul, center: group.center, radius: group.radius, gradientOrigin: group.origin, size: V2.zero, 
+                colorPrefix, easingType: group.easingType, easingMethod: group.easingMethod, angle: group.angle, verticalCut: undefined,
+                useValueType: group.useValueType
+             })
+
+            return;
+        }
+
         let strokeColor = group.strokeColor;
         let scOpacity = group.strokeColorOpacity != undefined && group.strokeColorOpacity < 1;
 
@@ -579,7 +619,7 @@ PP.createImage = function(model, params = {}) {
     }
 
     let renderFrame =  (main) => {
-        return createCanvas(general.size, (ctx, size) => {
+        return createCanvas(general.size, (ctx, size, hlp1) => {
             let pp = new PerfectPixel({context: ctx, positionModifier: params.positionModifier});
             for(let layer of main.layers.sort((a,b) => { return (a.order > b.order) ? 1 : ((b.order > a.order) ? -1 : 0); })) {
                 if(params.forceVisivility[layer.name]) {
@@ -600,10 +640,12 @@ PP.createImage = function(model, params = {}) {
                 }
 
                 let __pp = pp;
+                let __hlp = hlp1;
                 let layerImg = undefined;
                 if(params.layerSeparateCanvas) {
-                    layerImg = createCanvas(general.size, (ctx, size, hlp) => {
+                    layerImg = createCanvas(general.size, (ctx, size, hlp2) => {
                         __pp = new PP({context: ctx, positionModifier: params.positionModifier})
+                        __hlp = hlp2;
                     })
                 }
 
@@ -613,11 +655,11 @@ PP.createImage = function(model, params = {}) {
                         if(group.visible != undefined && group.visible == false)
                             continue;
     
-                        renderGroup(__pp, group)
+                        renderGroup(__pp, __hlp, group)
                     }
                 }
                 else {
-                    renderGroup(__pp, layer);
+                    renderGroup(__pp, __hlp, layer);
                 }
 
                 if(layerImg) {
@@ -664,67 +706,71 @@ PP.createImage = function(model, params = {}) {
 
  
 
- PP.createText = function({ font = 'vorpos', text = '', color = '#FF0000', size = 7, gap = 1, weight = 'normal' }) {
+ PP.createText = function({ font = 'minifont', text = '', color = '#FF0000', sizeMultiplier = 1, gapWidth = 1 }) {
     let fontProps = PP.pixelFonts[font];
     if(fontProps == undefined)
         throw `Pixel font for type ${font} not found`;
 
-    fontProps = fontProps[weight];
-
-    if(fontProps == undefined)
-        throw `Pixel font for type ${font} and weight ${weight} not found`;
-
-    if(gap == undefined){
-        gap = fontProps.properties.gap;
+    if(gapWidth == undefined){
+        gapWidth = 1;
     }
 
-    let baseWidth = text.length*fontProps.properties.baseSize.x + (text.length-1)*fontProps.properties.gap;
-    let targetSize = new V2(text.length*size+ (text.length-1)*gap, text.length*size);
-    let baseImgSize = new V2(baseWidth, fontProps.properties.baseSize.y);
+    let width = 0;
+    for(let i = 0; i < text.length; i++){
+        let letterWidth = fontProps.originalSize.x;
+        let letterProps = fontProps.letters[text[i]];
+        if(letterProps && letterProps.general && letterProps.general.size) {
+            letterWidth = letterProps.general.size.x;
+        }
+
+        width+=letterWidth + gapWidth;
+    }
+
+    let baseImgSize = new V2(width, fontProps.originalSize.y);
+
+    let targetSize = baseImgSize.mul(sizeMultiplier);
     let baseImg = createCanvas(baseImgSize, (ctx, size) => {
         let currentX = 0;
         for(let i = 0; i < text.length; i++){
-            let letterProps = fontProps[text[i]];
-            if(!letterProps){
-                currentX+=fontProps.properties.width + fontProps.properties.gap;
-                continue;
+            let letterProps = fontProps.letters[text[i]];
+            let letterWidth = fontProps.originalSize.x;
+            if(letterProps.general && letterProps.general.size) {
+                letterWidth = letterProps.general.size.x;
+            }
+
+            if(letterProps) {
+                if(!letterProps.img){
+                    letterProps.img = {};
+                }
+    
+                if(!letterProps.img[color]){
+                    let letterModel = assignDeep({}, fontProps.commonGeneral(), letterProps)
+
+                    letterModel.main.layers.forEach((l,i) => {
+                        assignDeep(l, fontProps.layerCommon())
+                        l.id = `m_${i}`
+                        l.groups.forEach((g,j) => {
+                            assignDeep(g, fontProps.groupCommon())
+                            g.id = `m_${i}_g_${j}`
+                            g.strokeColor = color;
+                            g.fillColor = color;
+                        })
+                    });
+
+                    letterProps.img[color] = PP.createImage(letterModel) 
+                }
+                
+                ctx.drawImage(letterProps.img[color], currentX, 0)
             }
                 
-
-            if(!letterProps.img){
-                letterProps.img = {};
-            }
-
-            if(!letterProps.img[color]){
-                let letterModel = fontProps.properties.common();
-                letterModel.main.layers = letterProps.layers.map(l => assignDeep({}, fontProps.properties.layerCommon(), l));
-                letterModel.main.layers.forEach(l => { l.fillColor = color; l.strokeColor = color; });
-                letterProps.img[color] = PP.createImage(letterModel) 
-                //createCanvas(fontProps.properties.baseSize, (ctx, size) => { ctx.fillStyle = 'red'; ctx.fillRect(0,0,size.x, size.y) });
-            }
-            
-            ctx.drawImage(letterProps.img[color], currentX, 0, fontProps.properties.baseSize.x, size.y);
-            currentX+=fontProps.properties.baseSize.x + fontProps.properties.gap;
+            currentX+=letterWidth + gapWidth;
         }
     });
 
     return {
         size: targetSize,
-        img: createCanvas(targetSize, (ctx, size) => {
+        img: targetSize > 1 ? createCanvas(targetSize, (ctx, size) => {
             ctx.drawImage(baseImg, 0,0, size.x, size.y);
-        })
+        }) : baseImg
     }
-    // return {size: imgSize, img: createCanvas(imgSize, (ctx, size) => {
-    //     let currentX = 0;
-    //     for(let i = 0; i < text.length; i++){
-    //         let letterModel = fontProps[text[i]];
-    //         if(letterModel != undefined){
-    //             letterModel.main.layers.forEach(l => { l.fillColor = color });
-    //             ctx.drawImage(PP.createImage(letterModel), currentX, 0, fontProps.properties.width, size.y);
-    //         }
-                
-            
-    //         currentX+=fontProps.properties.width + fontProps.properties.gap;
-    //     }
-    // })};
  }

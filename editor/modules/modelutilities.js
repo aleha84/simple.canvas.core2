@@ -10,6 +10,25 @@ var modelUtils = {
         }
     },
     groupMapper(g, deep = false) {
+        if(g.groupType == 'gradient') {
+            return {
+                id: g.id,
+                order: g.order,
+                selected: g.selected,
+                visible: g.visible,
+                groupType: g.groupType,
+                center: g.center,
+                radius: g.radius,
+                origin: g.origin,
+                color: g.color,
+                easingType: g.easingType,
+                easingMethod: g.easingMethod,
+                angle: g.angle,
+                aValueMul: g.aValueMul,
+                useValueType: g.useValueType
+            }
+        }
+
         let group = {
             order: g.order,
             selected: g.selected,
@@ -65,7 +84,10 @@ var modelUtils = {
             }
         }
     },
-    createDefaultGroup(id, order){
+    createDefaultGroup(id, order, groupType = undefined){
+        if(groupType == 'gradient')
+            return this.createDefaultGradient(id, order);
+
         return {
             currentPointId: 0,
             selected: false,
@@ -88,6 +110,24 @@ var modelUtils = {
             pointEl: undefined,
             showPoints: false,
             points: []
+        }
+    },
+    createDefaultGradient(id, order) {
+        return {
+            id: id,
+            order: order,
+            selected: false,
+            visible: true,
+            groupType: 'gradient',
+            center: new V2(),
+            radius: new V2(),
+            origin: new V2(),
+            color: '#FFFFFF',
+            easingType: 'quad',
+            easingMethod: 'out',
+            angle: 0,
+            aValueMul: 1,
+            useValueType: 'max'
         }
     },
     createDefaultPalette(paletteIndex) {

@@ -810,6 +810,47 @@ function hsvToRgb(h, s, v, asArray = false, hsvAsInt = false) {
   return result
 }
 
+function rgbToXyz(rgb) {
+  let _R = ( rgb[0] / 255 )
+  let _G = ( rgb[1] / 255 )
+  let _B = ( rgb[2] / 255 )
+
+  if ( _R > 0.04045 ) _R = Math.pow(( ( _R + 0.055 ) / 1.055 ), 2.4)
+  else                   _R = _R / 12.92
+  if ( _G > 0.04045 ) _G = Math.pow(( ( _G + 0.055 ) / 1.055 ), 2.4)
+  else                   _G = _G / 12.92
+  if ( _B > 0.04045 ) _B = Math.pow(( ( _B + 0.055 ) / 1.055 ), 2.4)
+  else                   _B = _B / 12.92
+  
+  _R *= 100
+  _G *= 100
+  _B *= 100
+  
+  return [
+      _R * 0.4124 + _G * 0.3576 + _B * 0.1805,
+      _R * 0.2126 + _G * 0.7152 + _B * 0.0722,
+      _R * 0.0193 + _G * 0.1192 + _B * 0.9505]
+}
+
+function xyzToLab([X, Y, Z]) {
+  let _X = X / 95.047
+  let _Y = Y / 100.0
+  let _Z = Z / 108.883
+  
+  if ( _X > 0.008856 ) _X = Math.pow(_X, ( 1/3 ))
+  else                    _X = ( 7.787 * _X ) + ( 16 / 116 )
+  if ( _Y > 0.008856 ) _Y = Math.pow(_Y, ( 1/3 ))
+  else                    _Y = ( 7.787 * _Y ) + ( 16 / 116 )
+  if ( _Z > 0.008856 ) _Z = Math.pow(_Z, ( 1/3 ))
+  else                    _Z = ( 7.787 * _Z ) + ( 16 / 116 )
+
+  return [
+      ( 116 * _Y ) - 16,
+      500 * ( _X - _Y ),
+      200 * ( _Y - _Z )
+  ]
+}
+
 function flipX(p, xOrigin) {
   let relativeOrigin = p.x - xOrigin;
   let reverted = -relativeOrigin;
@@ -846,7 +887,20 @@ function createLine(begin, end) {
   };
 }
 
+/****
+Returns: [
+  {
+    position: V2, 
+    color: [r,g,b,a]
+  }
+]
+****/
 function getPixels(img, size) {
+  if(img.__pixels) {
+    console.log('get pixels from image cache')
+    return img.__pixels;
+  }
+
   let ctx = img.getContext("2d");
   let  pixels = [];
 
@@ -862,6 +916,9 @@ function getPixels(img, size) {
 
       pixels[pixels.length] = { position: new V2(x,y), color };
   }
+
+  img.__pixels = pixels;
+
   return pixels;
 }
 

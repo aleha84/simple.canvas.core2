@@ -75,6 +75,7 @@ SCG.viewport = {
             if(shift === undefined)
                 shift = new V2();
                 
+            //console.log(shift);    
             if(vp.scrollOptions.restrictBySpace){
                 if(shift.x < 0) 
                     shift.x = 0;

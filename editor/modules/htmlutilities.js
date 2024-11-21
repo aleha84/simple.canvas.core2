@@ -104,6 +104,12 @@ var htmlUtils = {
             }
             
         });
+    },
+    addClass(el, className) {
+        if(!className || !el)
+            return;
+
+        el.classList.add(className);
     }
 
 }

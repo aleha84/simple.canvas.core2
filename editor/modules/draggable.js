@@ -1,4 +1,5 @@
-components.createDraggablePanel = function({parent, title, position, closable = false, panelClassNames = [], expandable = true, contentWidth = undefined, contentItems = [],
+components.createDraggablePanel = function({parent, title, position, closable = false, panelClassNames = [], 
+    expandable = true, contentWidth = undefined, contentItems = [], itemsClassName = 'item',
     onClose = () => {}, onCreate = () => {}, onMove = () => {}
 }) {
     if(!parent) {
@@ -15,10 +16,16 @@ components.createDraggablePanel = function({parent, title, position, closable = 
     let content = htmlUtils.createElement('div', { classNames: [ 'content'] });
 
     if(contentWidth){
-        content.style.minWidth = contentWidth + 'px';
+        if(isArray(contentWidth)) {
+            content.style.minWidth = contentWidth[0] + 'px';
+            content.style.maxWidth = contentWidth[1] + 'px';
+        }
+        else 
+            content.style.minWidth = contentWidth + 'px';
     }
 
     contentItems.forEach(c => {
+        htmlUtils.addClass(c, itemsClassName);
         content.appendChild(c);
     })
 
@@ -28,10 +35,14 @@ components.createDraggablePanel = function({parent, title, position, closable = 
         panelHeader.appendChild(htmlUtils.createElement('input', { value: 'Expand', className: 'toggle', attributes: { type: 'button' }, events: {
             click: function(){
                 panelBr = panel.getBoundingClientRect();
-                if (content.classList.contains("visible")) 
+                if (content.classList.contains("visible")) {
+                    this.value = 'Expand'
                     content.classList.remove("visible");
-                else 
+                }
+                else {
+                    this.value = 'Collapse'
                     content.classList.add('visible');
+                } 
             }
         } }));
     }

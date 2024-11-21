@@ -21,7 +21,35 @@ var paletteHelper = {
             this.addItem(palette);
         });
         
-        var buttonsBlock = htmlUtils.createElement('div', { className: 'buttonsBlock' });
+        let buttonsBlock = htmlUtils.createElement('div', { className: 'buttonsBlock' });
+
+        let generateWrapper = htmlUtils.createElement('div');
+        let that = this;
+        htmlUtils.appendChild(generateWrapper, [
+            htmlUtils.createElement('input', { value: 'Generate', className: 'generatePalette', attributes: { type: 'button' }, events: {
+                click: function(e) {
+                    let val = parseInt(e.target.parentNode.querySelector('.generatePaletteThreshold').value)
+                    if(isNaN(val) || val <= 0){
+                        notifications.error('Wrong value', 2000);
+                        return;
+                    }
+
+                    that.generatePalette({threshold: val});
+                }
+            } }),
+            htmlUtils.createElement('input', { value: 10, attributes: { type: 'number' }, styles: { width: "30px" },className: 'generatePaletteThreshold', events: {
+                change: function(e) { 
+                    let val = parseInt(e.target.value)
+                    if(isNaN(val) || val <= 0){
+                        notifications.error('Wrong value', 2000);
+                        return;
+                    }
+
+                    that.generatePalette({threshold: val}); 
+                }
+            } }),
+        ]);
+
         htmlUtils.appendChild(buttonsBlock, 
             [
                 htmlUtils.createElement('input', { value: 'add', attributes: { type: 'button' }, events: {
@@ -39,11 +67,7 @@ var paletteHelper = {
                         this.itemPanels = [];
                     }
                 } }),
-                htmlUtils.createElement('input', { value: 'Generate', attributes: { type: 'button' }, events: {
-                    click: () => {
-                        this.generatePalette();
-                    }
-                } }),
+                generateWrapper
         ]
         );
 
@@ -188,30 +212,51 @@ var paletteHelper = {
 
         console.log(this.palettes)
     },
-    generatePalette() {
-        let pixels = getPixels(PP.createImage(this.editorContext.prepareModel(), { exclude: ['generated'] })
-            ,this.editorContext.mainGo.originalSize)
-        //getPixels(this.editorContext.mainGo.img, this.editorContext.mainGo.originalSize);
-        // console.log(this);
-        if(pixels.length == 0) {
-            notifications.error('No non transparent points on canvas', 2000);
-            return;
-        }
+    generatePalette({ threshold = 10, hexData, rgbData, layerName, position } = {}) {
+
+        let hueGroups = [];
+        let hueThreshhold = threshold;
 
         let colorsCache = [];
         let total = 0;
 
+        let eDistance3 = (a,b) => Math.sqrt(Math.pow(a[0]-b[0],2)+Math.pow(a[1]-b[1],2)+Math.pow(a[2]-b[2],2))
+        let eDistance2 = (a,b) => Math.sqrt(Math.pow(a[0]-b[0],2)+Math.pow(a[1]-b[1],2))
+
         let rgbToHex = (rgb) => {
             //let key = rgb[0]*1000000 + rgb[1]*1000 + rgb[2];
             let hsv = colors.colorTypeConverter({ value: rgb, fromType: 'rgb', toType: 'hsv' })
-            let key = hsv.h*1000000 + hsv.v*1000 + hsv.s;
+            let key = hsv.h * 1000000 + hsv.s * 1000 + hsv.v; //hsv.h * 1000000 + hsv.s * 1000 + hsv.v;
 
-            if(!colorsCache[key]) {
+            let cornerColor = [255,255,255]
+            let cornerColorHsv = colors.colorTypeConverter({ value: cornerColor, fromType: 'rgb', toType: 'hsv' })
+            let cornerColorLab = xyzToLab(rgbToXyz(cornerColor))
+            if (!colorsCache[key]) {
+                let lab = xyzToLab(rgbToXyz(rgb))
                 colorsCache[key] = {
                     hex: colors.colorTypeConverter({ value: rgb, fromType: 'rgb', toType: 'hex' }),
+                    rgb,
                     hsv,
-                    hsvAverage: (hsv.h + hsv.s + hsv.v)/3,
-                    hsvSum: hsv.h + hsv.s + hsv.v
+                    hsvAverage: (hsv.h + hsv.s + hsv.v) / 3,
+                    hsvSum: hsv.h + hsv.s + hsv.v,
+                    distanceCornerColor: 0.3*Math.pow(cornerColor[0]-rgb[0],2)+0.59*Math.pow(cornerColor[1]-rgb[1],2)+0.11*Math.pow(cornerColor[2]-rgb[2],2),
+                    labDistance: eDistance3(cornerColorLab, lab),
+                    rgbDistance: eDistance3(cornerColor, rgb),
+                    hsvDistance: eDistance3(cornerColorHsv, [hsv.h, hsv.s, hsv.v])
+                }
+
+                let hueFound = false;            
+                for(let hueSat of Object.keys(hueGroups)) {
+                    let hueSatParts = hueSat.split('_').map(x => parseInt(x));
+                    if(Math.abs(eDistance2([hsv.h, hsv.s], hueSatParts)) < hueThreshhold && !hueGroups[hueSat].find(c => c.hsv.h == hsv.h && c.hsv.s == hsv.s && c.hsv.v == hsv.v )) {
+                        hueGroups[hueSat].push({hsv,rgb});
+                        hueFound = true;
+                        break;
+                    }
+                }
+
+                if(!hueFound){
+                    hueGroups[hsv.h + '_' + hsv.s] = [{hsv, rgb}];
                 }
 
                 total++;
@@ -220,19 +265,54 @@ var paletteHelper = {
             return colorsCache[key];
         }
 
-        // let y = fast.f(key);
-        // let x = key%15;
-
-        pixels.forEach(pd => {
-            if(pd.color[3] != 1)
-                return;
-
-            rgbToHex(pd.color)
-        })
+        if(hexData && hexData.length > 0) {
+            hexData.forEach(hex => rgbToHex(colors.colorTypeConverter({ value: hex, fromType: 'hex', toType: 'rgb' })))
+        }
 
         let main = this.editorContext.image.main;
+        
+        if(this.editorContext.image.general.animated) {
+            main = this.editorContext.image.main[this.editorContext.image.general.currentFrameIndex];
+        }
+
+        if(rgbData && rgbData.length > 0) {
+            rgbData.forEach(rgb => rgbToHex(rgb))
+        }
+        else {
+            let img = PP.createImage(this.editorContext.prepareModel(), { exclude: ['generated'] });
+            
+            if(this.editorContext.image.general.animated) {
+                img = img[this.editorContext.image.general.currentFrameIndex]
+            }
+
+            let pixels = getPixels(img, this.editorContext.mainGo.originalSize)
+            //getPixels(this.editorContext.mainGo.img, this.editorContext.mainGo.originalSize);
+            // console.log(this);
+
+            if (pixels.length == 0) {
+                notifications.error('No non transparent points on canvas', 2000);
+                return;
+            }
+
+            // let y = fast.f(key);
+            // let x = key%15;
+
+            pixels.forEach(pd => {
+                if (pd.color[3] != 1)
+                    return;
+
+                rgbToHex(pd.color)
+            })
+        }
+        
+
+        
 
         let generatedLayerId = `generated`;
+        if(layerName) {
+            generatedLayerId = layerName;
+        }
+
         main.layers.forEach(l => l.selected = false);
 
         let layer = main.layers.find(l => l.id == generatedLayerId);
@@ -249,8 +329,14 @@ var paletteHelper = {
 
         let colorItemSize = new V2(3,3);
         let shift = new V2(0,0);
+        if(position)
+            shift = position;
+
         let itemsShift = new V2(1,1)
         let rowSize = fast.r(total*0.2);
+        if(rowSize == 0)
+            rowSize = 1;
+
         if(rowSize*colorItemSize.x > this.editorContext.mainGo.originalSize.x/2) {
             rowSize = fast.r((this.editorContext.mainGo.originalSize.x/2)/colorItemSize.x);
         }
@@ -272,32 +358,68 @@ var paletteHelper = {
         layer.groups.push(g)
 
         let gi = 1;
-        let kv = Object.entries(colorsCache)//.map(kv => kv[1]).sort((a, b) => a.hsvAverage - b.hsvAverage);
+        let kv = Object.entries(colorsCache).sort((a,b) => a[1].labDistance - b[1].labDistance);
+        
+        //.map(kv => kv[1]).sort((a, b) => a.hsvAverage - b.hsvAverage);
             //.sort((a, b) => a[1].hsvSum - b[1].hsvSum)
 
-        for(let i = 0; i<kv.length;i++) {
-            let gItem = modelUtils.createDefaultGroup(generatedLayerId + '_g_' + gi, gi);
-            gItem.type = 'lines';
-            gItem.fill = true;
-            gItem.closePath = true;
+        for(let hueGroupKey of Object.keys(hueGroups)) {
+        //for(let hueGroup of hueGroups) {
+            let hueGroup = hueGroups[hueGroupKey];
+            if(hueGroup == undefined) continue;
+            let clrs = hueGroup.sort((a,b) => a.hsv.v - b.hsv.v);
 
-            gItem.strokeColor = kv[i][1].hex//kv[i][1];
-            gItem.fillColor = kv[i][1].hex//kv[i][1]
-
-            let itemLeftCorner = new V2(colorItemSize.x*((gi-1)%rowSize), colorItemSize.y*fast.f((gi-1)/rowSize))
-                .add(shift).add(itemsShift)
-
-            gItem.points = [itemLeftCorner, itemLeftCorner.add(new V2(colorItemSize.x-1, 0)), itemLeftCorner.add(new V2(colorItemSize.x-1, colorItemSize.y-1)), itemLeftCorner.add(new V2(0, colorItemSize.y-1))].map((p, i) => ({
-                point: p, 
-                order: i,
-                selected: false,
-                id: generatedLayerId + '_g_' + gi + '_p' + i
-            }))
-
-            layer.groups.push(gItem)
-
-            gi++
+            for(let clr of clrs) {
+                let gItem = modelUtils.createDefaultGroup(generatedLayerId + '_g_' + gi, gi);
+                gItem.type = 'lines';
+                gItem.fill = true;
+                gItem.closePath = true;
+    
+                let hex = colors.colorTypeConverter({ value: clr.rgb, fromType: 'rgb', toType: 'hex' })
+    
+                gItem.strokeColor = hex
+                gItem.fillColor = hex
+    
+                let itemLeftCorner = new V2(colorItemSize.x*((gi-1)%rowSize), colorItemSize.y*fast.f((gi-1)/rowSize))
+                    .add(shift).add(itemsShift)
+    
+                gItem.points = [itemLeftCorner, itemLeftCorner.add(new V2(colorItemSize.x-1, 0)), itemLeftCorner.add(new V2(colorItemSize.x-1, colorItemSize.y-1)), itemLeftCorner.add(new V2(0, colorItemSize.y-1))].map((p, i) => ({
+                    point: p, 
+                    order: i,
+                    selected: false,
+                    id: generatedLayerId + '_g_' + gi + '_p' + i
+                }))
+    
+                layer.groups.push(gItem)
+    
+                gi++
+            }
+            
         }
+
+        // for(let i = 0; i<kv.length;i++) {
+        //     let gItem = modelUtils.createDefaultGroup(generatedLayerId + '_g_' + gi, gi);
+        //     gItem.type = 'lines';
+        //     gItem.fill = true;
+        //     gItem.closePath = true;
+
+        //     gItem.strokeColor = kv[i][1].hex//kv[i][1];
+        //     gItem.fillColor = kv[i][1].hex//kv[i][1]
+
+        //     let itemLeftCorner = new V2(colorItemSize.x*((gi-1)%rowSize), colorItemSize.y*fast.f((gi-1)/rowSize))
+        //         .add(shift).add(itemsShift)
+
+        //     gItem.points = [itemLeftCorner, itemLeftCorner.add(new V2(colorItemSize.x-1, 0)), itemLeftCorner.add(new V2(colorItemSize.x-1, colorItemSize.y-1)), itemLeftCorner.add(new V2(0, colorItemSize.y-1))].map((p, i) => ({
+        //         point: p, 
+        //         order: i,
+        //         selected: false,
+        //         id: generatedLayerId + '_g_' + gi + '_p' + i
+        //     }))
+
+        //     layer.groups.push(gItem)
+
+        //     gi++
+        // }
 
         this.editorContext.editor.selected.layerId = generatedLayerId;
         this.editorContext.createMain();

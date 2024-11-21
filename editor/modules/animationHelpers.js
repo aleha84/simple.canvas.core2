@@ -34,7 +34,7 @@ components.animationHelpers = {
             //alert('Not found same Id group');
             let g = assignDeep(
                 {},
-                modelUtils.createDefaultGroup(selectedGroup.id, groups.length), 
+                modelUtils.createDefaultGroup(selectedGroup.id, groups.length, selectedGroup.groupType), 
                 modelUtils.groupMapper(selectedGroup, true));
 
             let sameLayer = frames[f].layers.find(l => l.id == components.editor.editor.selected.layerId);
@@ -52,10 +52,18 @@ components.animationHelpers = {
             }
         }
 
-        sameIdGroup.points = selectedGroup.points.map(p => ({
-            ...p,
-            point: {...p.point}
-        }));
+        if(selectedGroup.groupType == 'gradient') {
+            sameIdGroup.center = {...selectedGroup.center}
+            sameIdGroup.origin = {...selectedGroup.origin}
+            sameIdGroup.radius = {...selectedGroup.radius}
+        }
+        else {
+            sameIdGroup.points = selectedGroup.points.map(p => ({
+                ...p,
+                point: {...p.point}
+            }));
+        }
+        
 
         //alert('Done');
         notifications.done('Done', 2000);

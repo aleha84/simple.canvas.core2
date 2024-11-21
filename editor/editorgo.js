@@ -576,12 +576,20 @@ class EditorGO extends GO {
                 let selectedGroup = selectedLayer.groups ? selectedLayer.groups.filter(g => g.selected) : [];
                 this.model.editor.selectedLayer.selectedGroup = undefined;
 
+                let isRgbBright = (rgb) => rgb.r > 200 && rgb.g > 200 && rgb.b > 200;
+
                 if(selectedGroup.length){
                     selectedGroup= selectedGroup[0]
                     this.model.editor.selectedLayer.selectedGroup = selectedGroup;
 
-                    let rgb = colors.colorTypeConverter({value:selectedGroup.strokeColor, fromType: 'hex', toType: 'rgb' });
-                    let isBright = rgb.r > 200 && rgb.g > 200 && rgb.b > 200;
+                    let rgb = undefined 
+                    
+                    if(selectedGroup.groupType == 'gradient')
+                        rgb =colors.colorTypeConverter({value:selectedGroup.color, fromType: 'hex', toType: 'rgb' });
+                    else 
+                        rgb =colors.colorTypeConverter({value:selectedGroup.strokeColor, fromType: 'hex', toType: 'rgb' });
+
+                    let isBright = isRgbBright(rgb);
                     
                     selectedGroup.points.forEach(p => {
                         let selected = p.selected;
@@ -601,7 +609,6 @@ class EditorGO extends GO {
                         }), true)
                     )})
                 }
-                
             }
         }
         

@@ -20,7 +20,10 @@
         // "draft1.js",
         // "flow_art.js",
         // "snow_isolated.js",
-        "effects7.js",
+        // "effects7.js",
+        // "easings.js",
+        // "effects8.js",
+        "effects9.js",
         "index.js",
     ],
     "include": [

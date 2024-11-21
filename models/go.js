@@ -157,6 +157,8 @@ class GO {
         if(this.id == undefined)
             this.id = this.type + '_' + GO.counter[this.type];	
 
+        //console.log(this.id);
+
         this.creationTime = new Date;
 
         //this.regClick();

@@ -87,7 +87,7 @@
 			"this.currentFrame = 0;",
 			"this.img = this.frames[this.currentFrame];",
 			"",
-			"this.timer = this.regTimerDefault(15, () => {",
+			"this.timer = this.regTimerDefault(10, () => {",
 			"",
 			"\tthis.img = this.frames[this.currentFrame];",
 			"\tthis.currentFrame++;",
@@ -238,6 +238,20 @@
 		]
 	},
 
+	"AddChild": {
+		"scope": "javascript",
+		"prefix": "addchild",
+		"body": [
+			"this.addChild(new GO({",
+			"\tposition: new V2(),",
+			"\tsize: this.size,",
+			"\tinit() {",
+			"\t\t$1//",					
+			"\t}",
+			"}))"
+		]
+	}
+
 
 	"CreateCanvas": {
 		"scope": "javascript",
@@ -270,6 +284,9 @@
 			"\t}",
 			"",
 			"\tstart(){",
+			"\t\tlet model = ${1:name}Scene.models.main;",
+			"\t\tlet whiteColorPrefix = 'rgba(255,255,255,';",
+			"\t\tlet appSharedPP = PP.createNonDrawingInstance();",
 			"\t\t//$2",
 			"\t}",
 			"}"
@@ -297,13 +314,22 @@
 		]
 	},
 
-	"effectParticles": {
+	"createMovementFrames": {
 		"scope": "javascript",
-		"prefix": "effectParticles",
+		"prefix": "addMovementFrames",
 		"description": "Create show|hide particles effect based on data layer",
 		"body": [
 			"this.frames = animationHelpers.createMovementFrames({ framesCount: ${1:200}, itemFrameslength: ${2:20}, size: ${3:this.size}, ",
 			"\tpointsData: animationHelpers.extractPointData(${4:Scene.main.layers.find(l => l.name == 'p1'))} });"
+		]
+	},
+
+	"addV2": {
+		"scope": "javascript",
+		"prefix": "v2",
+		"description": "Create V2 instance",
+		"body": [
+			"new V2($1, $2)"
 		]
 	}
 }

@@ -46,5 +46,17 @@ components.createV2 = function(value, title, changeCallback, params = {}) {
         return divValue;
     })())
     
+    el.setValue = function(value) {
+        this.querySelector('.read').innerText = `x: ${value.x}, y: ${value.y}`;
+
+        let editX = this.querySelector('.edit>.x');
+        if(editX)
+            editX.value = value.x.toString()
+
+        let editY = this.querySelector('.edit>.y');
+        if(editY)
+            editY.value = value.y.toString()
+    }
+
     return el;
 }

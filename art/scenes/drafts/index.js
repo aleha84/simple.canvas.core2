@@ -120,12 +120,22 @@ document.addEventListener("DOMContentLoaded", function() {
     //     viewport: new V2(108,192)
     // }));
 
-    SCG.scenes.cacheScene(new Effects7Scene({
-        name:'effects7',
-        viewport: new V2(150,150)
+    // SCG.scenes.cacheScene(new EasingsScene({
+    //     name:'easings',
+    //     viewport: new V2(150,270)
+    // }));
+
+    // SCG.scenes.cacheScene(new Effects8Scene({
+    //     name:'easings',
+    //     viewport: new V2(160,200)
+    // }));
+
+    SCG.scenes.cacheScene(new Effects9Scene({
+        name:'effects9',
+        viewport: new V2(160,200)
     }));
 
-    SCG.main.startV2('effects7');
+    SCG.main.startV2('effects9');
 
     window.addEventListener("hashchange", sceneSelectByHashValue, false);
 });

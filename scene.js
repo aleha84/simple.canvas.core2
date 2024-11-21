@@ -224,7 +224,8 @@ class Scene {
                 up: undefined,
                 down: undefined,
                 move: undefined,
-                keyup: undefined
+                keyup: undefined,
+                scroll: undefined,
             },
             scrollOptions: { // default scroll options
                 enabled: false,
@@ -421,7 +422,7 @@ class Scene {
                     quality: 1,
                     transparent: null,
                     background: null,
-                    dither: false,
+                    dither: c.dither || Recorder.gif.ditherTypes.FalseFloydSteinbergSerpentine,//'FalseFloydSteinberg-serpentine', //-serpentine
                     workerScript: c.utilitiesPathPrefix + '/utilities/libs/gif.worker.js',
                 })
 
@@ -433,7 +434,7 @@ class Scene {
             }
             else {
                 c.videoWriter = new WebMWriter({
-                    quality: c.quadlity || 0.99999,
+                    quality: c.quality || 0.99999,
                     frameRate: c.frameRate || 60,
                 });
             }
@@ -548,10 +549,6 @@ class Scene {
                 }
                 goLayer[i].update(now);
                 goLayer[i].render();
-        
-                // if(SCG.frameCounter && goLayer[i].renderPosition!=undefined){
-                //     SCG.frameCounter.visibleCount++;
-                // }
         
                 if(!goLayer[i].alive){
                     var deleted = goLayer.splice(i,1);

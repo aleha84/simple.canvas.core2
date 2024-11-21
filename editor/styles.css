@@ -83,6 +83,9 @@ html,
         float: left;
         width: 20%;
     }
+    .row>.title.auto {
+      width: auto;
+    }
     .row>.title + .value {
         float: right;
         width: 80%;
@@ -97,6 +100,11 @@ html,
       .rowFlex {
         display: flex;
       }
+
+    .row.select.auto>.title {
+      width: auto;
+      padding-right: 5px;
+    }
 
     .V2>.value.edit > .read,
     .inputBox>.value.edit > .read {
@@ -147,7 +155,7 @@ html,
       right: 0;
       bottom: 0;
       background-color: rgba(0,0,0,0.5);
-      z-index: 2000;
+      z-index: 20000;
       margin: 0 !important;
     }
 
@@ -196,7 +204,14 @@ html,
       font-size: 28px;
     }
 
-    
+    .overlay>.content.autosave {
+      padding: 10px;
+      background-color: white;
+    }
+
+    .overlay>.content.autosave .newValue {
+      width: 35px;
+    }
 
     .overlay>.content.moveToLayer {
       padding: 10px;
@@ -219,14 +234,10 @@ html,
 
     /* end moveToLayer */
 
-    /*cleanGroupsInLayer*/
-    .overlay>.content.cleanGroupsInLayer {
-      padding: 10px;
-      background-color: white;
-    }
-    
-    .cleanGroupsInLayer .availableGroupsItem>*{
-      margin: 0 2px;
+    .availableGroups {
+      margin-bottom: 5px;
+      border-bottom: 1px solid black;
+      padding-bottom: 2px;
     }
 
     .availableGroups .paletteItem {
@@ -237,7 +248,34 @@ html,
       border-bottom: 1px solid black;
     }
 
-    /*end cleanGroupsInLayer*/
+    .availableGroupsItemWrapper {
+      height: 70vh;
+      overflow-y: scroll;
+    }
+
+    /*cleanGroupsInLayer*/
+    .overlay>.content.cleanGroupsInLayer {
+      padding: 10px;
+      background-color: white;
+    }
+    
+    .cleanGroupsInLayer .availableGroupsItem>*{
+      margin: 0 2px;
+    }
+
+    /*end changeVisibilityGroupsInLayer*/
+
+    /*changeVisibilityGroupsInLayer*/
+    .overlay>.content.changeVisibilityGroupsInLayer {
+      padding: 10px;
+      background-color: white;
+    }
+    
+    .changeVisibilityGroupsInLayer .availableGroupsItem>*{
+      margin: 0 2px;
+    }
+
+    /*end changeVisibilityGroupsInLayer*/
 
     .editorBlock>.modeSwitch>.stateName {
         font-size: 20px;
@@ -313,6 +351,11 @@ html,
 
     .panel .content.visible {
       display: block;
+    }
+
+    .panel .content.visible .item {
+      margin-top: 3px;
+      margin-right: 1px;
     }
 
     .panel.utilities {

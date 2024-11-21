@@ -292,6 +292,27 @@ class Vector2 {
     static get one() {
         return new V2(1,1)
     }
+
+    static random(xClamps=[], yClamps=[],toInt=true) {
+        if(toInt)
+            return new V2(getRandomInt(xClamps), getRandomInt(yClamps));
+
+        return new V2(getRandom(xClamps[0], xClamps[1]), getRandom(yClamps[0], yClamps[1]));
+    }
+
+    static objToV2(obj) {
+        if(obj == undefined)
+            throw 'objToV2 failed. Obj is undefined';
+
+        if(obj instanceof Vector2)
+            return obj;
+        
+        if(isObject(obj) && obj.x != undefined && obj.y != undefined){
+            return new V2(obj);
+        }
+
+        throw 'objToV2 failed. Obj has wrong structure. ' + JSON.stringify(obj);
+    }
 }
 
 var V2 = Vector2;

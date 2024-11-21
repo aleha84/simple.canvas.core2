@@ -638,6 +638,28 @@ var colors = {
         white: 'rgba(255,255,255, 1)',
         black: 'rgba(0,0,0,1)',
     },
+    colorsCache: {
+        rgbToHexCache: {}
+    },
+    rgbToHex: function(rgb) {
+        let key = undefined;
+
+        if(isArray(rgb))
+            key = rgb[0]*1000000 + rgb[1]*1000 + rgb[2];
+        else if(isObject(rgb) && rgb.r != undefined && rgb.g != undefined && rgb.b != undefined) 
+            key = rgb.r*1000000 + rgb.g*1000 + rgb.b;
+        else 
+            throw 'rgbToHex failed to convert. Value isnt an array or valid object'
+
+        if(!this.colorsCache.rgbToHexCache[key]) {
+            this.colorsCache.rgbToHexCache[key] = this.colorTypeConverter({ value: rgb, fromType: 'rgb', toType: 'hex' })
+        }
+
+        return this.colorsCache.rgbToHexCache[key];
+    },
+    getColorPrefix(value, type){
+        return colors.colorTypeConverter({ value, toType: 'rgbprefix', fromType: type});
+    },
     createColorChange(value1, value2, colorType, steps, type, method) {
         if(steps < 2)
             throw "Steps should be more than 1";
@@ -820,6 +842,9 @@ var colors = {
             case "rgbstring": 
                 result = colors.rgbToString({ value: colorData, isObject: true })
                 break;
+            case "rgbprefix":
+                result = colors.rgbToString({ value: colorData, isObject: true, asPrefix: true }) 
+                break;
             default:
                 throw "Unknow to type: " + toType;
         }
@@ -852,7 +877,7 @@ var colors = {
 
         return result;
     },
-    rgbToString({value, isObject = false, opacity = 1}) {
+    rgbToString({value, isObject = false, opacity = 1, asPrefix = false}) {
         if(isObject){
             let _opacity = undefined;
             if(value.opacity != undefined){
@@ -867,11 +892,20 @@ var colors = {
                 _opacity = opacity;
             }
 
-            return `rgba(${value.r || value.red || 0}, ${value.g || value.green || 0}, ${value.b || value.blue || 0}, ${_opacity})`;
-        }
-            
+            let prefix = `rgba(${value.r || value.red || 0}, ${value.g || value.green || 0}, ${value.b || value.blue || 0},`;
 
-        return `rgba(${value[0]}, ${value[1]}, ${value[2]}, ${(value[3]!= undefined ? value[3] : opacity)})`;
+            if(asPrefix)
+                return prefix;
+
+            return `${prefix}${_opacity})`;
+        }
+
+        let prefix = `rgba(${value[0]}, ${value[1]}, ${value[2]},`;
+
+        if(asPrefix)
+                return prefix;
+
+        return `${prefix}${(value[3]!= undefined ? value[3] : opacity)})`;
     },
     toHsv({initialValue, isRgb = false, resultAsArray = false, asInt = false}){
         let rgb = undefined;

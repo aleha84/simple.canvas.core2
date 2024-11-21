@@ -132,6 +132,7 @@ class Editor {
                     zoom: {current: 10, max: 10, min: 1, step: 1},
                     showGrid: false,
                     renderOptimization: false,
+                    disableLayerImageOptimization: false,
                     animated: false,
                     animatedProps: {
                         framesPreview: {
@@ -501,63 +502,12 @@ class Editor {
         }
 
         let groupMapper = (g, layer) => {
-            return {
+            let result = {
                 ...modelUtils.groupMapper(g),
                 changeCallback() {
                     layer.removeImage();
                     that.updateEditor.bind(that)();
                 },
-                points: g.points.map((p) => {
-                    return {
-                        ...modelUtils.pointMapper(p),
-                        changeCallback(value, skipEventDispatch = false) {
-                            layer.removeImage();
-
-                            p.point.x = value.x;
-                            p.point.y = value.y;
-
-                            let select = g.pointsEl.querySelector('select');
-                            if(select){
-                                for(let i = 0; i < select.options.length;i++){
-                                    select.options[i].selected = select.options[i].value == p.id;
-                                    if(select.options[i].selected){
-                                        select.options[i].text = `x: ${p.point.x}, y: ${p.point.y}`
-                                    }
-                                }
-                            }
-
-                            g.points.forEach(_p => _p.selected = false);
-                            p.selected = true;
-
-                            if(!skipEventDispatch){
-                                that.updateEditor.bind(that)();
-                            }
-                                
-                        },
-                        selectCallback() {
-                            let select = g.pointsEl.querySelector('select');
-                            if(select){
-                                for(let i = 0; i < select.options.length;i++){
-                                    select.options[i].selected = select.options[i].value == p.id;
-                                }
-
-                                select.dispatchEvent(new CustomEvent('change', { detail: 'skipSelectChangeCallback' }));
-                            }
-                            else {
-                                e.selected.pointId = p.id;
-                                e.removeSelectedPoint = () => {
-                                    layer.removeImage();
-                                    g.points = g.points.filter(gp => gp.id != p.id);  
-                                    g.points.forEach((p, i) => {p.order = i; p.selected = false});
-                                    that.updateEditor.bind(that)();
-                                };
-                            }
-                            
-                            g.points.forEach(_p => _p.selected = false);
-                            p.selected = true;
-                        }
-                    }
-                }),
                 addPointCallback(p) {
                     let callback = () => {  
                         //console.log('addPointCallback'); 
@@ -620,6 +570,108 @@ class Editor {
                     callback();
                 }
             }
+
+            let points = [];
+
+            if(g.groupType == 'gradient'){
+                points = [
+                    {
+                        point: g.center,
+                        order: 0,
+                        selected: false,
+                        type: 'center',
+                        id: g.id + '_center'
+                    },
+                    {
+                        point: g.origin,
+                        order: 1,
+                        selected: false,
+                        type: 'origin',
+                        id: g.id + '_origin'
+                    }
+                ]
+            }
+            else {
+                points = g.points;
+            }
+
+            result.points = points.map((p) => {
+                return {
+                    ...modelUtils.pointMapper(p),
+                    changeCallback(value, skipEventDispatch = false) {
+                        layer.removeImage();
+
+                        if(g.groupType == 'gradient'){
+                            //console.log(p, value)
+
+                            if(p.type == 'center'){
+                                g.center.x = value.x
+                                g.center.y = value.y
+
+                                components.editor.editor.selected.groupEl.centerEl.setValue(value);
+                            }
+                            else if(p.type == 'origin') {
+                                g.origin.x = value.x
+                                g.origin.y = value.y
+
+                                components.editor.editor.selected.groupEl.originEl.setValue(value);
+                            }
+                        }
+                        else {
+                            p.point.x = value.x;
+                            p.point.y = value.y;
+    
+                            let select = g.pointsEl.querySelector('select');
+                            if(select){
+                                for(let i = 0; i < select.options.length;i++){
+                                    select.options[i].selected = select.options[i].value == p.id;
+                                    if(select.options[i].selected){
+                                        select.options[i].text = `x: ${p.point.x}, y: ${p.point.y}`
+                                    }
+                                }
+                            }
+    
+                            g.points.forEach(_p => _p.selected = false);
+                            p.selected = true;
+                        }
+                        
+
+                        if(!skipEventDispatch){
+                            that.updateEditor.bind(that)();
+                        }
+                            
+                    },
+                    selectCallback() {
+                        if(g.groupType == 'gradient'){
+                            return;
+                        }
+
+
+                        let select = g.pointsEl.querySelector('select');
+                        if(select){
+                            for(let i = 0; i < select.options.length;i++){
+                                select.options[i].selected = select.options[i].value == p.id;
+                            }
+
+                            select.dispatchEvent(new CustomEvent('change', { detail: 'skipSelectChangeCallback' }));
+                        }
+                        else {
+                            e.selected.pointId = p.id;
+                            e.removeSelectedPoint = () => {
+                                layer.removeImage();
+                                g.points = g.points.filter(gp => gp.id != p.id);  
+                                g.points.forEach((p, i) => {p.order = i; p.selected = false});
+                                that.updateEditor.bind(that)();
+                            };
+                        }
+                        
+                        g.points.forEach(_p => _p.selected = false);
+                        p.selected = true;
+                    }
+                }
+            })
+
+            return result;
         }
         let layerMapper = (l) => {
             return {
@@ -630,9 +682,22 @@ class Editor {
                     let d = new V2(direction);
                     
                     l.groups.forEach(g => {
-                        g.points.forEach(p => {
-                            p.point = new V2(p.point).add(d).toPlain();
-                        })
+
+                        if(g.groupType == 'gradient'){
+                            g.center = g.center.add(d);
+                            g.origin = g.origin.add(d);
+
+                            if(components.editor.editor.selected.groupEl)
+                                components.editor.editor.selected.groupEl.centerEl.setValue(g.center);
+
+                            if(components.editor.editor.selected.groupEl)
+                                components.editor.editor.selected.groupEl.originEl.setValue(g.origin);
+                        }
+                        else {
+                            g.points.forEach(p => {
+                                p.point = new V2(p.point).add(d).toPlain();
+                            })
+                        }
                     })
 
                     that.updateEditor.bind(that)();
@@ -680,6 +745,7 @@ class Editor {
                 zoom: i.general.zoom.current,
                 showGrid: i.general.showGrid, 
                 renderOptimization: i.general.renderOptimization,
+                disableLayerImageOptimization: i.general.disableLayerImageOptimization,
                 animated,
                 backgroundColor:i.general.backgroundColor,
                 palettes: i.general.palettes.map(palette => modelUtils.paletteMapper(palette, true))
@@ -696,6 +762,35 @@ class Editor {
 
     importModel(model) {
         let that = this;
+
+        let importGroup = (g, layerIndex, groupIndex) => {
+
+            if(g.groupType == 'gradient') {
+                return assignDeep(
+                    {},
+                    modelUtils.createDefaultGradient(`m_${layerIndex}_gr_${groupIndex}`, groupIndex),
+                    {
+                        ...g
+                    }
+                )
+            }
+
+            return assignDeep(
+                {},
+                modelUtils.createDefaultGroup(`m_${layerIndex}_g_${groupIndex}`, groupIndex),
+                {
+                    currentPointId: g.points.length
+                },
+                {
+                    ...g,
+                    points: g.points.map((p,k) => assignDeep({}, {
+                        id: `m_${layerIndex}_g_${groupIndex}_p_${k}`,
+                        order: k,
+                    }, p))
+                }
+            )
+        }
+
         let importMainLayers = (main) => 
             (main.layers.map(
                 (l,i) => assignDeep(
@@ -706,20 +801,7 @@ class Editor {
                     }, 
                     {
                         ...l,
-                        groups: l.groups.map((g, j) => assignDeep(
-                            {},
-                            modelUtils.createDefaultGroup(`m_${i}_g_${j}`, j),
-                            {
-                                currentPointId: g.points.length
-                            },
-                            {
-                                ...g,
-                                points: g.points.map((p,k) => assignDeep({}, {
-                                    id: `m_${i}_g_${j}_p_${k}`,
-                                    order: k,
-                                }, p))
-                            }
-                        ))
+                        groups: l.groups.map((g, j) => importGroup(g,i,j))
                     }
                 )
             ));
@@ -958,6 +1040,56 @@ class Editor {
         }}));
         */
 
+        controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Autosave', attributes: { type: 'button' }, events: {
+            click: function(){
+                that.controls.removeOverlay();
+
+                let defaultValidation = (nv) => {
+                    let v = parseInt(nv);
+                    return nv > 0;
+                }
+
+                that.controls.overlayEl = htmlUtils.createElement('div', { className: 'overlay' });
+                let containerEl = htmlUtils.createElement('div', { classNames: ['content', 'autosave'] });
+
+                containerEl.appendChild(htmlUtils.createElement('h3', { text: 'Progress frames autosave properties' }));
+
+                containerEl.appendChild(htmlUtils.createElement('div', { text: 'Frames collected:' + components.autosave.frames.length }));
+                let enabledChk = components.createCheckBox(components.autosave.enabled, "Enabled: ", () => {})
+                let defaultCounterValueInput = components.createInput(components.autosave.defaultCounterValue, "Default counter value: ", () => {}, defaultValidation, { editBlockType: 'number', editWidth: 35 })
+                let startFrameIndexInput = components.createInput(components.autosave.startFrameIndex, "Start frame index: ", () => {}, defaultValidation, { editBlockType: 'number', editWidth: 35 })
+                let multiplierInput = components.createInput(components.autosave.multiplier, "Multiplier: ", () => {}, defaultValidation, { editBlockType: 'number', editWidth: 35 })
+
+                containerEl.appendChild(enabledChk);
+                containerEl.appendChild(defaultCounterValueInput);
+                containerEl.appendChild(startFrameIndexInput);
+                containerEl.appendChild(multiplierInput);
+
+                containerEl.appendChild(htmlUtils.createElement('input', { value: 'Update parameters', attributes: { type: 'button' }, events: {
+                    click: function(){
+                        components.autosave.updateParams({
+                            enabled: enabledChk.chk.checked,
+                            defaultCounterValue: parseInt(defaultCounterValueInput.value),
+                            startFrameIndex: parseInt(startFrameIndexInput.value),
+                            multiplier: parseInt(multiplierInput.value),
+                        })
+
+                        that.controls.removeOverlay();
+                    }
+                } }));
+                
+                containerEl.appendChild(htmlUtils.createElement('input', { value: 'ZIP', attributes: { type: 'button' }, events: {
+                    click: function(){
+                        components.autosave.save();
+
+                        that.controls.removeOverlay();
+                    }
+                } }));
+
+                createCloseButtonAndAddOverlay(containerEl);
+            }
+        } }));
+
         controlsEl.appendChild(htmlUtils.createElement('input', { value: 'Save img', attributes: { type: 'button' }, events: {
             click: function(){
                 that.controls.removeOverlay();
@@ -1150,15 +1282,24 @@ class Editor {
             this.updateEditor();
         }.bind(this)));
         
-        generalEl.appendChild(components.createCheckBox(general.showGrid, 'Show grid', function(value) {
-            general.showGrid = value;
-            this.updateEditor();
-        }.bind(this)));
+        // generalEl.appendChild(components.createCheckBox(general.showGrid, 'Show grid', function(value) {
+        //     general.showGrid = value;
+        //     this.updateEditor();
+        // }.bind(this)));
 
         generalEl.appendChild(components.createCheckBox(general.renderOptimization, 'Render optimization', function(value) {
             general.renderOptimization = value;
             this.updateEditor();
-        }.bind(this)));
+        }.bind(this),
+        { titleClassNames: ['auto']}
+        ));
+
+        generalEl.appendChild(components.createCheckBox(general.disableLayerImageOptimization, 'Disable layerImage optimization', function(value) {
+            general.disableLayerImageOptimization = value;
+            this.updateEditor();
+        }.bind(this), 
+        { titleClassNames: ['auto']}
+        ));
 
         generalEl.appendChild(components.createCheckBox(general.animated, 'Animated', function(value) {
             
@@ -1371,7 +1512,7 @@ class Editor {
                     {
                         text: "Save as ZIP",
                         click: () => {
-                            let frames = PP.createImage(that.image);
+                            let frames = PP.createImage(that.prepareModel());
                             //console.log(frames);
                             let zip = new JSZip();
                             frames.forEach((frame, i) => {

@@ -116,6 +116,19 @@ class Recorder {
     }
 }
 
+Recorder.gif = {
+    ditherTypes: {
+        FloydSteinberg: 'FloydSteinberg',
+        FloydSteinbergSerpentine: 'FloydSteinberg-serpentine',
+        FalseFloydSteinberg: 'FalseFloydSteinberg',
+        FalseFloydSteinbergSerpentine: 'FalseFloydSteinberg-serpentine',
+        Stucki: 'Stucki',
+        StuckiSerpentine: 'Stucki-serpentine',
+        Atkinson: 'Atkinson',
+        AtkinsonSerpentine: 'Atkinson-serpentine'
+    }
+}
+
 /*class Recorder {
     constructor(canvas, frameRate) {
         this.recordedBlobs = [];

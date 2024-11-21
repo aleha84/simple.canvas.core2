@@ -1,5 +1,8 @@
 components.createGroup = function(groupEl, groupProps, changeCallback){
     htmlUtils.removeChilds(groupEl);
+    groupEl.centerEl = undefined;
+    groupEl.originEl = undefined;
+
     if(groupProps == undefined) {
         changeCallback();
         return;
@@ -15,6 +18,81 @@ components.createGroup = function(groupEl, groupProps, changeCallback){
     groupEl.appendChild(groupVisibilityEl);
 
     components.editor.editor.toggleGroupVisibility = () => groupVisibilityEl.chk.click();
+
+    if(groupProps.groupType == 'gradient') {
+        let centerEl = components.createV2(groupProps.center, 'Center', function() {
+            changeCallback();
+        })
+
+        groupEl.appendChild(centerEl)
+        groupEl.centerEl = centerEl;
+
+        let originEl = components.createV2(groupProps.origin, 'Origin', function() {
+            changeCallback();
+        });
+
+        groupEl.appendChild(originEl)
+        groupEl.originEl = originEl;
+
+        groupEl.appendChild(components.createV2(groupProps.radius, 'Radius', function() {
+            changeCallback();
+        }))
+
+        groupEl.appendChild(components.createColorPicker(groupProps.color, 'Color', (color) => {
+            groupProps.color = color;
+            changeCallback();
+        }))
+
+        groupEl.appendChild(components.createSelect(groupProps.easingType, ['linear','sin', 'quad', 'cubic', 'expo'],'Easing type', function(value){
+            groupProps.easingType = value;
+            groupProps.easingMethod = undefined;
+
+            easingMethodEl.createSelectOptions(getEasingMethods(value))
+            easingMethodEl.selectElement.selectedIndex = -1;
+
+            changeCallback();
+        }, { classNames: ['auto'] }))
+
+        let getEasingMethods = (type) =>  {
+            switch(type) {
+                case 'linear': return ['base'];
+                case 'sin': case 'quad': case 'cubic': case 'expo': return ['in', 'out', 'inOut'];
+            }
+
+            return [];
+        }
+    
+        let easingMethodEl = components.createSelect(groupProps.easingMethod, getEasingMethods(groupProps.easingType),'Easing type', function(value){
+            groupProps.easingMethod = value;
+    
+            changeCallback();
+        }, { classNames: ['auto'] })
+
+        groupEl.appendChild(easingMethodEl)
+
+        groupEl.appendChild(components.createInput(groupProps.angle, "Angle", (value) => {
+            groupProps.angle = parseFloat(value);
+            changeCallback();
+        },(value) => !Number.isNaN(Number.parseFloat(value)), { editBlockType: 'number' }))
+
+        groupEl.appendChild(components.createInput(groupProps.aValueMul, "Opacity mul", (value) => {
+            groupProps.aValueMul = parseFloat(value);
+            changeCallback();
+        },(value) => {
+            let val = Number.parseFloat(value);
+            return !Number.isNaN(val) && val > 0
+        }, 
+        { editBlockType: 'number' }))
+
+        groupEl.appendChild(components.createSelect(groupProps.useValueType, ['max', 'mid'],'Use type', function(value){
+            groupProps.useValueType = value;
+    
+            changeCallback();
+        }, { classNames: ['auto'] }))
+
+        changeCallback(false);
+        return;
+    }
 
     groupEl.appendChild(this.createCheckBox(groupProps.clear, 'Clear', (value) =>{
         groupProps.clear = value;
@@ -276,7 +354,7 @@ components.fillGroups = function(layerProps, changeCallback) {
 
                     let gCloned = assignDeep(
                         {},
-                        modelUtils.createDefaultGroup(selectedGroup.id, groups.length), 
+                        modelUtils.createDefaultGroup(selectedGroup.id, groups.length, selectedGroup.groupType), 
                         modelUtils.groupMapper(selectedGroup, true));
 
                     layer = layer[0];
@@ -331,7 +409,7 @@ components.fillGroups = function(layerProps, changeCallback) {
                     //alert('Not found same Id group');
                     let g = assignDeep(
                         {},
-                        modelUtils.createDefaultGroup(selectedGroup.id, groups.length), 
+                        modelUtils.createDefaultGroup(selectedGroup.id, groups.length, selectedGroup.groupType), 
                         modelUtils.groupMapper(selectedGroup, true));
 
                     let sameLayer = frames[f].layers.find(l => l.id == components.editor.editor.selected.layerId);
@@ -349,10 +427,18 @@ components.fillGroups = function(layerProps, changeCallback) {
                     }
                 }
 
-                sameIdGroup.points = selectedGroup.points.map(p => ({
-                    ...p,
-                    point: {...p.point}
-                }));
+                if(selectedGroup.groupType == 'gradient') {
+                    sameIdGroup.center = {...selectedGroup.center}
+                    sameIdGroup.origin = {...selectedGroup.origin}
+                    sameIdGroup.radius = {...selectedGroup.radius}
+                }
+                else {
+                    sameIdGroup.points = selectedGroup.points.map(p => ({
+                        ...p,
+                        point: {...p.point}
+                    }));
+                }
+                
 
                 //alert('Done');
                 notifications.done('Done', 2000);
@@ -374,16 +460,21 @@ components.fillGroups = function(layerProps, changeCallback) {
             }
 
             let selectedGroup = groups.find(g => g.id == groupId);
-            let nextGroupId = `${layerProps.id}_g_${layerProps.currentGroupId++}`;
+
+            let idMidPart = 'g';
+            if(selectedGroup.groupType == 'gradient')
+                idMidPart = 'gr'
+
+            let nextGroupId = `${layerProps.id}_${idMidPart}_${layerProps.currentGroupId++}`;
             while(groups.filter(g => g.id == nextGroupId).length > 0){
-                nextGroupId = `${layerProps.id}_g_${layerProps.currentGroupId++}`;
+                nextGroupId = `${layerProps.id}_${idMidPart}_${layerProps.currentGroupId++}`;
             }
 
             layerProps.groups.forEach(g => g.selected = false);
 
             let clonedGroup = assignDeep(
                 {},
-                modelUtils.createDefaultGroup(nextGroupId, layerProps.groups.length), 
+                modelUtils.createDefaultGroup(nextGroupId, layerProps.groups.length, selectedGroup.groupType), 
                 modelUtils.groupMapper(selectedGroup, true));
             
             clonedGroup.selected = true;
@@ -407,6 +498,38 @@ components.fillGroups = function(layerProps, changeCallback) {
 
             changeCallback();
             notifications.done('Group cloned', 1000);
+        }
+    },{
+        text: 'Add gradient',
+        click: (select) => {
+            console.log('add gradient clicked')
+            let { layerId } = components.editor.editor.selected;
+
+            if(layerProps.currentGroupId == undefined){
+                layerProps.currentGroupId = 0;
+            }
+
+            let nextGroupId = `${layerProps.id}_gr_${layerProps.currentGroupId++}`;
+            while(groups.filter(g => g.id == nextGroupId).length > 0){
+                nextGroupId = `${layerProps.id}_gr_${layerProps.currentGroupId++}`;
+            }
+
+            let group = modelUtils.createDefaultGradient(nextGroupId, groups.length);
+
+            group.selected = true;
+
+            groups.push(group);
+
+            select.options[select.options.length] = new Option(group.id, group.id);
+            select.value = group.id;
+            
+            components.editor.editor.selected.groupId = group.id;
+            components.editor.editor.selected.pointId = undefined;
+
+            select.dispatchEvent(new CustomEvent('change', { detail: 'setModeStateToAdd' }));
+            
+            components.editor.editor.setModeState(true, 'edit');
+            components.editor.editor.setMoveGroupModeState(true);
         }
     })
 
@@ -432,18 +555,25 @@ components.fillGroups = function(layerProps, changeCallback) {
                     }
                 }
 
-                let groupChangeCallback = function() {   
+                let groupChangeCallback = function(removeImage = true) {   
                     //console.log('groupChangeCallback')
-                    layerProps.removeImage();
+                    // вызывается каждый раз когда дергается функция changeCallback в методе createGroup
+                    if(removeImage)
+                        layerProps.removeImage();
+
                     changeCallback(); 
                 }
 
                 components.createGroup(groupEl, selectedGroup, groupChangeCallback);
+
+                components.editor.editor.selected.groupEl = groupEl;
+
                 components.editor.editor.setMoveGroupModeState(true);
                 components.editor.editor.setModeState(true, 'edit');
             },
             reset: function(e) { 
                 components.resetGroups();
+                components.editor.editor.selected.groupEl = undefined;
                 // groups.forEach(g => g.selected = false);
                 // //components.createGroup(undefined, undefined, changeCallback) 
                 
@@ -469,6 +599,7 @@ components.fillGroups = function(layerProps, changeCallback) {
                 
                 
                 components.editor.editor.selected.groupId = undefined;
+                components.editor.editor.selected.groupEl = undefined;
                 components.editor.editor.selected.pointId = undefined;
 
                 layerProps.groups = groups;
